@@ -13,7 +13,7 @@ export default function LetterView() {
   const [, params] = useRoute("/letters/:id");
   const letterId = params?.id ? parseInt(params.id) : 0;
 
-  const { data: letter, isLoading } = trpc.disputeLetters.get.useQuery({ letterId });
+  const { data: letter, isLoading } = trpc.disputeLetters.get.useQuery({ id: letterId });
   const updateStatus = trpc.disputeLetters.updateStatus.useMutation({
     onSuccess: () => {
       toast.success("Letter status updated!");
@@ -60,7 +60,7 @@ export default function LetterView() {
     
     // Update status to downloaded if it was just generated
     if (letter.status === "generated") {
-      updateStatus.mutate({ letterId: letter.id, status: "downloaded" });
+      updateStatus.mutate({ id: letter.id, status: "downloaded" });
     }
     
     toast.success("Letter downloaded!");
@@ -69,7 +69,7 @@ export default function LetterView() {
   const handleMarkAsMailed = () => {
     const trackingNumber = prompt("Enter tracking number (optional):");
     updateStatus.mutate({
-      letterId: letter.id,
+      id: letter.id,
       status: "mailed",
       trackingNumber: trackingNumber || undefined,
     });

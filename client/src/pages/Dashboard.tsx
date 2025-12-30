@@ -28,6 +28,7 @@ export default function Dashboard() {
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
+  const uploadToS3 = trpc.upload.uploadToS3.useMutation();
   const { data: negativeAccounts, refetch: refetchAccounts } = trpc.negativeAccounts.list.useQuery();
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
 
@@ -48,19 +49,38 @@ export default function Dashboard() {
     setUploadingBureau(bureau);
     
     // Convert file to base64
+    // Upload file to S3 first
+    const fileKey = `credit-reports/${user?.id}/${bureau}/${Date.now()}-${file.name}`;
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const base64 = e.target?.result as string;
-      const fileData = base64.split(',')[1]; // Remove data:mime;base64, prefix
+      const arrayBuffer = e.target?.result as ArrayBuffer;
+      const uint8Array = new Uint8Array(arrayBuffer);
       
-      await uploadReport.mutateAsync({
-        bureau,
-        fileData,
-        fileName: file.name,
-        mimeType: file.type,
-      });
+      try {
+        // Upload to S3 via tRPC
+        const uploadResult = await uploadToS3.mutateAsync({
+          fileKey,
+          fileData: Array.from(uint8Array),
+          contentType: file.type,
+        });
+        
+        // Now create credit report record
+        await uploadReport.mutateAsync({
+          bureau,
+          fileName: file.name,
+          fileUrl: uploadResult.url,
+          fileKey: uploadResult.key,
+        });
+        
+        toast.success(`${bureau} report uploaded successfully!`);
+      } catch (error) {
+        console.error('Upload failed:', error);
+        toast.error('Failed to upload file');
+      } finally {
+        setUploadingBureau(null);
+      }
     };
-    reader.readAsDataURL(file);
+    reader.readAsArrayBuffer(file);
   };
 
   // Calculate progress
