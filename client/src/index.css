@@ -43,39 +43,47 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
-  --radius: 0.65rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.235 0.015 65);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.235 0.015 65);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.623 0.214 259.815);
+  /* Professional credit repair brand - Trust & Authority */
+  --primary: oklch(0.45 0.15 250); /* Deep professional blue */
+  --primary-foreground: oklch(0.99 0 0);
+  --sidebar-primary: oklch(0.50 0.15 250);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  
+  /* Secondary: Success green - Credit improvement */
+  --secondary: oklch(0.50 0.12 160); /* Professional green */
+  --secondary-foreground: oklch(0.99 0 0);
+  
+  /* Accent: Highlight gold - Premium service */
+  --accent: oklch(0.65 0.15 80); /* Warm gold */
+  --accent-foreground: oklch(0.20 0 0);
+  
+  /* Chart colors for credit score visualization */
+  --chart-1: oklch(0.55 0.15 250); /* Blue */
+  --chart-2: oklch(0.60 0.12 160); /* Green */
+  --chart-3: oklch(0.65 0.15 80); /* Gold */
+  --chart-4: oklch(0.60 0.18 25); /* Red */
+  --chart-5: oklch(0.50 0.12 280); /* Purple */
+  
+  --radius: 0.5rem;
+  --background: oklch(0.99 0 0); /* Pure white */
+  --foreground: oklch(0.20 0 0); /* Near black */
+  --card: oklch(0.99 0 0);
+  --card-foreground: oklch(0.20 0 0);
+  --popover: oklch(0.99 0 0);
+  --popover-foreground: oklch(0.20 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0 0);
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.90 0 0);
+  --input: oklch(0.90 0 0);
+  --ring: oklch(0.45 0.15 250);
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.235 0.015 65);
-  --sidebar-accent: oklch(0.967 0.001 286.375);
-  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
-  --sidebar-border: oklch(0.92 0.004 286.32);
-  --sidebar-ring: oklch(0.623 0.214 259.815);
+  --sidebar-foreground: oklch(0.20 0 0);
+  --sidebar-accent: oklch(0.96 0 0);
+  --sidebar-accent-foreground: oklch(0.20 0 0);
+  --sidebar-border: oklch(0.90 0 0);
+  --sidebar-ring: oklch(0.45 0.15 250);
 }
 
 .dark {
@@ -119,6 +127,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -130,6 +139,23 @@
   input[type="checkbox"]:not(:disabled),
   input[type="radio"]:not(:disabled) {
     @apply cursor-pointer;
+  }
+  
+  /* Professional typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  h3 {
+    @apply text-2xl md:text-3xl;
   }
 }
 
@@ -158,6 +184,25 @@
   .flex {
     min-height: 0;
     min-width: 0;
+  }
+}
+
+/* Custom gradient utilities for brand */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .gradient-primary {
+    background: linear-gradient(135deg, oklch(0.45 0.15 250), oklch(0.55 0.15 240));
+  }
+  
+  .gradient-success {
+    background: linear-gradient(135deg, oklch(0.50 0.12 160), oklch(0.60 0.12 150));
+  }
+  
+  .gradient-premium {
+    background: linear-gradient(135deg, oklch(0.65 0.15 80), oklch(0.75 0.15 70));
   }
 
   @media (min-width: 640px) {
