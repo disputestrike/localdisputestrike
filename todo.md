@@ -87,3 +87,14 @@
 - [x] Add more white space and breathing room
 - [x] Improve CTA buttons with more urgency
 - [x] Add comparison table with Dispute Beast
+
+## Phase 12: CROA Legal Compliance & Pricing Redesign
+- [x] Research Dispute Beast's FAQ and legal structure
+- [x] Analyze CROA (Credit Repair Organizations Act) requirements
+- [x] Design legal workaround structure (software + education + monitoring)
+- [x] Redesign pricing to comply with CROA (3-tier hybrid model)
+- [x] Update messaging to position as "software" not "credit repair service"
+- [x] Add legal disclaimers and terms of service
+- [ ] Create "Credit Education Course" component
+- [x] Bundle credit monitoring with dispute letter generation
+- [ ] Update all marketing copy for compliance
