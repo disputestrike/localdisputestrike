@@ -271,6 +271,23 @@ export default function Dashboard() {
                   to review what we found.
                 </AlertDescription>
               </Alert>
+            )
+          }
+
+          {hasLetters && (
+            <Alert className="border-blue-500 bg-blue-50">
+              <Mail className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="flex items-center justify-between">
+                <span className="text-blue-900">
+                  <strong>Ready to mail your letters?</strong> View our complete guide on what documents to include and how to send via Certified Mail.
+                </span>
+                <Button asChild variant="outline" size="sm" className="ml-4 flex-shrink-0">
+                  <Link href="/mailing-instructions">
+                    View Mailing Guide
+                  </Link>
+                </Button>
+              </AlertDescription>
+            </Alert>
             )}
           </TabsContent>
 

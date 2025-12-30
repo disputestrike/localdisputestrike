@@ -9,6 +9,7 @@ import Dashboard from "@/pages/Dashboard";
 import AIAssistant from "@/pages/AIAssistant";
 import LetterView from "@/pages/LetterView";
 import Admin from "@/pages/Admin";
+import MailingInstructions from "@/pages/MailingInstructions";
 import Pricing from "./pages/Pricing";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={Admin} />
+      <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
       <Route path={"/pricing"} component={Pricing} />
       <Route path={"/404"} component={NotFound} />

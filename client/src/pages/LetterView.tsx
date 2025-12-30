@@ -146,14 +146,23 @@ export default function LetterView() {
           <Alert className="mb-6 border-accent bg-accent/10">
             <AlertTriangle className="h-4 w-4 text-accent" />
             <AlertDescription>
-              <strong>Important:</strong> For maximum effectiveness, follow our mailing guide:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>Print this letter and sign in <strong>blue ink</strong></li>
-                <li>Handwrite the envelope in <strong>blue ink</strong></li>
-                <li>Include: ID copy + utility bill + credit reports</li>
-                <li>Mail from your <strong>local post office</strong> (not mailbox)</li>
-                <li>Get <strong>certified mail with return receipt</strong></li>
-              </ul>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <strong>Ready to mail?</strong> Follow our complete mailing guide to ensure your dispute is processed correctly.
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>What documents to include (ID, utility bill)</li>
+                    <li>How to send via Certified Mail with Return Receipt</li>
+                    <li>Step-by-step post office instructions</li>
+                    <li>Common mistakes to avoid</li>
+                  </ul>
+                </div>
+                <Button asChild variant="default" size="sm" className="flex-shrink-0">
+                  <Link href="/mailing-instructions">
+                    <Mail className="h-4 w-4 mr-2" />
+                    View Complete Guide
+                  </Link>
+                </Button>
+              </div>
             </AlertDescription>
           </Alert>
         ) : null}

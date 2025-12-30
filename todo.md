@@ -170,3 +170,18 @@
 - [ ] Add AI chat support for users
 - [ ] Build admin AI assistant for monitoring
 - [ ] Test complete Manus-powered end-to-end flow
+
+
+## Phase 20: Comprehensive Mailing Instructions System (USER REQUEST)
+- [x] Create detailed mailing instructions page explaining the entire process
+- [x] Add document checklist (ID verification requirements)
+- [x] Add utility bill requirements and examples
+- [x] Explain certified mail with return receipt process
+- [x] Add step-by-step mailing guide with photos/illustrations
+- [x] Create printable mailing checklist PDF
+- [x] Add "What to Include" section for each letter
+- [x] Explain why each document is needed (build user confidence)
+- [x] Add post office tips and best practices
+- [ ] Create video tutorial for mailing process
+- [x] Add tracking number entry system
+- [x] Build mailing status tracker (mailed → delivered → waiting for response)
