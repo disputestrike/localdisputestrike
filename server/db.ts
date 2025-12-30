@@ -407,3 +407,28 @@ export async function updateMailingChecklist(
     .set(updates)
     .where(eq(mailingChecklists.id, checklistId));
 }
+
+// ============================================================================
+// ADMIN OPERATIONS
+// ============================================================================
+
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export async function getAllDisputeLetters() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(disputeLetters).orderBy(desc(disputeLetters.createdAt));
+}
+
+export async function getAllPayments() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db.select().from(payments).orderBy(desc(payments.createdAt));
+}

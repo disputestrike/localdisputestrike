@@ -5,8 +5,10 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
-import Dashboard from "./pages/Dashboard";
-import LetterView from "./pages/LetterView";
+import Dashboard from "@/pages/Dashboard";
+import AIAssistant from "@/pages/AIAssistant";
+import LetterView from "@/pages/LetterView";
+import Admin from "@/pages/Admin";
 import Pricing from "./pages/Pricing";
 
 function Router() {
@@ -14,8 +16,10 @@ function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
-      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/letters/:id"} component={LetterView} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/ai-assistant" component={AIAssistant} />
+      <Route path="/admin" component={Admin} />
+      <Route path="/letter/:letterId" component={LetterView} />
       <Route path={"/pricing"} component={Pricing} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

@@ -16,7 +16,8 @@ import {
   Download,
   Eye,
   Clock,
-  Shield
+  Shield,
+  Bot
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -108,6 +109,12 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">Welcome, {user?.name}</span>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/ai-assistant">
+                <Bot className="h-4 w-4 mr-2" />
+                AI Assistant
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href="/">Home</Link>
             </Button>
