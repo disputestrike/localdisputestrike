@@ -19,6 +19,16 @@ export default function LetterView() {
       toast.success("Letter status updated!");
     },
   });
+  const downloadPDF = trpc.disputeLetters.downloadPDF.useMutation({
+    onSuccess: (data) => {
+      // Open PDF in new tab
+      window.open(data.url, '_blank');
+      toast.success("PDF generated! Opening in new tab...");
+    },
+    onError: () => {
+      toast.error("Failed to generate PDF. Please try again.");
+    },
+  });
 
   if (isLoading) {
     return (
@@ -47,23 +57,8 @@ export default function LetterView() {
   }
 
   const handleDownload = () => {
-    // Create a blob from the letter content
-    const blob = new Blob([letter.letterContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${letter.bureau}_dispute_round${letter.round}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    // Update status to downloaded if it was just generated
-    if (letter.status === "generated") {
-      updateStatus.mutate({ id: letter.id, status: "downloaded" });
-    }
-    
-    toast.success("Letter downloaded!");
+    toast.loading("Generating PDF...");
+    downloadPDF.mutate({ id: letter.id });
   };
 
   const handleMarkAsMailed = () => {

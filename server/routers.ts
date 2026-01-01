@@ -435,6 +435,45 @@ You help users understand their credit reports, identify violations, and develop
       }),
 
     /**
+     * Download letter as PDF
+     */
+    downloadPDF: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const letter = await db.getDisputeLetterById(input.id);
+        
+        if (!letter || letter.userId !== ctx.user.id) {
+          throw new Error('Letter not found');
+        }
+        
+        // Import PDF generator
+        const { generateLetterPDF } = await import('./pdfGenerator');
+        const { storagePut } = await import('./storage');
+        
+        // Generate PDF
+        const pdfBuffer = await generateLetterPDF({
+          letterContent: letter.letterContent,
+          userInfo: {
+            name: ctx.user.name || 'User',
+            address: 'Address on file', // TODO: Get from user profile
+          },
+          bureau: letter.bureau.charAt(0).toUpperCase() + letter.bureau.slice(1) as 'TransUnion' | 'Equifax' | 'Experian',
+          date: new Date(letter.createdAt),
+        });
+        
+        // Upload to S3
+        const fileKey = `dispute-letters/${ctx.user.id}/${letter.id}-${Date.now()}.pdf`;
+        const { url } = await storagePut(fileKey, pdfBuffer, 'application/pdf');
+        
+        // Update letter status to downloaded
+        if (letter.status === 'generated') {
+          // TODO: Update status in db
+        }
+        
+        return { url };
+      }),
+
+    /**
      * Update letter status (mailed, response received, etc.)
      */
     updateStatus: protectedProcedure
@@ -455,39 +494,64 @@ You help users understand their credit reports, identify violations, and develop
 
   payments: router({
     /**
-     * Create payment intent (placeholder for Stripe integration)
+     * Create Stripe checkout session
      */
-    createIntent: protectedProcedure
+    createCheckout: protectedProcedure
       .input(z.object({
         tier: z.enum(['diy_quick', 'diy_complete', 'white_glove', 'subscription_monthly', 'subscription_annual']),
       }))
       .mutation(async ({ ctx, input }) => {
-        const userId = ctx.user.id;
-        
-        const amounts: Record<string, string> = {
-          diy_quick: '29.00',
-          diy_complete: '79.00',
-          white_glove: '199.00',
-          subscription_monthly: '39.99',
-          subscription_annual: '399.00',
-        };
-
-        const amount = amounts[input.tier];
-
-        // In production, create Stripe payment intent here
-        // For now, create payment record with placeholder Stripe ID
-        const paymentId = await db.createPayment({
-          userId,
-          amount,
-          tier: input.tier,
-          stripePaymentId: `placeholder_${Date.now()}`,
-          status: 'pending',
+        const Stripe = (await import('stripe')).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+          apiVersion: '2025-12-15.clover',
         });
-
+        
+        const { getProduct } = await import('./products');
+        const product = getProduct(input.tier);
+        
+        if (!product) {
+          throw new Error('Invalid product');
+        }
+        
+        const origin = ctx.req.headers.origin || 'http://localhost:3000';
+        
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+          mode: input.tier.includes('subscription') ? 'subscription' : 'payment',
+          line_items: [
+            {
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: product.name,
+                  description: product.description,
+                },
+                unit_amount: product.price,
+                ...(input.tier.includes('subscription') && {
+                  recurring: {
+                    interval: input.tier === 'subscription_monthly' ? 'month' : 'year',
+                  },
+                }),
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: `${origin}/dashboard?payment=success`,
+          cancel_url: `${origin}/pricing?payment=cancelled`,
+          customer_email: ctx.user.email || undefined,
+          client_reference_id: ctx.user.id.toString(),
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || '',
+            customer_name: ctx.user.name || '',
+            tier: input.tier,
+          },
+          allow_promotion_codes: true,
+        });
+        
         return {
-          paymentId,
-          amount,
-          // clientSecret: 'pk_test_...' // Stripe client secret
+          checkoutUrl: session.url || '',
+          sessionId: session.id,
         };
       }),
 

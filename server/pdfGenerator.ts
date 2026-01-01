@@ -4,6 +4,8 @@
  * Converts generated dispute letters into professional PDFs
  */
 
+import puppeteer from "puppeteer";
+
 export interface LetterPDFOptions {
   letterContent: string;
   userInfo: {
@@ -269,6 +271,43 @@ export function generateExhibitsHTML(exhibits: string[]): string {
 /**
  * Get standard exhibits list
  */
+/**
+ * Generate actual PDF buffer using Puppeteer
+ */
+export async function generateLetterPDF(options: LetterPDFOptions): Promise<Buffer> {
+  const html = generateLetterHTML(options);
+  
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-gpu',
+    ],
+  });
+
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
+    const pdfBuffer = await page.pdf({
+      format: 'letter',
+      printBackground: true,
+      margin: {
+        top: '1in',
+        right: '1in',
+        bottom: '1in',
+        left: '1in',
+      },
+    });
+
+    return Buffer.from(pdfBuffer);
+  } finally {
+    await browser.close();
+  }
+}
+
 export function getStandardExhibits(bureau: 'TransUnion' | 'Equifax' | 'Experian'): string[] {
   return [
     'Copy of government-issued photo identification (Passport)',

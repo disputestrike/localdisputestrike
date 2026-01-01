@@ -11,12 +11,12 @@ export default function Pricing() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
-  const createPayment = trpc.payments.createIntent.useMutation({
-    onSuccess: (data) => {
-      toast.success(`Payment initiated: $${data.amount}`);
-      setLocation("/dashboard");
+  const createPayment = trpc.payments.createCheckout.useMutation({
+    onSuccess: (data: { checkoutUrl: string; sessionId: string }) => {
+      toast.success("Redirecting to checkout...");
+      window.open(data.checkoutUrl, '_blank');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(`Payment failed: ${error.message}`);
     },
   });

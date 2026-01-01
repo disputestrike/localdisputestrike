@@ -143,13 +143,90 @@ function parseDate(dateStr: string): Date | null {
 }
 
 /**
- * Extract text from PDF buffer
- * This is a placeholder - in production, use a PDF parsing library
+ * Extract text from PDF buffer using pdf-parse
  */
+import * as pdfParse from 'pdf-parse';
+import { invokeLLM } from './_core/llm';
+
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // TODO: Implement actual PDF parsing using pdf-parse or similar
-  // For now, return a placeholder
-  return buffer.toString('utf-8');
+  const pdfData = await (pdfParse as any).default(buffer);
+  return pdfData.text;
+}
+
+/**
+ * Use Manus AI to intelligently extract negative accounts from credit report text
+ */
+export async function parseWithAI(text: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
+  const systemPrompt = `You are an expert credit report analyst. Extract ONLY negative accounts (collections, charge-offs, late payments, bankruptcies, etc.) from credit reports.
+
+For each negative account, extract:
+- accountName: Creditor/collection agency name
+- accountNumber: Account number
+- balance: Current balance (as number)
+- status: Status (e.g., "Collection", "Charge-off", "Late Payment")
+- dateOpened: Date opened (MM/DD/YYYY)
+- lastActivity: Last activity date (MM/DD/YYYY)
+- accountType: Type (e.g., "Collection", "Credit Card", "Medical")
+- originalCreditor: Original creditor if different
+
+Return valid JSON array only.`;
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Extract negative accounts from this ${bureau} credit report:\n\n${text.slice(0, 12000)}` },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'credit_accounts',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              accounts: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    accountName: { type: 'string' },
+                    accountNumber: { type: 'string' },
+                    balance: { type: 'number' },
+                    status: { type: 'string' },
+                    dateOpened: { type: 'string' },
+                    lastActivity: { type: 'string' },
+                    accountType: { type: 'string' },
+                    originalCreditor: { type: 'string' },
+                  },
+                  required: ['accountName', 'accountNumber', 'balance', 'status', 'accountType'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ['accounts'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    return parsed.accounts.map((acc: any) => ({
+      ...acc,
+      dateOpened: acc.dateOpened ? parseDate(acc.dateOpened) : null,
+      lastActivity: acc.lastActivity ? parseDate(acc.lastActivity) : null,
+      bureau,
+      rawData: '',
+    }));
+  } catch (error) {
+    console.error('AI parsing failed, falling back to regex:', error);
+    // Fallback to regex parsing
+    const parsed = parseCreditReport(text, bureau);
+    return parsed.accounts;
+  }
 }
 
 /**
