@@ -15,7 +15,7 @@ export default function Home() {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
+            <img src="/logo.png" alt="CreditCounsel AI" className="h-8 w-8" />
             <span className="font-bold text-xl">CreditCounsel AI</span>
           </div>
           <div className="hidden md:flex items-center gap-4">
@@ -106,6 +106,11 @@ export default function Home() {
               </Button>
             </div>
 
+            {/* Hero Graphic */}
+            <div className="mt-8 mb-4">
+              <img src="/hero-graphic.png" alt="Credit Report Analysis" className="max-w-2xl mx-auto rounded-2xl shadow-2xl" />
+            </div>
+
             {/* Trust Signals */}
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground pt-4">
               <div className="flex items-center gap-2">
@@ -178,6 +183,11 @@ export default function Home() {
                   <p className="text-muted-foreground">{pain}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Success Transformation Graphic */}
+            <div className="mt-8">
+              <img src="/success-graphic.png" alt="Credit Score Transformation" className="max-w-3xl mx-auto" />
             </div>
 
             <div className="pt-4">
@@ -259,8 +269,8 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <Card className="border-2 hover:border-primary transition-colors">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-primary" />
+                <div className="w-16 h-16 mb-4">
+                  <img src="/feature-legal-citations.png" alt="Legal FCRA Citations" className="w-full h-full object-contain" />
                 </div>
                 <CardTitle>Litigation-Grade Letters</CardTitle>
                 <CardDescription>
@@ -295,8 +305,8 @@ export default function Home() {
 
             <Card className="border-2 hover:border-primary transition-colors">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <FileText className="h-6 w-6 text-primary" />
+                <div className="w-16 h-16 mb-4">
+                  <img src="/feature-conflict-detection.png" alt="Cross-Bureau Conflict Detection" className="w-full h-full object-contain" />
                 </div>
                 <CardTitle>Cross-Bureau Conflicts</CardTitle>
                 <CardDescription>
@@ -307,8 +317,8 @@ export default function Home() {
 
             <Card className="border-2 hover:border-primary transition-colors">
               <CardHeader>
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                  <Mail className="h-6 w-6 text-primary" />
+                <div className="w-16 h-16 mb-4">
+                  <img src="/feature-pdf-generation.png" alt="PDF Letter Generation" className="w-full h-full object-contain" />
                 </div>
                 <CardTitle>Undetectable Mailing</CardTitle>
                 <CardDescription>
