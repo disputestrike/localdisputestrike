@@ -11,19 +11,21 @@ export function LiveCounter() {
       setCount(prev => prev + Math.floor(Math.random() * 3));
     }, 15000); // Every 15 seconds
 
-    // Simulate recent activity notifications
+    // Simulate recent activity notifications (CreditFixrr style)
     const activities = [
-      "Sarah from Miami just generated 3 letters",
-      "John from Dallas deleted 8 accounts",
-      "Maria from Phoenix got 95 point increase",
-      "David from Seattle just started their dispute",
-      "Lisa from Boston removed 5 collections",
-      "Mike from Chicago got approved for mortgage",
+      { name: "Sarah M.", location: "Miami, FL", action: "Purchased the Complete Repair package", time: "3 hours ago" },
+      { name: "John D.", location: "Austin, TX", action: "Purchased the DIY Quick Start", time: "5 hours ago" },
+      { name: "Maria G.", location: "Los Angeles, CA", action: "Purchased the White Glove package", time: "7 hours ago" },
+      { name: "David R.", location: "Brooklyn, NY", action: "Purchased the Complete Repair package", time: "9 hours ago" },
+      { name: "Lisa K.", location: "Tampa, FL", action: "Deleted 8 negative accounts", time: "4 hours ago" },
+      { name: "Michael P.", location: "Chicago, IL", action: "Increased score by 95 points", time: "6 hours ago" },
     ];
 
+    let activityIndex = 0;
     const activityInterval = setInterval(() => {
-      const randomActivity = activities[Math.floor(Math.random() * activities.length)];
-      setRecentActivity(randomActivity);
+      const activity = activities[activityIndex % activities.length];
+      setRecentActivity(JSON.stringify(activity));
+      activityIndex++;
       
       // Clear after 5 seconds
       setTimeout(() => setRecentActivity(""), 5000);
@@ -45,15 +47,22 @@ export function LiveCounter() {
         </span>
       </div>
 
-      {/* Recent Activity Toast */}
-      {recentActivity && (
-        <div className="fixed bottom-4 right-4 z-50 bg-background border-2 border-primary px-4 py-3 rounded-lg shadow-lg max-w-xs animate-in slide-in-from-right">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <p className="text-sm font-medium">{recentActivity}</p>
+      {/* Recent Activity Toast - CreditFixrr Style */}
+      {recentActivity && (() => {
+        const activity = JSON.parse(recentActivity);
+        return (
+          <div className="fixed bottom-4 right-4 z-50 bg-background border-2 border-green-500 px-4 py-3 rounded-lg shadow-lg max-w-sm animate-in slide-in-from-right">
+            <div className="flex items-start gap-3">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse mt-1.5"></div>
+              <div className="text-sm">
+                <p className="font-semibold">{activity.name} <span className="text-muted-foreground font-normal">from {activity.location}</span></p>
+                <p className="text-muted-foreground">{activity.action}</p>
+                <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </>
   );
 }

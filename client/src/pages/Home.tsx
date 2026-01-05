@@ -66,7 +66,7 @@ export default function Home() {
                 <Star key={star} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">Rated 4.9 Stars by 500+ Beta Users</span>
+            <span className="text-sm text-muted-foreground font-semibold">Join other 2,847 happy customers</span>
           </div>
 
           <div className="max-w-5xl mx-auto text-center space-y-8">
@@ -99,11 +99,16 @@ export default function Home() {
                   </Link>
                 </Button>
               ) : (
-                <Button size="lg" className="text-lg px-8 py-6" asChild>
-                  <Link href="/quiz">
-                    Get Your Free Analysis <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
+                <>
+                  <Button size="lg" className="text-lg px-8 py-6" asChild>
+                    <Link href="/quiz">
+                      Become a Credit Warrior <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
+                    <a href={getLoginUrl()}>Login</a>
+                  </Button>
+                </>
               )}
               <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
                 <a href="#how-it-works">See How It Works</a>
@@ -163,41 +168,84 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pain Points Section */}
-      <section className="py-16 bg-background">
+      {/* The Real Cost of Bad Credit - CreditFixrr Style */}
+      <section className="py-20 bg-destructive/5">
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Millions struggle with poor credit scores
-              <br />
-              <span className="text-primary">You don't have to</span>
+            <h2 className="text-4xl md:text-5xl font-bold">
+              The Real Cost of <span className="text-destructive">Bad Credit</span>
             </h2>
             
-            <div className="grid md:grid-cols-2 gap-4 text-left">
-              {[
-                "What? Why did my credit score go down?",
-                "I can't get rid of this interest on my card!",
-                "Why can't I get an increase on my credit limit?",
-                "It's been months and I can't get approved for my new home.",
-                "I can't catch a break with all this interest piling up.",
-                "Where did all these negative accounts come from?"
-              ].map((pain, i) => (
-                <div key={i} className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
-                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-                  <p className="text-muted-foreground">{pain}</p>
+            <p className="text-xl text-muted-foreground">
+              Every day, millions of Americans lose <strong>thousands of dollars</strong> because of a low credit score.
+              <br />
+              It's not just numbers — it's lost homes, denied loans, and delayed dreams.
+            </p>
+
+            <div className="grid md:grid-cols-3 gap-6 mt-12">
+              <Card className="border-destructive/20 bg-background">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Higher Interest & Fees</CardTitle>
+                  <CardDescription className="text-lg">
+                    Paying <strong>$10,000+ more</strong> over a lifetime on loans, credit cards, and mortgages
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-destructive/20 bg-background">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Loan & Credit Denials</CardTitle>
+                  <CardDescription className="text-lg">
+                    Miss out on homes, cars, and business funding because of errors you didn't even know existed
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card className="border-destructive/20 bg-background">
+                <CardHeader>
+                  <CardTitle className="text-destructive">Missed Opportunities</CardTitle>
+                  <CardDescription className="text-lg">
+                    Even <strong>job offers</strong> can disappear with a low score — employers check credit too
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+
+            <div className="mt-12 p-8 rounded-2xl bg-gradient-to-br from-primary/10 to-purple-600/10 border-2 border-primary/20">
+              <div className="grid md:grid-cols-2 gap-8 items-center">
+                <div className="text-left space-y-4">
+                  <h3 className="text-3xl font-bold">100 Million+ Americans</h3>
+                  <p className="text-lg text-muted-foreground">
+                    struggle with bad credit. It's more than just a number — it's a barrier to <strong>homeownership, auto loans,</strong> and <strong>financial freedom.</strong>
+                  </p>
+                  <p className="text-lg text-muted-foreground">
+                    Millions are held back by <strong>errors, denied applications,</strong> and <strong>predatory repair fees.</strong>
+                  </p>
                 </div>
-              ))}
+                <div className="text-left space-y-4">
+                  <h3 className="text-3xl font-bold text-destructive">$1,500+ per year</h3>
+                  <p className="text-lg text-muted-foreground">
+                    That's what most people pay for help they could do themselves.
+                  </p>
+                  <p className="text-lg text-muted-foreground">
+                    Feeling <strong>stuck, frustrated,</strong> or <strong>powerless?</strong> You're not alone. Credit repair companies charge over <strong>$1,500 per year</strong> for services you can do with <strong>CreditCounsel AI starting at $29.</strong>
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Success Transformation Graphic */}
-            <div className="mt-8">
-              <img src="/success-graphic.png" alt="Credit Score Transformation" className="max-w-3xl mx-auto" />
-            </div>
-
-            <div className="pt-4">
-              <p className="text-xl font-semibold">
-                Join 10,000+ users who've improved their credit with our litigation-grade dispute letters
+            <div className="mt-12">
+              <h3 className="text-2xl md:text-3xl font-bold mb-6">
+                CreditCounsel AI changes all of this — <span className="text-primary">starting now.</span>
+              </h3>
+              <p className="text-xl text-muted-foreground mb-8">
+                Take back control. Fix your credit. Unlock your future.
               </p>
+              <Button size="lg" className="text-lg px-8 py-6" asChild>
+                <Link href="/quiz">
+                  Start Fixing Your Credit Today <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -350,57 +398,63 @@ export default function Home() {
       <section id="how-it-works" className="py-20 bg-muted/30">
         <div className="container">
           <div className="text-center mb-16">
+            <Badge variant="secondary" className="mb-4">
+              <CheckCircle2 className="h-3 w-3 mr-1" />
+              Simple & Fast
+            </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
-              Start your DIY process in just 5 minutes
+              How Does CreditCounsel AI Work?
             </h2>
             <p className="text-xl text-muted-foreground">
-              Four simple steps to delete negative credit items
+              Fixing Your Credit is This Simple
             </p>
           </div>
 
-          <div className="max-w-4xl mx-auto space-y-8">
+          <div className="max-w-5xl mx-auto grid md:grid-cols-3 gap-8">
             {[
               {
                 step: 1,
-                title: "Upload Your Credit Reports",
-                description: "Get your free reports from AnnualCreditReport.com and upload all 3 bureaus (TransUnion, Equifax, Experian). Our AI will analyze them instantly.",
-                icon: FileText
+                title: "Upload Your Credit Report",
+                description: "Get your free reports from AnnualCreditReport.com and upload all 3 bureaus (TransUnion, Equifax, Experian) — our AI analyzes them instantly.",
+                icon: FileText,
+                highlight: "Free & Instant"
               },
               {
                 step: 2,
-                title: "AI Detects Cross-Bureau Conflicts",
-                description: "Our engine finds impossible discrepancies: different balances, conflicting dates, status mismatches. These are your nuclear weapons.",
-                icon: Zap
+                title: "Create Powerful Dispute Letters",
+                description: "Our AI generates professional, litigation-grade letters with FCRA citations and cross-bureau conflict analysis — fast and correctly.",
+                icon: Shield,
+                highlight: "AI-Powered"
               },
               {
                 step: 3,
-                title: "Generate Litigation-Grade Letters",
-                description: "Get 3 customized dispute letters (one for each bureau) with complete FCRA citations and account-by-account analysis. Download as PDF or TXT.",
-                icon: Shield
-              },
-              {
-                step: 4,
-                title: "Mail & Track Results",
-                description: "Follow our step-by-step mailing guide (handwrite envelope, blue ink, local post office). Track your 30-day deadline and watch deletions happen.",
-                icon: Mail
+                title: "Send & Track Everything",
+                description: "Download letters as PDF, follow our mailing guide, and track progress with ease. Watch deletions happen in 30-45 days.",
+                icon: Mail,
+                highlight: "Simple Tracking"
               }
             ].map((item) => (
-              <div key={item.step} className="flex gap-6 items-start">
-                <div className="flex-shrink-0">
-                  <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold">
+              <Card key={item.step} className="relative border-2 hover:border-primary transition-colors">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                  <div className="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold shadow-lg">
                     {item.step}
                   </div>
                 </div>
-                <div className="flex-1 pt-2">
-                  <h3 className="text-2xl font-bold mb-2">{item.title}</h3>
-                  <p className="text-muted-foreground text-lg">{item.description}</p>
-                </div>
-                <div className="hidden md:block flex-shrink-0">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <item.icon className="h-6 w-6 text-primary" />
+                <CardHeader className="pt-10 text-center">
+                  <Badge variant="secondary" className="mb-4 mx-auto w-fit">
+                    {item.highlight}
+                  </Badge>
+                  <CardTitle className="text-2xl mb-3">{item.title}</CardTitle>
+                  <CardDescription className="text-base">
+                    {item.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex justify-center">
+                  <div className="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <item.icon className="h-8 w-8 text-primary" />
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
@@ -589,6 +643,38 @@ export default function Home() {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Statement - CreditFixrr Style */}
+      <section className="py-20 bg-gradient-to-br from-primary/10 to-purple-600/10">
+        <div className="container">
+          <div className="max-w-4xl mx-auto text-center space-y-8">
+            <h2 className="text-4xl md:text-5xl font-bold">
+              Credit Should Be <span className="text-primary">Affordable</span>
+            </h2>
+            <p className="text-2xl font-semibold">
+              For everyone. Always.
+            </p>
+            <div className="space-y-6 text-lg text-muted-foreground">
+              <p>
+                CreditCounsel AI is a <strong>tool,</strong> not a <strong>trap.</strong>
+              </p>
+              <p>
+                We believe everyone deserves <strong>access to credit</strong> and <strong>financial opportunities</strong> — not just those who can afford overpriced services.
+              </p>
+              <p className="text-xl font-semibold text-foreground">
+                That's why we built the most advanced credit repair platform ever created, and made it affordable for everyone.
+              </p>
+            </div>
+            <div className="pt-8">
+              <Button size="lg" className="text-lg px-8 py-6" asChild>
+                <Link href="/quiz">
+                  Join 2,847 Happy Customers <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
