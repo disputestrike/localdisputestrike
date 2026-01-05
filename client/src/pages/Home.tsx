@@ -64,7 +64,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* Left: Text Content */}
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-6xl md:text-8xl font-extrabold text-gray-900 leading-tight">
                 The Most{" "}
                 <span className="text-orange-600">Advanced Litigation-Grade</span>{" "}
                 Credit Repair Platform Ever Created
@@ -124,30 +124,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-12 bg-gray-50">
+      {/* Stats Section with Social Proof */}
+      <section className="py-16 bg-gray-50">
         <div className="container">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
+          <div className="text-center mb-12">
+            <p className="text-lg text-gray-600 mb-2">Join other</p>
+            <h2 className="text-7xl md:text-8xl font-extrabold text-orange-600 mb-2">16,628</h2>
+            <p className="text-2xl font-semibold text-gray-900">happy customers</p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-12 text-center">
             <div>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Zap className="h-8 w-8 text-orange-600" />
-                <h3 className="text-4xl font-bold text-gray-900">70-85%</h3>
+              <div className="mb-4">
+                <h3 className="text-6xl md:text-7xl font-extrabold text-gray-900 mb-2">80+</h3>
+                <p className="text-xl font-semibold text-orange-600">pts</p>
               </div>
-              <p className="text-gray-700">Average deletion rate across all bureaus</p>
+              <p className="text-lg text-gray-700"><strong>Creditcounsel users</strong> see an average <strong>80+ point score increase</strong> in <strong>3-6 months.</strong></p>
             </div>
             <div>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <TrendingUp className="h-8 w-8 text-orange-600" />
-                <h3 className="text-4xl font-bold text-gray-900">+105 pts</h3>
+              <div className="mb-4">
+                <h3 className="text-6xl md:text-7xl font-extrabold text-gray-900 mb-2">95%</h3>
               </div>
-              <p className="text-gray-700">Average credit score increase in 90 days</p>
+              <p className="text-lg text-gray-700"><strong>95%</strong> of users resolve <strong>at least one</strong> major <strong>credit error</strong></p>
             </div>
             <div>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Shield className="h-8 w-8 text-orange-600" />
-                <h3 className="text-4xl font-bold text-gray-900">$29</h3>
+              <div className="mb-4">
+                <h3 className="text-6xl md:text-7xl font-extrabold text-gray-900 mb-2">$29</h3>
               </div>
-              <p className="text-gray-700">vs $1,500/year competitors charge</p>
+              <p className="text-lg text-gray-700">vs <strong>$1,500/year</strong> competitors charge for the same results</p>
             </div>
           </div>
         </div>
@@ -157,7 +161,7 @@ export default function Home() {
       <section className="py-16">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Real Results from Real Customers</h2>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">Real Results from Real Customers</h2>
             <p className="text-xl text-gray-700">See the dramatic credit score improvements our customers achieve</p>
           </div>
           
@@ -236,7 +240,7 @@ export default function Home() {
       <section id="features" className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Why CreditCounsel Beats Every Competitor</h2>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">Why CreditCounsel Beats Every Competitor</h2>
             <p className="text-xl text-gray-700">The only platform with litigation-grade AI and cross-bureau conflict detection</p>
           </div>
           
@@ -339,7 +343,7 @@ export default function Home() {
         <div className="container">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Litigation-Grade Legal Power</h2>
+              <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">Litigation-Grade Legal Power</h2>
               <p className="text-xl text-gray-700 mb-6">
                 Our AI generates the same quality dispute letters that attorneys charge $2,500+ for. 
                 Every letter includes proper FCRA citations, legal violations, and compelling arguments.
@@ -383,7 +387,7 @@ export default function Home() {
               <img src="/lifestyle-family-happy.png" alt="Happy family celebrating credit success" className="w-full rounded-lg shadow-xl" />
             </div>
             <div>
-              <h2 className="text-4xl font-bold text-gray-900 mb-6">Unlock Your Financial Future</h2>
+              <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">Unlock Your Financial Future</h2>
               <p className="text-xl text-gray-700 mb-6">
                 Bad credit costs you $10,000+ in lifetime fees. CreditCounsel helps you delete negative items 
                 and raise your score so you can buy a home, get a car loan, and achieve financial freedom.
@@ -415,7 +419,7 @@ export default function Home() {
       <section id="how-it-works" className="py-16">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">How CreditCounsel Works</h2>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">How CreditCounsel Works</h2>
             <p className="text-xl text-gray-700">Three simple steps to delete negative items and raise your score</p>
           </div>
           
@@ -476,7 +480,7 @@ export default function Home() {
       <section id="reviews" className="py-16 bg-gray-50">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">What Our Customers Say</h2>
             <p className="text-xl text-gray-700">Real success stories from real people</p>
           </div>
           
@@ -549,7 +553,7 @@ export default function Home() {
       <section id="pricing" className="py-16">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
+            <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
             <p className="text-xl text-gray-700">No monthly fees. No hidden charges. Pay once, use forever.</p>
           </div>
           
@@ -700,7 +704,7 @@ export default function Home() {
       {/* Final CTA Section */}
       <section className="py-16 bg-gray-50">
         <div className="container text-center">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">Ready to Fix Your Credit?</h2>
+          <h2 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-4">Ready to Fix Your Credit?</h2>
           <p className="text-xl text-gray-700 mb-8">
             Join 2,847 customers who've already deleted negative items and raised their scores 80-120 points.
           </p>
