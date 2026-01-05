@@ -562,6 +562,39 @@ You help users understand their credit reports, identify violations, and develop
       return db.getPaymentsByUserId(ctx.user.id);
     }),
   }),
+
+  /**
+   * Lead capture router (no auth required)
+   */
+  leads: router({
+    /**
+     * Capture lead from quiz funnel
+     */
+    captureLead: publicProcedure
+      .input(z.object({
+        creditScoreRange: z.string(),
+        negativeItemsCount: z.string(),
+        bureaus: z.array(z.string()),
+        email: z.string().email(),
+        zipCode: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        // Store lead in database
+        await db.createLead({
+          email: input.email,
+          zipCode: input.zipCode,
+          creditScoreRange: input.creditScoreRange,
+          negativeItemsCount: input.negativeItemsCount,
+          bureaus: input.bureaus.join(','),
+          source: 'quiz_funnel',
+        });
+
+        // TODO: Send email with analysis results
+        // await sendLeadEmail(input.email, input);
+
+        return { success: true };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

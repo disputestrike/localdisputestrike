@@ -5,12 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
 import { ArrowRight, CheckCircle2, FileText, Mail, Shield, TrendingUp, Zap, AlertCircle, Star, Play, Check, X } from "lucide-react";
 import { Link } from "wouter";
+import { LiveCounter } from "@/components/LiveCounter";
+import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col">
+      <LiveCounter />
+      <ExitIntentPopup />
       {/* Navigation */}
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between">
@@ -96,9 +100,9 @@ export default function Home() {
                 </Button>
               ) : (
                 <Button size="lg" className="text-lg px-8 py-6" asChild>
-                  <a href={getLoginUrl()}>
-                    Start Disputing Now <ArrowRight className="ml-2 h-5 w-5" />
-                  </a>
+                  <Link href="/quiz">
+                    Get Your Free Analysis <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
                 </Button>
               )}
               <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>

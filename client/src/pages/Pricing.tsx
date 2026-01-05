@@ -4,10 +4,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Check, Shield, BookOpen, Zap, Star, TrendingUp, ArrowLeft } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { CountdownTimer } from "@/components/CountdownTimer";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 export default function Pricing() {
+  // Show countdown timer for urgency
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -127,9 +129,12 @@ export default function Pricing() {
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Choose Your <span className="text-primary">Credit Repair</span> Path
         </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
           Get litigation-grade dispute letters at a fraction of the cost. No forced subscriptions.
         </p>
+        <div className="flex justify-center mb-8">
+          <CountdownTimer initialMinutes={15} />
+        </div>
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Check className="h-4 w-4 text-green-500" />

@@ -15,6 +15,13 @@
       "when": 1767101256041,
       "tag": "0001_far_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1767612739455,
+      "tag": "0002_parallel_dark_beast",
+      "breakpoints": true
     }
   ]
 }

@@ -166,3 +166,21 @@ export const mailingChecklists = mysqlTable("mailing_checklists", {
 
 export type MailingChecklist = typeof mailingChecklists.$inferSelect;
 export type InsertMailingChecklist = typeof mailingChecklists.$inferInsert;
+
+/**
+ * Lead capture from quiz funnel (no auth required)
+ */
+export const leads = mysqlTable("leads", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  zipCode: varchar("zipCode", { length: 10 }).notNull(),
+  creditScoreRange: varchar("creditScoreRange", { length: 50 }),
+  negativeItemsCount: varchar("negativeItemsCount", { length: 50 }),
+  bureaus: text("bureaus"), // Comma-separated list
+  source: varchar("source", { length: 100 }).default("quiz_funnel").notNull(),
+  convertedToUser: boolean("convertedToUser").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Lead = typeof leads.$inferSelect;
+export type InsertLead = typeof leads.$inferInsert;

@@ -432,3 +432,33 @@ export async function getAllPayments() {
 
   return db.select().from(payments).orderBy(desc(payments.createdAt));
 }
+
+
+// ============================================================================
+// LEAD OPERATIONS
+// ============================================================================
+
+export async function createLead(lead: {
+  email: string;
+  zipCode: string;
+  creditScoreRange: string;
+  negativeItemsCount: string;
+  bureaus: string;
+  source: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const { leads } = await import("../drizzle/schema");
+  
+  const [newLead] = await db.insert(leads).values(lead).$returningId();
+  return newLead;
+}
+
+export async function getAllLeads() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const { leads } = await import("../drizzle/schema");
+  return db.select().from(leads);
+}
