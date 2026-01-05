@@ -268,6 +268,9 @@ You help users understand their credit reports, identify violations, and develop
           isParsed: false,
         });
 
+        // TODO: Implement AI parsing after upload
+        // Will automatically extract accounts and detect conflicts
+
         return {
           reportId,
           success: true,
