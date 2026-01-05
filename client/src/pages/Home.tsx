@@ -41,7 +41,7 @@ export default function Home() {
               </Button>
             ) : (
               <Button asChild>
-                <a href={getLoginUrl()}>Get Started</a>
+                <Link href="/quiz">Get Started</Link>
               </Button>
             )}
           </div>
@@ -460,9 +460,9 @@ export default function Home() {
 
           <div className="text-center mt-12">
             <Button size="lg" asChild>
-              <a href={isAuthenticated ? "/dashboard" : getLoginUrl()}>
+              <Link href={isAuthenticated ? "/dashboard" : "/quiz"}>
                 Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+              </Link>
             </Button>
           </div>
         </div>
@@ -737,9 +737,9 @@ export default function Home() {
               Join 10,000+ users who've improved their credit scores with CreditCounsel AI
             </p>
             <Button size="lg" variant="secondary" className="text-lg px-8 py-6" asChild>
-              <a href={isAuthenticated ? "/dashboard" : getLoginUrl()}>
+              <Link href={isAuthenticated ? "/dashboard" : "/quiz"}>
                 Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-              </a>
+              </Link>
             </Button>
             <p className="text-sm opacity-75">
               No credit card required to start • 110% money-back guarantee • Cancel anytime

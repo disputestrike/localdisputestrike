@@ -89,7 +89,9 @@ export default function Pricing() {
 
   const handleSelectPlan = (tier: "diy_quick" | "diy_complete" | "white_glove") => {
     if (!isAuthenticated) {
-      setLocation("/");
+      // Redirect to quiz to capture lead first
+      toast.info("Please complete our quick quiz to get started");
+      setLocation("/quiz");
       return;
     }
     createPayment.mutate({ tier });
