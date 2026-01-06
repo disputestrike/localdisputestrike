@@ -99,6 +99,50 @@ export type DisputeLetter = typeof disputeLetters.$inferSelect;
 export type InsertDisputeLetter = typeof disputeLetters.$inferInsert;
 
 /**
+ * Success stories for marketing (with user permission)
+ */
+export const successStories = mysqlTable("success_stories", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // User consent
+  userConsent: boolean("userConsent").default(false).notNull(),
+  consentDate: timestamp("consentDate"),
+  anonymizationLevel: mysqlEnum("anonymizationLevel", ["full_name", "first_name", "initials", "anonymous"]).default("first_name").notNull(),
+  
+  // Success metrics
+  scoreBefore: int("scoreBefore"),
+  scoreAfter: int("scoreAfter"),
+  scoreIncrease: int("scoreIncrease"),
+  accountsDeleted: int("accountsDeleted").default(0).notNull(),
+  accountsVerified: int("accountsVerified").default(0).notNull(),
+  daysToResults: int("daysToResults"), // Days from first letter to final results
+  
+  // Generated content
+  testimonialText: text("testimonialText"), // AI-generated or user-provided testimonial
+  isAIGenerated: boolean("isAIGenerated").default(true).notNull(),
+  
+  // Display settings
+  isPublished: boolean("isPublished").default(false).notNull(),
+  isFeatured: boolean("isFeatured").default(false).notNull(),
+  displayName: varchar("displayName", { length: 100 }), // e.g., "Benjamin P.", "B.P.", "Anonymous"
+  
+  // Social media assets
+  socialMediaImageUrl: text("socialMediaImageUrl"),
+  
+  // Admin notes
+  adminNotes: text("adminNotes"),
+  approvedBy: int("approvedBy"), // Admin user ID
+  approvedAt: timestamp("approvedAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SuccessStory = typeof successStories.$inferSelect;
+export type InsertSuccessStory = typeof successStories.$inferInsert;
+
+/**
  * Payment transactions
  */
 export const payments = mysqlTable("payments", {

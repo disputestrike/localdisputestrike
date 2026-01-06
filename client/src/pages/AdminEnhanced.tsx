@@ -198,7 +198,7 @@ export default function AdminEnhanced() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">
               <TrendingUp className="h-4 w-4 mr-2" />
               Overview
@@ -210,6 +210,10 @@ export default function AdminEnhanced() {
             <TabsTrigger value="letters">
               <FileText className="h-4 w-4 mr-2" />
               Letters
+            </TabsTrigger>
+            <TabsTrigger value="success-stories">
+              <Award className="h-4 w-4 mr-2" />
+              Success Stories
             </TabsTrigger>
             <TabsTrigger value="timelines">
               <Clock className="h-4 w-4 mr-2" />
@@ -395,6 +399,110 @@ export default function AdminEnhanced() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Success Stories Tab */}
+          <TabsContent value="success-stories" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Success Story Management</CardTitle>
+                <CardDescription>
+                  Review, approve, and publish user success stories for marketing
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Eligible Users (Pending Approval) */}
+                  <div>
+                    <h3 className="font-semibold text-lg mb-3">Eligible for Success Story (3)</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-medium">Benjamin Peter</p>
+                            <Badge className="bg-green-600">+42 pts</Badge>
+                            <Badge variant="outline">3 deletions</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">Score: 582 → 624 | 2 days to results</p>
+                          <p className="text-xs text-gray-500 mt-1">Deleted: Credit Union of Texas, PNC Bank, Ford Motor Credit</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            Request Permission
+                          </Button>
+                          <Button size="sm">
+                            Generate Story
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-4 border rounded-lg bg-blue-50">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-medium">User #2</p>
+                            <Badge className="bg-green-600">+58 pts</Badge>
+                            <Badge variant="outline">5 deletions</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600">Score: 550 → 608 | 28 days to results</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline">
+                            Request Permission
+                          </Button>
+                          <Button size="sm">
+                            Generate Story
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pending Approval */}
+                  <div className="mt-6">
+                    <h3 className="font-semibold text-lg mb-3">Pending Approval (1)</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between p-4 border rounded-lg bg-yellow-50">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <p className="font-medium">User #3</p>
+                            <Badge className="bg-green-600">+31 pts</Badge>
+                            <Badge variant="outline">2 deletions</Badge>
+                            <Badge variant="secondary">Permission Granted</Badge>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-3">Score: 615 → 646 | 15 days to results</p>
+                          <div className="bg-white p-3 rounded border text-sm">
+                            <p className="italic text-gray-700">
+                              "I was skeptical at first, but CreditCounsel AI delivered real results. Within just 15 days, 
+                              I saw 2 negative accounts completely removed from my credit report, and my score jumped 31 points! 
+                              Now I can finally qualify for that car loan I've been dreaming about. This platform is a game-changer."
+                            </p>
+                            <p className="text-xs text-gray-500 mt-2">- User #3 (AI-Generated, Professional Tone)</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2 ml-4">
+                          <Button size="sm" variant="default">
+                            <CheckCircle2 className="h-4 w-4 mr-2" />
+                            Approve & Publish
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            Edit
+                          </Button>
+                          <Button size="sm" variant="destructive">
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Published Success Stories */}
+                  <div className="mt-6">
+                    <h3 className="font-semibold text-lg mb-3">Published (0)</h3>
+                    <p className="text-sm text-gray-500">No published success stories yet. Approve stories above to display them on the website.</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

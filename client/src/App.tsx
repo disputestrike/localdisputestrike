@@ -21,6 +21,7 @@ import Privacy from "./pages/Privacy";
 import Contact from "./pages/Contact";
 import Guarantee from "./pages/Guarantee";
 import WhatToExpect from "./pages/WhatToExpect";
+import SuccessStories from "./pages/SuccessStories";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -37,6 +38,7 @@ function Router() {
       <Route path="/contact" component={Contact} />
       <Route path="/guarantee" component={Guarantee} />
       <Route path="/what-to-expect" component={WhatToExpect} />
+      <Route path="/success-stories" component={SuccessStories} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
