@@ -162,7 +162,7 @@ export default function About() {
           {/* Visual Proof */}
           <div className="max-w-4xl mx-auto">
             <img 
-              src="/credit-score-before-after.png" 
+              src="/credit-score-journey.png" 
               alt="Real credit score improvement results" 
               className="w-full rounded-2xl shadow-2xl"
             />

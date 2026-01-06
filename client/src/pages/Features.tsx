@@ -152,7 +152,7 @@ export default function Features() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-brain-ai.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
+                  <img src="/ai-credit-analysis.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Undetectable AI Letters</CardTitle>
               </CardHeader>

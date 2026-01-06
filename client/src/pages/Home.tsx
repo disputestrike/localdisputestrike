@@ -92,7 +92,7 @@ export default function Home() {
             {/* Hero Visual - Credit Score Before/After */}
             <div className="relative max-w-5xl mx-auto">
               <img 
-                src="/credit-score-before-after.png" 
+                src="/credit-score-journey.png" 
                 alt="Credit score improvement from 580 to 720" 
                 className="w-full rounded-2xl shadow-2xl"
               />
@@ -190,7 +190,7 @@ export default function Home() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-brain-ai.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
+                  <img src="/ai-credit-analysis.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Undetectable AI Letters</CardTitle>
               </CardHeader>
@@ -220,7 +220,7 @@ export default function Home() {
               {/* Deletion Confirmation Letter */}
               <div>
                 <img 
-                  src="/deletion-confirmation-letter.png" 
+                  src="/deletion-letter-real.png" 
                   alt="Equifax deletion confirmation letter" 
                   className="w-full rounded-xl shadow-2xl"
                 />
