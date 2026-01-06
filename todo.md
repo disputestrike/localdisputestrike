@@ -8,8 +8,8 @@
 
 ## Phase 2: Credit Report Upload & Analysis
 - [x] Build credit report upload interface (PDF/image support)
-- [ ] Implement credit report parsing system
-- [ ] Create account extraction logic
+- [x] Implement credit report parsing system (PDF parser with pdf-parse + AI extraction)
+- [x] Create account extraction logic (Manus LLM extracts accounts from parsed text)
 - [x] Build cross-bureau conflict detection engine
 - [x] Display negative accounts dashboard
 
@@ -101,9 +101,9 @@
 
 
 ## Phase 13: Core Engine Implementation (CRITICAL)
-- [ ] Build credit report PDF parser (extract text from PDFs)
-- [ ] Implement account extraction algorithm (parse negative accounts)
-- [ ] Build cross-bureau conflict detection engine
+- [x] Build credit report PDF parser (extract text from PDFs) - DONE with pdf-parse
+- [x] Implement account extraction algorithm (parse negative accounts) - DONE with Manus AI
+- [x] Build cross-bureau conflict detection engine - DONE (detects conflicts across bureaus)
 - [ ] Create conflict scoring system (prioritize strongest conflicts)
 - [ ] Implement balance discrepancy detector
 - [ ] Implement date conflict detector
