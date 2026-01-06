@@ -15,6 +15,10 @@ import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
 import HowItWorks from "./pages/HowItWorks";
 import FAQ from "./pages/FAQ";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Contact from "./pages/Contact";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -25,6 +29,10 @@ function Router() {
       <Route path="/how-it-works" component={HowItWorks} />
       <Route path="/pricing" component={Pricing} />
       <Route path="/faq" component={FAQ} />
+      <Route path="/about" component={About} />
+      <Route path="/terms" component={Terms} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/contact" component={Contact} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
