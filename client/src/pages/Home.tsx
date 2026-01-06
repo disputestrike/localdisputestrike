@@ -217,11 +217,11 @@ export default function Home() {
               {/* Deletion Confirmation Letter */}
               <div>
                 <img 
-                  src="/deletion-letter-real.png" 
-                  alt="Equifax deletion confirmation letter" 
+                  src="/happy-family-credit-success.png" 
+                  alt="Happy family celebrating credit score improvement and loan approval" 
                   className="w-full rounded-xl shadow-2xl"
                 />
-                <p className="text-center text-gray-700 mt-4 font-medium">Official bureau letter confirming account deletion</p>
+                <p className="text-center text-gray-700 mt-4 font-medium">Real families achieving financial freedom through credit repair</p>
               </div>
             </div>
             
