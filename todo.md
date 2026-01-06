@@ -848,3 +848,38 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [ ] Ensure consistent card styling
 - [ ] Test responsive layout
 - [ ] Save checkpoint
+
+
+## Phase 38: Test PDF Upload & Enhance Features (USER REQUEST - Jan 6, 2026)
+- [ ] Test PDF upload system with real credit report
+- [ ] Verify AI parser extracts accounts correctly
+- [ ] Update homepage with credit monitoring subscription messaging
+- [ ] Add video explainer section to homepage
+- [ ] Improve dashboard UI
+- [ ] Enhance quiz funnel
+
+
+## Phase 39: Incorporate Real-World Success Learnings (USER REQUEST - Jan 6, 2026)
+### Based on actual bureau responses showing 3 deletions + 42 point increase
+
+- [x] Update dispute letter generation with comprehensive FCRA citations (§ 1681i, § 1681s-2, § 1681i(a)(5), § 1681i(a)(7))
+- [x] Add FDCPA protections (§ 1692g - debt verification rights)
+- [x] Include statute of limitations language in letters
+- [x] Add "What to Expect" user education page explaining:
+  - No new collections will occur from disputing
+  - No new late payments from dispute process
+  - Remark removal vs account deletion differences
+  - 30-day investigation timeline
+  - Three possible outcomes (verified, deleted, no response)
+- [x] Implement 30-day countdown timer for each disputed account
+- [x] Build investigation status tracking (pending, under review, completed)
+- [x] Create Round 2 escalation letter generator for verified accounts
+- [x] Add Method of Verification (MOV) request letter template
+- [x] Build success tracking dashboard showing:
+  - Accounts deleted
+  - Score improvements
+  - Timeline of changes
+  - Before/after comparison
+- [x] Add legal protections reference page with all FCRA/FDCPA sections
+- [x] Create "Your Rights" educational content
+- [x] Add FAQ section addressing common fears (collections, late payments, owing money)

@@ -6,19 +6,60 @@ import { z } from "zod";
 import * as db from "./db";
 import { uploadRouter } from "./uploadRouter";
 
-// System prompt for Manus AI letter generation
+// System prompt for Manus AI letter generation - UPDATED with real-world success learnings
 const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit repair attorney specializing in FCRA litigation. You generate 10/10 litigation-grade dispute letters that achieve 70-85% deletion rates.
 
 Your letters MUST include:
-1. Complete FCRA citations (§ 1681i, § 1681s-2, etc.)
-2. Cross-bureau conflicts as primary argument
-3. Account-by-account detailed analysis
-4. Specific violations with exact data points
-5. Legal consequences section
-6. Professional formatting
-7. Clear demands (DELETE vs CORRECT)
 
-You write in a professional, authoritative tone that demonstrates legal expertise while remaining accessible.`;
+1. **PRIMARY LEGAL AUTHORITY (FCRA):**
+   - § 1681i(a)(1)(A) - Consumer's right to dispute inaccurate information
+   - § 1681i(a)(5)(A) - Bureau must delete unverifiable information within 30 days
+   - § 1681i(a)(7) - Consumer's right to request Method of Verification (MOV)
+   - § 1681s-2(b) - Furnisher's duty to investigate disputes
+   - § 1681n - Willful noncompliance penalties ($100-$1,000 per violation)
+   - § 1681o - Negligent noncompliance penalties (actual damages)
+
+2. **FDCPA PROTECTIONS:**
+   - § 1692g - Debt validation rights (creditors must verify upon request)
+   - § 1692e - False or misleading representations prohibited
+   - § 1692f - Unfair practices prohibited
+
+3. **STATUTE OF LIMITATIONS:**
+   - State that consumer is aware of statute of limitations for debt collection
+   - Note that disputing does NOT restart statute of limitations
+   - Emphasize that this is a credit reporting dispute, not debt validation
+
+4. **CROSS-BUREAU CONFLICTS:**
+   - Primary argument for deletion
+   - Specific data discrepancies between bureaus
+   - Legal impossibility arguments
+
+5. **ACCOUNT-BY-ACCOUNT ANALYSIS:**
+   - Detailed violations for each account
+   - Specific inaccuracies with exact data points
+   - FCRA section violated for each issue
+
+6. **LEGAL CONSEQUENCES:**
+   - 30-day investigation deadline (FCRA § 1681i(a)(1))
+   - Mandatory deletion if unverifiable (FCRA § 1681i(a)(5))
+   - Penalties for willful/negligent noncompliance
+   - Potential FCRA lawsuit threat
+
+7. **PROFESSIONAL FORMATTING:**
+   - Proper letterhead with consumer's address
+   - Bureau's address
+   - Date
+   - RE: line
+   - Body with legal citations
+   - Signature block
+
+8. **CLEAR DEMANDS:**
+   - DELETE unverifiable accounts
+   - CORRECT inaccurate information
+   - PROVIDE written results within 30 days
+   - CEASE reporting disputed items as accurate
+
+You write in a professional, authoritative tone that demonstrates legal expertise while remaining accessible. Your letters have proven results: 3+ deletions and 40+ point score increases in real-world testing.`;
 
 // Build letter generation prompt
 function buildLetterPrompt(
@@ -449,6 +490,124 @@ You help users understand their credit reports, identify violations, and develop
         return {
           letters,
           totalAccounts: accounts.length,
+        };
+      }),
+
+    /**
+     * Generate Round 2 escalation letter with Method of Verification (MOV) request
+     */
+    generateRound2: protectedProcedure
+      .input(z.object({
+        originalLetterId: z.number(),
+        verifiedAccounts: z.array(z.object({
+          id: z.number(),
+          accountName: z.string(),
+          reason: z.string(), // Why this account should still be deleted
+        })),
+        currentAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const userName = ctx.user.name || 'User';
+        
+        // Get original letter
+        const originalLetter = await db.getDisputeLetterById(input.originalLetterId);
+        if (!originalLetter || originalLetter.userId !== userId) {
+          throw new Error('Letter not found');
+        }
+        
+        const bureau = originalLetter.bureau;
+        
+        // Import Manus AI
+        const { invokeLLM } = await import('./_core/llm');
+        
+        // Build Round 2 escalation prompt
+        const round2Prompt = `Generate a Round 2 ESCALATION letter demanding Method of Verification (MOV) for verified accounts.
+
+User Information:
+- Name: ${userName}
+- Address: ${input.currentAddress}
+- Bureau: ${bureau}
+
+Background:
+- User sent initial dispute letter 30+ days ago
+- Bureau responded that ${input.verifiedAccounts.length} accounts were "verified"
+- User is now demanding Method of Verification (MOV) under FCRA § 1681i(a)(7)
+
+Verified Accounts to Challenge:
+${input.verifiedAccounts.map((acc, i) => `
+${i + 1}. ${acc.accountName}
+   - Reason for continued dispute: ${acc.reason}`).join('\n')}
+
+Generate an AGGRESSIVE escalation letter that:
+
+1. **Invokes FCRA § 1681i(a)(7)** - Demands complete Method of Verification documentation:
+   - Who verified the account (name, title, company)
+   - What documents were reviewed
+   - When verification occurred
+   - How verification was conducted
+   - Copies of all verification documents
+
+2. **Challenges the verification process:**
+   - Questions adequacy of investigation
+   - Demands proof of "reasonable investigation" under FCRA § 1681i(a)(1)(A)
+   - Points out that generic responses are insufficient
+
+3. **Cites legal consequences:**
+   - FCRA § 1681n - Willful noncompliance penalties ($100-$1,000 per violation)
+   - FCRA § 1681o - Negligent noncompliance (actual damages)
+   - Potential lawsuit if MOV is not provided within 15 days
+
+4. **References statute of limitations:**
+   - Notes that old debts may be past statute of limitations
+   - States that consumer is aware of their rights under state law
+   - Emphasizes this is a credit reporting dispute, not debt validation
+
+5. **Demands specific action:**
+   - Provide complete MOV within 15 days
+   - Delete accounts if MOV cannot be provided
+   - Cease reporting accounts as accurate pending MOV
+
+6. **Threatens escalation:**
+   - CFPB complaint
+   - State Attorney General complaint  
+   - Federal lawsuit under FCRA
+   - Demand for statutory damages
+
+Tone: Professional but FIRM. Make it clear you know the law and will pursue legal action if necessary.`;
+        
+        // Generate Round 2 letter
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: LETTER_GENERATION_SYSTEM_PROMPT + '\n\nYou are now generating a Round 2 ESCALATION letter. Be more aggressive, cite more penalties, and make legal threats credible.',
+            },
+            {
+              role: 'user',
+              content: round2Prompt,
+            },
+          ],
+        });
+        
+        const rawContent = response.choices[0]?.message?.content;
+        const letterContent = typeof rawContent === 'string' ? rawContent : 'Error generating Round 2 letter';
+        
+        // Create Round 2 letter
+        const letterId = await db.createDisputeLetter({
+          userId,
+          bureau: bureau as 'transunion' | 'equifax' | 'experian' | 'furnisher',
+          letterContent,
+          accountsDisputed: JSON.stringify(input.verifiedAccounts.map(a => a.id)),
+          round: 2,
+          letterType: 'escalation',
+          status: 'generated',
+        });
+        
+        return {
+          letterId,
+          bureau,
+          message: 'Round 2 escalation letter generated successfully',
         };
       }),
 
