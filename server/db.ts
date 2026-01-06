@@ -159,6 +159,27 @@ export async function getCreditReportById(reportId: number): Promise<CreditRepor
   return result[0];
 }
 
+export async function deleteCreditReport(reportId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(creditReports).where(eq(creditReports.id, reportId));
+}
+
+export async function deleteNegativeAccountsByReportId(reportId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Get the report to find userId
+  const report = await getCreditReportById(reportId);
+  if (!report) return;
+
+  // Delete all negative accounts for this user
+  // (User will re-upload and re-parse to get fresh data)
+  await db.delete(negativeAccounts)
+    .where(eq(negativeAccounts.userId, report.userId));
+}
+
 export async function updateCreditReportParsedData(reportId: number, parsedData: string): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");

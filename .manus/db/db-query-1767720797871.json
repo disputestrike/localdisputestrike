@@ -1,0 +1,45 @@
+{
+  "query": "SELECT id, bureau, fileName, isParsed, uploadedAt FROM credit_reports WHERE userId = (SELECT id FROM users LIMIT 1) ORDER BY uploadedAt DESC LIMIT 5;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute SELECT id, bureau, fileName, isParsed, uploadedAt FROM credit_reports WHERE userId = (SELECT id FROM users LIMIT 1) ORDER BY uploadedAt DESC LIMIT 5;",
+  "rows": [
+    {
+      "id": "120004",
+      "bureau": "transunion",
+      "fileName": "creditReport_5348538348.pdf",
+      "isParsed": "1",
+      "uploadedAt": "2026-01-06 17:32:59"
+    },
+    {
+      "id": "120003",
+      "bureau": "equifax",
+      "fileName": "EQ.pdf",
+      "isParsed": "0",
+      "uploadedAt": "2026-01-06 17:27:17"
+    },
+    {
+      "id": "120002",
+      "bureau": "experian",
+      "fileName": "EX.pdf",
+      "isParsed": "0",
+      "uploadedAt": "2026-01-06 17:27:04"
+    },
+    {
+      "id": "120001",
+      "bureau": "transunion",
+      "fileName": "creditReport_5348538348.pdf",
+      "isParsed": "0",
+      "uploadedAt": "2026-01-06 17:24:08"
+    },
+    {
+      "id": "90001",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 15:28:58"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tbureau\tfileName\tisParsed\tuploadedAt\n120004\ttransunion\tcreditReport_5348538348.pdf\t1\t2026-01-06 17:32:59\n120003\tequifax\tEQ.pdf\t0\t2026-01-06 17:27:17\n120002\texperian\tEX.pdf\t0\t2026-01-06 17:27:04\n120001\ttransunion\tcreditReport_5348538348.pdf\t0\t2026-01-06 17:24:08\n90001\ttransunion\ttest-report.png\t0\t2025-12-30 15:28:58\n",
+  "stderr": "",
+  "execution_time_ms": 107
+}

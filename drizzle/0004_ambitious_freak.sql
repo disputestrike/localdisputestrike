@@ -1,0 +1,1 @@
+ALTER TABLE `credit_reports` MODIFY COLUMN `parsedData` longtext;

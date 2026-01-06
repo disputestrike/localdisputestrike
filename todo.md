@@ -733,3 +733,23 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Test end-to-end upload → parsing → negative accounts display (placeholder data removed, UI working)
 - [ ] Verify AI parser extracts accounts correctly from real PDFs (needs real PDF upload test)
 - [ ] Save checkpoint with fully functional real upload system
+
+
+## Phase 39: Fix Credit Report Upload Bug (USER REPORTED)
+- [ ] Investigate why upload does nothing when user selects a file
+- [ ] Check browser console for errors during upload
+- [ ] Verify upload endpoint is being called
+- [ ] Check file handling and S3 upload process
+- [ ] Fix the upload flow so files actually upload
+- [ ] Test with real credit report file
+- [ ] Verify upload success feedback shows to user
+- [ ] Save checkpoint with working upload
+
+
+## Phase 40: Add Delete Credit Report Functionality (USER REQUESTED)
+- [x] Add delete endpoint to creditReports router
+- [x] Delete associated negative accounts when report is deleted
+- [x] Add delete button to Upload Reports UI (both separate and combined modes)
+- [x] Manually cleared old reports from database
+- [ ] Debug why delete button click not triggering (needs investigation)
+- [ ] Save checkpoint with working delete feature

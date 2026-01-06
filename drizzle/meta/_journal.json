@@ -29,6 +29,13 @@
       "when": 1767718568963,
       "tag": "0003_goofy_magdalene",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1767720369870,
+      "tag": "0004_ambitious_freak",
+      "breakpoints": true
     }
   ]
 }

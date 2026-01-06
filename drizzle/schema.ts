@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal, longtext } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -29,7 +29,7 @@ export const creditReports = mysqlTable("credit_reports", {
   fileKey: text("fileKey").notNull(),
   fileName: text("fileName"),
   uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
-  parsedData: text("parsedData"), // JSON string of parsed credit report data
+  parsedData: longtext("parsedData"), // JSON string of parsed credit report data (can be large)
   isParsed: boolean("isParsed").default(false).notNull(),
 });
 

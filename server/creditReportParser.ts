@@ -145,11 +145,12 @@ function parseDate(dateStr: string): Date | null {
 /**
  * Extract text from PDF buffer using pdf-parse
  */
-import * as pdfParse from 'pdf-parse';
 import { invokeLLM } from './_core/llm';
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  const pdfData = await (pdfParse as any).default(buffer);
+  const pdfParseModule = await import('pdf-parse');
+  const pdfParse = (pdfParseModule as any).default || pdfParseModule;
+  const pdfData = await pdfParse(buffer);
   return pdfData.text;
 }
 
@@ -260,8 +261,19 @@ export async function parseAndSaveReport(
       throw new Error(`Failed to fetch file: ${response.statusText}`);
     }
 
-    // Get file as text (for PDFs, we'd need pdf-parse, but for now assume text)
-    const text = await response.text();
+    // Get file as buffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Extract text from PDF
+    let text: string;
+    try {
+      text = await extractTextFromPDF(buffer);
+      console.log(`Extracted ${text.length} characters from PDF`);
+    } catch (error) {
+      console.error('PDF extraction failed, trying as plain text:', error);
+      text = buffer.toString('utf-8');
+    }
 
     // Map bureau name
     const bureauMap = {
@@ -270,13 +282,21 @@ export async function parseAndSaveReport(
       experian: 'Experian' as const,
     };
 
-    // Parse the report
-    const parsed = parseCreditReport(text, bureauMap[bureau]);
+    // Parse the report using AI
+    let accounts: ParsedAccount[];
+    try {
+      accounts = await parseWithAI(text, bureauMap[bureau]);
+      console.log(`AI extracted ${accounts.length} negative accounts`);
+    } catch (error) {
+      console.error('AI parsing failed, using regex fallback:', error);
+      const parsed = parseCreditReport(text, bureauMap[bureau]);
+      accounts = parsed.accounts;
+    }
 
     // Save accounts to database
     const { createNegativeAccount, updateCreditReportParsedData } = await import('./db');
     
-    for (const account of parsed.accounts) {
+    for (const account of accounts) {
       await createNegativeAccount({
         userId,
         accountName: account.accountName,
@@ -290,10 +310,22 @@ export async function parseAndSaveReport(
       });
     }
 
-    // Mark report as parsed (save parsed data as JSON)
-    await updateCreditReportParsedData(reportId, JSON.stringify(parsed));
+    // Mark report as parsed (save only account summary, not full text)
+    const parsedData = {
+      accountCount: accounts.length,
+      accounts: accounts.map(acc => ({
+        accountName: acc.accountName,
+        accountNumber: acc.accountNumber,
+        balance: acc.balance,
+        status: acc.status,
+        accountType: acc.accountType,
+      })),
+      bureau: bureauMap[bureau],
+      reportDate: new Date(),
+    };
+    await updateCreditReportParsedData(reportId, JSON.stringify(parsedData));
 
-    console.log(`Successfully parsed ${parsed.accounts.length} accounts from ${bureau} report`);
+    console.log(`Successfully parsed ${accounts.length} accounts from ${bureau} report`);
   } catch (error) {
     console.error('Error parsing credit report:', error);
     throw error;

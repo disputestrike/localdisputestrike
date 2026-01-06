@@ -17,7 +17,8 @@ import {
   Eye,
   Clock,
   Shield,
-  Bot
+  Bot,
+  Trash2
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -83,6 +84,26 @@ export default function Dashboard() {
       }
     };
     reader.readAsArrayBuffer(file);
+  };
+
+  // Delete mutation
+  const deleteReport = trpc.creditReports.delete.useMutation({
+    onSuccess: () => {
+      toast.success('Report deleted successfully');
+      refetchReports();
+      refetchAccounts();
+    },
+    onError: (error) => {
+      toast.error(`Delete failed: ${error.message}`);
+    },
+  });
+
+  const handleDeleteReport = async (reportId: number) => {
+    try {
+      await deleteReport.mutateAsync({ id: reportId });
+    } catch (error) {
+      console.error('Delete failed:', error);
+    }
   };
 
   // Calculate progress
@@ -249,15 +270,26 @@ export default function Dashboard() {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                             <span className="truncate">{report.fileName}</span>
                           </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => window.open(report.fileUrl, '_blank')}
-                          >
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Report
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => window.open(report.fileUrl, '_blank')}
+                            >
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Report
+                            </Button>
+                            <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              className="flex-1"
+                              onClick={() => handleDeleteReport(report.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </Button>
+                          </div>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -360,13 +392,23 @@ export default function Dashboard() {
                               <CheckCircle2 className="h-4 w-4 text-secondary" />
                               <span className="text-sm capitalize">{report.bureau}</span>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => window.open(report.fileUrl, '_blank')}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(report.fileUrl, '_blank')}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteReport(report.id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                       </div>

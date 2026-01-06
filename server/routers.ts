@@ -296,6 +296,33 @@ You help users understand their credit reports, identify violations, and develop
       .query(async ({ ctx, input }) => {
         return db.getCreditReportById(input.id);
       }),
+
+    /**
+     * Delete credit report and associated negative accounts
+     */
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        
+        // Get report to verify ownership
+        const report = await db.getCreditReportById(input.id);
+        if (!report || report.userId !== userId) {
+          throw new Error('Report not found or access denied');
+        }
+
+        // Delete associated negative accounts
+        const { deleteNegativeAccountsByReportId, deleteCreditReport } = await import('./db');
+        await deleteNegativeAccountsByReportId(input.id);
+        
+        // Delete the report
+        await deleteCreditReport(input.id);
+        
+        return {
+          success: true,
+          message: 'Report deleted successfully',
+        };
+      }),
   }),
 
   negativeAccounts: router({
