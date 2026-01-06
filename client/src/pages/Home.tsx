@@ -36,26 +36,24 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/">
-            <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
-            </a>
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
+            <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
           </Link>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/features">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Features</a>
+            <Link href="/features" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+              Features
             </Link>
-            <Link href="/how-it-works">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">How It Works</a>
+            <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+              How It Works
             </Link>
-            <Link href="/pricing">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Pricing</a>
+            <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+              Pricing
             </Link>
-            <Link href="/faq">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
+            <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+              FAQ
             </Link>
             {isAuthenticated ? (
               <UserDropdown />

@@ -669,3 +669,11 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Replaced deletion-letter-real.png with family photo in Home.tsx
 - [x] Updated caption to "Real families achieving financial freedom through credit repair"
 - [x] Ready to test and save checkpoint
+
+
+## Phase 37: FIX NESTED ANCHOR TAG ERROR (BUG FIX - COMPLETED)
+- [x] Located nested `<a>` tags in Home.tsx navigation (lines 39-59)
+- [x] Fixed logo link - removed nested <a>, moved className to Link
+- [x] Fixed nav links (Features, How It Works, Pricing, FAQ) - removed nested <a> tags
+- [x] All styling preserved by moving className to Link component
+- [x] Ready to test and save checkpoint
