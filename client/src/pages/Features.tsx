@@ -312,6 +312,51 @@ export default function Features() {
         </div>
       </section>
 
+      {/* Visual Examples Section */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <h2 className="text-4xl md:text-6xl font-extrabold text-center text-gray-900 mb-4">See How It Works</h2>
+          <p className="text-xl text-gray-700 text-center mb-16 max-w-3xl mx-auto">
+            Real examples of our litigation-grade letters and cross-bureau conflict detection
+          </p>
+          
+          <div className="space-y-20">
+            {/* Dispute Letter Example */}
+            <div className="max-w-4xl mx-auto">
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Litigation-Grade Dispute Letter</h3>
+              <img 
+                src="/dispute-letter-example.png" 
+                alt="Example dispute letter with FCRA citations highlighted" 
+                className="w-full rounded-xl shadow-2xl"
+              />
+              <p className="text-center text-gray-700 mt-6 text-lg">Notice the highlighted FCRA citations and legal arguments - this is what makes our letters so effective</p>
+            </div>
+            
+            {/* Cross-Bureau Comparison */}
+            <div className="max-w-6xl mx-auto">
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Cross-Bureau Conflict Detection</h3>
+              <img 
+                src="/triple-bureau-comparison.png" 
+                alt="Three credit bureaus showing conflicting information" 
+                className="w-full rounded-xl shadow-2xl"
+              />
+              <p className="text-center text-gray-700 mt-6 text-lg">Our AI automatically detects these conflicts - conflicting information = automatic deletion under FCRA law</p>
+            </div>
+            
+            {/* FCRA Citations */}
+            <div className="max-w-4xl mx-auto">
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Legal Weapons We Use</h3>
+              <img 
+                src="/fcra-citations-graphic.png" 
+                alt="Key FCRA legal citations infographic" 
+                className="w-full"
+              />
+              <p className="text-center text-gray-700 mt-6 text-lg">These are the exact legal citations that force bureaus to delete negative items</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">

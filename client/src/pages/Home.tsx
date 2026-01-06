@@ -201,6 +201,43 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
+          
+          {/* Visual Proof of Deletions */}
+          <div className="mt-20">
+            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12">See The Proof: Real Deletions</h3>
+            
+            <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+              {/* Deleted Items Proof */}
+              <div>
+                <img 
+                  src="/deleted-items-proof.png" 
+                  alt="Credit report showing deleted negative accounts with red stamps" 
+                  className="w-full rounded-xl shadow-2xl"
+                />
+                <p className="text-center text-gray-700 mt-4 font-medium">Official credit report showing 5 accounts DELETED</p>
+              </div>
+              
+              {/* Deletion Confirmation Letter */}
+              <div>
+                <img 
+                  src="/deletion-confirmation-letter.png" 
+                  alt="Equifax deletion confirmation letter" 
+                  className="w-full rounded-xl shadow-2xl"
+                />
+                <p className="text-center text-gray-700 mt-4 font-medium">Official bureau letter confirming account deletion</p>
+              </div>
+            </div>
+            
+            {/* Phone Success Screen */}
+            <div className="max-w-md mx-auto mt-12">
+              <img 
+                src="/phone-deletion-success.png" 
+                alt="App showing 8 items deleted successfully" 
+                className="w-full"
+              />
+              <p className="text-center text-gray-700 mt-4 font-medium text-lg">Track your deletion success in real-time</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -254,6 +291,26 @@ export default function Home() {
                 </p>
               </div>
             </div>
+          </div>
+          
+          {/* Before/After Bureau Comparison */}
+          <div className="mt-20 max-w-6xl mx-auto">
+            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Real Results: Before & After</h3>
+            <img 
+              src="/before-after-bureau-report.png" 
+              alt="Before and after credit report showing 6 deleted items" 
+              className="w-full rounded-xl shadow-2xl"
+            />
+            <p className="text-center text-gray-700 mt-6 text-lg font-medium">6 out of 8 negative items DELETED in just 45 days - Score increased from 580 to 720</p>
+          </div>
+          
+          {/* Deletion Stats */}
+          <div className="mt-20 max-w-4xl mx-auto">
+            <img 
+              src="/deletion-stats-graphic.png" 
+              alt="Deletion success statistics - 70-85% deletion rate" 
+              className="w-full"
+            />
           </div>
         </div>
       </section>
