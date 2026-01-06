@@ -753,3 +753,31 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Manually cleared old reports from database
 - [ ] Debug why delete button click not triggering (needs investigation)
 - [ ] Save checkpoint with working delete feature
+
+
+## Phase 41: Fix Credit Report Parsing Failure (CRITICAL BUG)
+- [ ] Check server logs for parsing errors
+- [ ] Verify PDF text extraction is working
+- [ ] Debug AI account extraction
+- [ ] Test with real credit report PDFs
+- [ ] Ensure negative accounts appear in dashboard after upload
+- [ ] Save checkpoint with working parser
+
+
+## Phase 42: Fix AI Extraction Missing Accounts (CRITICAL BUG)
+- [ ] Review AI extraction prompt in creditReportParser.ts
+- [ ] Identify why AI only finds 2 accounts instead of 27+
+- [ ] Improve prompt to extract ALL negative accounts comprehensively
+- [ ] Test with real credit report containing 27+ accounts
+- [ ] Verify all accounts are extracted and displayed
+- [ ] Save checkpoint with working comprehensive extraction
+
+
+## Phase 43: Add AI Processing Progress Indicator (UX IMPROVEMENT)
+- [x] Add parsing status field to credit_reports table (isParsed boolean exists)
+- [x] Update backend to track parsing progress (isParsed set after AI extraction)
+- [x] Add progress indicator UI in dashboard (spinner + "Analyzing reports...")
+- [x] Show estimated time message (20-30 seconds)
+- [x] Auto-refresh every 3 seconds when parsing in progress
+- [ ] Test with real upload and verify progress shows correctly
+- [ ] Save checkpoint with progress feedback

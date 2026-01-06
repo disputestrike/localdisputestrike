@@ -32,7 +32,16 @@ export default function Dashboard() {
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
   const uploadToS3 = trpc.upload.uploadToS3.useMutation();
-  const { data: negativeAccounts, refetch: refetchAccounts } = trpc.negativeAccounts.list.useQuery();
+  const { data: negativeAccounts, refetch: refetchAccounts } = trpc.negativeAccounts.list.useQuery(
+    undefined,
+    {
+      refetchInterval: (data) => {
+        // Auto-refresh every 3 seconds if any reports are still being parsed
+        const hasUnparsedReports = creditReports?.some(r => !r.isParsed);
+        return hasUnparsedReports ? 3000 : false;
+      },
+    }
+  );
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
 
   // Mutations
@@ -526,7 +535,14 @@ export default function Dashboard() {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  No negative accounts found yet. Our AI is analyzing your reports...
+                  {creditReports && creditReports.some(r => !r.isParsed) ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      <span>AI is analyzing your reports... This may take 20-30 seconds. Please wait.</span>
+                    </div>
+                  ) : (
+                    "No negative accounts found yet. Upload your credit reports to get started."
+                  )}
                 </AlertDescription>
               </Alert>
             )}

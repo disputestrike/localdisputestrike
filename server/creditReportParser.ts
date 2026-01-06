@@ -148,10 +148,10 @@ function parseDate(dateStr: string): Date | null {
 import { invokeLLM } from './_core/llm';
 
 export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  const pdfParseModule = await import('pdf-parse');
-  const pdfParse = (pdfParseModule as any).default || pdfParseModule;
-  const pdfData = await pdfParse(buffer);
-  return pdfData.text;
+  const { PDFParse } = await import('pdf-parse');
+  const parser = new PDFParse({ data: buffer });
+  const result = await parser.getText();
+  return result.text;
 }
 
 /**
@@ -176,7 +176,7 @@ Return valid JSON array only.`;
     const response = await invokeLLM({
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Extract negative accounts from this ${bureau} credit report:\n\n${text.slice(0, 12000)}` },
+        { role: 'user', content: `Extract negative accounts from this ${bureau} credit report:\n\n${text}` },
       ],
       response_format: {
         type: 'json_schema',
