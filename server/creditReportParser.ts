@@ -242,3 +242,60 @@ export function parseMultipleReports(reports: { text: string; bureau: 'TransUnio
 
   return allAccounts;
 }
+
+
+/**
+ * Async function to parse credit report from URL and save to database
+ */
+export async function parseAndSaveReport(
+  reportId: number,
+  fileUrl: string,
+  bureau: 'transunion' | 'equifax' | 'experian',
+  userId: number
+): Promise<void> {
+  try {
+    // Fetch file from URL
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
+    }
+
+    // Get file as text (for PDFs, we'd need pdf-parse, but for now assume text)
+    const text = await response.text();
+
+    // Map bureau name
+    const bureauMap = {
+      transunion: 'TransUnion' as const,
+      equifax: 'Equifax' as const,
+      experian: 'Experian' as const,
+    };
+
+    // Parse the report
+    const parsed = parseCreditReport(text, bureauMap[bureau]);
+
+    // Save accounts to database
+    const { createNegativeAccount, updateCreditReportParsedData } = await import('./db');
+    
+    for (const account of parsed.accounts) {
+      await createNegativeAccount({
+        userId,
+        accountName: account.accountName,
+        accountNumber: account.accountNumber,
+        balance: account.balance.toString(),
+        status: account.status,
+        dateOpened: account.dateOpened?.toISOString() || null,
+        lastActivity: account.lastActivity?.toISOString() || null,
+        accountType: account.accountType,
+        originalCreditor: account.originalCreditor || null,
+      });
+    }
+
+    // Mark report as parsed (save parsed data as JSON)
+    await updateCreditReportParsedData(reportId, JSON.stringify(parsed));
+
+    console.log(`Successfully parsed ${parsed.accounts.length} accounts from ${bureau} report`);
+  } catch (error) {
+    console.error('Error parsing credit report:', error);
+    throw error;
+  }
+}

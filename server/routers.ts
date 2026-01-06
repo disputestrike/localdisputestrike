@@ -247,7 +247,7 @@ You help users understand their credit reports, identify violations, and develop
 
   creditReports: router({
     /**
-     * Upload credit report (placeholder - will implement full parsing later)
+     * Upload credit report - automatically parses and extracts accounts
      */
     upload: protectedProcedure
       .input(z.object({
@@ -259,7 +259,7 @@ You help users understand their credit reports, identify violations, and develop
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
         
-        const reportId = await db.createCreditReport({
+        const report = await db.createCreditReport({
           userId,
           bureau: input.bureau,
           fileUrl: input.fileUrl,
@@ -268,12 +268,16 @@ You help users understand their credit reports, identify violations, and develop
           isParsed: false,
         });
 
-        // TODO: Implement AI parsing after upload
-        // Will automatically extract accounts and detect conflicts
+        // Trigger AI parsing in background
+        const { parseAndSaveReport } = await import('./creditReportParser');
+        parseAndSaveReport(report.id, input.fileUrl, input.bureau, userId).catch((err: Error) => {
+          console.error('Failed to parse credit report:', err);
+        });
 
         return {
-          reportId,
+          reportId: report.id,
           success: true,
+          message: 'Report uploaded successfully. AI is extracting accounts...',
         };
       }),
 

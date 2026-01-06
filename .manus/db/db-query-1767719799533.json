@@ -1,0 +1,58 @@
+{
+  "query": "SELECT id, userId, bureau, fileName, isParsed, uploadedAt FROM credit_reports ORDER BY uploadedAt DESC;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute SELECT id, userId, bureau, fileName, isParsed, uploadedAt FROM credit_reports ORDER BY uploadedAt DESC;",
+  "rows": [
+    {
+      "id": "90001",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 15:28:58"
+    },
+    {
+      "id": "60001",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 15:12:12"
+    },
+    {
+      "id": "30002",
+      "userId": "999",
+      "bureau": "transunion",
+      "fileName": "audit-test.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 14:10:47"
+    },
+    {
+      "id": "30001",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 14:09:53"
+    },
+    {
+      "id": "2",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 13:36:02"
+    },
+    {
+      "id": "1",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileName": "test-report.png",
+      "isParsed": "0",
+      "uploadedAt": "2025-12-30 13:35:33"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tbureau\tfileName\tisParsed\tuploadedAt\n90001\t1\ttransunion\ttest-report.png\t0\t2025-12-30 15:28:58\n60001\t1\ttransunion\ttest-report.png\t0\t2025-12-30 15:12:12\n30002\t999\ttransunion\taudit-test.png\t0\t2025-12-30 14:10:47\n30001\t1\ttransunion\ttest-report.png\t0\t2025-12-30 14:09:53\n2\t1\ttransunion\ttest-report.png\t0\t2025-12-30 13:36:02\n1\t1\ttransunion\ttest-report.png\t0\t2025-12-30 13:35:33\n",
+  "stderr": "",
+  "execution_time_ms": 63
+}

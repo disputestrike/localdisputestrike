@@ -1,0 +1,109 @@
+{
+  "query": "SELECT id, userId, accountName, accountNumber, balance, status, hasConflicts FROM negative_accounts ORDER BY createdAt DESC LIMIT 20;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute SELECT id, userId, accountName, accountNumber, balance, status, hasConflicts FROM negative_accounts ORDER BY createdAt DESC LIMIT 20;",
+  "rows": [
+    {
+      "id": "90002",
+      "userId": "1",
+      "accountName": "Test Account for Letter",
+      "accountNumber": "NULL",
+      "balance": "1000.00",
+      "status": "NULL",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "90001",
+      "userId": "1",
+      "accountName": "Test Collection Account",
+      "accountNumber": "123456789",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "60002",
+      "userId": "1",
+      "accountName": "Test Account for Letter",
+      "accountNumber": "NULL",
+      "balance": "1000.00",
+      "status": "NULL",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "60001",
+      "userId": "1",
+      "accountName": "Test Collection Account",
+      "accountNumber": "123456789",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "30003",
+      "userId": "999",
+      "accountName": "AUDIT TEST COLLECTION",
+      "accountNumber": "999999999",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "30001",
+      "userId": "1",
+      "accountName": "Test Collection Account",
+      "accountNumber": "123456789",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "30002",
+      "userId": "1",
+      "accountName": "Test Account for Letter",
+      "accountNumber": "NULL",
+      "balance": "1000.00",
+      "status": "NULL",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "4",
+      "userId": "1",
+      "accountName": "Test Account for Letter",
+      "accountNumber": "NULL",
+      "balance": "1000.00",
+      "status": "NULL",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "3",
+      "userId": "1",
+      "accountName": "Test Collection Account",
+      "accountNumber": "123456789",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "2",
+      "userId": "1",
+      "accountName": "Test Account for Letter",
+      "accountNumber": "NULL",
+      "balance": "1000.00",
+      "status": "NULL",
+      "hasConflicts": "0"
+    },
+    {
+      "id": "1",
+      "userId": "1",
+      "accountName": "Test Collection Account",
+      "accountNumber": "123456789",
+      "balance": "5000.00",
+      "status": "Unpaid",
+      "hasConflicts": "0"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\taccountName\taccountNumber\tbalance\tstatus\thasConflicts\n90002\t1\tTest Account for Letter\tNULL\t1000.00\tNULL\t0\n90001\t1\tTest Collection Account\t123456789\t5000.00\tUnpaid\t0\n60002\t1\tTest Account for Letter\tNULL\t1000.00\tNULL\t0\n60001\t1\tTest Collection Account\t123456789\t5000.00\tUnpaid\t0\n30003\t999\tAUDIT TEST COLLECTION\t999999999\t5000.00\tUnpaid\t0\n30001\t1\tTest Collection Account\t123456789\t5000.00\tUnpaid\t0\n30002\t1\tTest Account for Letter\tNULL\t1000.00\tNULL\t0\n4\t1\tTest Account for Letter\tNULL\t1000.00\tNULL\t0\n3\t1\tTest Collection Account\t123456789\t5000.00\tUnpaid\t0\n2\t1\tTest Account for Letter\tNULL\t1000.00\tNULL\t0\n1\t1\tTest Collection Account\t123456789\t5000.00\tUnpaid\t0\n",
+  "stderr": "",
+  "execution_time_ms": 97
+}

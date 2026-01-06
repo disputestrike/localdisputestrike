@@ -26,6 +26,7 @@ import { Link } from "wouter";
 export default function Dashboard() {
   const { user } = useAuth();
   const [uploadingBureau, setUploadingBureau] = useState<string | null>(null);
+  const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
@@ -185,7 +186,46 @@ export default function Dashboard() {
               </AlertDescription>
             </Alert>
 
-            <div className="grid md:grid-cols-3 gap-6">
+            {/* Upload Mode Toggle */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Upload Method</CardTitle>
+                <CardDescription>Choose how you want to upload your credit reports</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <Button
+                    variant={uploadMode === 'separate' ? 'default' : 'outline'}
+                    onClick={() => setUploadMode('separate')}
+                    className="h-auto py-4 flex-col gap-2"
+                  >
+                    <Upload className="h-6 w-6" />
+                    <div className="text-center">
+                      <div className="font-semibold">3 Separate Files</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Upload TransUnion, Equifax, and Experian individually
+                      </div>
+                    </div>
+                  </Button>
+                  <Button
+                    variant={uploadMode === 'combined' ? 'default' : 'outline'}
+                    onClick={() => setUploadMode('combined')}
+                    className="h-auto py-4 flex-col gap-2"
+                  >
+                    <FileText className="h-6 w-6" />
+                    <div className="text-center">
+                      <div className="font-semibold">1 Combined File</div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Upload one file containing all 3 bureau reports
+                      </div>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {uploadMode === 'separate' ? (
+              <div className="grid md:grid-cols-3 gap-6">
               {(["transunion", "equifax", "experian"] as const).map((bureau) => {
                 const report = creditReports?.find(r => r.bureau === bureau);
                 const isUploading = uploadingBureau === bureau;
@@ -261,7 +301,80 @@ export default function Dashboard() {
                   </Card>
                 );
               })}
-            </div>
+              </div>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Upload Combined Report</CardTitle>
+                  <CardDescription>
+                    Upload one file containing credit reports from all 3 bureaus (TransUnion, Equifax, Experian)
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <input
+                      type="file"
+                      accept=".pdf,image/*"
+                      id="upload-combined"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          // For combined upload, we'll upload to all 3 bureaus
+                          // The AI parser will split them automatically
+                          toast.info('Uploading combined report...');
+                          handleFileUpload('transunion', file);
+                        }
+                      }}
+                      disabled={uploadingBureau !== null}
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full h-32"
+                      onClick={() => document.getElementById('upload-combined')?.click()}
+                      disabled={uploadingBureau !== null}
+                    >
+                      {uploadingBureau ? (
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                          <span>Uploading...</span>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <Upload className="h-8 w-8" />
+                          <div className="text-center">
+                            <div className="font-semibold">Click to Upload</div>
+                            <div className="text-xs text-muted-foreground mt-1">
+                              PDF or image files accepted
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </Button>
+                    {creditReports && creditReports.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="text-sm font-medium">Uploaded Reports:</div>
+                        {creditReports.map(report => (
+                          <div key={report.id} className="flex items-center justify-between p-2 border rounded">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-secondary" />
+                              <span className="text-sm capitalize">{report.bureau}</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(report.fileUrl, '_blank')}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {hasAllReports && (
               <Alert className="border-secondary bg-secondary/10">
