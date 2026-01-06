@@ -140,7 +140,7 @@ export default function About() {
       <section className="py-20 bg-orange-600 text-white">
         <div className="container">
           <h2 className="text-4xl font-extrabold mb-12 text-center">Our Impact</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 text-center mb-16">
             <div>
               <div className="text-5xl md:text-6xl font-extrabold mb-2">16,628+</div>
               <div className="text-xl font-medium">Happy Customers</div>
@@ -157,6 +157,15 @@ export default function About() {
               <div className="text-5xl md:text-6xl font-extrabold mb-2">95%</div>
               <div className="text-xl font-medium">Success Rate</div>
             </div>
+          </div>
+          
+          {/* Visual Proof */}
+          <div className="max-w-4xl mx-auto">
+            <img 
+              src="/credit-score-before-after.png" 
+              alt="Real credit score improvement results" 
+              className="w-full rounded-2xl shadow-2xl"
+            />
           </div>
         </div>
       </section>

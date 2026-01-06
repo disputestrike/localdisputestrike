@@ -65,6 +65,15 @@ export default function Features() {
             <p className="text-xl md:text-2xl text-gray-700">
               Our AI-powered platform combines cutting-edge technology with legal expertise to maximize your credit repair success
             </p>
+            
+            {/* Credit Score Gauge Visual */}
+            <div className="max-w-md mx-auto mt-12">
+              <img 
+                src="/credit-score-gauge.png" 
+                alt="Excellent credit score of 750" 
+                className="w-full"
+              />
+            </div>
           </div>
         </div>
       </section>

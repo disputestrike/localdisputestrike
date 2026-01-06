@@ -89,9 +89,22 @@ export default function Home() {
               Get 70-85% deletion rates with AI-powered letters featuring proper FCRA citations and cross-bureau conflict detection. Same quality as $2,500 attorneys, starting at just $29.
             </p>
             
-            {/* Hero Image - Real Person */}
-            <div className="relative max-w-4xl mx-auto">
-              <img src="/hero-real-person.png" alt="Happy customer using CreditCounsel" className="w-full rounded-2xl shadow-2xl" />
+            {/* Hero Visual - Credit Score Before/After */}
+            <div className="relative max-w-5xl mx-auto">
+              <img 
+                src="/credit-score-before-after.png" 
+                alt="Credit score improvement from 580 to 720" 
+                className="w-full rounded-2xl shadow-2xl"
+              />
+            </div>
+            
+            {/* Phone Mockup showing app */}
+            <div className="relative max-w-md mx-auto mt-12">
+              <img 
+                src="/phone-credit-report.png" 
+                alt="CreditCounsel app showing deleted negative items" 
+                className="w-full"
+              />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -224,20 +237,20 @@ export default function Home() {
                 </p>
               </div>
               <div className="order-1 md:order-2">
-                <img src="/step-analyze-real.png" alt="AI analyzes and creates letters" className="w-full rounded-xl shadow-xl" />
+                <img src="/phone-dashboard-mockup.png" alt="Before and after credit score comparison" className="w-full" />
               </div>
             </div>
 
             {/* Step 3 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-send-real.png" alt="Send and track" className="w-full rounded-xl shadow-xl" />
+                <img src="/score-improvement-chart.png" alt="Credit score improvement over 6 months" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
                 <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Send & Track Results</h3>
                 <p className="text-lg text-gray-700">
-                  Download professional PDF letters, mail via Certified Mail, and track your disputes. Watch negative items get deleted and your score rise.
+                  Download professional PDF letters, mail via Certified Mail, and track your disputes. Watch negative items get deleted and your score rise by an average of 80+ points.
                 </p>
               </div>
             </div>
