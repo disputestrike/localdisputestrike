@@ -8,6 +8,7 @@ import { getLoginUrl } from "@/const";
 import { ArrowRight, CheckCircle2, Shield, TrendingUp, FileText, Star, Play, Check, X, Facebook, Twitter, Instagram, Linkedin, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { LiveCounter } from "@/components/LiveCounter";
+import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
 import { useState } from "react";
 
@@ -89,13 +90,9 @@ export default function Home() {
               Get 70-85% deletion rates with AI-powered letters featuring proper FCRA citations and cross-bureau conflict detection. Same quality as $2,500 attorneys, starting at just $29.
             </p>
             
-            {/* Hero Visual - Credit Score Before/After */}
+            {/* Hero Visual - Animated Credit Score Transformation */}
             <div className="relative max-w-5xl mx-auto">
-              <img 
-                src="/credit-score-journey.png" 
-                alt="Credit score improvement from 580 to 720" 
-                className="w-full rounded-2xl shadow-2xl"
-              />
+              <CreditScoreAnimation className="w-full" />
             </div>
             
             {/* Phone Mockup showing app */}

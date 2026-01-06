@@ -3,6 +3,7 @@ import { Shield, Users, Target, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserDropdown } from "@/components/UserDropdown";
 import { MobileMenu } from "@/components/MobileMenu";
+import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
 
 export default function About() {
   return (
@@ -159,13 +160,9 @@ export default function About() {
             </div>
           </div>
           
-          {/* Visual Proof */}
+          {/* Visual Proof - Animated Transformation */}
           <div className="max-w-4xl mx-auto">
-            <img 
-              src="/credit-score-journey.png" 
-              alt="Real credit score improvement results" 
-              className="w-full rounded-2xl shadow-2xl"
-            />
+            <CreditScoreAnimation className="w-full" />
           </div>
         </div>
       </section>
