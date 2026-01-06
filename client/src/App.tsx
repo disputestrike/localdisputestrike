@@ -12,19 +12,25 @@ import LetterView from "@/pages/LetterView";
 import Admin from "@/pages/Admin";
 import MailingInstructions from "@/pages/MailingInstructions";
 import Pricing from "./pages/Pricing";
+import Features from "./pages/Features";
+import HowItWorks from "./pages/HowItWorks";
+import FAQ from "./pages/FAQ";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path="/features" component={Features} />
+      <Route path="/how-it-works" component={HowItWorks} />
+      <Route path="/pricing" component={Pricing} />
+      <Route path="/faq" component={FAQ} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={Admin} />
       <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
-      <Route path={"/pricing"} component={Pricing} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

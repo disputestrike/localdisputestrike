@@ -1,5 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { UserDropdown } from "@/components/UserDropdown";
+import { MobileMenu } from "@/components/MobileMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
@@ -33,19 +35,29 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
-            <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
-          </div>
+          <Link href="/">
+            <a className="flex items-center gap-2">
+              <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
+            </a>
+          </Link>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
-            <a href="#features" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">How It Works</a>
-            <a href="#pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Pricing</a>
-            <a href="#faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
+            <Link href="/features">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Features</a>
+            </Link>
+            <Link href="/how-it-works">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">How It Works</a>
+            </Link>
+            <Link href="/pricing">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Pricing</a>
+            </Link>
+            <Link href="/faq">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
+            </Link>
             {isAuthenticated ? (
-              <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                <Link href="/dashboard">Dashboard</Link>
-              </Button>
+              <UserDropdown />
             ) : (
               <>
                 <Button variant="ghost" className="text-gray-700" asChild>
@@ -57,6 +69,9 @@ export default function Home() {
               </>
             )}
           </div>
+          
+          {/* Mobile Menu */}
+          <MobileMenu />
         </div>
       </nav>
 
@@ -80,19 +95,11 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              {isAuthenticated ? (
-                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-                  <Link href="/dashboard">
-                    Go to Dashboard <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-              ) : (
-                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-                  <Link href="/quiz">
-                    Start Free Analysis <ArrowRight className="ml-2" />
-                  </Link>
-                </Button>
-              )}
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
+                <Link href="/quiz">
+                  Start Free Analysis <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
             </div>
             
             <div className="flex items-center justify-center gap-2 text-yellow-500">

@@ -1,5 +1,8 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { UserDropdown } from "@/components/UserDropdown";
+import { MobileMenu } from "@/components/MobileMenu";
+import { getLoginUrl } from "@/const";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, Shield, BookOpen, Zap, Star, TrendingUp, ArrowLeft } from "lucide-react";
@@ -9,7 +12,6 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 export default function Pricing() {
-  // Show countdown timer for urgency
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
@@ -99,28 +101,48 @@ export default function Pricing() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      {/* Header */}
-      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      {/* Navigation */}
+      <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Link>
-            </Button>
-            <div className="flex items-center gap-2">
-              <Shield className="h-6 w-6 text-primary" />
-              <span className="font-bold text-xl">CreditCounsel AI</span>
-            </div>
-          </div>
-          <nav className="flex items-center gap-6">
-            {isAuthenticated && (
-              <Button onClick={() => setLocation("/dashboard")}>Dashboard</Button>
+          <Link href="/">
+            <a className="flex items-center gap-2">
+              <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
+            </a>
+          </Link>
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/features">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Features</a>
+            </Link>
+            <Link href="/how-it-works">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">How It Works</a>
+            </Link>
+            <Link href="/pricing">
+              <a className="text-orange-600 hover:text-orange-700 font-medium transition-colors">Pricing</a>
+            </Link>
+            <Link href="/faq">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
+            </Link>
+            {isAuthenticated ? (
+              <UserDropdown />
+            ) : (
+              <>
+                <Button variant="ghost" className="text-gray-700" asChild>
+                  <a href={getLoginUrl()}>Login</a>
+                </Button>
+                <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
+                  <Link href="/quiz">Get Started Free</Link>
+                </Button>
+              </>
             )}
-          </nav>
+          </div>
+          
+          {/* Mobile Menu */}
+          <MobileMenu />
         </div>
-      </header>
+      </nav>
 
       {/* Hero Section */}
       <section className="container py-16 text-center">
