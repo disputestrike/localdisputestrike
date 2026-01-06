@@ -567,6 +567,51 @@ You help users understand their credit reports, identify violations, and develop
   }),
 
   /**
+   * Contact form router (no auth required)
+   */
+  contact: router({
+    /**
+     * Submit contact form
+     */
+    submit: publicProcedure
+      .input(z.object({
+        name: z.string(),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        message: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        // Save to database
+        const contactId = await db.createContactSubmission({
+          name: input.name,
+          email: input.email,
+          phone: input.phone,
+          message: input.message,
+          status: 'new',
+        });
+
+        // Send notification email to admin
+        const { sendEmail } = await import('./emailService');
+        await sendEmail({
+          to: process.env.ADMIN_EMAIL || 'admin@creditcounsel.ai',
+          subject: `New Contact Form Submission from ${input.name}`,
+          html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${input.name}</p>
+            <p><strong>Email:</strong> <a href="mailto:${input.email}">${input.email}</a></p>
+            ${input.phone ? `<p><strong>Phone:</strong> <a href="tel:${input.phone}">${input.phone}</a></p>` : ''}
+            <p><strong>Message:</strong></p>
+            <p>${input.message.replace(/\n/g, '<br>')}</p>
+            <p><strong>Submitted:</strong> ${new Date().toLocaleString()}</p>
+          `,
+          text: `New contact from ${input.name} (${input.email}): ${input.message}`,
+        });
+
+        return { success: true, contactId };
+      }),
+  }),
+
+  /**
    * Lead capture router (no auth required)
    */
   leads: router({

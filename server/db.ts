@@ -20,7 +20,10 @@ import {
   Subscription,
   mailingChecklists,
   InsertMailingChecklist,
-  MailingChecklist
+  MailingChecklist,
+  contactSubmissions,
+  InsertContactSubmission,
+  ContactSubmission
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -461,4 +464,24 @@ export async function getAllLeads() {
   
   const { leads } = await import("../drizzle/schema");
   return db.select().from(leads);
+}
+
+
+// ============================================================================
+// CONTACT FORM OPERATIONS
+// ============================================================================
+
+export async function createContactSubmission(submission: InsertContactSubmission) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  
+  const [newSubmission] = await db.insert(contactSubmissions).values(submission).$returningId();
+  return newSubmission.id;
+}
+
+export async function getAllContactSubmissions() {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
 }

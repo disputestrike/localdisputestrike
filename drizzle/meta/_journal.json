@@ -22,6 +22,13 @@
       "when": 1767612739455,
       "tag": "0002_parallel_dark_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1767718568963,
+      "tag": "0003_goofy_magdalene",
+      "breakpoints": true
     }
   ]
 }

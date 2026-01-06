@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { UserDropdown } from "@/components/UserDropdown";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc";
 
 // Toast functionality - using simple alerts for now
 const toast = ({ title, description }: { title: string; description?: string }) => {
@@ -16,18 +17,34 @@ export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
+    phone: "",
     message: ""
+  });
+
+  const submitMutation = trpc.contact.submit.useMutation({
+    onSuccess: () => {
+      toast({
+        title: "Message Sent!",
+        description: "We'll get back to you within 24 hours.",
+      });
+      setFormData({ name: "", email: "", phone: "", message: "" });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send message. Please try again.",
+      });
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement actual form submission
-    toast({
-      title: "Message Sent!",
-      description: "We'll get back to you within 24 hours.",
+    submitMutation.mutate({
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone || undefined,
+      message: formData.message,
     });
-    setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   return (
@@ -143,20 +160,7 @@ export default function Contact() {
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                    Subject *
-                  </label>
-                  <Input
-                    id="subject"
-                    type="text"
-                    required
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder="How can we help you?"
-                    className="w-full"
-                  />
-                </div>
+
 
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
