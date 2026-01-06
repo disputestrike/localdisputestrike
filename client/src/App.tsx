@@ -9,7 +9,7 @@ import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
 import AIAssistant from "@/pages/AIAssistant";
 import LetterView from "@/pages/LetterView";
-import Admin from "@/pages/Admin";
+import AdminEnhanced from "@/pages/AdminEnhanced";
 import MailingInstructions from "@/pages/MailingInstructions";
 import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
@@ -40,7 +40,7 @@ function Router() {
       <Route path="/quiz" component={Quiz} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
-      <Route path="/admin" component={Admin} />
+      <Route path="/admin" component={AdminEnhanced} />
       <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
       <Route path={"/404"} component={NotFound} />

@@ -667,6 +667,171 @@ Tone: Professional but FIRM. Make it clear you know the law and will pursue lega
       }),
 
     /**
+     * Generate CFPB complaint for missed bureau deadline
+     */
+    generateCFPBComplaint: protectedProcedure
+      .input(z.object({
+        letterId: z.number(),
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        daysOverdue: z.number(),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const userName = ctx.user.name || 'User';
+        
+        // Get original letter
+        const originalLetter = await db.getDisputeLetterById(input.letterId);
+        if (!originalLetter || originalLetter.userId !== userId) {
+          throw new Error('Letter not found');
+        }
+        
+        const bureauNames = {
+          transunion: 'TransUnion',
+          equifax: 'Equifax',
+          experian: 'Experian',
+        };
+        
+        const bureauAddresses = {
+          transunion: 'P.O. Box 2000, Chester, PA 19016-2000',
+          equifax: 'P.O. Box 740256, Atlanta, GA 30374-0256',
+          experian: 'P.O. Box 4500, Allen, TX 75013',
+        };
+        
+        // Import Manus AI
+        const { invokeLLM } = await import('./_core/llm');
+        
+        // Build CFPB complaint prompt
+        const cfpbPrompt = `Generate a formal CFPB complaint letter for FCRA violations.
+
+User Information:
+- Name: ${userName}
+- Address: ${input.userAddress}
+
+Violation Details:
+- Bureau: ${bureauNames[input.bureau]}
+- Original Dispute Date: ${originalLetter.mailedAt ? new Date(originalLetter.mailedAt).toLocaleDateString() : 'Unknown'}
+- Days Overdue: ${input.daysOverdue} days past the 30-day deadline
+- FCRA Violation: § 1681i(a)(1)(A) - Failure to complete investigation within 30 days
+
+Generate a formal CFPB complaint letter that:
+
+1. **Addresses Consumer Financial Protection Bureau:**
+   Consumer Financial Protection Bureau
+   P.O. Box 4503
+   Iowa City, IA 52244
+
+2. **States the violation clearly:**
+   - ${bureauNames[input.bureau]} received dispute letter on [date]
+   - 30-day deadline was [date]
+   - Bureau failed to respond by deadline (now ${input.daysOverdue} days overdue)
+   - This violates FCRA § 1681i(a)(1)(A)
+
+3. **Cites legal authority:**
+   - FCRA § 1681i(a)(1)(A) - 30-day investigation requirement
+   - FCRA § 1681i(a)(5)(A) - Mandatory deletion if unverifiable
+   - FCRA § 1681n - Willful noncompliance penalties ($100-$1,000 per violation)
+   - FCRA § 1681o - Negligent noncompliance (actual damages)
+
+4. **Documents harm:**
+   - Continued inaccurate reporting damages credit score
+   - Inability to obtain credit, housing, or employment
+   - Emotional distress from bureau's negligence
+   - Request for statutory damages under FCRA § 1681n
+
+5. **Demands action:**
+   - CFPB investigate ${bureauNames[input.bureau]} for FCRA violations
+   - Bureau be fined for noncompliance
+   - Immediate deletion of disputed accounts
+   - Compensation for damages
+
+6. **Includes exhibits:**
+   - Copy of original dispute letter
+   - Proof of mailing (certified mail receipt)
+   - Credit report showing inaccurate information
+   - Timeline showing missed deadline
+
+7. **Professional formatting:**
+   - Proper letterhead
+   - CFPB address
+   - Date
+   - RE: Formal Complaint Against ${bureauNames[input.bureau]}
+   - Body with legal citations
+   - Signature block
+
+Tone: Formal, factual, and demanding. This is an official government complaint that could result in fines and enforcement action.`;
+        
+        // Generate CFPB complaint
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert FCRA attorney drafting formal CFPB complaints. Your complaints are detailed, cite specific violations, and demand enforcement action.',
+            },
+            {
+              role: 'user',
+              content: cfpbPrompt,
+            },
+          ],
+        });
+        
+        const rawContent = response.choices[0]?.message?.content;
+        const complaintContent = typeof rawContent === 'string' ? rawContent : 'Error generating CFPB complaint';
+        
+        // Create CFPB complaint letter record
+        const complaintId = await db.createDisputeLetter({
+          userId,
+          bureau: input.bureau,
+          letterContent: complaintContent,
+          accountsDisputed: originalLetter.accountsDisputed,
+          round: originalLetter.round || 1,
+          letterType: 'cfpb',
+          status: 'generated',
+        });
+        
+        return {
+          complaintId,
+          bureau: input.bureau,
+          message: 'CFPB complaint generated successfully',
+        };
+      }),
+
+    /**
+     * Upload and parse bureau response letter
+     */
+    uploadBureauResponse: protectedProcedure
+      .input(z.object({
+        letterId: z.number(),
+        fileUrl: z.string(), // S3 URL of uploaded PDF/image
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        
+        // Verify letter belongs to user
+        const letter = await db.getDisputeLetterById(input.letterId);
+        if (!letter || letter.userId !== userId) {
+          throw new Error('Letter not found');
+        }
+        
+        // Parse bureau response using AI
+        const { parseBureauResponse, updateAccountStatuses } = await import('./bureauResponseParser');
+        const parsed = await parseBureauResponse(input.fileUrl, input.bureau);
+        
+        // Update account statuses
+        const updateResult = await updateAccountStatuses(userId, parsed);
+        
+        // TODO: Update letter status to 'response_received'
+        // TODO: Store parsed response in database
+        
+        return {
+          parsed,
+          accountsMatched: updateResult.accountsMatched,
+          scoreChange: updateResult.scoreChange,
+        };
+      }),
+
+    /**
      * Update letter status (mailed, response received, etc.)
      */
     updateStatus: protectedProcedure
