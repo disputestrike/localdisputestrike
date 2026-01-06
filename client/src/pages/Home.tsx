@@ -74,14 +74,9 @@ export default function Home() {
               Get 70-85% deletion rates with AI-powered letters featuring proper FCRA citations and cross-bureau conflict detection. Same quality as $2,500 attorneys, starting at just $29.
             </p>
             
-            {/* Video Placeholder */}
+            {/* Hero Image - Real Person */}
             <div className="relative max-w-4xl mx-auto">
-              <img src="/hero-video-placeholder.png" alt="Learn how to improve your credit score" className="w-full rounded-2xl shadow-2xl" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="bg-orange-600 rounded-full p-6 shadow-xl hover:scale-110 transition-transform cursor-pointer">
-                  <Play className="h-12 w-12 text-white fill-current" />
-                </div>
-              </div>
+              <img src="/hero-real-person.png" alt="Happy customer using CreditCounsel" className="w-full rounded-2xl shadow-2xl" />
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -201,7 +196,7 @@ export default function Home() {
             {/* Step 1 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-upload.png" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
+                <img src="/step-upload-real.png" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 1</Badge>
@@ -222,14 +217,14 @@ export default function Home() {
                 </p>
               </div>
               <div className="order-1 md:order-2">
-                <img src="/step-analyze.png" alt="AI analyzes and creates letters" className="w-full rounded-xl shadow-xl" />
+                <img src="/step-analyze-real.png" alt="AI analyzes and creates letters" className="w-full rounded-xl shadow-xl" />
               </div>
             </div>
 
             {/* Step 3 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-send.png" alt="Send and track" className="w-full rounded-xl shadow-xl" />
+                <img src="/step-send-real.png" alt="Send and track" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
@@ -256,7 +251,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/testimonial-person-1.png" alt="Sarah Martinez" className="w-16 h-16 rounded-full" />
+                  <img src="/testimonial-sarah-real.png" alt="Sarah Martinez" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">Sarah Martinez</div>
                     <div className="text-gray-600">Miami, FL</div>
@@ -279,7 +274,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/testimonial-person-2.png" alt="James Chen" className="w-16 h-16 rounded-full" />
+                  <img src="/testimonial-james-real.png" alt="James Chen" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">James Chen</div>
                     <div className="text-gray-600">San Francisco, CA</div>
@@ -302,7 +297,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <div className="w-16 h-16 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold text-2xl">M</div>
+                  <img src="/testimonial-maria-real.png" alt="Maria Rodriguez" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">Maria Rodriguez</div>
                     <div className="text-gray-600">Houston, TX</div>
