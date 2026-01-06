@@ -201,9 +201,9 @@ export default function Home() {
           <div className="mt-20">
             <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12">See The Proof: Real Deletions</h3>
             
-            <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto items-start">
               {/* Deleted Items Proof */}
-              <div>
+              <div className="flex flex-col">
                 <img 
                   src="/deleted-items-proof.png" 
                   alt="Credit report showing deleted negative accounts with red stamps" 
@@ -212,8 +212,18 @@ export default function Home() {
                 <p className="text-center text-gray-700 mt-4 font-medium">Official credit report showing 5 accounts DELETED</p>
               </div>
               
-              {/* Deletion Confirmation Letter */}
-              <div>
+              {/* Phone Success Screen */}
+              <div className="flex flex-col">
+                <img 
+                  src="/phone-deletion-success.png" 
+                  alt="App showing 8 items deleted successfully" 
+                  className="w-full rounded-xl shadow-2xl"
+                />
+                <p className="text-center text-gray-700 mt-4 font-medium">Track your deletion success in real-time</p>
+              </div>
+              
+              {/* Happy Family */}
+              <div className="flex flex-col">
                 <img 
                   src="/happy-family-credit-success.png" 
                   alt="Happy family celebrating credit score improvement and loan approval" 
@@ -221,16 +231,6 @@ export default function Home() {
                 />
                 <p className="text-center text-gray-700 mt-4 font-medium">Real families achieving financial freedom through credit repair</p>
               </div>
-            </div>
-            
-            {/* Phone Success Screen */}
-            <div className="max-w-md mx-auto mt-12">
-              <img 
-                src="/phone-deletion-success.png" 
-                alt="App showing 8 items deleted successfully" 
-                className="w-full"
-              />
-              <p className="text-center text-gray-700 mt-4 font-medium text-lg">Track your deletion success in real-time</p>
             </div>
           </div>
         </div>

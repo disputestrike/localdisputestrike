@@ -151,6 +151,8 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   const { PDFParse } = await import('pdf-parse');
   const parser = new PDFParse({ data: buffer });
   const result = await parser.getText();
+  console.log('[PDF Parser] First 500 chars:', result.text.slice(0, 500));
+  console.log('[PDF Parser] Total length:', result.text.length);
   return result.text;
 }
 
@@ -158,6 +160,9 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
  * Use Manus AI to intelligently extract negative accounts from credit report text
  */
 export async function parseWithAI(text: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
+  console.log(`[AI Parser] Processing ${bureau} report, text length: ${text.length}`);
+  console.log(`[AI Parser] First 300 chars:`, text.slice(0, 300));
+  
   const systemPrompt = `You are an expert credit report analyst. Extract ONLY negative accounts (collections, charge-offs, late payments, bankruptcies, etc.) from credit reports.
 
 For each negative account, extract:
@@ -200,7 +205,7 @@ Return valid JSON array only.`;
                     accountType: { type: 'string' },
                     originalCreditor: { type: 'string' },
                   },
-                  required: ['accountName', 'accountNumber', 'balance', 'status', 'accountType'],
+                  required: ['accountName'],
                   additionalProperties: false,
                 },
               },
@@ -246,6 +251,72 @@ export function parseMultipleReports(reports: { text: string; bureau: 'TransUnio
 
 
 /**
+ * Use Vision AI to extract negative accounts from image-based PDF
+ */
+async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
+  const systemPrompt = `Extract ALL negative accounts from this credit report. Include collections, charge-offs, late payments, bankruptcies, and any account with negative status. Extract as many as you can find.`;
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { 
+          role: 'user', 
+          content: [
+            { type: 'text', text: `Extract all negative accounts from this ${bureau} credit report:` },
+            { type: 'image_url', image_url: { url: fileUrl } }
+          ]
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'credit_accounts',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              accounts: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    accountName: { type: 'string' },
+                    accountNumber: { type: 'string' },
+                    balance: { type: 'number' },
+                    status: { type: 'string' },
+                    dateOpened: { type: 'string' },
+                    lastActivity: { type: 'string' },
+                    accountType: { type: 'string' },
+                    originalCreditor: { type: 'string' },
+                  },
+                  required: ['accountName'],
+                  additionalProperties: false,
+                },
+              },
+            },
+            required: ['accounts'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    return parsed.accounts.map((acc: any) => ({
+      ...acc,
+      dateOpened: acc.dateOpened ? parseDate(acc.dateOpened) : null,
+      lastActivity: acc.lastActivity ? parseDate(acc.lastActivity) : null,
+    }));
+  } catch (error) {
+    console.error('Vision AI parsing failed:', error);
+    return [];
+  }
+}
+
+/**
  * Async function to parse credit report from URL and save to database
  */
 export async function parseAndSaveReport(
@@ -265,22 +336,54 @@ export async function parseAndSaveReport(
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Extract text from PDF
-    let text: string;
-    try {
-      text = await extractTextFromPDF(buffer);
-      console.log(`Extracted ${text.length} characters from PDF`);
-    } catch (error) {
-      console.error('PDF extraction failed, trying as plain text:', error);
-      text = buffer.toString('utf-8');
-    }
-
     // Map bureau name
     const bureauMap = {
       transunion: 'TransUnion' as const,
       equifax: 'Equifax' as const,
       experian: 'Experian' as const,
     };
+
+    // Extract text from PDF
+    let text: string;
+    try {
+      text = await extractTextFromPDF(buffer);
+      console.log(`Extracted ${text.length} characters from PDF`);
+      
+      // If extracted text is too short, the PDF might be scanned/image-based
+      // Use vision AI to extract text from the PDF images
+      if (text.length < 1000) {
+        console.log('[Parser] Text too short, PDF might be image-based. Using vision AI...');
+        // For image-based PDFs, we'll pass the file URL directly to vision AI
+        const accounts = await parseWithVisionAI(fileUrl, bureauMap[bureau]);
+        console.log(`Vision AI extracted ${accounts.length} negative accounts`);
+        
+        // Save accounts to database
+        const { createNegativeAccount, updateCreditReportParsedData } = await import('./db');
+        for (const account of accounts) {
+          await createNegativeAccount({
+            userId,
+            accountName: account.accountName,
+            accountNumber: account.accountNumber,
+            balance: account.balance.toString(),
+            status: account.status,
+            accountType: account.accountType,
+            dateOpened: account.dateOpened?.toISOString() || null,
+            lastActivity: account.lastActivity?.toISOString() || null,
+            originalCreditor: account.originalCreditor || null,
+
+            hasConflicts: false,
+          });
+        }
+        
+        // Update report as parsed
+        await updateCreditReportParsedData(reportId, '');
+        console.log(`Successfully parsed ${accounts.length} accounts from ${bureau} report`);
+        return;
+      }
+    } catch (error) {
+      console.error('PDF extraction failed, trying as plain text:', error);
+      text = buffer.toString('utf-8');
+    }
 
     // Parse the report using AI
     let accounts: ParsedAccount[];

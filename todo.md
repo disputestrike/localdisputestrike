@@ -781,3 +781,62 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Auto-refresh every 3 seconds when parsing in progress
 - [ ] Test with real upload and verify progress shows correctly
 - [ ] Save checkpoint with progress feedback
+
+
+## Phase 44: Debug AI Extraction Still Finding 0 Accounts (CRITICAL)
+- [ ] Check server logs for AI extraction errors
+- [ ] Verify PDF text extraction is working
+- [ ] Check if AI prompt is receiving the full text
+- [ ] Debug why AI returns 0 accounts from real credit reports
+- [ ] Fix extraction logic
+- [ ] Test and verify all 27+ accounts are found
+- [ ] Save checkpoint with working extraction
+
+
+## Phase 45: Research Competitor Parsing Methods (CRITICAL)
+- [ ] Research DisputeBeast credit report parsing approach
+- [ ] Research other credit repair tools (Credit Repair Cloud, etc.)
+- [ ] Identify what parsing libraries/methods they use
+- [ ] Implement proven approach based on research
+- [ ] Test with real credit report
+- [ ] Save checkpoint with working parser
+
+
+## Phase 46: Research & Implement Profitable Business Model (CRITICAL)
+- [ ] Research DisputeBeast pricing structure
+- [ ] Research credit monitoring affiliate programs
+- [ ] Understand how they monetize credit monitoring ($49.99/month)
+- [ ] Design CreditCounsel AI pricing tiers
+- [ ] Decide: affiliate model vs direct integration
+- [ ] Update homepage with pricing
+- [ ] Implement chosen solution (manual entry or API)
+- [ ] Save checkpoint with new business model
+
+
+## Phase 47: Optimize Pricing to Drive Conversions
+- [ ] Redesign free tier to be more restrictive
+- [ ] Add friction points that push users to upgrade
+- [ ] Implement paywall for key features
+- [ ] Update homepage with new pricing
+- [ ] Add upgrade prompts throughout app
+- [ ] Save checkpoint with optimized pricing
+
+
+## Phase 48: Credit Monitoring Partnership & Integration (CRITICAL - BLOCKING)
+- [ ] Research credit monitoring API partners (IdentityIQ, SmartCredit, MyScoreIQ, etc.)
+- [ ] Find wholesale pricing or affiliate commission rates
+- [ ] Sign up for partner program
+- [ ] Get API credentials and documentation
+- [ ] Integrate API to pull 3-bureau credit reports
+- [ ] Parse structured data from API (not PDFs!)
+- [ ] Update pricing page to DisputeBeast model ($49.99/month monitoring required)
+- [ ] Remove all PDF parsing code
+- [ ] Test end-to-end flow with real credit monitoring account
+- [ ] Save checkpoint with working integration
+
+
+## Phase 49: Reorder Homepage Images (USER REQUESTED)
+- [x] Move "Track deletion success" phone image below "Official credit report DELETED" image
+- [x] Ensure all 3 proof images are properly aligned (3-column grid layout)
+- [x] Test responsive layout (verified on live site)
+- [ ] Save checkpoint
