@@ -130,6 +130,12 @@ export const successStories = mysqlTable("success_stories", {
   // Social media assets
   socialMediaImageUrl: text("socialMediaImageUrl"),
   
+  // Video testimonial
+  videoUrl: text("videoUrl"),
+  videoThumbnailUrl: text("videoThumbnailUrl"),
+  videoDuration: int("videoDuration"), // Duration in seconds
+  hasVideo: boolean("hasVideo").default(false).notNull(),
+  
   // Admin notes
   adminNotes: text("adminNotes"),
   approvedBy: int("approvedBy"), // Admin user ID

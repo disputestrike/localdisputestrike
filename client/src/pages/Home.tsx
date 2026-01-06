@@ -325,12 +325,64 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Video Testimonials */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="container">
+          <div className="text-center mb-12">
+            <Badge className="mb-4 bg-green-600">Real Success Stories</Badge>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">See The Results For Yourself</h2>
+            <p className="text-xl text-gray-700">Watch real users share their credit repair journey</p>
+          </div>
+          
+          {/* Featured Video - Mock data, will be replaced with real data */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="relative aspect-video rounded-xl overflow-hidden shadow-2xl bg-black">
+              <img
+                src="/video-thumbnail-benjamin.jpg"
+                alt="Benjamin Peter testimonial"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <button className="w-20 h-20 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-xl">
+                  <Play className="h-10 w-10 text-blue-600 ml-1" />
+                </button>
+              </div>
+              <div className="absolute bottom-4 left-4 right-4">
+                <div className="bg-white/90 backdrop-blur-sm p-4 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-bold text-lg">Benjamin P.</span>
+                    <Badge className="bg-green-600">+42 pts</Badge>
+                  </div>
+                  <p className="text-sm text-gray-700">"Within 2 days, 3 negative accounts were deleted. My score jumped from 582 to 624!"</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto">
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">+42</div>
+              <div className="text-sm text-gray-600">Point Increase</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">3</div>
+              <div className="text-sm text-gray-600">Accounts Deleted</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600">2</div>
+              <div className="text-sm text-gray-600">Days to Results</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="py-20 bg-white">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Real Results from Real People</h2>
-            <p className="text-xl text-gray-700">See what our customers are saying</p>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">What Our Clients Say</h2>
+            <p className="text-xl text-gray-700">Real results from real people</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
