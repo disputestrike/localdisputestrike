@@ -286,7 +286,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Everything You Need</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Professional-grade tools to strike with precision and defend with decisive action
+              Professional-grade tools to strike with precision and defend with force
             </p>
           </div>
           
@@ -943,7 +943,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-white text-lg mb-4">About DisputeStrike</h3>
               <p className="text-sm">
-                Professional-grade dispute automation software. Precision strikes for powerful credit Attacks.
+                Professional-grade dispute automation. Strike inaccuracies with precision, Attack errors with force.
               </p>
             </div>
             
