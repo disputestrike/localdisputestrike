@@ -21,7 +21,7 @@ export default function SuccessStories() {
       scoreIncrease: 42,
       accountsDeleted: 3,
       daysToResults: 2,
-      testimonial: "I couldn't believe how fast CreditCounsel AI worked! Within just 2 days of mailing my Attack letters, I saw 3 negative accounts completely removed from my Equifax report. My score jumped 42 points, and I finally qualified for the mortgage I've been dreaming about. The AI-powered letters were professional, legally sound, and incredibly effective. This platform saved me thousands compared to traditional credit monitoring companies!",
+      testimonial: "I couldn't believe how fast DisputeForce AI worked! Within just 2 days of mailing my Attack letters, I saw 3 negative accounts completely removed from my Equifax report. My score jumped 42 points, and I finally qualified for the mortgage I've been dreaming about. The AI-powered letters were professional, legally sound, and incredibly effective. This platform saved me thousands compared to traditional credit monitoring companies!",
       specificDeletions: ["Credit Union of Texas", "PNC Bank", "Ford Motor Credit"],
       isFeatured: true,
     },
@@ -33,7 +33,7 @@ export default function SuccessStories() {
       scoreIncrease: 58,
       accountsDeleted: 5,
       daysToResults: 28,
-      testimonial: "After years of struggling with bad credit, I finally found a solution that works. CreditCounsel AI generated Attack letters that got 5 negative accounts deleted across all three bureaus. My score increased 58 points in less than a month! The best part? I did it all myself for a fraction of what credit monitoring companies charge. Highly recommend!",
+      testimonial: "After years of struggling with bad credit, I finally found a solution that works. DisputeForce AI generated Attack letters that got 5 negative accounts deleted across all three bureaus. My score increased 58 points in less than a month! The best part? I did it all myself for a fraction of what credit monitoring companies charge. Highly recommend!",
       specificDeletions: null,
       isFeatured: true,
     },
@@ -45,7 +45,7 @@ export default function SuccessStories() {
       scoreIncrease: 31,
       accountsDeleted: 2,
       daysToResults: 15,
-      testimonial: "I was skeptical at first, but CreditCounsel AI delivered real results. Within just 15 days, I saw 2 negative accounts completely removed from my credit report, and my score jumped 31 points! Now I can finally qualify for that car loan I've been dreaming about. This platform is a game-changer.",
+      testimonial: "I was skeptical at first, but DisputeForce AI delivered real results. Within just 15 days, I saw 2 negative accounts completely removed from my credit report, and my score jumped 31 points! Now I can finally qualify for that car loan I've been dreaming about. This platform is a game-changer.",
       specificDeletions: null,
       isFeatured: false,
     },
@@ -65,7 +65,7 @@ export default function SuccessStories() {
               Success Stories
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              See how CreditCounsel AI helped thousands of people delete negative items,
+              See how DisputeForce AI helped thousands of people delete negative items,
               increase their credit scores, and achieve their financial goals.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-center">
@@ -211,7 +211,7 @@ export default function SuccessStories() {
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Join thousands of people who've already deleted negative items and
-            increased their credit scores with CreditCounsel AI.
+            increased their credit scores with DisputeForce AI.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" variant="secondary" asChild>

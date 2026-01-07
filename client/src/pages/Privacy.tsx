@@ -12,7 +12,7 @@ export default function Privacy() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <Shield className="h-8 w-8 text-orange-600" />
-              <span className="text-2xl font-bold text-gray-900">CreditCounsel</span>
+              <span className="text-2xl font-bold text-gray-900">DisputeForce</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -40,10 +40,10 @@ export default function Privacy() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                CreditCounsel ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services (collectively, the "Service").
+                DisputeForce ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services (collectively, the "Service").
               </p>
               <p className="text-gray-700 leading-relaxed">
-                By using CreditCounsel, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our Service.
+                By using DisputeForce, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our Service.
               </p>
             </section>
 
@@ -52,7 +52,7 @@ export default function Privacy() {
               
               <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-6">2.1 Personal Information</h3>
               <p className="text-gray-700 leading-relaxed mb-4">
-                When you use CreditCounsel, we may collect the following personal information:
+                When you use DisputeForce, we may collect the following personal information:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Account Information:</strong> Name, email address, phone number, mailing address</li>
@@ -188,7 +188,7 @@ export default function Privacy() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">10. Children's Privacy</h2>
               <p className="text-gray-700 leading-relaxed">
-                CreditCounsel is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately.
+                DisputeForce is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately.
               </p>
             </section>
 
@@ -218,7 +218,7 @@ export default function Privacy() {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <p className="text-gray-700">
-                <strong>CreditCounsel</strong><br />
+                <strong>DisputeForce</strong><br />
                 Email: privacy@creditcounsel.com<br />
                 Support: support@creditcounsel.com<br />
                 Website: <Link href="/" className="text-orange-600 hover:underline">creditcounsel.com</Link>
@@ -263,7 +263,7 @@ export default function Privacy() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 CreditCounsel. All rights reserved.</p>
+            <p>&copy; 2024 DisputeForce. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

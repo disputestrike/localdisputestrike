@@ -150,7 +150,7 @@ export default function SuccessTracker({ stats }: SuccessTrackerProps) {
             <Badge variant="secondary" className="text-lg">60-65%</Badge>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-700">CreditCounsel AI average:</span>
+            <span className="text-gray-700">DisputeForce AI average:</span>
             <Badge variant="default" className="text-lg">70-85%</Badge>
           </div>
         </div>

@@ -37,8 +37,8 @@ export default function Home() {
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
-            <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
+            <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
+            <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -79,12 +79,12 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 leading-tight">
-              Take Control of Your{" "}
-              <span className="text-orange-600">Credit Journey</span>
+              The <span className="text-orange-600">Force</span> Behind Your{" "}
+              <span className="text-orange-600">Credit Disputes</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-              Master your credit game with AI-powered Attack letters. We help you challenge inaccurate items with litigation-grade FCRA citations. You're in control - launch your Attacks, track your journey, and improve what matters most.
+              Dispute with Force. Defend with Power. Master your credit with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
             </p>
             
             {/* 110% Guarantee Badge */}
@@ -100,7 +100,7 @@ export default function Home() {
             {/* Legal Disclaimer */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
               <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>
-              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit monitoring services. Federal law allows you to Attack credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own Attack letters to credit bureaus. Results vary and are not guaranteed.</p>
+              <p>DisputeForce is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.</p>
             </div>
             
             {/* Hero Visual - Animated Credit Score Transformation */}
@@ -112,7 +112,7 @@ export default function Home() {
             <div className="relative max-w-md mx-auto mt-12">
               <img 
                 src="/phone-credit-report.png" 
-                alt="CreditCounsel app showing deleted negative items" 
+                alt="DisputeForce app showing deleted negative items" 
                 className="w-full"
               />
             </div>
@@ -159,9 +159,9 @@ export default function Home() {
       <section id="features" className="py-20 bg-white">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Why CreditCounsel Dominates</h2>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">The Power of DisputeForce</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              The most advanced credit monitoring and Attack automation platform
+              Professional-grade dispute automation with the force of litigation-quality letters
             </p>
           </div>
           
@@ -662,9 +662,9 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* About */}
             <div>
-              <h3 className="font-bold text-white text-lg mb-4">About CreditCounsel</h3>
+              <h3 className="font-bold text-white text-lg mb-4">About DisputeForce</h3>
               <p className="text-sm">
-                Credit monitoring and Attack automation platform. AI-powered tools to help you manage your credit.
+                Professional-grade dispute automation software. The force behind powerful credit Attacks.
               </p>
             </div>
             
@@ -714,10 +714,10 @@ export default function Home() {
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
               <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. We do not perform credit monitoring services. Federal law allows you to Attack inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit Attacks. You are solely responsible for generating, printing, mailing, and following up on your own Attack letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit Attacks and that we are providing tools and monitoring services only.
+                DisputeForce is dispute automation software. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide AI-powered software tools, educational resources, and tracking services to help you generate and manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports.
               </p>
             </div>
-            <p>&copy; 2026 CreditCounsel. All rights reserved.</p>
+            <p>&copy; 2026 DisputeForce. All rights reserved.</p>
           </div>
         </div>
       </footer>

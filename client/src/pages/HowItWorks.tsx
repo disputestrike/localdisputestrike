@@ -17,8 +17,8 @@ export default function HowItWorks() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="CreditCounsel" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">CreditCounsel</span>
+              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
             </a>
           </Link>
           
@@ -307,7 +307,7 @@ export default function HowItWorks() {
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
           <div className="text-center">
-            <p className="text-sm">© 2024 CreditCounsel. All rights reserved.</p>
+            <p className="text-sm">© 2024 DisputeForce. All rights reserved.</p>
           </div>
         </div>
       </footer>

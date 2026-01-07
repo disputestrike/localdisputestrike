@@ -67,7 +67,7 @@ export default function Admin() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">CreditCounsel AI - Admin</span>
+            <span className="font-bold text-xl">DisputeForce AI - Admin</span>
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="destructive">Admin</Badge>

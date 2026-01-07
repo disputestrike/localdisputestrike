@@ -55,7 +55,7 @@ export default function Contact() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <Shield className="h-8 w-8 text-orange-600" />
-              <span className="text-2xl font-bold text-gray-900">CreditCounsel</span>
+              <span className="text-2xl font-bold text-gray-900">DisputeForce</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -242,7 +242,7 @@ export default function Contact() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 CreditCounsel. All rights reserved.</p>
+            <p>&copy; 2024 DisputeForce. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

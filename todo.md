@@ -1153,3 +1153,16 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [ ] Replace "results" with "improvement" throughout
 - [ ] Add "financial freedom" aspirational language
 - [ ] Test A/B: "Attack" vs "Challenge" for conversions
+
+
+## Phase 40: REBRAND TO DISPUTEFORCE (URGENT - BRAND ALIGNMENT)
+- [x] Global find-replace: CreditCounsel → DisputeForce across all files
+- [x] Update hero headline: "The Force Behind Your Credit Disputes"
+- [x] Rewrite hero subheadline with Force/Power positioning
+- [x] Update legal disclaimers (cleaner with DisputeForce name)
+- [x] Generate new DisputeForce logo (power/force theme)
+- [x] Update favicon with new logo
+- [x] Rewrite footer tagline
+- [x] Update all meta tags and page titles
+- [x] Test all pages after rebrand
+- [ ] Save checkpoint: DisputeForce Rebrand Complete

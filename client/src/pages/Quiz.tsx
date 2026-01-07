@@ -109,8 +109,8 @@ export default function Quiz() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img src="/logo.png" alt="CreditCounsel AI" className="h-10 w-10" />
-            <span className="font-bold text-2xl">CreditCounsel AI</span>
+            <img src="/logo.png" alt="DisputeForce AI" className="h-10 w-10" />
+            <span className="font-bold text-2xl">DisputeForce AI</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             Get Your Free Credit Monitoring Analysis
@@ -397,7 +397,7 @@ export default function Quiz() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Join 10,000+ users who've improved their credit with CreditCounsel AI
+              Join 10,000+ users who've improved their credit with DisputeForce AI
             </p>
           </div>
         )}
