@@ -88,6 +88,16 @@ export default function Home() {
               Monitor your credit and generate litigation-grade dispute letters with AI-powered tools. Features proper FCRA citations and cross-bureau conflict detection. You generate, print, and mail - we monitor and track.
             </p>
             
+            {/* 110% Guarantee Badge */}
+            <div className="flex items-center justify-center gap-3">
+              <Link href="/guarantee">
+                <Badge className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base cursor-pointer transition-all hover:scale-105">
+                  <Shield className="h-5 w-5 mr-2" />
+                  110% Money-Back Guarantee
+                </Badge>
+              </Link>
+            </div>
+            
             {/* Legal Disclaimer */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
               <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>

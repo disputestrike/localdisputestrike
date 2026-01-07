@@ -51,10 +51,10 @@ export default function Guarantee() {
               <Shield className="h-12 w-12 text-orange-600" />
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              30-Day <span className="text-orange-600">Money-Back</span> Guarantee
+              110% <span className="text-orange-600">Money-Back</span> Guarantee
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              We're so confident in our system that if you don't see results, we'll refund every penny. No questions asked.
+              We're so confident in our platform that if you don't see any changes to your credit report, we'll refund 110% of your purchase. Zero risk.
             </p>
           </div>
         </div>
@@ -89,7 +89,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Wait for bureau responses (typically 30-45 days). Most customers see 70-85% of disputed items deleted.
+                  Use our tools to generate and mail your dispute letters. Monitor your credit report for changes over the next 30-60 days.
                 </p>
               </CardContent>
             </Card>
@@ -103,7 +103,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Not satisfied? Email us within 30 days of purchase for a full refund. No questions, no hassle.
+                  No changes to your credit report? Email us within 60 days for a 110% refund. No questions, no hassle.
                 </p>
               </CardContent>
             </Card>
@@ -122,9 +122,9 @@ export default function Guarantee() {
                 <div className="flex items-start gap-4">
                   <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Full Refund Within 30 Days</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">110% Refund Within 60 Days</h3>
                     <p className="text-gray-700">
-                      If you're not satisfied for any reason within 30 days of purchase, we'll refund 100% of your payment.
+                      If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. That's right - we'll give you MORE money back than you paid.
                     </p>
                   </div>
                 </div>
@@ -170,22 +170,13 @@ export default function Guarantee() {
           <div className="max-w-4xl mx-auto">
             <h2 className="text-4xl md:text-5xl font-extrabold text-center text-gray-900 mb-8">Why We Offer This Guarantee</h2>
             <p className="text-xl text-gray-700 text-center mb-12">
-              Because we know our system works. Our 70-85% deletion rate speaks for itself.
+              Because we believe in our platform and want you to feel confident trying our tools risk-free.
             </p>
             
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-              <div>
-                <div className="text-5xl font-extrabold text-orange-600 mb-2">16,628+</div>
-                <div className="text-lg text-gray-700">Satisfied Customers</div>
-              </div>
-              <div>
-                <div className="text-5xl font-extrabold text-orange-600 mb-2">70-85%</div>
-                <div className="text-lg text-gray-700">Deletion Rate</div>
-              </div>
-              <div>
-                <div className="text-5xl font-extrabold text-orange-600 mb-2">95%</div>
-                <div className="text-lg text-gray-700">Success Rate</div>
-              </div>
+            <div className="bg-orange-50 rounded-2xl p-8 border-2 border-orange-200">
+              <p className="text-lg text-gray-700 leading-relaxed">
+                We're not like other companies that promise specific results. We provide professional tools and monitoring to help YOU exercise your legal rights under the FCRA. Our 110% guarantee means you have nothing to lose and everything to gain.
+              </p>
             </div>
           </div>
         </div>
@@ -196,7 +187,7 @@ export default function Guarantee() {
         <div className="container text-center">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Try It Risk-Free Today</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628+ customers who've successfully deleted negative items and raised their credit scores
+            Join thousands of users who are taking control of their credit with our monitoring and dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>

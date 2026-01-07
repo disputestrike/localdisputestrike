@@ -330,7 +330,7 @@ export default function Pricing() {
               <strong>Your Rights:</strong> You have the right to dispute inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
             </p>
             <p>
-              <strong>110% Money-Back Guarantee:</strong> If you don't see improvement in your credit after following our system for 12 months, we'll refund 110% of your purchase price. Opt-in required. See full terms for details.
+              <strong>110% Money-Back Guarantee:</strong> If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. No questions asked. <Link href="/guarantee" className="text-primary underline">See full terms</Link>.
             </p>
           </CardContent>
         </Card>
@@ -392,7 +392,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                We offer a 110% money-back guarantee. If you don't see improvement after 12 months of following our system, we'll refund 110% of your purchase price. You must opt-in after signup and follow the program as designed.
+                We offer a 110% money-back guarantee. If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. No questions asked. <Link href="/guarantee" className="text-primary underline">Learn more</Link>.
               </p>
             </CardContent>
           </Card>
