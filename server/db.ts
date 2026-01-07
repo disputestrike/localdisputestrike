@@ -318,6 +318,18 @@ export async function getPaymentsByUserId(userId: number): Promise<Payment[]> {
     .orderBy(desc(payments.createdAt));
 }
 
+export async function getUserLatestPayment(userId: number): Promise<Payment | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.select().from(payments)
+    .where(eq(payments.userId, userId))
+    .orderBy(desc(payments.createdAt))
+    .limit(1);
+  
+  return result[0] || null;
+}
+
 export async function updatePaymentStatus(
   paymentId: number,
   status: Payment["status"]

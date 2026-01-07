@@ -2,9 +2,40 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import { uploadRouter } from "./uploadRouter";
+
+// Admin-only procedure - requires user.role === 'admin'
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== 'admin') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Admin access required'
+    });
+  }
+  return next({ ctx });
+});
+
+// Paid user procedure - requires completed payment
+const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const payment = await db.getUserLatestPayment(ctx.user.id);
+  
+  if (!payment || payment.status !== 'completed') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Payment required to access this feature. Please purchase a package to continue.'
+    });
+  }
+  
+  return next({ 
+    ctx: { 
+      ...ctx, 
+      userTier: payment.tier 
+    } 
+  });
+});
 
 // System prompt for Manus AI letter generation - UPDATED with real-world success learnings
 const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate 10/10 litigation-grade dispute letters that achieve 70-85% deletion rates.
@@ -163,8 +194,7 @@ ${userName}`;
 
 export const appRouter = router({
   admin: router({
-    getStats: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+    getStats: adminProcedure.query(async ({ ctx }) => {
       
       const { getAllUsers, getAllDisputeLetters, getAllPayments } = await import('./db');
       
@@ -197,8 +227,7 @@ export const appRouter = router({
         },
       };
     }),
-    listUsers: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+    listUsers: adminProcedure.query(async ({ ctx }) => {
       
       const { getAllUsers, getAllDisputeLetters } = await import('./db');
       
@@ -211,8 +240,7 @@ export const appRouter = router({
         hasActiveSubscription: false, // Would check subscriptions table
       }));
     }),
-    recentLetters: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+    recentLetters: adminProcedure.query(async ({ ctx }) => {
       
       const { getAllDisputeLetters, getAllUsers } = await import('./db');
       
@@ -231,8 +259,7 @@ export const appRouter = router({
           };
         });
     }),
-    getParserMetrics: protectedProcedure.query(async ({ ctx }) => {
-      if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+    getParserMetrics: adminProcedure.query(async ({ ctx }) => {
       
       const { getRecentParserComparisons } = await import('./db');
       
@@ -493,7 +520,7 @@ You help users understand their credit reports, identify violations, and develop
     /**
      * Generate dispute letters (placeholder - will implement AI generation later)
      */
-    generate: protectedProcedure
+    generate: paidProcedure
       .input(z.object({
         currentAddress: z.string(),
         previousAddress: z.string().optional(),
@@ -560,7 +587,7 @@ You help users understand their credit reports, identify violations, and develop
     /**
      * Generate Round 2 escalation letter with Method of Verification (MOV) request
      */
-    generateRound2: protectedProcedure
+    generateRound2: paidProcedure
       .input(z.object({
         originalLetterId: z.number(),
         verifiedAccounts: z.array(z.object({
@@ -694,7 +721,7 @@ Tone: Professional but FIRM. Make it clear you know the law and will pursue lega
     /**
      * Download letter as PDF
      */
-    downloadPDF: protectedProcedure
+    downloadPDF: paidProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ ctx, input }) => {
         const letter = await db.getDisputeLetterById(input.id);

@@ -8,6 +8,7 @@ import { Bot, Send, User, Loader2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import { getLoginUrl } from "@/const";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -16,7 +17,13 @@ interface Message {
 }
 
 export default function AIAssistant() {
-  const { user } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  
+  // Redirect to login if not authenticated
+  if (!isAuthenticated) {
+    window.location.href = getLoginUrl();
+    return null;
+  }
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
