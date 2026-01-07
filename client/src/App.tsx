@@ -22,6 +22,7 @@ import Contact from "./pages/Contact";
 import Guarantee from "./pages/Guarantee";
 import WhatToExpect from "./pages/WhatToExpect";
 import SuccessStories from "./pages/SuccessStories";
+import { HybridParserAdmin } from "./pages/HybridParserAdmin";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={AdminEnhanced} />
+      <Route path="/admin/parser" component={HybridParserAdmin} />
       <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
       <Route path={"/404"} component={NotFound} />

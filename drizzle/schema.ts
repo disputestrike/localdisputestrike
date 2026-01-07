@@ -100,7 +100,73 @@ export type InsertDisputeLetter = typeof disputeLetters.$inferInsert;
 
 /**
  * Success stories for marketing (with user permission)
- */
+ */// SmartCredit OAuth tokens
+export const smartcreditTokens = mysqlTable("smartcredit_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token"),
+  expiresAt: int("expires_at"),
+  smartcreditUserId: text("smartcredit_user_id"),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
+
+// Parser comparison logs (custom parser vs SmartCredit)
+export const parserComparisons = mysqlTable("parser_comparisons", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  creditReportId: int("credit_report_id"),
+  bureau: text("bureau").notNull(), // transunion, equifax, experian
+  
+  // Custom parser results
+  customParserAccounts: longtext("custom_parser_accounts"),
+  customParserScore: int("custom_parser_score"),
+  customParserConfidence: int("custom_parser_confidence"), // 0-100
+  
+  // SmartCredit results
+  smartcreditAccounts: longtext("smartcredit_accounts"),
+  smartcreditScore: int("smartcredit_score"),
+  
+  // Comparison results
+  differences: longtext("differences"), // Field-level differences
+  matchPercentage: int("match_percentage"), // 0-100
+  majorDiscrepancies: int("major_discrepancies"), // Count of critical mismatches
+  
+  // Decision
+  selectedSource: text("selected_source"), // custom, smartcredit, hybrid
+  selectionReason: text("selection_reason"),
+  
+  createdAt: timestamp("created_at").notNull(),
+});
+
+// Parser accuracy metrics (tracking improvements over time)
+export const parserAccuracyMetrics = mysqlTable("parser_accuracy_metrics", {
+  id: int("id").autoincrement().primaryKey(),
+  date: text("date").notNull(), // YYYY-MM-DD
+  
+  // Accuracy stats
+  totalComparisons: int("total_comparisons").notNull(),
+  perfectMatches: int("perfect_matches"), // 100% match
+  goodMatches: int("good_matches"), // 90-99% match
+  poorMatches: int("poor_matches"), // <90% match
+  averageAccuracy: int("average_accuracy"), // 0-100
+  
+  // Usage stats
+  customParserUsed: int("custom_parser_used"),
+  smartcreditUsed: int("smartcredit_used"),
+  hybridUsed: int("hybrid_used"),
+  
+  // Cost tracking
+  smartcreditApiCalls: int("smartcredit_api_calls"),
+  estimatedCost: int("estimated_cost"), // in cents
+  
+  // A/B test config
+  customParserRolloutPercentage: int("custom_parser_rollout_percentage"), // 0-100
+  
+  createdAt: timestamp("created_at").notNull(),
+});
+
 export const successStories = mysqlTable("success_stories", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),

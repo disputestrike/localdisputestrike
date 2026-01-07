@@ -231,6 +231,70 @@ export const appRouter = router({
           };
         });
     }),
+    getParserMetrics: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+      
+      const { getRecentParserComparisons } = await import('./db');
+      
+      const comparisons = await getRecentParserComparisons(1000);
+      
+      if (comparisons.length === 0) {
+        return {
+          averageAccuracy: 0,
+          totalComparisons: 0,
+          perfectMatches: 0,
+          goodMatches: 0,
+          poorMatches: 0,
+          customParserUsed: 0,
+          smartcreditUsed: 0,
+          customParserUsagePercentage: 0,
+          smartcreditApiCalls: 0,
+          monthlyCostSavings: 0,
+        };
+      }
+      
+      // Calculate metrics
+      const perfectMatches = comparisons.filter(c => c.matchPercentage === 100).length;
+      const goodMatches = comparisons.filter(c => c.matchPercentage >= 90 && c.matchPercentage < 100).length;
+      const poorMatches = comparisons.filter(c => c.matchPercentage < 90).length;
+      
+      const customParserUsed = comparisons.filter(c => c.selectedSource === 'custom').length;
+      const smartcreditUsed = comparisons.filter(c => c.selectedSource === 'smartcredit').length;
+      
+      const avgAccuracy = Math.round(
+        comparisons.reduce((sum, c) => sum + c.matchPercentage, 0) / comparisons.length
+      );
+      
+      const customParserUsagePercentage = Math.round((customParserUsed / comparisons.length) * 100);
+      
+      // Cost calculation: $5/month per SmartCredit user
+      const smartcreditApiCalls = smartcreditUsed;
+      const costIfAllSmartCredit = comparisons.length * 5; // $5 per comparison if all used SmartCredit
+      const actualCost = smartcreditUsed * 5; // Only pay for SmartCredit calls
+      const monthlyCostSavings = costIfAllSmartCredit - actualCost;
+      
+      return {
+        averageAccuracy: avgAccuracy,
+        totalComparisons: comparisons.length,
+        perfectMatches,
+        goodMatches,
+        poorMatches,
+        customParserUsed,
+        smartcreditUsed,
+        customParserUsagePercentage,
+        smartcreditApiCalls,
+        monthlyCostSavings,
+      };
+    }),
+    getRecentComparisons: protectedProcedure
+      .input(z.object({ limit: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user.role !== 'admin') throw new Error('Forbidden');
+        
+        const { getRecentParserComparisons } = await import('./db');
+        
+        return await getRecentParserComparisons(input.limit || 50);
+      }),
   }),
   ai: router({
     chat: protectedProcedure

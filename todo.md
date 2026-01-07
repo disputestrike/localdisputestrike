@@ -989,3 +989,80 @@ Navigation is ALREADY correctly implemented with conditional rendering:
   - [x] Edit video details (title, description)
   - [x] Set featured video
   - [x] Delete/unpublish videos
+
+
+## Phase 44: Build Hybrid Credit Parsing System (USER APPROVED - Jan 6, 2026)
+
+### Architecture Design:
+- [ ] Design dual-source data flow (SmartCredit + Custom Parser)
+- [ ] Add parser_comparison table to database
+- [ ] Add parser_accuracy_metrics table
+- [ ] Add smartcredit_tokens table for OAuth
+- [ ] Design fallback logic architecture
+- [ ] Design A/B testing rollout system
+
+### SmartCredit API Integration:
+- [ ] Set up SmartCredit OAuth flow
+- [ ] Create "Connect SmartCredit" button on dashboard
+- [ ] Handle OAuth callback and token storage
+- [ ] Fetch credit data from SmartCredit API
+- [ ] Store SmartCredit data in database
+- [ ] Map SmartCredit data to our schema
+
+### Comparison & Validation System:
+- [ ] Build comparison function (custom parser vs SmartCredit)
+- [ ] Detect field-level differences (balance, status, dates)
+- [ ] Calculate accuracy score per account
+- [ ] Log all comparisons to database
+- [ ] Flag major discrepancies for manual review
+- [ ] Generate training data from mismatches
+
+### Fallback & Rollout Logic:
+- [ ] Implement primary/fallback selection logic
+- [ ] Build A/B testing system (10% → 25% → 50% → 90%)
+- [ ] Add confidence scoring for parser selection
+- [ ] Create automatic fallback on parser failure
+- [ ] Add manual override for admin (force SmartCredit or custom)
+
+### Admin Monitoring Dashboard:
+- [ ] Parser accuracy metrics (daily/weekly/monthly)
+- [ ] Cost tracking (SmartCredit API usage)
+- [ ] Comparison logs viewer
+- [ ] Training data export
+- [ ] A/B test results dashboard
+- [ ] Cost savings calculator
+
+### Parser Improvement System:
+- [ ] Extract training data from comparison logs
+- [ ] Identify common failure patterns
+- [ ] Retrain AI models with SmartCredit data as labels
+- [ ] Track accuracy improvements over time
+- [ ] Auto-adjust A/B test percentages based on accuracy
+
+
+## Phase 44: Build Hybrid Credit Parsing System (COMPLETED)
+- [x] Design hybrid architecture
+- [x] Database schema for dual-source validation
+- [x] SmartCredit token storage
+- [x] Parser comparison logs
+- [x] Accuracy metrics tracking
+- [x] Integrate SmartCredit API
+- [x] OAuth flow implementation
+- [x] Credit data fetching
+- [x] Token refresh logic
+- [x] Error handling
+- [x] Build comparison system
+- [x] Compare custom parser vs SmartCredit outputs
+- [x] Calculate match percentage
+- [x] Identify major discrepancies
+- [x] Log differences for training
+- [x] Implement fallback logic
+- [x] Confidence-based source selection
+- [x] Intelligent fallback to SmartCredit
+- [x] A/B testing framework
+- [x] Gradual rollout percentage
+- [x] Create admin dashboard
+- [x] Parser accuracy metrics
+- [x] Cost savings calculator
+- [x] Recent comparisons log
+- [x] Training data insights

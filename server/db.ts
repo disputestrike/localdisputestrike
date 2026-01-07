@@ -506,3 +506,176 @@ export async function getAllContactSubmissions() {
   
   return db.select().from(contactSubmissions).orderBy(desc(contactSubmissions.createdAt));
 }
+
+
+// ============================================================================
+// HYBRID PARSING SYSTEM OPERATIONS
+// ============================================================================
+
+/**
+ * Get SmartCredit token for user
+ */
+export async function getSmartCreditToken(userId: number): Promise<{
+  accessToken: string;
+  refreshToken: string | null;
+  expiresAt: number | null;
+  smartcreditUserId: string | null;
+} | null> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return null;
+
+  const { smartcreditTokens } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+
+  const result = await dbInstance
+    .select()
+    .from(smartcreditTokens)
+    .where(eq(smartcreditTokens.userId, userId))
+    .limit(1);
+
+  if (result.length === 0) return null;
+
+  const token = result[0];
+  return {
+    accessToken: token.accessToken,
+    refreshToken: token.refreshToken,
+    expiresAt: token.expiresAt,
+    smartcreditUserId: token.smartcreditUserId,
+  };
+}
+
+/**
+ * Insert or update SmartCredit token
+ */
+export async function upsertSmartCreditToken(data: {
+  userId: number;
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt?: number;
+  smartcreditUserId?: string;
+}): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return;
+
+  const { smartcreditTokens } = await import("../drizzle/schema");
+  const { eq } = await import("drizzle-orm");
+
+  // Check if token exists
+  const existing = await dbInstance
+    .select()
+    .from(smartcreditTokens)
+    .where(eq(smartcreditTokens.userId, data.userId))
+    .limit(1);
+
+  const now = new Date();
+
+  if (existing.length > 0) {
+    // Update
+    await dbInstance
+      .update(smartcreditTokens)
+      .set({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken || null,
+        expiresAt: data.expiresAt || null,
+        smartcreditUserId: data.smartcreditUserId || null,
+        updatedAt: now,
+      })
+      .where(eq(smartcreditTokens.userId, data.userId));
+  } else {
+    // Insert
+    await dbInstance.insert(smartcreditTokens).values({
+      userId: data.userId,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken || null,
+      expiresAt: data.expiresAt || null,
+      smartcreditUserId: data.smartcreditUserId || null,
+      createdAt: now,
+      updatedAt: now,
+    });
+  }
+}
+
+/**
+ * Insert parser comparison log
+ */
+export async function insertParserComparison(data: {
+  userId: number;
+  creditReportId?: number;
+  bureau: string;
+  customParserAccounts: string;
+  customParserScore: number | null;
+  customParserConfidence: number;
+  smartcreditAccounts: string;
+  smartcreditScore: number;
+  differences: string;
+  matchPercentage: number;
+  majorDiscrepancies: number;
+  selectedSource: string;
+  selectionReason: string;
+}): Promise<number> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return 0;
+
+  const { parserComparisons } = await import("../drizzle/schema");
+
+  const result = await dbInstance.insert(parserComparisons).values({
+    userId: data.userId,
+    creditReportId: data.creditReportId || null,
+    bureau: data.bureau,
+    customParserAccounts: data.customParserAccounts,
+    customParserScore: data.customParserScore,
+    customParserConfidence: data.customParserConfidence,
+    smartcreditAccounts: data.smartcreditAccounts,
+    smartcreditScore: data.smartcreditScore,
+    differences: data.differences,
+    matchPercentage: data.matchPercentage,
+    majorDiscrepancies: data.majorDiscrepancies,
+    selectedSource: data.selectedSource,
+    selectionReason: data.selectionReason,
+    createdAt: new Date(),
+  });
+
+  return Number((result as any).insertId || 0);
+}
+
+/**
+ * Get parser accuracy metrics for date range
+ */
+export async function getParserAccuracyMetrics(startDate: string, endDate: string): Promise<any[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const { parserAccuracyMetrics } = await import("../drizzle/schema");
+  const { gte, lte, and } = await import("drizzle-orm");
+
+  const result = await dbInstance
+    .select()
+    .from(parserAccuracyMetrics)
+    .where(
+      and(
+        gte(parserAccuracyMetrics.date, startDate),
+        lte(parserAccuracyMetrics.date, endDate)
+      )
+    );
+
+  return result;
+}
+
+/**
+ * Get recent parser comparisons for analysis
+ */
+export async function getRecentParserComparisons(limit: number = 100): Promise<any[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const { parserComparisons } = await import("../drizzle/schema");
+  const { desc } = await import("drizzle-orm");
+
+  const result = await dbInstance
+    .select()
+    .from(parserComparisons)
+    .orderBy(desc(parserComparisons.createdAt))
+    .limit(limit);
+
+  return result;
+}
