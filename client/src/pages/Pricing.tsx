@@ -30,12 +30,12 @@ export default function Pricing() {
       name: "DIY Starter",
       price: "$29",
       period: "one-time",
-      description: "Perfect for getting started with credit repair",
+      description: "Perfect for getting started with credit monitoring and dispute tools",
       icon: BookOpen,
       popular: false,
       tier: "diy_quick" as const,
       features: [
-        "Credit Repair Basics Course",
+        "Credit Education Course",
         "3 Bureau Dispute Letters (1 Round)",
         "Cross-Bureau Conflict Detection",
         "Mailing Instructions & Checklist",
@@ -49,12 +49,12 @@ export default function Pricing() {
       name: "Complete Package",
       price: "$79",
       period: "one-time",
-      description: "Most popular choice for serious credit repair",
+      description: "Most popular choice for comprehensive credit monitoring",
       icon: Zap,
       popular: true,
       tier: "diy_complete" as const,
       features: [
-        "Advanced Credit Repair Course",
+        "Advanced Credit Education Course",
         "9 Bureau Letters (3 Rounds)",
         "Furnisher Dispute Letters",
         "CFPB Complaint Templates",
@@ -70,7 +70,7 @@ export default function Pricing() {
       name: "Pro Subscription",
       price: "$39.99",
       period: "/month",
-      description: "Ultimate credit repair with ongoing monitoring",
+      description: "Ultimate credit monitoring and dispute automation platform",
       icon: Star,
       popular: false,
       tier: "white_glove" as const,
@@ -151,11 +151,17 @@ export default function Pricing() {
           70-85% Success Rate
         </Badge>
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          Choose Your <span className="text-primary">Credit Repair</span> Path
+          Choose Your <span className="text-primary">Credit Monitoring</span> Plan
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-          Get litigation-grade dispute letters at a fraction of the cost. No forced subscriptions.
+          Credit monitoring + AI dispute tools. You generate, print, and mail letters yourself. No forced subscriptions.
         </p>
+        
+        {/* Legal Disclaimer */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700 mb-6">
+          <p className="font-semibold text-blue-900 mb-1">IMPORTANT:</p>
+          <p>CreditCounsel is a credit monitoring and software platform, not a credit repair service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide tools and monitoring to help you manage your credit. Results vary and are not guaranteed.</p>
+        </div>
         <div className="flex justify-center mb-8">
           <CountdownTimer initialMinutes={15} />
         </div>

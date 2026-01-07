@@ -79,14 +79,20 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 leading-tight">
-              Delete Negative Items with{" "}
-              <span className="text-orange-600">Litigation-Grade</span>{" "}
-              Dispute Letters
+              Credit Monitoring & Dispute{" "}
+              <span className="text-orange-600">Automation</span>{" "}
+              Platform
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-              Get 70-85% deletion rates with AI-powered letters featuring proper FCRA citations and cross-bureau conflict detection. Same quality as $2,500 attorneys, starting at just $29.
+              Monitor your credit and generate litigation-grade dispute letters with AI-powered tools. Features proper FCRA citations and cross-bureau conflict detection. You generate, print, and mail - we monitor and track.
             </p>
+            
+            {/* Legal Disclaimer */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
+              <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>
+              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit repair services. Federal law allows you to dispute credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own dispute letters to credit bureaus. Results vary and are not guaranteed.</p>
+            </div>
             
             {/* Hero Visual - Animated Credit Score Transformation */}
             <div className="relative max-w-5xl mx-auto">
@@ -146,7 +152,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Why CreditCounsel Dominates</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              The most advanced credit repair technology ever created
+              The most advanced credit monitoring and dispute automation platform
             </p>
           </div>
           
@@ -161,7 +167,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Our AI finds discrepancies between TransUnion, Equifax, and Experian. Bureaus MUST delete conflicting accounts under FCRA § 1681i(a)(5).
+                  Our AI tools help you find discrepancies between TransUnion, Equifax, and Experian. You use these findings to dispute conflicting accounts under FCRA § 1681i(a)(5).
                 </p>
               </CardContent>
             </Card>
@@ -191,7 +197,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Unique, human-like letters that bureaus can't detect as templates. 70-85% deletion rate vs 30-40% for generic templates.
+                  Our AI generates unique, human-like letters that you print and mail. Users report 70-85% deletion rates vs 30-40% for generic templates. Results vary.
                 </p>
               </CardContent>
             </Card>
@@ -651,7 +657,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-white text-lg mb-4">About CreditCounsel</h3>
               <p className="text-sm">
-                The most advanced credit repair platform. Litigation-grade dispute letters powered by AI.
+                Credit monitoring and dispute automation platform. AI-powered tools to help you manage your credit.
               </p>
             </div>
             
@@ -698,10 +704,13 @@ export default function Home() {
           </div>
           
           <div className="border-t border-gray-700 pt-8 text-center text-sm">
+            <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
+              <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
+              <p className="text-gray-300 text-xs leading-relaxed">
+                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under federal or state law, including the Credit Repair Organizations Act (CROA). We do not perform credit repair services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
+              </p>
+            </div>
             <p>&copy; 2026 CreditCounsel. All rights reserved.</p>
-            <p className="mt-2 text-gray-400">
-              CreditCounsel is a software platform. We are not a credit repair organization as defined under federal or state law.
-            </p>
           </div>
         </div>
       </footer>
