@@ -44,7 +44,7 @@ export default function HowItWorks() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/quiz">Start Your Journey Free</Link>
                 </Button>
               </>
             )}
@@ -116,7 +116,7 @@ export default function HowItWorks() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 2</Badge>
                 <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6">AI Analyzes & Creates Letters</h3>
                 <p className="text-lg text-gray-700 mb-6">
-                  Our AI detects cross-bureau conflicts, generates litigation-grade dispute letters with proper FCRA citations, and creates personalized arguments for each account.
+                  Our AI detects cross-bureau conflicts, generates litigation-grade Attack letters with proper FCRA citations, and creates personalized arguments for each account.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -156,7 +156,7 @@ export default function HowItWorks() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
                 <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6">Send & Track Results</h3>
                 <p className="text-lg text-gray-700 mb-6">
-                  Download professional PDF letters, mail via Certified Mail, and track your disputes. Watch negative items get deleted and your score rise.
+                  Download professional PDF letters, mail via Certified Mail, and track your Attacks. Watch negative items get deleted and your score rise.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -206,7 +206,7 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1 bg-white p-6 rounded-xl shadow-md">
                   <h4 className="text-xl font-bold text-gray-900 mb-2">Upload & Generate Letters</h4>
-                  <p className="text-gray-700">Upload your credit reports and let our AI generate your dispute letters. Takes 5-10 minutes.</p>
+                  <p className="text-gray-700">Upload your credit reports and let our AI generate your Attack letters. Takes 5-10 minutes.</p>
                 </div>
               </div>
 
@@ -293,7 +293,7 @@ export default function HowItWorks() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Get Started?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Take Control?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
             Join 16,628 customers who've successfully deleted negative items
           </p>

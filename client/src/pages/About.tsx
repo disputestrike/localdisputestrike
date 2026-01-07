@@ -40,7 +40,7 @@ export default function About() {
               About <span className="text-orange-600">CreditCounsel</span>
             </h1>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We're on a mission to democratize credit monitoring by making litigation-grade dispute letters accessible to everyone—not just those who can afford expensive attorneys.
+              We're on a mission to democratize credit monitoring by making litigation-grade Attack letters accessible to everyone—not just those who can afford expensive attorneys.
             </p>
           </div>
         </div>
@@ -58,15 +58,15 @@ export default function About() {
               </p>
               
               <p>
-                Our founders spent years studying the Fair Credit Reporting Act (FCRA), analyzing thousands of successful dispute letters, and understanding what makes credit bureaus delete negative items. We discovered that the secret wasn't magic—it was proper legal citations, cross-bureau conflict detection, and personalized arguments that credit bureaus couldn't ignore.
+                Our founders spent years studying the Fair Credit Reporting Act (FCRA), analyzing thousands of successful Attack letters, and understanding what makes credit bureaus delete negative items. We discovered that the secret wasn't magic—it was proper legal citations, cross-bureau conflict detection, and personalized arguments that credit bureaus couldn't ignore.
               </p>
               
               <p>
-                In 2024, we launched CreditCounsel with a bold vision: use cutting-edge AI technology to generate litigation-grade dispute letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful tools that wealthy individuals use to improve their credit.
+                In 2024, we launched CreditCounsel with a bold vision: use cutting-edge AI technology to generate litigation-grade Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful tools that wealthy individuals use to improve their credit.
               </p>
               
               <p>
-                Today, we've helped over 16,000 customers delete negative items from their credit reports, raising scores by an average of 80+ points. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized dispute letters with proper FCRA citations—all automatically. We've proven that credit monitoring doesn't have to be expensive to be effective.
+                Today, we've helped over 16,000 customers delete negative items from their credit reports, raising scores by an average of 80+ points. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized Attack letters with proper FCRA citations—all automatically. We've proven that credit monitoring doesn't have to be expensive to be effective.
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function About() {
               Credit Should Be Affordable. For everyone. Always.
             </p>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make litigation-grade dispute letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
+              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make litigation-grade Attack letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
             </p>
           </div>
         </div>
@@ -120,7 +120,7 @@ export default function About() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Transparency</h3>
               <p className="text-gray-700 leading-relaxed">
-                No hidden fees, no recurring subscriptions, no surprises. You pay once and get exactly what we promise: professional dispute letters with full mailing instructions. Simple, honest, transparent.
+                No hidden fees, no recurring subscriptions, no surprises. You pay once and get exactly what we promise: professional Attack letters with full mailing instructions. Simple, honest, transparent.
               </p>
             </div>
 

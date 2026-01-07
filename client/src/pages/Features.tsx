@@ -44,7 +44,7 @@ export default function Features() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/quiz">Start Your Journey Free</Link>
                 </Button>
               </>
             )}
@@ -197,7 +197,7 @@ export default function Features() {
                   Every letter is 100% compliant with the Fair Credit Reporting Act. We leverage your legal rights under federal law to force credit bureaus to investigate and delete inaccurate information.
                 </p>
                 <p className="text-lg text-gray-700">
-                  Our system automatically includes the correct legal citations, deadlines, and consequences for non-compliance, making it impossible for bureaus to ignore your disputes.
+                  Our system automatically includes the correct legal citations, deadlines, and consequences for non-compliance, making it impossible for bureaus to ignore your Attacks.
                 </p>
               </div>
               <div className="bg-gray-50 p-8 rounded-xl">
@@ -262,7 +262,7 @@ export default function Features() {
                   <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900">AI-Powered Analysis</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Our advanced AI automatically extracts every negative item from your credit reports and analyzes them for legal violations, inconsistencies, and dispute opportunities.
+                  Our advanced AI automatically extracts every negative item from your credit reports and analyzes them for legal violations, inconsistencies, and Attack opportunities.
                 </p>
                 <p className="text-lg text-gray-700">
                   The system compares all three bureaus simultaneously to find conflicts that force deletions under FCRA law. This is the secret weapon that gives us 70-85% deletion rates.
@@ -280,7 +280,7 @@ export default function Features() {
                   <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900">Deadline Tracking</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Credit bureaus have 30 days to investigate your disputes by law. Our system automatically tracks deadlines and alerts you when responses are due.
+                  Credit bureaus have 30 days to investigate your Attacks by law. Our system automatically tracks deadlines and alerts you when responses are due.
                 </p>
                 <p className="text-lg text-gray-700">
                   If bureaus fail to respond within 30 days, the items MUST be deleted automatically. We provide escalation templates for non-compliance.
@@ -321,12 +321,12 @@ export default function Features() {
           </p>
           
           <div className="space-y-20">
-            {/* Dispute Letter Example */}
+            {/* Attack Letter Example */}
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Litigation-Grade Dispute Letter</h3>
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Litigation-Grade Attack Letter</h3>
               <img 
-                src="/dispute-letter-example.png" 
-                alt="Example dispute letter with FCRA citations highlighted" 
+                src="/Attack-letter-example.png" 
+                alt="Example Attack letter with FCRA citations highlighted" 
                 className="w-full rounded-xl shadow-2xl"
               />
               <p className="text-center text-gray-700 mt-6 text-lg">Notice the highlighted FCRA citations and legal arguments - this is what makes our letters so effective</p>

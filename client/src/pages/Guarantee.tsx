@@ -54,7 +54,7 @@ export default function Guarantee() {
               110% <span className="text-orange-600">Money-Back</span> Guarantee
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              We're so confident in our platform that if you don't see any changes to your credit report, we'll refund 110% of your purchase. Zero risk.
+              We're so confident in our platform that if you don't see any changes to your credit report, you'll receive 110% of your purchase back. Zero risk.
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Purchase any package and use our platform for 30 days. Generate your letters, send your disputes, and track your results.
+                  Purchase any package and use our platform for 30 days. Generate your letters, send your Attacks, and track your results.
                 </p>
               </CardContent>
             </Card>
@@ -89,7 +89,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Use our tools to generate and mail your dispute letters. Monitor your credit report for changes over the next 30-60 days.
+                  Use our tools to generate and mail your Attack letters. Monitor your credit report for changes over the next 30-60 days.
                 </p>
               </CardContent>
             </Card>
@@ -124,7 +124,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">110% Refund Within 60 Days</h3>
                     <p className="text-gray-700">
-                      If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. That's right - we'll give you MORE money back than you paid.
+                      If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. That's right - you get MORE money back than you paid.
                     </p>
                   </div>
                 </div>
@@ -134,7 +134,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No Questions Asked</h3>
                     <p className="text-gray-700">
-                      We don't make you jump through hoops. Simply email support@creditcounsel.ai and we'll process your refund immediately.
+                      We don't make you jump through hoops. Simply email support@creditcounsel.ai and your refund will be processed immediately.
                     </p>
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Keep Your Letters</h3>
                     <p className="text-gray-700">
-                      Even if you request a refund, you can keep all the dispute letters you've generated. We want you to succeed either way.
+                      Even if you request a refund, you can keep all the Attack letters you've generated. We want you to succeed either way.
                     </p>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function Guarantee() {
         <div className="container text-center">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Try It Risk-Free Today</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join thousands of users who are taking control of their credit with our monitoring and dispute tools
+            Join thousands of users who are taking control of their credit with our monitoring and Attack tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>

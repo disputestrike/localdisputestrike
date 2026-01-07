@@ -46,10 +46,10 @@ export default function MailingInstructions() {
             Complete Mailing Guide
           </Badge>
           <h1 className="text-4xl font-bold mb-4">
-            How to Mail Your Dispute Letters
+            How to Mail Your Attack Letters
           </h1>
           <p className="text-xl text-muted-foreground">
-            Follow these steps to ensure your disputes are processed correctly and you have proof of delivery
+            Follow these steps to ensure your Attacks are processed correctly and you have proof of delivery
           </p>
         </div>
 
@@ -82,7 +82,7 @@ export default function MailingInstructions() {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <FileText className="h-4 w-4" />
-                    Your Dispute Letter (Printed)
+                    Your Attack Letter (Printed)
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Print the letter we generated for you. Make sure it's clear and legible. Keep a copy for your records.
@@ -110,7 +110,7 @@ export default function MailingInstructions() {
                   </ul>
                   <Alert className="mt-3 bg-blue-50 border-blue-200">
                     <AlertDescription className="text-sm text-blue-900">
-                      <strong>Why?</strong> FCRA requires bureaus to verify your identity before processing disputes. 
+                      <strong>Why?</strong> FCRA requires bureaus to verify your identity before processing Attacks. 
                       Without ID, they'll reject your letter immediately.
                     </AlertDescription>
                   </Alert>
@@ -181,7 +181,7 @@ export default function MailingInstructions() {
               <div className="border-l-4 border-primary pl-4">
                 <h3 className="font-semibold mb-2">Step 1: Prepare Your Documents</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>✓ Print your dispute letter</li>
+                  <li>✓ Print your Attack letter</li>
                   <li>✓ Make a copy of your photo ID (front and back)</li>
                   <li>✓ Get a recent utility bill or bank statement</li>
                   <li>✓ Keep copies of EVERYTHING for your records</li>
@@ -363,7 +363,7 @@ export default function MailingInstructions() {
             <div className="bg-muted p-6 rounded-lg space-y-3">
               <div className="flex items-center gap-3">
                 <input type="checkbox" className="h-5 w-5" />
-                <label className="text-sm">Dispute letter printed and signed</label>
+                <label className="text-sm">Attack letter printed and signed</label>
               </div>
               <div className="flex items-center gap-3">
                 <input type="checkbox" className="h-5 w-5" />
@@ -433,7 +433,7 @@ export default function MailingInstructions() {
               </li>
               <li className="flex gap-2">
                 <CheckCircle2 className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                <span>If no response after 30 days, you can file a CFPB complaint (we'll help!)</span>
+                <span>If no response after 30 days, you can file a CFPB complaint (our platform provides the tools)</span>
               </li>
             </ul>
           </CardContent>

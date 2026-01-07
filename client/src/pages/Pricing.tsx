@@ -30,19 +30,19 @@ export default function Pricing() {
       name: "DIY Starter",
       price: "$29",
       period: "one-time",
-      description: "Perfect for getting started with credit monitoring and dispute tools",
+      description: "Perfect for getting started with credit monitoring and Attack tools",
       icon: BookOpen,
       popular: false,
       tier: "diy_quick" as const,
       features: [
         "Credit Education Course",
-        "3 Bureau Dispute Letters (1 Round)",
+        "3 Bureau Attack Letters (1 Round)",
         "Cross-Bureau Conflict Detection",
         "Mailing Instructions & Checklist",
         "30-Day Software Access",
         "Email Support",
       ],
-      cta: "Get Started",
+      cta: "Start Your Journey",
       value: "Best for first-time users",
     },
     {
@@ -56,28 +56,28 @@ export default function Pricing() {
       features: [
         "Advanced Credit Education Course",
         "9 Bureau Letters (3 Rounds)",
-        "Furnisher Dispute Letters",
+        "Furnisher Attack Letters",
         "CFPB Complaint Templates",
         "Cross-Bureau Analysis Engine",
         "Mailing Guidance & Tracking",
         "90-Day Software Access",
         "Priority Email Support",
       ],
-      cta: "Get Started",
+      cta: "Start Your Journey",
       value: "Save $120 vs monthly plans",
     },
     {
       name: "Pro Subscription",
       price: "$39.99",
       period: "/month",
-      description: "Ultimate credit monitoring and dispute automation platform",
+      description: "Ultimate credit monitoring and Attack automation platform",
       icon: Star,
       popular: false,
       tier: "white_glove" as const,
       features: [
         "Everything in Complete Package",
         "Credit Monitoring (Vantage 3.0)",
-        "Unlimited Dispute Letters",
+        "Unlimited Attack Letters",
         "Automated Deadline Tracking",
         "Monthly Progress Reports",
         "Priority Support",
@@ -133,7 +133,7 @@ export default function Pricing() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/quiz">Start Your Journey Free</Link>
                 </Button>
               </>
             )}
@@ -154,13 +154,13 @@ export default function Pricing() {
           Choose Your <span className="text-primary">Credit Monitoring</span> Plan
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-          Credit monitoring + AI dispute tools. You generate, print, and mail letters yourself. No forced subscriptions.
+          Credit monitoring + AI Attack tools. You generate, print, and mail letters yourself. No forced subscriptions.
         </p>
         
         {/* Legal Disclaimer */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700 mb-6">
           <p className="font-semibold text-blue-900 mb-1">IMPORTANT:</p>
-          <p>CreditCounsel is a credit monitoring and software platform, not a credit monitoring service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide tools and monitoring to help you manage your credit. Results vary and are not guaranteed.</p>
+          <p>CreditCounsel is a credit monitoring and software platform, not a credit monitoring service. You generate and mail your own Attack letters. Federal law allows you to Attack credit information for free. We provide tools and monitoring to help you manage your credit. Results vary and are not guaranteed.</p>
         </div>
         <div className="flex justify-center mb-8">
           <CountdownTimer initialMinutes={15} />
@@ -237,7 +237,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Comparison with Dispute Beast */}
+      {/* Comparison with Attack Beast */}
       <section className="container py-16 bg-muted/50 rounded-lg">
         <h2 className="text-3xl font-bold text-center mb-8">
           Why Choose CreditCounsel AI?
@@ -280,10 +280,10 @@ export default function Pricing() {
               </CardContent>
             </Card>
 
-            {/* Dispute Beast */}
+            {/* Attack Beast */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-muted-foreground">Dispute Beast</CardTitle>
+                <CardTitle className="text-muted-foreground">Attack Beast</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -327,10 +327,10 @@ export default function Pricing() {
               You are purchasing access to educational materials and software tools, not credit monitoring services. Results vary based on your individual situation and effort. We do not guarantee specific credit score improvements.
             </p>
             <p>
-              <strong>Your Rights:</strong> You have the right to dispute inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
+              <strong>Your Rights:</strong> You have the right to Attack inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
             </p>
             <p>
-              <strong>110% Money-Back Guarantee:</strong> If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. No questions asked. <Link href="/guarantee" className="text-primary underline">See full terms</Link>.
+              <strong>110% Money-Back Guarantee:</strong> If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. No questions asked. <Link href="/guarantee" className="text-primary underline">See full terms</Link>.
             </p>
           </CardContent>
         </Card>
@@ -353,7 +353,7 @@ export default function Pricing() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">How is this different from Dispute Beast?</CardTitle>
+              <CardTitle className="text-lg">How is this different from Attack Beast?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
@@ -369,7 +369,7 @@ export default function Pricing() {
             <CardContent>
               <p className="text-muted-foreground">
                 <strong>DIY Starter ($29):</strong> Basic course + 3 letters + 30 days access<br />
-                <strong>Complete Package ($79):</strong> Advanced course + 9 letters + furnisher disputes + 90 days access<br />
+                <strong>Complete Package ($79):</strong> Advanced course + 9 letters + furnisher Attacks + 90 days access<br />
                 <strong>Pro Subscription ($39.99/mo):</strong> Everything + credit monitoring + unlimited letters + coaching
               </p>
             </CardContent>
@@ -381,7 +381,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Dispute Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets 70-85% success rates vs 30-40% for bulk mail.
+                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Attack Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets 70-85% success rates vs 30-40% for bulk mail.
               </p>
             </CardContent>
           </Card>
@@ -392,7 +392,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                We offer a 110% money-back guarantee. If you don't see ANY changes to your credit report within 60 days, we'll refund 110% of your purchase price. No questions asked. <Link href="/guarantee" className="text-primary underline">Learn more</Link>.
+                You're protected by our 110% money-back guarantee. If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. No questions asked. <Link href="/guarantee" className="text-primary underline">Learn more</Link>.
               </p>
             </CardContent>
           </Card>
@@ -405,7 +405,7 @@ export default function Pricing() {
           <CardHeader>
             <CardTitle className="text-3xl">Ready to Fix Your Credit?</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Join thousands who've improved their credit with our litigation-grade dispute letters
+              Join thousands who've improved their credit with our litigation-grade Attack letters
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -127,7 +127,7 @@ export default function Contact() {
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
               <h2 className="text-3xl font-extrabold text-gray-900 mb-2">Send Us a Message</h2>
-              <p className="text-gray-600 mb-8">Fill out the form below and we'll get back to you as soon as possible.</p>
+              <p className="text-gray-600 mb-8">Fill out the form below and our team will help you as soon as possible.</p>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
@@ -198,7 +198,7 @@ export default function Contact() {
               Looking for Quick Answers?
             </h2>
             <p className="text-xl text-gray-700 mb-8">
-              Check out our FAQ page for instant answers to common questions about credit monitoring, dispute letters, and our service.
+              Check out our FAQ page for instant answers to common questions about credit monitoring, Attack letters, and our service.
             </p>
             <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-lg px-8 py-6" asChild>
               <Link href="/faq">View FAQ</Link>

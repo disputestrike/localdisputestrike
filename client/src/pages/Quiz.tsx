@@ -203,7 +203,7 @@ export default function Quiz() {
                 >
                   {[
                     { value: "1-3", label: "1-3 items", desc: "Just a few negative marks" },
-                    { value: "4-7", label: "4-7 items", desc: "Several accounts to dispute" },
+                    { value: "4-7", label: "4-7 items", desc: "Several accounts to Attack" },
                     { value: "8-15", label: "8-15 items", desc: "Many negative accounts" },
                     { value: "16+", label: "16+ items", desc: "Significant credit damage" },
                     { value: "unknown", label: "I don't know", desc: "Haven't checked recently" },

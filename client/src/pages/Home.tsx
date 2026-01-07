@@ -63,7 +63,7 @@ export default function Home() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/quiz">Start Your Journey Free</Link>
                 </Button>
               </>
             )}
@@ -79,13 +79,12 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 leading-tight">
-              Credit Monitoring & Dispute{" "}
-              <span className="text-orange-600">Automation</span>{" "}
-              Platform
+              Take Control of Your{" "}
+              <span className="text-orange-600">Credit Journey</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-              Monitor your credit and generate litigation-grade dispute letters with AI-powered tools. Features proper FCRA citations and cross-bureau conflict detection. You generate, print, and mail - we monitor and track.
+              Master your credit game with AI-powered Attack letters. We help you challenge inaccurate items with litigation-grade FCRA citations. You're in control - launch your Attacks, track your journey, and improve what matters most.
             </p>
             
             {/* 110% Guarantee Badge */}
@@ -101,7 +100,7 @@ export default function Home() {
             {/* Legal Disclaimer */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
               <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>
-              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit monitoring services. Federal law allows you to dispute credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own dispute letters to credit bureaus. Results vary and are not guaranteed.</p>
+              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit monitoring services. Federal law allows you to Attack credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own Attack letters to credit bureaus. Results vary and are not guaranteed.</p>
             </div>
             
             {/* Hero Visual - Animated Credit Score Transformation */}
@@ -121,7 +120,7 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
                 <Link href="/quiz">
-                  Start Free Analysis <ArrowRight className="ml-2" />
+                  Start Your Journey <ArrowRight className="ml-2" />
                 </Link>
               </Button>
             </div>
@@ -150,7 +149,7 @@ export default function Home() {
             </div>
             <div>
               <div className="text-5xl md:text-6xl font-extrabold mb-2">AI-Powered</div>
-              <div className="text-xl font-medium">Dispute Letter Generation</div>
+              <div className="text-xl font-medium">Attack Letter Generation</div>
             </div>
           </div>
         </div>
@@ -162,7 +161,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Why CreditCounsel Dominates</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              The most advanced credit monitoring and dispute automation platform
+              The most advanced credit monitoring and Attack automation platform
             </p>
           </div>
           
@@ -177,7 +176,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Our AI tools help you find discrepancies between TransUnion, Equifax, and Experian. You use these findings to dispute conflicting accounts under FCRA § 1681i(a)(5).
+                  Our AI tools help you find discrepancies between TransUnion, Equifax, and Experian. You use these findings to Attack conflicting accounts under FCRA § 1681i(a)(5).
                 </p>
               </CardContent>
             </Card>
@@ -227,9 +226,9 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Professional Dispute Letters</h4>
+                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Professional Attack Letters</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Generate litigation-grade dispute letters with proper FCRA citations. Our AI creates unique, professional letters for each account you want to dispute. You print and mail them yourself.
+                  Generate litigation-grade Attack letters with proper FCRA citations. Our AI creates unique, professional letters for each account you want to Attack. You print and mail them yourself.
                 </p>
               </div>
               
@@ -244,7 +243,7 @@ export default function Home() {
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Real-Time Tracking Dashboard</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Monitor your credit score changes and track dispute progress in real-time. Our app helps you stay organized, tracks bureau response deadlines, and shows dispute status updates.
+                  Monitor your credit score changes and track Attack progress in real-time. Our app helps you stay organized, tracks bureau response deadlines, and shows Attack status updates.
                 </p>
               </div>
               
@@ -259,7 +258,7 @@ export default function Home() {
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Take Control of Your Credit</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Join thousands of users who are using our platform to dispute inaccuracies and monitor their credit. Better credit knowledge and tools help you work toward your financial goals.
+                  Join thousands of users who are using our platform to Attack inaccuracies and monitor their credit. Better credit knowledge and tools help you work toward your financial goals.
                 </p>
               </div>
             </div>
@@ -272,7 +271,7 @@ export default function Home() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-700">Three simple steps to dispute inaccuracies</p>
+            <p className="text-xl text-gray-700">Three simple steps to Attack inaccuracies</p>
           </div>
           
           <div className="max-w-5xl mx-auto space-y-16">
@@ -282,8 +281,8 @@ export default function Home() {
                 <img src="/step-upload-real.png" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
-                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 1</Badge>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Upload Your Credit Reports</h3>
+                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Round 1: Setup</Badge>
+                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Start Your Credit Journey</h3>
                 <p className="text-lg text-gray-700">
                   Upload reports from TransUnion, Equifax, and Experian. Our AI automatically extracts all negative accounts and identifies FCRA violations.
                 </p>
@@ -293,10 +292,10 @@ export default function Home() {
             {/* Step 2 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="order-2 md:order-1">
-                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 2</Badge>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">AI Analyzes & Creates Letters</h3>
+                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Round 2: Attack</Badge>
+                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Launch Your First Attack</h3>
                 <p className="text-lg text-gray-700">
-                  Our AI detects cross-bureau conflicts, generates litigation-grade dispute letters with proper FCRA citations, and creates personalized arguments for each account.
+                  Our AI detects cross-bureau conflicts, generates litigation-grade Attack letters with proper FCRA citations, and creates personalized arguments for each account.
                 </p>
               </div>
               <div className="order-1 md:order-2">
@@ -310,30 +309,30 @@ export default function Home() {
                 <img src="/score-improvement-chart.png" alt="Credit score improvement over 6 months" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
-                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
-                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Send & Track Results</h3>
+                <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Round 3: Track & Improve</Badge>
+                <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Monitor Your Journey</h3>
                 <p className="text-lg text-gray-700">
-                  Download professional PDF letters, mail them via Certified Mail, and track your disputes. Monitor bureau responses and track any changes to your credit report.
+                  Download professional PDF letters, mail them via Certified Mail, and track your Attacks. Monitor bureau responses and track any changes to your credit report.
                 </p>
               </div>
             </div>
           </div>
           
-          {/* Dispute Tracking Example */}
+          {/* Attack Tracking Example */}
           <div className="mt-20 max-w-6xl mx-auto">
-            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Track Your Dispute Progress</h3>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Track Your Attack Progress</h3>
             <img 
               src="/before-after-bureau-report.png" 
-              alt="Example of dispute tracking dashboard" 
+              alt="Example of Attack tracking dashboard" 
               className="w-full rounded-xl shadow-2xl"
             />
-            <p className="text-center text-gray-700 mt-6 text-lg font-medium">Monitor dispute status, bureau response deadlines, and track notification of any credit report changes in real-time</p>
+            <p className="text-center text-gray-700 mt-6 text-lg font-medium">Monitor Attack status, bureau response deadlines, and track notification of any credit report changes in real-time</p>
           </div>
           
           {/* Platform Benefits */}
           <div className="mt-20 max-w-4xl mx-auto text-center">
             <p className="text-lg text-gray-700">
-              Our platform provides the tools and monitoring you need to dispute credit report inaccuracies. Results vary based on individual circumstances.
+              Our platform provides the tools and monitoring you need to Attack credit report inaccuracies. Results vary based on individual circumstances.
             </p>
           </div>
         </div>
@@ -367,7 +366,7 @@ export default function Home() {
                     <span className="font-bold text-lg">Benjamin P.</span>
                     <Badge className="bg-green-600">Platform User</Badge>
                   </div>
-                  <p className="text-sm text-gray-700">"The dispute letter tools are professional and easy to use. Highly recommend this platform!"</p>
+                  <p className="text-sm text-gray-700">"The Attack letter tools are professional and easy to use. Highly recommend this platform!"</p>
                 </div>
               </div>
             </div>
@@ -418,7 +417,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "The platform made it easy to generate professional dispute letters. The cross-bureau conflict detection found discrepancies I never knew existed. Very impressed with the tools."
+                  "The platform made it easy to generate professional Attack letters. The cross-bureau conflict detection found discrepancies I never knew existed. Very impressed with the tools."
                 </p>
               </CardContent>
             </Card>
@@ -441,7 +440,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "The FCRA citations in these letters are professional and well-researched. The tracking dashboard made it easy to monitor my disputes. Highly recommend the platform."
+                  "The FCRA citations in these letters are professional and well-researched. The tracking dashboard made it easy to monitor my Attacks. Highly recommend the platform."
                 </p>
               </CardContent>
             </Card>
@@ -464,7 +463,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "Best $29 I ever spent. The dispute tools are comprehensive and easy to use. The educational resources helped me understand my rights under FCRA. Great platform."
+                  "Best $29 I ever spent. The Attack tools are comprehensive and easy to use. The educational resources helped me understand my rights under FCRA. Great platform."
                 </p>
               </CardContent>
             </Card>
@@ -491,7 +490,7 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">3 dispute letters</span>
+                  <span className="text-gray-700">3 Attack letters</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
@@ -506,7 +505,7 @@ export default function Home() {
                   <span className="text-gray-400">Cross-bureau conflict detection</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Get Started</Link>
+                  <Link href="/quiz">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -524,7 +523,7 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">15 dispute letters</span>
+                  <span className="text-gray-700 font-semibold">15 Attack letters</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
@@ -543,7 +542,7 @@ export default function Home() {
                   <span className="text-gray-700 font-semibold">Priority support</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Get Started</Link>
+                  <Link href="/quiz">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -558,7 +557,7 @@ export default function Home() {
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Unlimited dispute letters</span>
+                  <span className="text-gray-700">Unlimited Attack letters</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
@@ -577,7 +576,7 @@ export default function Home() {
                   <span className="text-gray-700">1-on-1 strategy consultation</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Get Started</Link>
+                  <Link href="/quiz">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -596,15 +595,15 @@ export default function Home() {
             {[
               {
                 q: "How is this different from other credit monitoring services?",
-                a: "We use AI to detect cross-bureau conflicts and generate personalized dispute letters with proper FCRA citations. Our letters are tailored to your specific accounts, not generic templates. Results vary based on individual circumstances."
+                a: "We use AI to detect cross-bureau conflicts and generate personalized Attack letters with proper FCRA citations. Our letters are tailored to your specific accounts, not generic templates. Results vary based on individual circumstances."
               },
               {
                 q: "Is this legal?",
-                a: "Absolutely. We're exercising your rights under the Fair Credit Reporting Act (FCRA). You have the legal right to dispute inaccurate information on your credit reports."
+                a: "Absolutely. We're exercising your rights under the Fair Credit Reporting Act (FCRA). You have the legal right to Attack inaccurate information on your credit reports."
               },
               {
-                q: "How long does the dispute process take?",
-                a: "Credit bureaus have 30 days to investigate disputes under FCRA law. Results vary based on bureau responsiveness, accuracy of disputes, and individual credit circumstances. Some disputes are resolved within 30 days, others may take 60+ days or may not result in changes if the information is verified as accurate."
+                q: "How long does the Attack process take?",
+                a: "Credit bureaus have 30 days to investigate Attacks under FCRA law. Results vary based on bureau responsiveness, accuracy of Attacks, and individual credit circumstances. Some Attacks are resolved within 30 days, others may take 60+ days or may not result in changes if the information is verified as accurate."
               },
               {
                 q: "Do I need to upload all 3 bureau reports?",
@@ -638,7 +637,7 @@ export default function Home() {
         <div className="container text-center">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Manage Your Credit?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628 customers monitoring their credit and disputing inaccuracies
+            Join 16,628 customers monitoring their credit and challenging inaccuracies
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">
@@ -665,7 +664,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-white text-lg mb-4">About CreditCounsel</h3>
               <p className="text-sm">
-                Credit monitoring and dispute automation platform. AI-powered tools to help you manage your credit.
+                Credit monitoring and Attack automation platform. AI-powered tools to help you manage your credit.
               </p>
             </div>
             
@@ -715,7 +714,7 @@ export default function Home() {
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
               <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. We do not perform credit monitoring services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
+                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. We do not perform credit monitoring services. Federal law allows you to Attack inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit Attacks. You are solely responsible for generating, printing, mailing, and following up on your own Attack letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit Attacks and that we are providing tools and monitoring services only.
               </p>
             </div>
             <p>&copy; 2026 CreditCounsel. All rights reserved.</p>
