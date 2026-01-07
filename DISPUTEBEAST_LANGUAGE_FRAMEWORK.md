@@ -1,7 +1,7 @@
 # DisputeBeast Language Framework Implementation
 
 ## Overview
-Implemented all 10 DisputeBeast language strategies to make CreditCounsel AI both CROA-compliant and highly converting using emotionally compelling but legally safe language.
+Implemented all 10 DisputeBeast language strategies to make DisputeStrike both CROA-compliant and highly converting using emotionally compelling but legally safe language.
 
 ---
 

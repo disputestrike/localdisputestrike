@@ -29,7 +29,7 @@ DisputeBeast likely uses **credit monitoring APIs** that provide structured JSON
 
 This means they're getting clean, structured data from credit bureaus via API, not parsing messy PDFs.
 
-## What This Means for CreditCounsel AI:
+## What This Means for DisputeStrike:
 **We need a different approach for PDF parsing:**
 1. Use proper OCR for scanned PDFs (Tesseract, Google Vision API, AWS Textract)
 2. OR: Guide users to get structured reports from credit monitoring services
@@ -81,7 +81,7 @@ Our current approach (parsing PDFs from TransUnion/Equifax/Experian directly) is
 3. Format varies significantly between bureaus and over time
 4. Multi-page complexity makes Vision AI impractical
 
-## Solution for CreditCounsel AI:
+## Solution for DisputeStrike:
 **We need to pivot to credit monitoring integration OR manual entry**
 
 Options:

@@ -1,4 +1,4 @@
-# CreditCounsel AI Pricing Strategy (Conversion-Optimized)
+# DisputeStrike Pricing Strategy (Conversion-Optimized)
 
 ## Core Principle: Free Tier Should Be Frustrating
 

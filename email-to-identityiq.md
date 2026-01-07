@@ -1,13 +1,13 @@
 # Email to IdentityIQ Sales Team
 
 **To:** sales@idiq.com  
-**Subject:** Partnership Inquiry - CreditCounsel AI Affiliate Integration
+**Subject:** Partnership Inquiry - DisputeStrike Affiliate Integration
 
 ---
 
 Dear IdentityIQ Sales Team,
 
-My name is [YOUR NAME], and I'm the founder of **CreditCounsel AI**, an AI-powered credit repair platform that helps consumers dispute negative accounts on their credit reports through automated dispute letter generation.
+My name is [YOUR NAME], and I'm the founder of **DisputeStrike**, an AI-powered credit repair platform that helps consumers dispute negative accounts on their credit reports through automated dispute letter generation.
 
 We're currently evaluating credit monitoring partners to integrate with our platform, and IdentityIQ's comprehensive 3-bureau monitoring and identity theft protection services align perfectly with our mission to help consumers improve their financial health.
 
@@ -30,7 +30,7 @@ For seamless user experience, we'd like to integrate IdentityIQ's credit monitor
 - What is the average customer retention rate or churn rate?
 - Are there any minimum volume requirements or exclusivity clauses?
 
-## About CreditCounsel AI
+## About DisputeStrike
 Our platform uses advanced AI to analyze credit reports and generate litigation-grade dispute letters that comply with FCRA, FDCPA, and FCBA regulations. We're targeting the $14 billion credit repair industry with a modern, automated solution.
 
 **Our projected user acquisition:**
@@ -47,7 +47,7 @@ Thank you for your time, and I look forward to hearing from you.
 Best regards,
 
 [YOUR NAME]  
-Founder, CreditCounsel AI  
+Founder, DisputeStrike  
 [YOUR EMAIL]  
 [YOUR PHONE]  
 Website: [YOUR WEBSITE URL]
@@ -61,7 +61,7 @@ Website: [YOUR WEBSITE URL]
 
 Hi IdentityIQ Team,
 
-I'm building **CreditCounsel AI**, an AI-powered credit repair platform, and I'm interested in partnering with IdentityIQ as our credit monitoring provider.
+I'm building **DisputeStrike**, an AI-powered credit repair platform, and I'm interested in partnering with IdentityIQ as our credit monitoring provider.
 
 I have three quick questions about your affiliate program:
 

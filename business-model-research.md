@@ -46,10 +46,10 @@ DisputeBeast partners with credit monitoring services (Beast Credit Monitoring, 
 - **Traditional credit repair**: $79-149/month + setup fees
 - **DisputeBeast**: $49.99/month (DIY, no setup fee)
 
-## Key Takeaway for CreditCounsel AI
+## Key Takeaway for DisputeStrike
 
 **We should adopt the same model:**
-1. Make CreditCounsel AI software **FREE**
+1. Make DisputeStrike software **FREE**
 2. Require credit monitoring subscription ($49.99-59.99/month)
 3. Partner with credit monitoring service OR build our own
 4. Add affiliate program for viral growth
@@ -75,7 +75,7 @@ DisputeBeast partners with credit monitoring services (Beast Credit Monitoring, 
 - Build affiliate program in Phase 3
 - **Time to market: 1 week for MVP**
 
-## Pricing Strategy for CreditCounsel AI
+## Pricing Strategy for DisputeStrike
 
 ### Tier 1: Free (Loss Leader)
 - Manual entry of negative accounts

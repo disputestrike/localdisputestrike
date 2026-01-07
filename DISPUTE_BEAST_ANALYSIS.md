@@ -108,7 +108,7 @@ Very clear, numbered steps:
 
 ## Pricing Comparison
 
-| Feature | Dispute Beast | CreditCounsel AI |
+| Feature | Dispute Beast | DisputeStrike |
 |---------|---------------|------------------|
 | **Monthly Cost** | $49.99/month | $0 (one-time) |
 | **One-time Cost** | N/A | $29-199 |

@@ -122,7 +122,7 @@ When you contact sales@idiq.com or call 888-467-7102 (Option 2), ask:
 
 ---
 
-## Realistic Year 1 Projections for CreditCounsel AI
+## Realistic Year 1 Projections for DisputeStrike
 
 **Conservative Estimate:**
 - Month 1-3: 50 signups/month (soft launch)

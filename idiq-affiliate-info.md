@@ -33,10 +33,10 @@
 4. Get affiliate links and API access
 5. Start promoting and earning
 
-## Next Steps for CreditCounsel AI:
+## Next Steps for DisputeStrike:
 1. **YOU need to sign up** - Fill out the form with your company info
 2. Get approved and receive API credentials
-3. I'll integrate their API into CreditCounsel AI
+3. I'll integrate their API into DisputeStrike
 4. Users sign up for IdentityIQ through our affiliate link
 5. We earn commission on each signup
 6. Pull their credit data via API to power our AI
