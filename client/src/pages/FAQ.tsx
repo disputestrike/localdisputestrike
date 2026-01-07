@@ -14,7 +14,7 @@ export default function FAQ() {
 
   const faqs = [
     {
-      q: "How is this different from other credit repair services?",
+      q: "How is this different from other credit monitoring services?",
       a: "We use AI to detect cross-bureau conflicts that force deletions under FCRA law. Most services use generic templates with 30-40% success rates. Our litigation-grade letters get 70-85% deletion rates. Plus, we're a one-time payment - not a monthly subscription trap."
     },
     {
@@ -31,11 +31,11 @@ export default function FAQ() {
     },
     {
       q: "What if nothing gets deleted?",
-      a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Repair package includes unlimited letters. We also offer a 110% money-back guarantee if you're not satisfied."
+      a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% money-back guarantee if you're not satisfied."
     },
     {
-      q: "How much does traditional credit repair cost?",
-      a: "Traditional credit repair companies charge $99-$149/month with 6-12 month contracts. That's $1,200-$1,800 per year! Our one-time payment of $29-$399 gives you the same (or better) results without the subscription trap."
+      q: "How much does traditional credit monitoring cost?",
+      a: "Traditional credit monitoring companies charge $99-$149/month with 6-12 month contracts. That's $1,200-$1,800 per year! Our one-time payment of $29-$399 gives you the same (or better) results without the subscription trap."
     },
     {
       q: "What documents do I need to mail with my letters?",
@@ -75,7 +75,7 @@ export default function FAQ() {
     },
     {
       q: "What if I need help or have questions?",
-      a: "All packages include email support. Complete Repair package includes priority support with faster response times. We also provide comprehensive guides, mailing instructions, and escalation templates for every scenario."
+      a: "All packages include email support. Complete Package package includes priority support with faster response times. We also provide comprehensive guides, mailing instructions, and escalation templates for every scenario."
     }
   ];
 
@@ -132,7 +132,7 @@ export default function FAQ() {
               Frequently Asked <span className="text-orange-600">Questions</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Everything you need to know about credit repair with CreditCounsel
+              Everything you need to know about credit monitoring with CreditCounsel
             </p>
           </div>
         </div>

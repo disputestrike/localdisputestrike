@@ -36,7 +36,7 @@ export async function generateTestimonial(
   const displayName = anonymizeName(metrics.userName, options.anonymizationLevel);
   
   // Build AI prompt
-  const prompt = `Generate a compelling testimonial for a credit repair success story.
+  const prompt = `Generate a compelling testimonial for a credit dispute success story.
 
 **User Success Metrics:**
 - Name: ${displayName}

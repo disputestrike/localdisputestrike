@@ -20,7 +20,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello ${user?.name || 'there'}! I'm your AI credit repair assistant powered by Manus AI. I have expert knowledge of FCRA law, cross-bureau conflict detection, and litigation-grade dispute strategies.\n\nI can help you with:\n- Analyzing your credit reports\n- Identifying cross-bureau conflicts\n- Explaining FCRA violations\n- Reviewing dispute letters\n- Answering credit repair questions\n\nWhat would you like help with today?`,
+      content: `Hello ${user?.name || 'there'}! I'm your AI credit monitoring assistant powered by Manus AI. I have expert knowledge of FCRA law, cross-bureau conflict detection, and litigation-grade dispute strategies.\n\nI can help you with:\n- Analyzing your credit reports\n- Identifying cross-bureau conflicts\n- Explaining FCRA violations\n- Reviewing dispute letters\n- Answering credit monitoring questions\n\nWhat would you like help with today?`,
       timestamp: new Date(),
     },
   ]);
@@ -88,7 +88,7 @@ export default function AIAssistant() {
             <div className="flex items-center gap-3">
               <Bot className="h-8 w-8" />
               <div>
-                <CardTitle className="text-2xl">AI Credit Repair Assistant</CardTitle>
+                <CardTitle className="text-2xl">AI Credit Monitoring Assistant</CardTitle>
                 <CardDescription className="text-blue-100">
                   Powered by Manus AI - Expert FCRA Knowledge
                 </CardDescription>
@@ -161,7 +161,7 @@ export default function AIAssistant() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about credit repair, FCRA law, or dispute strategies..."
+                  placeholder="Ask me anything about credit monitoring, FCRA law, or dispute strategies..."
                   disabled={isLoading}
                   className="flex-1"
                 />

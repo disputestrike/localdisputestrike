@@ -41,7 +41,7 @@ export function ExitIntentPopup() {
             <CardTitle className="text-2xl">Wait! Don't Leave Empty-Handed</CardTitle>
           </div>
           <CardDescription className="text-base">
-            Get your free credit repair analysis + 20% off your first package
+            Get your free credit analysis + 20% off your first package
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

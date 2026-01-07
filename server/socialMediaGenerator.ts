@@ -97,7 +97,7 @@ TESTIMONIAL (Bottom Section):
 
 FOOTER (Very Bottom):
 - "CreditCounsel.ai" website URL
-- Small tagline: "AI-Powered Credit Repair"
+- Small tagline: "AI-Powered Credit Dispute"
 
 **Design Requirements:**
 1. Use ${options.style} style as described above

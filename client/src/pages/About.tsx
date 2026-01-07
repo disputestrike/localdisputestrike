@@ -40,7 +40,7 @@ export default function About() {
               About <span className="text-orange-600">CreditCounsel</span>
             </h1>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We're on a mission to democratize credit repair by making litigation-grade dispute letters accessible to everyone—not just those who can afford expensive attorneys.
+              We're on a mission to democratize credit monitoring by making litigation-grade dispute letters accessible to everyone—not just those who can afford expensive attorneys.
             </p>
           </div>
         </div>
@@ -54,7 +54,7 @@ export default function About() {
             
             <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
               <p>
-                CreditCounsel was born from a simple observation: traditional credit repair services charge thousands of dollars for work that can be automated with artificial intelligence. We watched as families struggled with bad credit, unable to afford the $1,500-$3,000 annual fees charged by credit repair companies, while knowing that the same results could be achieved for a fraction of the cost.
+                CreditCounsel was born from a simple observation: traditional credit monitoring services charge thousands of dollars for work that can be automated with artificial intelligence. We watched as families struggled with bad credit, unable to afford the $1,500-$3,000 annual fees charged by credit monitoring companies, while knowing that the same results could be achieved for a fraction of the cost.
               </p>
               
               <p>
@@ -62,11 +62,11 @@ export default function About() {
               </p>
               
               <p>
-                In 2024, we launched CreditCounsel with a bold vision: use cutting-edge AI technology to generate litigation-grade dispute letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful tools that wealthy individuals use to repair their credit.
+                In 2024, we launched CreditCounsel with a bold vision: use cutting-edge AI technology to generate litigation-grade dispute letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful tools that wealthy individuals use to improve their credit.
               </p>
               
               <p>
-                Today, we've helped over 16,000 customers delete negative items from their credit reports, raising scores by an average of 80+ points. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized dispute letters with proper FCRA citations—all automatically. We've proven that credit repair doesn't have to be expensive to be effective.
+                Today, we've helped over 16,000 customers delete negative items from their credit reports, raising scores by an average of 80+ points. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized dispute letters with proper FCRA citations—all automatically. We've proven that credit monitoring doesn't have to be expensive to be effective.
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function About() {
               Credit Should Be Affordable. For everyone. Always.
             </p>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We believe that everyone deserves access to powerful credit repair tools, regardless of their income. Our mission is to make litigation-grade dispute letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
+              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make litigation-grade dispute letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
             </p>
           </div>
         </div>

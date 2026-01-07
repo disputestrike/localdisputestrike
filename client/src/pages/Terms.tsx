@@ -43,7 +43,7 @@ export default function Terms() {
                 By accessing or using CreditCounsel ("Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                CreditCounsel is a software platform that provides educational resources, document generation tools, and credit monitoring services. We are NOT a credit repair organization as defined by the Credit Repair Organizations Act (CROA). We provide software tools that enable you to exercise your legal rights under the Fair Credit Reporting Act (FCRA).
+                CreditCounsel is a software platform that provides educational resources, document generation tools, and credit monitoring services. We are NOT a credit monitoring organization as defined by the Credit Monitoring Organizations Act (CROA). We provide software tools that enable you to exercise your legal rights under the Fair Credit Reporting Act (FCRA).
               </p>
             </section>
 
@@ -54,7 +54,7 @@ export default function Terms() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Software Tools:</strong> AI-powered document generation software that creates dispute letters based on your input</li>
-                <li><strong>Educational Resources:</strong> Credit repair education, FCRA training, and mailing instructions</li>
+                <li><strong>Educational Resources:</strong> Credit education, FCRA training, and mailing instructions</li>
                 <li><strong>Credit Analysis:</strong> Automated analysis of credit reports to identify potential inaccuracies</li>
                 <li><strong>Document Templates:</strong> Professional letter templates with proper legal citations</li>
               </ul>
@@ -87,7 +87,7 @@ export default function Terms() {
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Starter Package ($29):</strong> 3 dispute letters, basic FCRA citations, PDF downloads</li>
                 <li><strong>Professional Package ($99):</strong> 15 dispute letters, cross-bureau conflict detection, priority support</li>
-                <li><strong>Complete Repair Package ($399):</strong> Unlimited letters, advanced legal arguments, 1-on-1 consultation</li>
+                <li><strong>Complete Package Package ($399):</strong> Unlimited letters, advanced legal arguments, 1-on-1 consultation</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
                 All payments are processed securely through Stripe. By purchasing a package, you agree to pay the stated price and authorize us to charge your payment method.
@@ -100,7 +100,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">5. No Guarantees</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                CreditCounsel provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit repair outcomes depend on many factors outside our control, including:
+                CreditCounsel provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit dispute outcomes depend on many factors outside our control, including:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>The accuracy of information on your credit reports</li>

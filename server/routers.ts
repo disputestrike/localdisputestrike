@@ -7,7 +7,7 @@ import * as db from "./db";
 import { uploadRouter } from "./uploadRouter";
 
 // System prompt for Manus AI letter generation - UPDATED with real-world success learnings
-const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit repair attorney specializing in FCRA litigation. You generate 10/10 litigation-grade dispute letters that achieve 70-85% deletion rates.
+const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate 10/10 litigation-grade dispute letters that achieve 70-85% deletion rates.
 
 Your letters MUST include:
 
@@ -311,7 +311,7 @@ export const appRouter = router({
         const messages = [
           {
             role: 'system' as const,
-            content: `You are an expert credit repair AI assistant with deep knowledge of:
+            content: `You are an expert credit dispute AI assistant with deep knowledge of:
 - FCRA law (§ 1681i, § 1681s-2, § 1681n, § 1681o)
 - Cross-bureau conflict detection
 - Litigation-grade dispute strategies

@@ -160,7 +160,7 @@ export default function Pricing() {
         {/* Legal Disclaimer */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700 mb-6">
           <p className="font-semibold text-blue-900 mb-1">IMPORTANT:</p>
-          <p>CreditCounsel is a credit monitoring and software platform, not a credit repair service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide tools and monitoring to help you manage your credit. Results vary and are not guaranteed.</p>
+          <p>CreditCounsel is a credit monitoring and software platform, not a credit monitoring service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide tools and monitoring to help you manage your credit. Results vary and are not guaranteed.</p>
         </div>
         <div className="flex justify-center mb-8">
           <CountdownTimer initialMinutes={15} />
@@ -321,10 +321,10 @@ export default function Pricing() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              <strong>CreditCounsel AI is a credit education platform and document preparation software.</strong> You are responsible for your own credit repair. We provide the tools, education, and guidance to help you exercise your rights under the Fair Credit Reporting Act (FCRA).
+              <strong>CreditCounsel AI is a credit education platform and document preparation software.</strong> You are responsible for your own credit monitoring. We provide the tools, education, and guidance to help you exercise your rights under the Fair Credit Reporting Act (FCRA).
             </p>
             <p>
-              You are purchasing access to educational materials and software tools, not credit repair services. Results vary based on your individual situation and effort. We do not guarantee specific credit score improvements.
+              You are purchasing access to educational materials and software tools, not credit monitoring services. Results vary based on your individual situation and effort. We do not guarantee specific credit score improvements.
             </p>
             <p>
               <strong>Your Rights:</strong> You have the right to dispute inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
@@ -346,7 +346,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes! We provide educational materials and software tools to help YOU exercise your rights under the Fair Credit Reporting Act (FCRA). You are doing your own credit repair, not us. This is the same model used by LegalZoom for legal documents.
+                Yes! We provide educational materials and software tools to help YOU exercise your rights under the Fair Credit Reporting Act (FCRA). You are doing your own credit monitoring, not us. This is the same model used by LegalZoom for legal documents.
               </p>
             </CardContent>
           </Card>

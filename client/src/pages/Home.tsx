@@ -91,7 +91,7 @@ export default function Home() {
             {/* Legal Disclaimer */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
               <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>
-              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit repair services. Federal law allows you to dispute credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own dispute letters to credit bureaus. Results vary and are not guaranteed.</p>
+              <p>CreditCounsel is a credit monitoring and software platform. We do not provide credit monitoring services. Federal law allows you to dispute credit information for free. We provide tools, monitoring, and software to help you manage your credit. You are responsible for sending your own dispute letters to credit bureaus. Results vary and are not guaranteed.</p>
             </div>
             
             {/* Hero Visual - Animated Credit Score Transformation */}
@@ -541,7 +541,7 @@ export default function Home() {
             {/* Complete */}
             <Card className="border-2">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold mb-4">Complete Repair</CardTitle>
+                <CardTitle className="text-2xl font-bold mb-4">Complete Package</CardTitle>
                 <div className="text-5xl font-extrabold text-gray-900 mb-2">$399</div>
                 <div className="text-gray-600">One-time payment</div>
               </CardHeader>
@@ -585,7 +585,7 @@ export default function Home() {
           <div className="space-y-4">
             {[
               {
-                q: "How is this different from other credit repair services?",
+                q: "How is this different from other credit monitoring services?",
                 a: "We use AI to detect cross-bureau conflicts that force deletions under FCRA law. Most services use generic templates with 30-40% success rates. Our litigation-grade letters get 70-85% deletion rates."
               },
               {
@@ -602,7 +602,7 @@ export default function Home() {
               },
               {
                 q: "What if nothing gets deleted?",
-                a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Repair package includes unlimited letters."
+                a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters."
               }
             ].map((faq, i) => (
               <Card key={i} className="border-2 cursor-pointer hover:border-orange-600 transition-colors" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
@@ -642,7 +642,7 @@ export default function Home() {
       <section className="py-8 bg-gray-900 text-white">
         <div className="container text-center">
           <p className="text-xl md:text-2xl font-bold">
-            Credit Repair Should Be Affordable. For everyone. Always.
+            Credit Monitoring Should Be Affordable. For everyone. Always.
           </p>
         </div>
       </section>
@@ -705,7 +705,7 @@ export default function Home() {
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
               <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under federal or state law, including the Credit Repair Organizations Act (CROA). We do not perform credit repair services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
+                CreditCounsel is a credit monitoring and software platform. We are NOT a credit monitoring organization as defined under federal or state law, including the Credit Monitoring Organizations Act (CROA). We do not perform credit monitoring services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
               </p>
             </div>
             <p>&copy; 2026 CreditCounsel. All rights reserved.</p>

@@ -164,7 +164,7 @@ export async function sendDisputeLetterEmail(
       The CreditCounsel AI Team</p>
     </div>
     <div class="footer">
-      <p>CreditCounsel AI - Litigation-Grade Credit Repair Software</p>
+      <p>CreditCounsel AI - Litigation-Grade Credit Dispute Software</p>
       <p>This is an automated message. Please do not reply to this email.</p>
     </div>
   </div>
@@ -228,7 +228,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
     <div class="content">
       <p>Hi ${userName},</p>
       
-      <p>Welcome to the most advanced litigation-grade credit repair platform ever created!</p>
+      <p>Welcome to the most advanced litigation-grade credit dispute platform ever created!</p>
       
       <p>Here's what you can do:</p>
       <ul>

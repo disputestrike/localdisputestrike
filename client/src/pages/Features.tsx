@@ -63,7 +63,7 @@ export default function Features() {
               Powerful Features That <span className="text-orange-600">Get Results</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Our AI-powered platform combines cutting-edge technology with legal expertise to maximize your credit repair success
+              Our AI-powered platform combines cutting-edge technology with legal expertise to maximize your credit monitoring success
             </p>
             
             {/* Credit Score Gauge Visual */}

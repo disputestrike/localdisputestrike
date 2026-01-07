@@ -69,7 +69,7 @@ export async function generateDisputeLetter(input: LetterGenerationInput): Promi
 /**
  * System prompt for GPT-4 (defines the 10/10 letter structure)
  */
-const SYSTEM_PROMPT = `You are an expert credit repair attorney who writes litigation-grade FCRA dispute letters.
+const SYSTEM_PROMPT = `You are an expert credit dispute attorney who writes litigation-grade FCRA dispute letters.
 
 Your letters MUST follow this exact 10/10 structure:
 

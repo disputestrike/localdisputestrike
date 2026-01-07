@@ -157,7 +157,7 @@ export default function Dashboard() {
         {/* Progress Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Credit Repair Progress</CardTitle>
+            <CardTitle>Your Credit Monitoring Progress</CardTitle>
             <CardDescription>Follow these steps to clean your credit</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

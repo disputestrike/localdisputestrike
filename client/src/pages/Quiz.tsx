@@ -113,7 +113,7 @@ export default function Quiz() {
             <span className="font-bold text-2xl">CreditCounsel AI</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
-            Get Your Free Credit Repair Analysis
+            Get Your Free Credit Monitoring Analysis
           </h1>
           <p className="text-muted-foreground">
             Answer 5 quick questions to see how many items you could delete
@@ -262,7 +262,7 @@ export default function Quiz() {
               <div className="space-y-6">
                 <div className="text-center">
                   <h2 className="text-2xl font-bold mb-2">Where should we send your free analysis?</h2>
-                  <p className="text-muted-foreground">Get your personalized credit repair plan instantly</p>
+                  <p className="text-muted-foreground">Get your personalized credit monitoring plan instantly</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>

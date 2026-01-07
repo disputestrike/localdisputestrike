@@ -63,7 +63,7 @@ export default function HowItWorks() {
               Three Simple Steps to <span className="text-orange-600">Delete Negative Items</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Our proven process makes credit repair easy, legal, and effective
+              Our proven process makes credit monitoring easy, legal, and effective
             </p>
           </div>
         </div>

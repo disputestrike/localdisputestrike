@@ -21,7 +21,7 @@ describe("AI Chat", () => {
     caller = appRouter.createCaller(mockContext);
   });
 
-  it("should respond to credit repair questions", async () => {
+  it("should respond to credit dispute questions", async () => {
     const result = await caller.ai.chat({
       message: "What is FCRA?",
       conversationHistory: [],
