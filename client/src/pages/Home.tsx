@@ -207,7 +207,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Our AI generates unique, human-like letters that you print and mail. Users report 70-85% deletion rates vs 30-40% for generic templates. Results vary.
+                  Our AI generates unique, personalized letters based on your specific account details. You print and mail them yourself. Results vary based on individual circumstances.
                 </p>
               </CardContent>
             </Card>
@@ -327,7 +327,7 @@ export default function Home() {
               alt="Example of dispute tracking dashboard" 
               className="w-full rounded-xl shadow-2xl"
             />
-            <p className="text-center text-gray-700 mt-6 text-lg font-medium">Monitor dispute status, bureau response deadlines, and credit report changes in real-time</p>
+            <p className="text-center text-gray-700 mt-6 text-lg font-medium">Monitor dispute status, bureau response deadlines, and track notification of any credit report changes in real-time</p>
           </div>
           
           {/* Platform Benefits */}
@@ -596,15 +596,15 @@ export default function Home() {
             {[
               {
                 q: "How is this different from other credit monitoring services?",
-                a: "We use AI to detect cross-bureau conflicts that force deletions under FCRA law. Most services use generic templates with 30-40% success rates. Our litigation-grade letters get 70-85% deletion rates."
+                a: "We use AI to detect cross-bureau conflicts and generate personalized dispute letters with proper FCRA citations. Our letters are tailored to your specific accounts, not generic templates. Results vary based on individual circumstances."
               },
               {
                 q: "Is this legal?",
                 a: "Absolutely. We're exercising your rights under the Fair Credit Reporting Act (FCRA). You have the legal right to dispute inaccurate information on your credit reports."
               },
               {
-                q: "How long does it take to see results?",
-                a: "Credit bureaus have 30-45 days to investigate disputes by law. Most customers see deletions within 45-60 days. Some see results in as little as 30 days."
+                q: "How long does the dispute process take?",
+                a: "Credit bureaus have 30 days to investigate disputes under FCRA law. Results vary based on bureau responsiveness, accuracy of disputes, and individual credit circumstances. Some disputes are resolved within 30 days, others may take 60+ days or may not result in changes if the information is verified as accurate."
               },
               {
                 q: "Do I need to upload all 3 bureau reports?",
@@ -636,9 +636,9 @@ export default function Home() {
       {/* Final CTA */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Delete Negative Items?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Manage Your Credit?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628 customers who've raised their credit scores by 80+ points
+            Join 16,628 customers monitoring their credit and disputing inaccuracies
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">
@@ -715,7 +715,7 @@ export default function Home() {
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
               <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                CreditCounsel is a credit monitoring and software platform. We are NOT a credit monitoring organization as defined under federal or state law, including the Credit Monitoring Organizations Act (CROA). We do not perform credit monitoring services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
+                CreditCounsel is a credit monitoring and software platform. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. We do not perform credit monitoring services. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide software tools, credit monitoring, educational resources, and tracking services to help you manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports. By using our platform, you acknowledge that you are performing your own credit disputes and that we are providing tools and monitoring services only.
               </p>
             </div>
             <p>&copy; 2026 CreditCounsel. All rights reserved.</p>
