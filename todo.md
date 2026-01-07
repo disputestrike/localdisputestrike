@@ -1198,4 +1198,15 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Update server-side files (emailService, pdfGenerator, emailNotifications, etc.)
 - [x] Update all configuration files
 - [x] Verify EVERY file has correct branding (0 instances of CreditCounsel found)
-- [ ] Save checkpoint: Complete Codebase Rebrand Audit
+- [x] Save checkpoint: Complete Codebase Rebrand Audit
+
+
+## Phase 43: UPDATE MANUS PROJECT TITLE METADATA
+- [ ] Update VITE_APP_TITLE environment variable to "DisputeForce"
+- [ ] Verify project title shows "DisputeForce" in Manus card preview
+- [ ] Save checkpoint: Manus Project Title Updated
+
+
+## Phase 44: REMOVE HOMEPAGE LEGAL DISCLAIMER
+- [x] Remove "IMPORTANT LEGAL NOTICE" section from homepage hero
+- [ ] Save checkpoint: Homepage Legal Disclaimer Removed

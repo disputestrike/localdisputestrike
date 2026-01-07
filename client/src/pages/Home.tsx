@@ -97,11 +97,6 @@ export default function Home() {
               </Link>
             </div>
             
-            {/* Legal Disclaimer */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700">
-              <p className="font-semibold text-blue-900 mb-1">IMPORTANT LEGAL NOTICE:</p>
-              <p>DisputeForce is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.</p>
-            </div>
             
             {/* Hero Visual - Animated Credit Score Transformation */}
             <div className="relative max-w-5xl mx-auto">
