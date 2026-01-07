@@ -130,6 +130,289 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pain Points Section */}
+      <section className="py-20 bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Sound Familiar?</h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              You're not alone. Thousands face these credit challenges every day.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-score-drop.png" alt="Score Drop" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"My score dropped 50 points overnight and I don't know why..."</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-interest.png" alt="High Interest" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"I'm paying 24% interest because of old mistakes..."</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-limit.png" alt="Low Limit" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"My credit limit is so low I can't even book a hotel..."</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-home.png" alt="Home Denial" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"I got denied for a mortgage because of errors on my report..."</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-debt.png" alt="Debt Burden" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"I feel trapped by debt I didn't even know I had..."</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8 text-center">
+                <img src="/icon-pain-negative.png" alt="Negative Accounts" className="w-20 h-20 mx-auto mb-4" />
+                <p className="text-lg text-gray-700 italic">"Negative accounts appeared out of nowhere on my credit..."</p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
+              <Link href="/quiz">Take Control of Your Credit <ArrowRight className="ml-2" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Timeline */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">How DisputeForce Works</h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Four simple steps to launch your credit dispute journey
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="relative">
+                <img src="/icon-step1-quiz.png" alt="Take Quiz" className="w-32 h-32 mx-auto mb-6" />
+                <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">1</div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Take the Quiz</h3>
+              <p className="text-gray-700">Answer a few questions about your credit situation</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="relative">
+                <img src="/icon-step2-upload.png" alt="Upload Reports" className="w-32 h-32 mx-auto mb-6" />
+                <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">2</div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Upload Reports</h3>
+              <p className="text-gray-700">Upload your credit reports from all 3 bureaus</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="relative">
+                <img src="/icon-step3-attack.png" alt="Launch Attacks" className="w-32 h-32 mx-auto mb-6" />
+                <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">3</div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Launch Attacks</h3>
+              <p className="text-gray-700">AI generates litigation-grade Attack letters instantly</p>
+            </div>
+            
+            <div className="text-center">
+              <div className="relative">
+                <img src="/icon-step4-track.png" alt="Track Progress" className="w-32 h-32 mx-auto mb-6" />
+                <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">4</div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Track Progress</h3>
+              <p className="text-gray-700">Monitor your disputes in real-time dashboard</p>
+            </div>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
+              <Link href="/quiz">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-16 bg-gray-50">
+        <div className="container">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <img src="/icon-trust-ssl.png" alt="256-Bit SSL" className="w-20 h-20 mx-auto mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">256-Bit SSL</h4>
+              <p className="text-sm text-gray-600">Bank-level encryption</p>
+            </div>
+            
+            <div className="text-center">
+              <img src="/icon-trust-fcra.png" alt="FCRA Compliant" className="w-20 h-20 mx-auto mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">FCRA Compliant</h4>
+              <p className="text-sm text-gray-600">Federal law protection</p>
+            </div>
+            
+            <div className="text-center">
+              <img src="/icon-trust-control.png" alt="You're In Control" className="w-20 h-20 mx-auto mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">You're In Control</h4>
+              <p className="text-sm text-gray-600">You mail your letters</p>
+            </div>
+            
+            <div className="text-center">
+              <img src="/icon-trust-access.png" alt="24/7 Access" className="w-20 h-20 mx-auto mb-4" />
+              <h4 className="font-bold text-gray-900 mb-2">24/7 Dashboard</h4>
+              <p className="text-sm text-gray-600">Access anytime, anywhere</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Highlights */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Everything You Need</h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Professional-grade tools to dispute with force and defend with power
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-ai-letters.png" alt="AI Letters" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">AI-Powered Attack Letters</h3>
+                <p className="text-gray-700">Litigation-grade letters with FCRA citations generated instantly</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-3-bureau.png" alt="3 Bureaus" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">3-Bureau Disputes</h3>
+                <p className="text-gray-700">Challenge items across Equifax, Experian, and TransUnion simultaneously</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-rounds.png" alt="Rounds" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Round 1-2-3 Escalation</h3>
+                <p className="text-gray-700">Automated escalation strategy from initial claim to legal-grade pressure</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-mailing.png" alt="Mailing" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Mailing Instructions</h3>
+                <p className="text-gray-700">Pre-formatted labels and certified mail instructions included</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-tracking.png" alt="Tracking" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Progress Tracking</h3>
+                <p className="text-gray-700">Real-time dashboard shows exactly where each dispute stands</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
+              <CardContent className="pt-8">
+                <img src="/icon-feature-unlimited.png" alt="Unlimited" className="w-16 h-16 mb-4" />
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Unlimited Letters</h3>
+                <p className="text-gray-700">Generate as many Attack letters as you need, no limits</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Stats */}
+      <section className="py-16 bg-gray-900 text-white">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
+            <div>
+              <img src="/icon-stat-users.png" alt="Users" className="w-24 h-24 mx-auto mb-4" />
+              <div className="text-5xl font-extrabold mb-2">1,247+</div>
+              <p className="text-xl text-gray-300">Users monitoring their credit journey</p>
+            </div>
+            
+            <div>
+              <img src="/icon-stat-letters.png" alt="Letters" className="w-24 h-24 mx-auto mb-4" />
+              <div className="text-5xl font-extrabold mb-2">3,891+</div>
+              <p className="text-xl text-gray-300">Attack letters generated and mailed</p>
+            </div>
+            
+            <div>
+              <img src="/icon-stat-guarantee.png" alt="Guarantee" className="w-24 h-24 mx-auto mb-4" />
+              <div className="text-5xl font-extrabold mb-2">110%</div>
+              <p className="text-xl text-gray-300">Money-back guarantee if not satisfied</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Blog Preview */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Credit Dispute Resources</h2>
+            <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+              Learn the strategies that help you take control of your credit
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
+              <img src="/blog-thumb-credit-report.png" alt="How to Read Your Credit Report" className="w-full h-48 object-cover" />
+              <CardContent className="pt-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">How to Read Your Credit Report</h3>
+                <p className="text-gray-700 mb-4">Learn to identify errors, late payments, and collection accounts that are dragging down your score.</p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/blog/how-to-read-credit-report">Read Article <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
+              <img src="/blog-thumb-3-round-strategy.png" alt="3-Round Attack Strategy" className="w-full h-48 object-cover" />
+              <CardContent className="pt-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">3-Round Attack Strategy Explained</h3>
+                <p className="text-gray-700 mb-4">Understand how Round 1, 2, and 3 escalation works to maximize your dispute effectiveness.</p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/blog/3-round-strategy">Read Article <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
+              <img src="/blog-thumb-fcra-rights.png" alt="Your FCRA Rights" className="w-full h-48 object-cover" />
+              <CardContent className="pt-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-3">Your FCRA § 611 Rights</h3>
+                <p className="text-gray-700 mb-4">Federal law gives you powerful rights to challenge inaccurate information on your credit report.</p>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/blog/fcra-rights">Read Article <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Stats Bar */}
       <section className="py-12 bg-orange-600 text-white">
         <div className="container">
