@@ -97,7 +97,7 @@ Write the testimonial now:`;
  */
 function anonymizeName(fullName: string, level: TestimonialOptions['anonymizationLevel']): string {
   if (level === 'anonymous') {
-    return 'A CreditCounsel AI User';
+    return 'A DisputeForce User';
   }
 
   const nameParts = fullName.trim().split(' ');

@@ -171,8 +171,8 @@ export default function Terms() {
               </p>
               <p className="text-gray-700 mt-4">
                 <strong>DisputeForce</strong><br />
-                Email: support@creditcounsel.com<br />
-                Website: <Link href="/" className="text-orange-600 hover:underline">creditcounsel.com</Link>
+                Email: support@disputeforce.com<br />
+                Website: <Link href="/" className="text-orange-600 hover:underline">disputeforce.com</Link>
               </p>
             </section>
           </div>

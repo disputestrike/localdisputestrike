@@ -152,7 +152,7 @@ export default function Privacy() {
                 <li><strong>Restriction:</strong> Request restriction of processing in certain circumstances</li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
-                To exercise these rights, contact us at privacy@creditcounsel.com. We will respond to your request within 30 days.
+                To exercise these rights, contact us at privacy@disputeforce.com. We will respond to your request within 30 days.
               </p>
             </section>
 
@@ -219,9 +219,9 @@ export default function Privacy() {
               </p>
               <p className="text-gray-700">
                 <strong>DisputeForce</strong><br />
-                Email: privacy@creditcounsel.com<br />
-                Support: support@creditcounsel.com<br />
-                Website: <Link href="/" className="text-orange-600 hover:underline">creditcounsel.com</Link>
+                Email: privacy@disputeforce.com<br />
+                Support: support@disputeforce.com<br />
+                Website: <Link href="/" className="text-orange-600 hover:underline">disputeforce.com</Link>
               </p>
             </section>
           </div>

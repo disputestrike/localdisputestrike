@@ -134,7 +134,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No Questions Asked</h3>
                     <p className="text-gray-700">
-                      We don't make you jump through hoops. Simply email support@creditcounsel.ai and your refund will be processed immediately.
+                      We don't make you jump through hoops. Simply email support@disputeforce.com and your refund will be processed immediately.
                     </p>
                   </div>
                 </div>

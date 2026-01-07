@@ -1012,7 +1012,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         // Send notification email to admin
         const { sendEmail } = await import('./emailService');
         await sendEmail({
-          to: process.env.ADMIN_EMAIL || 'admin@creditcounsel.ai',
+          to: process.env.ADMIN_EMAIL || 'admin@disputeforce.com',
           subject: `New Contact Form Submission from ${input.name}`,
           html: `
             <h2>New Contact Form Submission</h2>

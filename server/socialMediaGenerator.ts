@@ -78,7 +78,7 @@ function buildGraphicPrompt(
 
 HEADER (Top Section):
 - "SUCCESS STORY" badge or label
-- CreditCounsel AI logo (shield icon with "CreditCounsel" text)
+- DisputeForce logo (shield icon with "DisputeForce" text)
 
 MAIN CONTENT (Center Section):
 - Large, prominent display of credit score transformation:
@@ -96,7 +96,7 @@ TESTIMONIAL (Bottom Section):
 - Attribution: "- ${displayName}"
 
 FOOTER (Very Bottom):
-- "CreditCounsel.ai" website URL
+- "DisputeForce.ai" website URL
 - Small tagline: "AI-Powered Credit Dispute"
 
 **Design Requirements:**

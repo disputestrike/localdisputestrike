@@ -52,7 +52,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     const transport = getTransporter();
     
     await transport.sendMail({
-      from: `"CreditCounsel AI" <${process.env.SMTP_USER}>`,
+      from: `"DisputeForce" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -156,15 +156,15 @@ export async function sendDisputeLetterEmail(
       <p><strong>Important:</strong> The credit bureau has 30 days from receipt to investigate and respond under FCRA § 1681i(a)(1).</p>
       
       <p>Need help? View our complete mailing guide:</p>
-      <a href="https://creditcounsel.ai/mailing-instructions" class="button">View Mailing Guide</a>
+      <a href="https://disputeforce.com/mailing-instructions" class="button">View Mailing Guide</a>
       
       <p>Good luck! We're rooting for you! 💪</p>
       
       <p>Best regards,<br>
-      The CreditCounsel AI Team</p>
+      The DisputeForce Team</p>
     </div>
     <div class="footer">
-      <p>CreditCounsel AI - Litigation-Grade Credit Dispute Software</p>
+      <p>DisputeForce - Litigation-Grade Credit Dispute Software</p>
       <p>This is an automated message. Please do not reply to this email.</p>
     </div>
   </div>
@@ -174,7 +174,7 @@ export async function sendDisputeLetterEmail(
 
   return sendEmail({
     to: userEmail,
-    subject: `Your ${bureau} Dispute Letter is Ready - CreditCounsel AI`,
+    subject: `Your ${bureau} Dispute Letter is Ready - DisputeForce`,
     html,
     text: `Your ${bureau} dispute letter is ready! Download the attached PDF, print it, sign in blue ink, and mail it via Certified Mail with Return Receipt. Include a copy of your ID and a recent utility bill.`,
     attachments: [
@@ -223,7 +223,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 <body>
   <div class="container">
     <div class="header">
-      <h1>Welcome to CreditCounsel AI! 🎉</h1>
+      <h1>Welcome to DisputeForce! 🎉</h1>
     </div>
     <div class="content">
       <p>Hi ${userName},</p>
@@ -241,7 +241,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
       <p>Ready to get started? Log in to your dashboard and upload your first credit report!</p>
       
       <p>Best regards,<br>
-      The CreditCounsel AI Team</p>
+      The DisputeForce Team</p>
     </div>
   </div>
 </body>
@@ -250,9 +250,9 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 
   return sendEmail({
     to: userEmail,
-    subject: 'Welcome to CreditCounsel AI - Let\'s Fix Your Credit!',
+    subject: 'Welcome to DisputeForce - Let\'s Fix Your Credit!',
     html,
-    text: `Welcome to CreditCounsel AI! Upload your credit reports to get started with AI-powered dispute letters.`,
+    text: `Welcome to DisputeForce! Upload your credit reports to get started with AI-powered dispute letters.`,
   });
 }
 
@@ -321,7 +321,7 @@ export async function sendPaymentConfirmationEmail(
       <p>You now have full access to all features. Start generating your dispute letters!</p>
       
       <p>Best regards,<br>
-      The CreditCounsel AI Team</p>
+      The DisputeForce Team</p>
     </div>
   </div>
 </body>
@@ -330,7 +330,7 @@ export async function sendPaymentConfirmationEmail(
 
   return sendEmail({
     to: userEmail,
-    subject: 'Payment Confirmed - CreditCounsel AI',
+    subject: 'Payment Confirmed - DisputeForce',
     html,
     text: `Payment confirmed! You've been charged $${amount} for ${tier}. Thank you!`,
   });
