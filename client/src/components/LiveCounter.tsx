@@ -13,12 +13,12 @@ export function LiveCounter() {
 
     // Simulate recent activity notifications (CreditFixrr style)
     const activities = [
-      { name: "Sarah M.", location: "Miami, FL", action: "Purchased the Complete Repair package", time: "3 hours ago" },
-      { name: "John D.", location: "Austin, TX", action: "Purchased the DIY Quick Start", time: "5 hours ago" },
-      { name: "Maria G.", location: "Los Angeles, CA", action: "Purchased the White Glove package", time: "7 hours ago" },
-      { name: "David R.", location: "Brooklyn, NY", action: "Purchased the Complete Repair package", time: "9 hours ago" },
-      { name: "Lisa K.", location: "Tampa, FL", action: "Deleted 8 negative accounts", time: "4 hours ago" },
-      { name: "Michael P.", location: "Chicago, IL", action: "Increased score by 95 points", time: "6 hours ago" },
+      { name: "Sarah M.", location: "Miami, FL", action: "Started monitoring their credit", time: "3 hours ago" },
+      { name: "John D.", location: "Austin, TX", action: "Generated dispute letters", time: "5 hours ago" },
+      { name: "Maria G.", location: "Los Angeles, CA", action: "Joined the platform", time: "7 hours ago" },
+      { name: "David R.", location: "Brooklyn, NY", action: "Started using dispute tools", time: "9 hours ago" },
+      { name: "Lisa K.", location: "Tampa, FL", action: "Tracking their disputes", time: "4 hours ago" },
+      { name: "Michael P.", location: "Chicago, IL", action: "Monitoring credit changes", time: "6 hours ago" },
     ];
 
     let activityIndex = 0;
@@ -43,7 +43,7 @@ export function LiveCounter() {
       <div className="fixed bottom-4 left-4 z-50 bg-primary text-primary-foreground px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-in slide-in-from-left">
         <TrendingUp className="h-4 w-4 animate-pulse" />
         <span className="text-sm font-semibold">
-          {count.toLocaleString()} items deleted this week
+          {count.toLocaleString()} users monitoring their credit
         </span>
       </div>
 

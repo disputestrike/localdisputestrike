@@ -132,15 +132,15 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
               <div className="text-5xl md:text-6xl font-extrabold mb-2">16,628+</div>
-              <div className="text-xl font-medium">Happy Customers</div>
+              <div className="text-xl font-medium">Users Monitoring Their Credit</div>
             </div>
             <div>
-              <div className="text-5xl md:text-6xl font-extrabold mb-2">80+ pts</div>
-              <div className="text-xl font-medium">Average Score Increase</div>
+              <div className="text-5xl md:text-6xl font-extrabold mb-2">24/7</div>
+              <div className="text-xl font-medium">Real-Time Credit Tracking</div>
             </div>
             <div>
-              <div className="text-5xl md:text-6xl font-extrabold mb-2">95%</div>
-              <div className="text-xl font-medium">Success Rate</div>
+              <div className="text-5xl md:text-6xl font-extrabold mb-2">AI-Powered</div>
+              <div className="text-xl font-medium">Dispute Letter Generation</div>
             </div>
           </div>
         </div>
@@ -203,9 +203,9 @@ export default function Home() {
             </Card>
           </div>
           
-          {/* Visual Proof of Deletions */}
+          {/* Platform Features Showcase */}
           <div className="mt-20">
-            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12">See The Proof: Real Deletions</h3>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-12">See How Our Platform Works</h3>
             
             <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto items-stretch">
               {/* Deleted Items Proof */}
@@ -217,9 +217,9 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Official Bureau Confirmation</h4>
+                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Professional Dispute Letters</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Real credit report from Equifax, TransUnion, and Experian showing 5 negative accounts permanently <span className="font-bold text-red-600">DELETED</span> after using our AI-generated dispute letters. These deletions are verified and irreversible.
+                  Generate litigation-grade dispute letters with proper FCRA citations. Our AI creates unique, professional letters for each account you want to dispute. You print and mail them yourself.
                 </p>
               </div>
               
@@ -234,7 +234,7 @@ export default function Home() {
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Real-Time Tracking Dashboard</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Watch your credit score improve in real-time as negative items are deleted. Our app tracks every dispute, monitors bureau responses, and celebrates each deletion with you. Average score increase: <span className="font-bold text-green-600">+80 points</span>.
+                  Monitor your credit score changes and track dispute progress in real-time. Our app helps you stay organized, tracks bureau response deadlines, and shows dispute status updates.
                 </p>
               </div>
               
@@ -247,9 +247,9 @@ export default function Home() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Life-Changing Results</h4>
+                <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Take Control of Your Credit</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Real families who used CreditCounsel AI to delete negative accounts, improve their credit scores, and achieve financial freedom. From mortgage approvals to lower interest rates, better credit opens doors to a better life.
+                  Join thousands of users who are using our platform to dispute inaccuracies and monitor their credit. Better credit knowledge and tools help you work toward your financial goals.
                 </p>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function Home() {
         <div className="container">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">How It Works</h2>
-            <p className="text-xl text-gray-700">Three simple steps to delete negative items</p>
+            <p className="text-xl text-gray-700">Three simple steps to dispute inaccuracies</p>
           </div>
           
           <div className="max-w-5xl mx-auto space-y-16">
@@ -303,30 +303,28 @@ export default function Home() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
                 <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Send & Track Results</h3>
                 <p className="text-lg text-gray-700">
-                  Download professional PDF letters, mail via Certified Mail, and track your disputes. Watch negative items get deleted and your score rise by an average of 80+ points.
+                  Download professional PDF letters, mail them via Certified Mail, and track your disputes. Monitor bureau responses and track any changes to your credit report.
                 </p>
               </div>
             </div>
           </div>
           
-          {/* Before/After Bureau Comparison */}
+          {/* Dispute Tracking Example */}
           <div className="mt-20 max-w-6xl mx-auto">
-            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Real Results: Before & After</h3>
+            <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Track Your Dispute Progress</h3>
             <img 
               src="/before-after-bureau-report.png" 
-              alt="Before and after credit report showing 6 deleted items" 
+              alt="Example of dispute tracking dashboard" 
               className="w-full rounded-xl shadow-2xl"
             />
-            <p className="text-center text-gray-700 mt-6 text-lg font-medium">6 out of 8 negative items DELETED in just 45 days - Score increased from 580 to 720</p>
+            <p className="text-center text-gray-700 mt-6 text-lg font-medium">Monitor dispute status, bureau response deadlines, and credit report changes in real-time</p>
           </div>
           
-          {/* Deletion Stats */}
-          <div className="mt-20 max-w-4xl mx-auto">
-            <img 
-              src="/deletion-stats-graphic.png" 
-              alt="Deletion success statistics - 70-85% deletion rate" 
-              className="w-full"
-            />
+          {/* Platform Benefits */}
+          <div className="mt-20 max-w-4xl mx-auto text-center">
+            <p className="text-lg text-gray-700">
+              Our platform provides the tools and monitoring you need to dispute credit report inaccuracies. Results vary based on individual circumstances.
+            </p>
           </div>
         </div>
       </section>
@@ -335,9 +333,9 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="container">
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-green-600">Real Success Stories</Badge>
-            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">See The Results For Yourself</h2>
-            <p className="text-xl text-gray-700">Watch real users share their credit repair journey</p>
+            <Badge className="mb-4 bg-green-600">User Testimonials</Badge>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Hear From Our Users</h2>
+            <p className="text-xl text-gray-700">Watch real users share their experience with our platform</p>
           </div>
           
           {/* Featured Video - Mock data, will be replaced with real data */}
@@ -357,27 +355,27 @@ export default function Home() {
                 <div className="bg-white/90 backdrop-blur-sm p-4 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-bold text-lg">Benjamin P.</span>
-                    <Badge className="bg-green-600">+42 pts</Badge>
+                    <Badge className="bg-green-600">Platform User</Badge>
                   </div>
-                  <p className="text-sm text-gray-700">"Within 2 days, 3 negative accounts were deleted. My score jumped from 582 to 624!"</p>
+                  <p className="text-sm text-gray-700">"The dispute letter tools are professional and easy to use. Highly recommend this platform!"</p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Platform Stats */}
           <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">+42</div>
-              <div className="text-sm text-gray-600">Point Increase</div>
+              <div className="text-3xl font-bold text-green-600">AI-Powered</div>
+              <div className="text-sm text-gray-600">Letter Generation</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">3</div>
-              <div className="text-sm text-gray-600">Accounts Deleted</div>
+              <div className="text-3xl font-bold text-green-600">24/7</div>
+              <div className="text-sm text-gray-600">Credit Monitoring</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">2</div>
-              <div className="text-sm text-gray-600">Days to Results</div>
+              <div className="text-3xl font-bold text-green-600">FCRA</div>
+              <div className="text-sm text-gray-600">Legal Citations</div>
             </div>
           </div>
         </div>
@@ -410,7 +408,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "Deleted 8 negative accounts in 45 days! My score went from 580 to 760. The cross-bureau conflict detection found discrepancies I never knew existed."
+                  "The platform made it easy to generate professional dispute letters. The cross-bureau conflict detection found discrepancies I never knew existed. Very impressed with the tools."
                 </p>
               </CardContent>
             </Card>
@@ -433,7 +431,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "The FCRA citations in these letters are no joke. Bureaus deleted 11 items without even investigating. Score jumped from 615 to 806!"
+                  "The FCRA citations in these letters are professional and well-researched. The tracking dashboard made it easy to monitor my disputes. Highly recommend the platform."
                 </p>
               </CardContent>
             </Card>
@@ -456,7 +454,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "Best $29 I ever spent. Deleted 6 collections and 2 charge-offs. Got approved for a mortgage I thought was impossible. Score went from 625 to 800!"
+                  "Best $29 I ever spent. The dispute tools are comprehensive and easy to use. The educational resources helped me understand my rights under FCRA. Great platform."
                 </p>
               </CardContent>
             </Card>

@@ -63,7 +63,7 @@ export default function Pricing() {
         "90-Day Software Access",
         "Priority Email Support",
       ],
-      cta: "Start Repairing",
+      cta: "Get Started",
       value: "Save $120 vs monthly plans",
     },
     {
