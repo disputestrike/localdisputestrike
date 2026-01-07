@@ -23,7 +23,10 @@ import {
   MailingChecklist,
   contactSubmissions,
   InsertContactSubmission,
-  ContactSubmission
+  ContactSubmission,
+  emailLeads,
+  InsertEmailLead,
+  EmailLead
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -678,4 +681,114 @@ export async function getRecentParserComparisons(limit: number = 100): Promise<a
     .limit(limit);
 
   return result;
+}
+
+// ============================================================================
+// EMAIL LEAD OPERATIONS
+// ============================================================================
+
+/**
+ * Create email lead from exit-intent popup or lead magnets
+ */
+export async function createEmailLead(data: { email: string; source: string }): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) {
+    console.warn("[Database] Cannot create email lead - no database connection");
+    return;
+  }
+
+  const { emailLeads } = await import("../drizzle/schema");
+
+  await dbInstance.insert(emailLeads).values({
+    email: data.email,
+    source: data.source,
+  });
+}
+
+/**
+ * Send free guide email to captured lead
+ */
+export async function sendFreeGuideEmail(email: string): Promise<void> {
+  const { sendEmail } = await import("./emailService");
+
+  const subject = "Your Free Guide: How to Read Your Credit Report Like a Pro";
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); padding: 40px 20px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Your Free Guide is Here!</h1>
+      </div>
+      
+      <div style="padding: 40px 20px; background: #ffffff;">
+        <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
+          Thanks for your interest in DisputeForce! Here's your free guide to reading your credit report like a pro.
+        </p>
+        
+        <h2 style="color: #1f2937; font-size: 22px; margin-top: 30px;">How to Read Your Credit Report Like a Pro</h2>
+        
+        <h3 style="color: #ea580c; font-size: 18px; margin-top: 25px;">The 7 Most Common Credit Report Errors</h3>
+        <ol style="font-size: 15px; color: #4b5563; line-height: 1.8;">
+          <li><strong>Accounts that don't belong to you</strong> - Identity theft or mixed files</li>
+          <li><strong>Incorrect late payment dates</strong> - Payments marked late when they were on time</li>
+          <li><strong>Duplicate accounts</strong> - Same debt listed multiple times</li>
+          <li><strong>Incorrect balances</strong> - Higher than actual balance owed</li>
+          <li><strong>Closed accounts listed as open</strong> - Accounts you closed showing as active</li>
+          <li><strong>Outdated negative items</strong> - Items older than 7 years still reporting</li>
+          <li><strong>Cross-bureau conflicts</strong> - Different information on different bureaus</li>
+        </ol>
+        
+        <h3 style="color: #ea580c; font-size: 18px; margin-top: 25px;">Your FCRA § 611 Rights</h3>
+        <p style="font-size: 15px; color: #4b5563; line-height: 1.8;">
+          Under the Fair Credit Reporting Act (FCRA) Section 611, you have the legal right to dispute any information in your credit report that you believe is inaccurate, incomplete, or unverifiable. Credit bureaus MUST investigate your disputes within 30 days.
+        </p>
+        
+        <h3 style="color: #ea580c; font-size: 18px; margin-top: 25px;">Step-by-Step Review Checklist</h3>
+        <ul style="font-size: 15px; color: #4b5563; line-height: 1.8;">
+          <li>✓ Verify your personal information (name, address, SSN)</li>
+          <li>✓ Check all account numbers and balances</li>
+          <li>✓ Review payment history for each account</li>
+          <li>✓ Look for duplicate accounts</li>
+          <li>✓ Verify all inquiries are authorized</li>
+          <li>✓ Compare reports from all 3 bureaus for conflicts</li>
+          <li>✓ Check dates - negative items should fall off after 7 years</li>
+        </ul>
+        
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 20px; margin: 30px 0;">
+          <p style="margin: 0; font-size: 15px; color: #78350f;">
+            <strong>Pro Tip:</strong> Cross-bureau conflicts are one of the strongest arguments for deletion. If Equifax shows a balance of $500 but Experian shows $1,000 for the same account, both can't be accurate - demand deletion.
+          </p>
+        </div>
+        
+        <h3 style="color: #ea580c; font-size: 18px; margin-top: 25px;">Ready to Take Action?</h3>
+        <p style="font-size: 15px; color: #4b5563; line-height: 1.8;">
+          DisputeForce makes it easy to exercise your FCRA § 611 rights with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
+        </p>
+        
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="https://disputeforce.com/quiz" style="display: inline-block; background: #ea580c; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            Start Your Journey Free
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-top: 40px;">
+          Questions? Reply to this email - we're here to help.
+        </p>
+      </div>
+      
+      <div style="background: #f3f4f6; padding: 20px; text-align: center;">
+        <p style="font-size: 12px; color: #6b7280; margin: 0;">
+          DisputeForce - The Force Behind Your Credit Disputes
+        </p>
+        <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">
+          <a href="https://disputeforce.com" style="color: #ea580c; text-decoration: none;">disputeforce.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject,
+    html: htmlContent,
+  });
 }

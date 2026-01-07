@@ -1061,6 +1061,27 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
 
         return { success: true };
       }),
+
+    /**
+     * Capture email from exit-intent popup or lead magnets
+     */
+    captureEmail: publicProcedure
+      .input(z.object({
+        email: z.string().email(),
+        source: z.string(), // exit_intent_popup, landing_page, etc.
+      }))
+      .mutation(async ({ input }) => {
+        // Store email lead in database
+        await db.createEmailLead({
+          email: input.email,
+          source: input.source,
+        });
+
+        // Send free guide email
+        await db.sendFreeGuideEmail(input.email);
+
+        return { success: true };
+      }),
   }),
 });
 

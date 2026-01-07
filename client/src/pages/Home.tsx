@@ -9,7 +9,7 @@ import { ArrowRight, CheckCircle2, Shield, TrendingUp, FileText, Star, Play, Che
 import { Link } from "wouter";
 import { LiveCounter } from "@/components/LiveCounter";
 import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
-import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import ExitIntentEmailPopup from "@/components/ExitIntentEmailPopup";
 import { BannerCountdown } from "@/components/BannerCountdown";
 import { useState } from "react";
 
@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <LiveCounter />
-      <ExitIntentPopup />
+      <ExitIntentEmailPopup />
       
       {/* Blue Header CTA Banner */}
       <div className="bg-blue-600 text-white py-3">

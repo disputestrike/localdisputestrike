@@ -316,3 +316,16 @@ export const contactSubmissions = mysqlTable("contact_submissions", {
 
 export type ContactSubmission = typeof contactSubmissions.$inferSelect;
 export type InsertContactSubmission = typeof contactSubmissions.$inferInsert;
+
+/**
+ * Email leads captured from exit-intent popups and other lead magnets
+ */
+export const emailLeads = mysqlTable("email_leads", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull(),
+  source: varchar("source", { length: 100 }).notNull(), // exit_intent_popup, landing_page, etc.
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type EmailLead = typeof emailLeads.$inferSelect;
+export type InsertEmailLead = typeof emailLeads.$inferInsert;

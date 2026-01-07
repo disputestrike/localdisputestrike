@@ -1236,4 +1236,15 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Create blog article page: 3-Round Attack Strategy Explained
 - [x] Create blog article page: Your FCRA § 611 Rights
 - [x] Test all 3 improvements (TypeScript: No errors, Countdown working)
-- [ ] Save checkpoint: Testimonials, Countdown Timer & Blog Articles Complete
+- [x] Save checkpoint: Testimonials, Countdown Timer & Blog Articles Complete
+
+
+## Phase 48: EXIT-INTENT EMAIL CAPTURE POPUP
+- [x] Create ExitIntentEmailPopup component with exit-intent detection
+- [x] Design popup with free guide offer and email input
+- [x] Add email leads table to database schema
+- [x] Create tRPC procedure to save email leads
+- [x] Create email template for free guide delivery
+- [x] Integrate popup into homepage
+- [x] Test exit-intent trigger and email submission (TypeScript: No errors)
+- [ ] Save checkpoint: Exit-Intent Email Capture Complete
