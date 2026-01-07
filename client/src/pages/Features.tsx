@@ -17,8 +17,8 @@ export default function Features() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           
@@ -60,10 +60,10 @@ export default function Features() {
         <div className="container">
           <div className="text-center max-w-4xl mx-auto mb-16">
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              The <span className="text-orange-600">Force</span> of Professional-Grade <span className="text-orange-600">Dispute Automation</span>
+              <span className="text-orange-600">Strike Precision</span> Into Professional-Grade <span className="text-orange-600">Dispute Automation</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Powerful AI technology meets litigation-grade legal expertise. Dispute with force, defend with power.
+              Powerful AI technology meets litigation-grade legal expertise. Strike with precision, defend with decisive action.
             </p>
             
             {/* Credit Score Gauge Visual */}
@@ -360,9 +360,9 @@ export default function Features() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Unleash the Force?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Strike with Precision?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Start your free credit analysis and experience the power of professional-grade dispute automation
+            Start your free credit analysis and experience the precision of professional-grade dispute automation
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>
@@ -374,7 +374,7 @@ export default function Features() {
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
           <div className="text-center">
-            <p className="text-sm">© 2024 DisputeForce. All rights reserved.</p>
+            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
           </div>
         </div>
       </footer>

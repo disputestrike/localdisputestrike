@@ -17,8 +17,8 @@ export default function HowItWorks() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           
@@ -60,10 +60,10 @@ export default function HowItWorks() {
         <div className="container">
           <div className="text-center max-w-4xl mx-auto mb-16">
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              How <span className="text-orange-600">DisputeForce</span> Works
+              How <span className="text-orange-600">DisputeStrike</span> Works
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Professional-grade dispute automation in three powerful rounds. Launch your Attacks with force.
+              Professional-grade dispute automation in three powerful rounds. Launch your Attacks with precision strikes.
             </p>
           </div>
         </div>
@@ -293,9 +293,9 @@ export default function HowItWorks() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Unleash the Force?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Strike with Precision?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628 users who are disputing with force and defending with power
+            Join 16,628 users who are striking with precision and defending with decisive action
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>
@@ -307,7 +307,7 @@ export default function HowItWorks() {
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
           <div className="text-center">
-            <p className="text-sm">© 2024 DisputeForce. All rights reserved.</p>
+            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
           </div>
         </div>
       </footer>

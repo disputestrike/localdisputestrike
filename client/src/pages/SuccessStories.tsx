@@ -21,7 +21,7 @@ export default function SuccessStories() {
       scoreIncrease: 42,
       accountsDeleted: 3,
       daysToResults: 2,
-      testimonial: "DisputeForce gave me the power to fight back against inaccurate information on my credit report. The AI-powered Attack letters were professional and legally sound - I felt like I had a litigation team in my corner. The platform helped me take control of my credit journey and understand my FCRA rights. I'm finally in the driver's seat!",
+      testimonial: "DisputeStrike gave me the power to fight back against inaccurate information on my credit report. The AI-powered Attack letters were professional and legally sound - I felt like I had a litigation team in my corner. The platform helped me take control of my credit journey and understand my FCRA rights. I'm finally in the driver's seat!",
       specificDeletions: ["Credit Union of Texas", "PNC Bank", "Ford Motor Credit"],
       isFeatured: true,
     },
@@ -33,7 +33,7 @@ export default function SuccessStories() {
       scoreIncrease: 58,
       accountsDeleted: 5,
       daysToResults: 28,
-      testimonial: "After years of feeling powerless, DisputeForce helped me challenge what I believed was inaccurate on my credit report. The Force/Power positioning is real - I went from feeling helpless to feeling like I'm in control of my financial future. The Attack letters gave me the confidence to defend my rights under federal law.",
+      testimonial: "After years of feeling powerless, DisputeStrike helped me challenge what I believed was inaccurate on my credit report. The Force/Power positioning is real - I went from feeling helpless to feeling like I'm in control of my financial future. The Attack letters gave me the confidence to defend my rights under federal law.",
       specificDeletions: null,
       isFeatured: true,
     },
@@ -45,7 +45,7 @@ export default function SuccessStories() {
       scoreIncrease: 31,
       accountsDeleted: 2,
       daysToResults: 15,
-      testimonial: "I was skeptical at first, but DisputeForce helped me understand my rights and take action. The platform made it easy to launch my disputes with force and track my progress. I went from confused and frustrated to empowered and informed. This is what taking control of your credit feels like.",
+      testimonial: "I was skeptical at first, but DisputeStrike helped me understand my rights and take action. The platform made it easy to launch my disputes with precision strikes and track my progress. I went from confused and frustrated to empowered and informed. This is what taking control of your credit feels like.",
       specificDeletions: null,
       isFeatured: false,
     },
@@ -65,7 +65,7 @@ export default function SuccessStories() {
               Success Stories
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              See how DisputeForce users are disputing with force and defending their credit rights.
+              See how DisputeStrike users are striking with precision and defending their credit rights.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-center">
               <div>
@@ -209,7 +209,7 @@ export default function SuccessStories() {
             Ready to Write Your Own Success Story?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join 16,628 users who are disputing with force and defending their credit rights with DisputeForce.
+            Join 16,628 users who are striking with precision and defending their credit rights with DisputeStrike.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" variant="secondary" asChild>

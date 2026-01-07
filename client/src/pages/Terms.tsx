@@ -12,7 +12,7 @@ export default function Terms() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <Shield className="h-8 w-8 text-orange-600" />
-              <span className="text-2xl font-bold text-gray-900">DisputeForce</span>
+              <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -40,17 +40,17 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">1. Agreement to Terms</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                By accessing or using DisputeForce ("Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
+                By accessing or using DisputeStrike ("Service," "Platform," "we," "us," or "our"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you may not access or use the Service.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                DisputeForce is a software platform that provides educational resources, document generation tools, and credit monitoring services. We are NOT a credit monitoring organization as defined by the Credit Monitoring Organizations Act (CROA). We provide software tools that enable you to exercise your legal rights under the Fair Credit Reporting Act (FCRA).
+                DisputeStrike is a software platform that provides educational resources, document generation tools, and credit monitoring services. We are NOT a credit monitoring organization as defined by the Credit Monitoring Organizations Act (CROA). We provide software tools that enable you to exercise your legal rights under the Fair Credit Reporting Act (FCRA).
               </p>
             </section>
 
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">2. Description of Service</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeForce provides the following services:
+                DisputeStrike provides the following services:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Software Tools:</strong> AI-powered document generation software that creates Attack letters based on your input</li>
@@ -66,7 +66,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">3. User Responsibilities</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                By using DisputeForce, you agree to:
+                By using DisputeStrike, you agree to:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 <li>Provide accurate and truthful information when using our services</li>
@@ -82,7 +82,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">4. Payment Terms</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeForce offers one-time payment packages with no recurring subscriptions:
+                DisputeStrike offers one-time payment packages with no recurring subscriptions:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Starter Package ($29):</strong> 3 Attack letters, basic FCRA citations, PDF downloads</li>
@@ -100,7 +100,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">5. No Guarantees</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeForce provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit Attack outcomes depend on many factors outside our control, including:
+                DisputeStrike provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit Attack outcomes depend on many factors outside our control, including:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>The accuracy of information on your credit reports</li>
@@ -116,7 +116,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">6. Intellectual Property</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                All content, software, algorithms, and materials provided through DisputeForce are protected by copyright, trademark, and other intellectual property laws. You may not:
+                All content, software, algorithms, and materials provided through DisputeStrike are protected by copyright, trademark, and other intellectual property laws. You may not:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 <li>Copy, modify, or distribute our software or content without permission</li>
@@ -139,7 +139,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">8. Indemnification</h2>
               <p className="text-gray-700 leading-relaxed">
-                You agree to indemnify and hold harmless DisputeForce, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including attorney fees) arising from your use of the Service, your violation of these Terms, or your violation of any rights of another party.
+                You agree to indemnify and hold harmless DisputeStrike, its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including attorney fees) arising from your use of the Service, your violation of these Terms, or your violation of any rights of another party.
               </p>
             </section>
 
@@ -170,9 +170,9 @@ export default function Terms() {
                 If you have any questions about these Terms, please contact us at:
               </p>
               <p className="text-gray-700 mt-4">
-                <strong>DisputeForce</strong><br />
-                Email: support@disputeforce.com<br />
-                Website: <Link href="/" className="text-orange-600 hover:underline">disputeforce.com</Link>
+                <strong>DisputeStrike</strong><br />
+                Email: support@disputestrike.com<br />
+                Website: <Link href="/" className="text-orange-600 hover:underline">disputestrike.com</Link>
               </p>
             </section>
           </div>
@@ -214,7 +214,7 @@ export default function Terms() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 DisputeForce. All rights reserved.</p>
+            <p>&copy; 2024 DisputeStrike. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

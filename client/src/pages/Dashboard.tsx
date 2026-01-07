@@ -136,7 +136,7 @@ export default function Dashboard() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">DisputeForce AI</span>
+            <span className="font-bold text-xl">DisputeStrike AI</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">Welcome, {user?.name}</span>

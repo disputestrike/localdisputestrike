@@ -142,9 +142,9 @@ export default function BlogCreditReport() {
 
             <Card className="mb-8 border-2 border-orange-200 bg-orange-50">
               <CardContent className="pt-6">
-                <h3 className="font-bold text-xl mb-4">DisputeForce Can Help</h3>
+                <h3 className="font-bold text-xl mb-4">DisputeStrike Can Help</h3>
                 <p className="text-gray-700 mb-4">
-                  DisputeForce helps you generate professional, litigation-grade dispute letters with proper FCRA citations. Our AI-powered platform makes it easy to:
+                  DisputeStrike helps you generate professional, litigation-grade dispute letters with proper FCRA citations. Our AI-powered platform makes it easy to:
                 </p>
                 <ul className="text-gray-700 space-y-2 mb-6">
                   <li>• Identify items to dispute across all 3 bureaus</li>
@@ -170,7 +170,7 @@ export default function BlogCreditReport() {
 
             <div className="bg-gray-100 p-6 rounded-lg mb-8">
               <p className="text-sm text-gray-600 italic">
-                <strong>Disclaimer:</strong> DisputeForce is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.
+                <strong>Disclaimer:</strong> DisputeStrike is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.
               </p>
             </div>
 
@@ -186,7 +186,7 @@ export default function BlogCreditReport() {
               Ready to Take Control of Your Credit?
             </h2>
             <p className="text-xl text-gray-300 mb-8">
-              Start your dispute journey with DisputeForce today
+              Start your dispute journey with DisputeStrike today
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
               <Link href="/quiz">Get Started Free</Link>

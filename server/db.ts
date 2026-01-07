@@ -765,7 +765,7 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
         </p>
         
         <div style="text-align: center; margin: 40px 0;">
-          <a href="https://disputeforce.com/quiz" style="display: inline-block; background: #ea580c; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+          <a href="https://disputestrike.com/quiz" style="display: inline-block; background: #ea580c; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
             Start Your Journey Free
           </a>
         </div>
@@ -780,7 +780,7 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
           DisputeForce - The Force Behind Your Credit Disputes
         </p>
         <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">
-          <a href="https://disputeforce.com" style="color: #ea580c; text-decoration: none;">disputeforce.com</a>
+          <a href="https://disputestrike.com" style="color: #ea580c; text-decoration: none;">disputestrike.com</a>
         </p>
       </div>
     </div>

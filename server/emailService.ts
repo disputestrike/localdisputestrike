@@ -156,7 +156,7 @@ export async function sendDisputeLetterEmail(
       <p><strong>Important:</strong> The credit bureau has 30 days from receipt to investigate and respond under FCRA § 1681i(a)(1).</p>
       
       <p>Need help? View our complete mailing guide:</p>
-      <a href="https://disputeforce.com/mailing-instructions" class="button">View Mailing Guide</a>
+      <a href="https://disputestrike.com/mailing-instructions" class="button">View Mailing Guide</a>
       
       <p>Good luck! We're rooting for you! 💪</p>
       

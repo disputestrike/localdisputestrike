@@ -12,7 +12,7 @@ export default function Privacy() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <Shield className="h-8 w-8 text-orange-600" />
-              <span className="text-2xl font-bold text-gray-900">DisputeForce</span>
+              <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -40,10 +40,10 @@ export default function Privacy() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">1. Introduction</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeForce ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services (collectively, the "Service").
+                DisputeStrike ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services (collectively, the "Service").
               </p>
               <p className="text-gray-700 leading-relaxed">
-                By using DisputeForce, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our Service.
+                By using DisputeStrike, you agree to the collection and use of information in accordance with this Privacy Policy. If you do not agree with our policies and practices, please do not use our Service.
               </p>
             </section>
 
@@ -52,7 +52,7 @@ export default function Privacy() {
               
               <h3 className="text-2xl font-bold text-gray-900 mb-3 mt-6">2.1 Personal Information</h3>
               <p className="text-gray-700 leading-relaxed mb-4">
-                When you use DisputeForce, we may collect the following personal information:
+                When you use DisputeStrike, we may collect the following personal information:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>Account Information:</strong> Name, email address, phone number, mailing address</li>
@@ -152,7 +152,7 @@ export default function Privacy() {
                 <li><strong>Restriction:</strong> Request restriction of processing in certain circumstances</li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
-                To exercise these rights, contact us at privacy@disputeforce.com. We will respond to your request within 30 days.
+                To exercise these rights, contact us at privacy@disputestrike.com. We will respond to your request within 30 days.
               </p>
             </section>
 
@@ -188,7 +188,7 @@ export default function Privacy() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">10. Children's Privacy</h2>
               <p className="text-gray-700 leading-relaxed">
-                DisputeForce is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately.
+                DisputeStrike is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children. If you believe we have collected information from a child, please contact us immediately.
               </p>
             </section>
 
@@ -218,10 +218,10 @@ export default function Privacy() {
                 If you have any questions about this Privacy Policy or our data practices, please contact us:
               </p>
               <p className="text-gray-700">
-                <strong>DisputeForce</strong><br />
-                Email: privacy@disputeforce.com<br />
-                Support: support@disputeforce.com<br />
-                Website: <Link href="/" className="text-orange-600 hover:underline">disputeforce.com</Link>
+                <strong>DisputeStrike</strong><br />
+                Email: privacy@disputestrike.com<br />
+                Support: support@disputestrike.com<br />
+                Website: <Link href="/" className="text-orange-600 hover:underline">disputestrike.com</Link>
               </p>
             </section>
           </div>
@@ -263,7 +263,7 @@ export default function Privacy() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 DisputeForce. All rights reserved.</p>
+            <p>&copy; 2024 DisputeStrike. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

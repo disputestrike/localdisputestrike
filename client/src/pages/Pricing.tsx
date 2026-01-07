@@ -106,8 +106,8 @@ export default function Pricing() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           
@@ -160,7 +160,7 @@ export default function Pricing() {
         {/* Legal Disclaimer */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-3xl mx-auto text-sm text-gray-700 mb-6">
           <p className="font-semibold text-blue-900 mb-1">IMPORTANT:</p>
-          <p>DisputeForce is dispute automation software, not a credit repair service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide AI-powered tools to help you manage your disputes. Results vary and are not guaranteed.</p>
+          <p>DisputeStrike is dispute automation software, not a credit repair service. You generate and mail your own dispute letters. Federal law allows you to dispute credit information for free. We provide AI-powered tools to help you manage your disputes. Results vary and are not guaranteed.</p>
         </div>
         <div className="flex justify-center mb-8">
           <CountdownTimer initialMinutes={15} />
@@ -240,16 +240,16 @@ export default function Pricing() {
       {/* Comparison with Attack Beast */}
       <section className="container py-16 bg-muted/50 rounded-lg">
         <h2 className="text-3xl font-bold text-center mb-8">
-          Why Choose DisputeForce AI?
+          Why Choose DisputeStrike AI?
         </h2>
         <div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-2 gap-8">
-            {/* DisputeForce AI */}
+            {/* DisputeStrike AI */}
             <Card className="border-primary">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
-                  DisputeForce AI
+                  DisputeStrike AI
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -321,7 +321,7 @@ export default function Pricing() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              <strong>DisputeForce is dispute automation software and an educational platform.</strong> You are responsible for your own credit disputes. We provide AI-powered tools, education, and guidance to help you exercise your rights under the Fair Credit Reporting Act (FCRA).
+              <strong>DisputeStrike is dispute automation software and an educational platform.</strong> You are responsible for your own credit disputes. We provide AI-powered tools, education, and guidance to help you exercise your rights under the Fair Credit Reporting Act (FCRA).
             </p>
             <p>
               You are purchasing access to educational materials and dispute automation software, not credit repair services. Results vary based on your individual situation and effort. We do not guarantee specific credit score improvements.

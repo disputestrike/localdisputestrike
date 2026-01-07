@@ -14,7 +14,7 @@ export default function About() {
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
               <Shield className="h-8 w-8 text-orange-600" />
-              <span className="text-2xl font-bold text-gray-900">DisputeForce</span>
+              <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </Link>
             
             <nav className="hidden md:flex items-center gap-8">
@@ -37,7 +37,7 @@ export default function About() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">
-              About <span className="text-orange-600">DisputeForce</span>
+              About <span className="text-orange-600">DisputeStrike</span>
             </h1>
             <p className="text-xl text-gray-700 leading-relaxed">
               We're on a mission to democratize dispute automation by making professional-grade Attack letters accessible to everyone—not just those who can afford expensive attorneys.
@@ -54,7 +54,7 @@ export default function About() {
             
             <div className="prose prose-lg max-w-none text-gray-700 space-y-6">
               <p>
-                DisputeForce was born from a simple observation: traditional credit repair services charge thousands of dollars for work that can be automated with artificial intelligence. We watched as families struggled with bad credit, unable to afford the $1,500-$3,000 annual fees charged by credit repair companies, while knowing that the same dispute process could be automated for a fraction of the cost.
+                DisputeStrike was born from a simple observation: traditional credit repair services charge thousands of dollars for work that can be automated with artificial intelligence. We watched as families struggled with bad credit, unable to afford the $1,500-$3,000 annual fees charged by credit repair companies, while knowing that the same dispute process could be automated for a fraction of the cost.
               </p>
               
               <p>
@@ -62,7 +62,7 @@ export default function About() {
               </p>
               
               <p>
-                In 2024, we launched DisputeForce with a bold vision: use cutting-edge AI technology to generate litigation-grade Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
+                In 2024, we launched DisputeStrike with a bold vision: use cutting-edge AI technology to generate litigation-grade Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
               </p>
               
               <p>
@@ -219,7 +219,7 @@ export default function About() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 DisputeForce. All rights reserved.</p>
+            <p>&copy; 2024 DisputeStrike. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

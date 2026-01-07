@@ -86,8 +86,8 @@ export default function FAQ() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           
@@ -132,7 +132,7 @@ export default function FAQ() {
               Frequently Asked <span className="text-orange-600">Questions</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Everything you need to know about credit monitoring with DisputeForce
+              Everything you need to know about credit monitoring with DisputeStrike
             </p>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function FAQ() {
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
           <div className="text-center">
-            <p className="text-sm">© 2024 DisputeForce. All rights reserved.</p>
+            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
           </div>
         </div>
       </footer>

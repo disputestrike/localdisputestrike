@@ -171,10 +171,10 @@ export default function Blog3RoundStrategy() {
               </ul>
             </div>
 
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">How DisputeForce Automates This Strategy</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">How DisputeStrike Automates This Strategy</h2>
 
             <p className="text-gray-700 mb-6">
-              DisputeForce makes it easy to execute the 3-Round Attack Strategy without hiring an expensive attorney:
+              DisputeStrike makes it easy to execute the 3-Round Attack Strategy without hiring an expensive attorney:
             </p>
 
             <ul className="list-disc pl-6 mb-8 text-gray-700 space-y-2">
@@ -189,7 +189,7 @@ export default function Blog3RoundStrategy() {
               <CardContent className="pt-6">
                 <h3 className="font-bold text-xl mb-4">Start Your 3-Round Strategy Today</h3>
                 <p className="text-gray-700 mb-4">
-                  DisputeForce helps you execute the same escalation strategy used by credit attorneys - at a fraction of the cost.
+                  DisputeStrike helps you execute the same escalation strategy used by credit attorneys - at a fraction of the cost.
                 </p>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
                   <Link href="/quiz">Get Started Free</Link>
@@ -209,7 +209,7 @@ export default function Blog3RoundStrategy() {
 
             <div className="bg-gray-100 p-6 rounded-lg mb-8">
               <p className="text-sm text-gray-600 italic">
-                <strong>Disclaimer:</strong> DisputeForce is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.
+                <strong>Disclaimer:</strong> DisputeStrike is dispute automation software. We provide AI-powered tools to help you generate and track your own credit disputes. Federal law allows you to dispute credit information for free. You are responsible for mailing your own letters to credit bureaus. Results vary and are not guaranteed.
               </p>
             </div>
 
@@ -225,7 +225,7 @@ export default function Blog3RoundStrategy() {
               Ready to Launch Your Attack Strategy?
             </h2>
             <p className="text-xl text-gray-300 mb-8">
-              Start with Round 1 today and let DisputeForce guide you through the escalation process
+              Start with Round 1 today and let DisputeStrike guide you through the escalation process
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
               <Link href="/quiz">Get Started Free</Link>

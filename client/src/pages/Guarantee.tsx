@@ -16,8 +16,8 @@ export default function Guarantee() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           
@@ -134,7 +134,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">No Questions Asked</h3>
                     <p className="text-gray-700">
-                      We don't make you jump through hoops. Simply email support@disputeforce.com and your refund will be processed immediately.
+                      We don't make you jump through hoops. Simply email support@disputestrike.com and your refund will be processed immediately.
                     </p>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export default function Guarantee() {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-8 text-center">
-            <p className="text-sm">© 2024 DisputeForce. All rights reserved.</p>
+            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
           </div>
         </div>
       </footer>

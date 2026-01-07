@@ -38,8 +38,8 @@ export default function Home() {
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="DisputeForce" className="h-10 w-10" />
-            <span className="font-bold text-2xl text-gray-900">DisputeForce</span>
+            <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+            <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -80,12 +80,12 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 leading-tight">
-              The <span className="text-orange-600">Force</span> Behind Your{" "}
+              Strike <span className="text-orange-600">Precision</span> Into Your{" "}
               <span className="text-orange-600">Credit Disputes</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-              Dispute with Force. Defend with Power. Master your credit with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
+              Strike with Precision. Defend with Force. Master your credit with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
             </p>
             
             {/* 110% Guarantee Badge */}
@@ -108,7 +108,7 @@ export default function Home() {
             <div className="relative max-w-md mx-auto mt-12">
               <img 
                 src="/phone-credit-report.png" 
-                alt="DisputeForce app showing deleted negative items" 
+                alt="DisputeStrike app showing deleted negative items" 
                 className="w-full"
               />
             </div>
@@ -197,7 +197,7 @@ export default function Home() {
       <section className="py-20 bg-white">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">How DisputeForce Works</h2>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">How DisputeStrike Works</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               Four simple steps to launch your credit dispute journey
             </p>
@@ -286,7 +286,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Everything You Need</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Professional-grade tools to dispute with force and defend with power
+              Professional-grade tools to strike with precision and defend with decisive action
             </p>
           </div>
           
@@ -438,7 +438,7 @@ export default function Home() {
       <section id="features" className="py-20 bg-white">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">The Power of DisputeForce</h2>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">The Power of DisputeStrike</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
               Professional-grade dispute automation with the force of litigation-quality letters
             </p>
@@ -941,9 +941,9 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             {/* About */}
             <div>
-              <h3 className="font-bold text-white text-lg mb-4">About DisputeForce</h3>
+              <h3 className="font-bold text-white text-lg mb-4">About DisputeStrike</h3>
               <p className="text-sm">
-                Professional-grade dispute automation software. The force behind powerful credit Attacks.
+                Professional-grade dispute automation software. Precision strikes for powerful credit Attacks.
               </p>
             </div>
             
@@ -993,10 +993,10 @@ export default function Home() {
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
               <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                DisputeForce is dispute automation software. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide AI-powered software tools, educational resources, and tracking services to help you generate and manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports.
+                DisputeStrike is dispute automation software. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide AI-powered software tools, educational resources, and tracking services to help you generate and manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports.
               </p>
             </div>
-            <p>&copy; 2026 DisputeForce. All rights reserved.</p>
+            <p>&copy; 2026 DisputeStrike. All rights reserved.</p>
           </div>
         </div>
       </footer>
