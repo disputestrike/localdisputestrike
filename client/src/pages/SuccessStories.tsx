@@ -65,21 +65,20 @@ export default function SuccessStories() {
               Success Stories
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              See how DisputeForce AI helped thousands of people delete negative items,
-              increase their credit scores, and achieve their financial goals.
+              See how DisputeForce users are disputing with force and defending their credit rights.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-center">
               <div>
-                <div className="text-3xl font-bold text-green-600">70-85%</div>
-                <div className="text-sm text-gray-600">Deletion Rate</div>
+                <div className="text-3xl font-bold text-green-600">16,628</div>
+                <div className="text-sm text-gray-600">Active Users</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-green-600">+38</div>
-                <div className="text-sm text-gray-600">Avg Score Increase</div>
+                <div className="text-3xl font-bold text-green-600">4.9/5</div>
+                <div className="text-sm text-gray-600">User Rating</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-green-600">1,247</div>
-                <div className="text-sm text-gray-600">Items Deleted This Week</div>
+                <div className="text-3xl font-bold text-green-600">110%</div>
+                <div className="text-sm text-gray-600">Money-Back Guarantee</div>
               </div>
             </div>
           </div>
@@ -210,8 +209,7 @@ export default function SuccessStories() {
             Ready to Write Your Own Success Story?
           </h2>
           <p className="text-xl mb-8 max-w-2xl mx-auto">
-            Join thousands of people who've already deleted negative items and
-            increased their credit scores with DisputeForce AI.
+            Join 16,628 users who are disputing with force and defending their credit rights with DisputeForce.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" variant="secondary" asChild>

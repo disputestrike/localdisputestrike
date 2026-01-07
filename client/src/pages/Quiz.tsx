@@ -397,7 +397,7 @@ export default function Quiz() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              Join 10,000+ users who've improved their credit with DisputeForce AI
+              Join 16,628 users disputing with force and defending with power
             </p>
           </div>
         )}

@@ -60,10 +60,10 @@ export default function HowItWorks() {
         <div className="container">
           <div className="text-center max-w-4xl mx-auto mb-16">
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              Three Simple Steps to <span className="text-orange-600">Delete Negative Items</span>
+              How <span className="text-orange-600">DisputeForce</span> Works
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Our proven process makes credit monitoring easy, legal, and effective
+              Professional-grade dispute automation in three powerful rounds. Launch your Attacks with force.
             </p>
           </div>
         </div>
@@ -275,16 +275,16 @@ export default function HowItWorks() {
           
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">70-85%</div>
-              <p className="text-xl text-gray-700">Deletion Rate</p>
+              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">3</div>
+              <p className="text-xl text-gray-700">Powerful Rounds</p>
             </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">80+</div>
-              <p className="text-xl text-gray-700">Average Score Increase</p>
+              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">16,628</div>
+              <p className="text-xl text-gray-700">Active Users</p>
             </div>
             <div className="text-center">
-              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">95%</div>
-              <p className="text-xl text-gray-700">Success Rate</p>
+              <div className="text-6xl md:text-7xl font-extrabold text-orange-600 mb-4">4.9/5</div>
+              <p className="text-xl text-gray-700">User Rating</p>
             </div>
           </div>
         </div>
@@ -293,9 +293,9 @@ export default function HowItWorks() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Take Control?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Unleash the Force?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628 customers who've successfully deleted negative items
+            Join 16,628 users who are disputing with force and defending with power
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>

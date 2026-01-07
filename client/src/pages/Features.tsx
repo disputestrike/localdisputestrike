@@ -60,10 +60,10 @@ export default function Features() {
         <div className="container">
           <div className="text-center max-w-4xl mx-auto mb-16">
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              Powerful Features That <span className="text-orange-600">Get Results</span>
+              The <span className="text-orange-600">Force</span> of Professional-Grade <span className="text-orange-600">Dispute Automation</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Our AI-powered platform combines cutting-edge technology with legal expertise to maximize your credit monitoring success
+              Powerful AI technology meets litigation-grade legal expertise. Dispute with force, defend with power.
             </p>
             
             {/* Credit Score Gauge Visual */}
@@ -360,9 +360,9 @@ export default function Features() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Experience These Features?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Unleash the Force?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Start your free credit analysis and see how our AI can help you
+            Start your free credit analysis and experience the power of professional-grade dispute automation
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>

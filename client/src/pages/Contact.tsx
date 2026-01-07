@@ -96,7 +96,7 @@ export default function Contact() {
                 <Mail className="h-8 w-8 text-orange-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">Email Support</h3>
-              <p className="text-gray-600 mb-2">support@creditcounsel.com</p>
+              <p className="text-gray-600 mb-2">support@disputeforce.com</p>
               <p className="text-sm text-gray-500">Response within 24 hours</p>
             </div>
 
