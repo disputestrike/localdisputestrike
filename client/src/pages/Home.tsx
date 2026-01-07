@@ -10,6 +10,7 @@ import { Link } from "wouter";
 import { LiveCounter } from "@/components/LiveCounter";
 import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
 import { ExitIntentPopup } from "@/components/ExitIntentPopup";
+import { BannerCountdown } from "@/components/BannerCountdown";
 import { useState } from "react";
 
 export default function Home() {
@@ -25,7 +26,7 @@ export default function Home() {
       <div className="bg-blue-600 text-white py-3">
         <div className="container flex items-center justify-between">
           <p className="text-sm md:text-base font-medium">
-            🎉 Limited Time: Get 30% OFF Your First Package - Ends in 24 Hours!
+            🎉 Limited Time: Get 30% OFF Your First Package - Ends in <BannerCountdown />
           </p>
           <Button size="sm" className="bg-white text-blue-600 hover:bg-gray-100" asChild>
             <Link href="/quiz">Claim Discount</Link>

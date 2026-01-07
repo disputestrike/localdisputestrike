@@ -23,6 +23,9 @@ import Guarantee from "./pages/Guarantee";
 import WhatToExpect from "./pages/WhatToExpect";
 import SuccessStories from "./pages/SuccessStories";
 import { HybridParserAdmin } from "./pages/HybridParserAdmin";
+import BlogCreditReport from "./pages/BlogCreditReport";
+import Blog3RoundStrategy from "./pages/Blog3RoundStrategy";
+import BlogFCRARights from "./pages/BlogFCRARights";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -40,6 +43,9 @@ function Router() {
       <Route path="/guarantee" component={Guarantee} />
       <Route path="/what-to-expect" component={WhatToExpect} />
       <Route path="/success-stories" component={SuccessStories} />
+      <Route path="/blog/how-to-read-credit-report" component={BlogCreditReport} />
+      <Route path="/blog/3-round-strategy" component={Blog3RoundStrategy} />
+      <Route path="/blog/fcra-rights" component={BlogFCRARights} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/ai-assistant" component={AIAssistant} />
