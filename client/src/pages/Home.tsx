@@ -141,6 +141,124 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Phone Mockup Hero Section */}
+      <section className="relative py-20 overflow-hidden">
+        {/* Dark gradient background with wave pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+          <div className="absolute inset-0 opacity-30" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 Q 25 30, 50 50 T 100 50' stroke='%234338ca' stroke-width='2' fill='none' opacity='0.3'/%3E%3Cpath d='M0 70 Q 25 50, 50 70 T 100 70' stroke='%234338ca' stroke-width='2' fill='none' opacity='0.2'/%3E%3Cpath d='M0 30 Q 25 10, 50 30 T 100 30' stroke='%234338ca' stroke-width='2' fill='none' opacity='0.2'/%3E%3C/svg%3E")`,
+            backgroundSize: '200px 100px'
+          }} />
+        </div>
+        
+        <div className="container relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left side - Text content */}
+            <div className="text-left">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-600 rounded-full mb-8">
+                <img src="/logo.png" alt="DisputeStrike" className="w-10 h-10" />
+              </div>
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
+                AI that helps you take control of your <span className="text-orange-500">Credit</span> & financial future
+              </h2>
+              <p className="text-xl text-gray-300 mb-8">
+                Generate FCRA-compliant dispute letters, track your progress, and exercise your rights under federal law — all from one powerful platform.
+              </p>
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
+                <Link href="/quiz">Start Your Free Assessment <ArrowRight className="ml-2" /></Link>
+              </Button>
+            </div>
+            
+            {/* Right side - Phone mockups */}
+            <div className="relative flex justify-center items-center">
+              {/* Phone 1 - Dashboard */}
+              <div className="relative z-20 transform -rotate-6 translate-x-8">
+                <div className="w-64 h-[520px] bg-white rounded-[3rem] shadow-2xl border-8 border-gray-800 overflow-hidden">
+                  {/* Phone notch */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-2xl z-10" />
+                  {/* Screen content */}
+                  <div className="h-full bg-gradient-to-b from-gray-50 to-white p-4 pt-8">
+                    <div className="text-center mb-4">
+                      <p className="text-xs text-gray-500">Welcome Back,</p>
+                      <p className="text-sm font-bold text-gray-900">Sarah Mitchell</p>
+                    </div>
+                    {/* Score circle */}
+                    <div className="flex justify-center mb-4">
+                      <div className="relative w-32 h-32">
+                        <svg className="w-full h-full transform -rotate-90">
+                          <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                          <circle cx="64" cy="64" r="56" stroke="#22c55e" strokeWidth="8" fill="none" strokeDasharray="352" strokeDashoffset="70" strokeLinecap="round" />
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <span className="text-3xl font-bold text-gray-900">724</span>
+                          <span className="text-xs text-green-600">+28 pts</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center mb-4">
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Good Standing</span>
+                    </div>
+                    {/* Dispute tracker */}
+                    <div className="bg-gray-100 rounded-lg p-3 mb-3">
+                      <p className="text-xs font-semibold text-gray-700 mb-2">Dispute Tracker</p>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                        <p className="text-xs text-gray-600">3 disputes in progress</p>
+                      </div>
+                    </div>
+                    {/* Quick stats */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="bg-orange-50 rounded-lg p-2 text-center">
+                        <p className="text-lg font-bold text-orange-600">12</p>
+                        <p className="text-xs text-gray-600">Letters Sent</p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-2 text-center">
+                        <p className="text-lg font-bold text-green-600">5</p>
+                        <p className="text-xs text-gray-600">Items Resolved</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Phone 2 - Credit Report */}
+              <div className="relative z-10 transform rotate-6 -translate-x-8">
+                <div className="w-64 h-[520px] bg-white rounded-[3rem] shadow-2xl border-8 border-gray-800 overflow-hidden">
+                  {/* Phone notch */}
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-6 bg-gray-800 rounded-b-2xl z-10" />
+                  {/* Screen content */}
+                  <div className="h-full bg-gradient-to-b from-gray-50 to-white p-4 pt-8">
+                    <p className="text-sm font-bold text-gray-900 mb-4">Credit Report</p>
+                    <p className="text-xs text-gray-500 mb-3">All Accounts</p>
+                    {/* Account items */}
+                    {['CAPITAL ONE', 'CHASE BANK', 'DISCOVER', 'AMEX'].map((account, i) => (
+                      <div key={i} className="bg-white border border-gray-200 rounded-lg p-3 mb-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                              <span className="text-xs">🏦</span>
+                            </div>
+                            <span className="text-xs font-medium text-gray-900">{account}</span>
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full ${i === 2 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                            {i === 2 ? 'Disputed' : 'Positive'}
+                          </span>
+                        </div>
+                        <div className="flex gap-1 mt-2">
+                          <span className="text-xs bg-blue-50 text-blue-600 px-1 rounded">Experian</span>
+                          <span className="text-xs bg-purple-50 text-purple-600 px-1 rounded">TransUnion</span>
+                          <span className="text-xs bg-orange-50 text-orange-600 px-1 rounded">Equifax</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pain Points Section */}
       <section className="py-20 bg-gray-50">
         <div className="container">
