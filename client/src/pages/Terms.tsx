@@ -153,7 +153,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">10. Governing Law</h2>
               <p className="text-gray-700 leading-relaxed">
-                These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Delaware, without regard to its conflict of law provisions. Any disputes arising from these Terms shall be resolved in the state or federal courts located in Delaware.
+                These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Wyoming, without regard to its conflict of law provisions. Any disputes arising from these Terms shall be resolved in the state or federal courts located in Wyoming.
               </p>
             </section>
 

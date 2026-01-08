@@ -1114,7 +1114,8 @@ export default function Home() {
                 <strong>Your Rights:</strong> You may cancel within 3 business days for a full refund. <Link href="/croa-disclosure" className="text-orange-400 hover:text-orange-300">Read full CROA disclosure →</Link>
               </p>
             </div>
-            <p>&copy; 2026 DisputeStrike LLC. All rights reserved.</p>
+            <p>&copy; 2025 DisputeStrike LLC. All rights reserved.</p>
+            <p className="text-sm text-gray-500 mt-1">Registered in Wyoming, USA</p>
           </div>
         </div>
       </footer>

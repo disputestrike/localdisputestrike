@@ -230,7 +230,7 @@ export default function Guarantee() {
             </div>
           </div>
           <div className="border-t border-gray-700 pt-8 text-center">
-            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
+            <p className="text-sm">© 2025 DisputeStrike LLC. All rights reserved.</p>
           </div>
         </div>
       </footer>

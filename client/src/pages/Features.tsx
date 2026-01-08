@@ -381,7 +381,7 @@ export default function Features() {
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
           <div className="text-center">
-            <p className="text-sm">© 2024 DisputeStrike. All rights reserved.</p>
+            <p className="text-sm">© 2025 DisputeStrike LLC. All rights reserved.</p>
           </div>
         </div>
       </footer>
