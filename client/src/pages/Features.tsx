@@ -128,7 +128,7 @@ export default function Features() {
                 <div className="mb-6">
                   <img src="/icon-document-legal.png" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Litigation-Grade Legal Arguments</CardTitle>
+                <CardTitle className="text-2xl font-bold">FCRA-Aligned Legal Arguments</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg mb-4">
@@ -201,7 +201,7 @@ export default function Features() {
                   <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900">FCRA Compliance</h3>
                 </div>
                 <p className="text-lg text-gray-700 mb-4">
-                  Every letter is 100% compliant with the Fair Credit Reporting Act. We leverage your legal rights under federal law to force credit bureaus to investigate and delete inaccurate information.
+                  Every letter is 100% compliant with the Fair Credit Reporting Act. We leverage your legal rights under federal law to request credit bureaus investigate and delete inaccurate information.
                 </p>
                 <p className="text-lg text-gray-700">
                   Our system automatically includes the correct legal citations, deadlines, and consequences for non-compliance, making it impossible for bureaus to ignore your disputes.
@@ -330,9 +330,9 @@ export default function Features() {
           <div className="space-y-20">
             {/* Dispute Letter Example */}
             <div className="max-w-4xl mx-auto">
-              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Litigation-Grade Dispute Letter</h3>
+              <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">FCRA-Compliant Dispute Letter</h3>
               <img 
-                src="/Attack-letter-example.png" 
+                src="/dispute-letter-example.png" 
                 alt="Example Dispute letter with FCRA citations highlighted" 
                 className="w-full rounded-xl shadow-2xl"
               />
@@ -358,7 +358,7 @@ export default function Features() {
                 alt="Key FCRA legal citations infographic" 
                 className="w-full"
               />
-              <p className="text-center text-gray-700 mt-6 text-lg">These are the exact legal citations that force bureaus to delete negative items</p>
+              <p className="text-center text-gray-700 mt-6 text-lg">These are the exact legal citations that compel bureaus to address negative items</p>
             </div>
           </div>
         </div>

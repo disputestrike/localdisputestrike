@@ -22,7 +22,7 @@ export default function Blog3RoundStrategy() {
               The 3-Round Dispute Strategy Explained
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              Learn the escalation strategy used by credit professionals to challenge inaccurate information with increasing force.
+              Learn the escalation strategy used by credit professionals to challenge inaccurate information with increasing documentation.
             </p>
             
             <img 
@@ -52,7 +52,7 @@ export default function Blog3RoundStrategy() {
                   <div>
                     <h3 className="font-bold text-lg mb-2">The Power of Escalation</h3>
                     <p className="text-gray-700">
-                      Each round builds on the previous one, citing specific FCRA violations and demanding more detailed responses. This approach mirrors what litigation attorneys use when preparing for legal action.
+                      Each round builds on the previous one, citing specific FCRA violations and demanding more detailed responses. This approach mirrors what credit professionals use when building dispute cases.
                     </p>
                   </div>
                 </div>
@@ -91,7 +91,7 @@ export default function Blog3RoundStrategy() {
             <div className="bg-orange-50 border-l-4 border-orange-600 p-6 mb-8">
               <h3 className="font-bold text-xl mb-4 text-orange-900">Goal: Demand Proof of Their Investigation</h3>
               <p className="text-gray-700 mb-4">
-                If the bureau verifies the information in Round 1, Round 2 escalates by demanding the <strong>Method of Verification (MOV)</strong>. This forces the bureau to provide documentation showing exactly how they verified the disputed information.
+                If the bureau verifies the information in Round 1, Round 2 escalates by demanding the <strong>Method of Verification (MOV)</strong>. This requires the bureau to provide documentation showing exactly how they verified the disputed information.
               </p>
             </div>
 
@@ -201,10 +201,10 @@ export default function Blog3RoundStrategy() {
 
             <ul className="list-disc pl-6 mb-8 text-gray-700 space-y-2">
               <li>Don't give up after Round 1 - escalation is key to success</li>
-              <li>Round 2 MOV requests force bureaus to prove their investigation</li>
+              <li>Round 2 MOV requests require bureaus to document their investigation</li>
               <li>Round 3 signals potential legal action and often results in removal</li>
               <li>Document everything and keep copies of all correspondence</li>
-              <li>The 3-Round Strategy mirrors what credit attorneys use in litigation</li>
+              <li>The 3-Round Strategy mirrors what credit professionals recommend</li>
             </ul>
 
             <div className="bg-gray-100 p-6 rounded-lg mb-8">

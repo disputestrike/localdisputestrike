@@ -237,7 +237,7 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* Comparison with Attack Beast */}
+      {/* Comparison with Dispute Beast */}
       <section className="container py-16 bg-muted/50 rounded-lg">
         <h2 className="text-3xl font-bold text-center mb-8">
           Why Choose DisputeStrike AI?
@@ -280,10 +280,10 @@ export default function Pricing() {
               </CardContent>
             </Card>
 
-            {/* Attack Beast */}
+            {/* Dispute Beast */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-muted-foreground">Attack Beast</CardTitle>
+                <CardTitle className="text-muted-foreground">Dispute Beast</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
@@ -353,7 +353,7 @@ export default function Pricing() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">How is this different from Attack Beast?</CardTitle>
+              <CardTitle className="text-lg">How is this different from Dispute Beast?</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
@@ -381,7 +381,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Attack Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets results vary by cases vs 30-40% for bulk mail.
+                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Dispute Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets results vary by cases vs 30-40% for bulk mail.
               </p>
             </CardContent>
           </Card>

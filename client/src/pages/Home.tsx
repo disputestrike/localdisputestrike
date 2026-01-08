@@ -231,7 +231,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="relative">
-                <img src="/icon-step3-attack.png" alt="Submit Disputes" className="w-32 h-32 mx-auto mb-6" />
+                <img src="/icon-step3-dispute.png" alt="Submit Disputes" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">3</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Submit Disputes</h3>
@@ -293,7 +293,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Everything You Need</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Professional-grade tools to strike with precision and defend with force
+              Professional-grade tools to strike with precision and defend with confidence
             </p>
           </div>
           
@@ -447,7 +447,7 @@ export default function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">The Power of DisputeStrike</h2>
             <p className="text-xl text-gray-700 max-w-3xl mx-auto">
-              Professional-grade dispute automation with the force of litigation-quality letters
+              Professional-grade dispute automation with professionally-structured dispute letters
             </p>
           </div>
           
@@ -473,7 +473,7 @@ export default function Home() {
                 <div className="mb-6">
                   <img src="/icon-document-legal.png" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
                 </div>
-                <CardTitle className="text-2xl font-bold">Litigation-Grade Legal Arguments</CardTitle>
+                <CardTitle className="text-2xl font-bold">FCRA-Aligned Legal Arguments</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
@@ -1034,7 +1034,7 @@ export default function Home() {
             <div>
               <h3 className="font-bold text-white text-lg mb-4">About DisputeStrike</h3>
               <p className="text-sm">
-                Professional-grade dispute automation. Strike inaccuracies with precision, Challenge errors with force.
+                Professional-grade dispute automation. Strike inaccuracies with precision, Challenge errors with confidence.
               </p>
             </div>
             
