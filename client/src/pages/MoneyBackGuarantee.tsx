@@ -22,6 +22,7 @@ export default function MoneyBackGuarantee() {
               <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium">How It Works</Link>
               <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
               <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium">FAQ</Link>
+              <Link href="/money-back-guarantee" className="text-orange-600 hover:text-orange-700 font-medium">110% Guarantee</Link>
               <UserDropdown />
             </nav>
 

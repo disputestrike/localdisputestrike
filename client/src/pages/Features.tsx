@@ -36,6 +36,9 @@ export default function Features() {
             <Link href="/faq">
               <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
             </Link>
+            <Link href="/money-back-guarantee">
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">110% Guarantee</a>
+            </Link>
             {isAuthenticated ? (
               <UserDropdown />
             ) : (
