@@ -366,3 +366,11 @@ DisputeStrike
 - [x] Add "Sort by Conflicts" option in Negative Accounts tab (also sort by balance)
 - [x] Add print multiple selected letters at once (Print All, Download All buttons)
 - [x] Add print button to individual letters with auto-print URL parameter
+
+
+## Phase 55: Advanced Competitive Features (User Request)
+
+- [x] Generate Round 2 Letter button with subscription/letter limit check
+- [x] Credit Score Simulator tab showing estimated impact of removing negative items
+- [x] Automated email reminders for day 25 and day 30 dispute deadlines
+- [x] Notifications API endpoint for deadline alerts

@@ -21,6 +21,7 @@ import {
   Mail,
   RefreshCw,
   Send,
+  Zap,
 } from "lucide-react";
 
 export default function DisputeTracking() {
@@ -36,6 +37,13 @@ export default function DisputeTracking() {
     outcome: 'pending' as 'deleted' | 'verified' | 'updated' | 'no_response' | 'pending',
     notes: '',
   });
+  const [showRound2Modal, setShowRound2Modal] = useState(false);
+  const [round2Data, setRound2Data] = useState({
+    originalLetterId: 0,
+    reason: '',
+    currentAddress: '',
+  });
+  const [isGeneratingRound2, setIsGeneratingRound2] = useState(false);
 
   // Fetch letters and outcomes
   const { data: letters, isLoading: lettersLoading, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
@@ -58,6 +66,20 @@ export default function DisputeTracking() {
     },
     onError: (error) => {
       toast.error(`Failed to update status: ${error.message}`);
+    },
+  });
+
+  const generateRound2Mutation = trpc.disputeLetters.generateRound2.useMutation({
+    onSuccess: (data) => {
+      toast.success(`Round 2 escalation letter generated for ${data.bureau}!`);
+      refetchLetters();
+      setShowRound2Modal(false);
+      setRound2Data({ originalLetterId: 0, reason: '', currentAddress: '' });
+      setIsGeneratingRound2(false);
+    },
+    onError: (error) => {
+      toast.error(`Failed to generate Round 2 letter: ${error.message}`);
+      setIsGeneratingRound2(false);
     },
   });
 
@@ -396,14 +418,32 @@ export default function DisputeTracking() {
                           )}
 
                           {/* Round 2 button - show for verified outcomes */}
-                          {outcome?.outcome === 'verified' && (
+                          {outcome?.outcome === 'verified' && letter.round === 1 && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10"
+                              className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white"
+                              onClick={() => {
+                                setRound2Data(prev => ({ ...prev, originalLetterId: letter.id }));
+                                setShowRound2Modal(true);
+                              }}
                             >
-                              <RefreshCw className="h-4 w-4 mr-1" />
-                              Round 2
+                              <Zap className="h-4 w-4 mr-1" />
+                              Generate Round 2
+                            </Button>
+                          )}
+                          
+                          {/* Round 3 button - show for verified Round 2 outcomes */}
+                          {outcome?.outcome === 'verified' && letter.round === 2 && (
+                            <Button
+                              size="sm"
+                              className="bg-gradient-to-r from-red-500 to-purple-500 hover:from-red-600 hover:to-purple-600 text-white"
+                              onClick={() => {
+                                setRound2Data(prev => ({ ...prev, originalLetterId: letter.id }));
+                                setShowRound2Modal(true);
+                              }}
+                            >
+                              <Zap className="h-4 w-4 mr-1" />
+                              Generate Round 3 (Intent to Sue)
                             </Button>
                           )}
                         </div>
@@ -569,6 +609,109 @@ export default function DisputeTracking() {
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : null}
                     Save Outcome
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Round 2 Generation Modal */}
+        {showRound2Modal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="bg-slate-900 border-slate-800 w-full max-w-lg mx-4">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Zap className="h-5 w-5 text-orange-400" />
+                  Generate Escalation Letter
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Create a more aggressive letter demanding Method of Verification (MOV)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                  <p className="text-sm text-orange-300">
+                    <strong>Round 2 Strategy:</strong> Since the bureau "verified" the account, 
+                    we now demand they provide the <em>Method of Verification</em> under FCRA § 1681i(a)(7). 
+                    This forces them to prove HOW they verified it.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Your Current Address *
+                  </label>
+                  <textarea
+                    value={round2Data.currentAddress}
+                    onChange={(e) => setRound2Data({ ...round2Data, currentAddress: e.target.value })}
+                    placeholder="123 Main St, City, State ZIP"
+                    rows={2}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Why should this account be deleted? *
+                  </label>
+                  <textarea
+                    value={round2Data.reason}
+                    onChange={(e) => setRound2Data({ ...round2Data, reason: e.target.value })}
+                    placeholder="e.g., Account is not mine, balance is incorrect, account was paid in full, statute of limitations expired..."
+                    rows={3}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                </div>
+
+                <div className="bg-slate-800 rounded-lg p-3">
+                  <p className="text-xs text-slate-400">
+                    <strong className="text-cyan-400">What happens next:</strong> The AI will generate an aggressive 
+                    escalation letter citing FCRA § 1681i(a)(7), demanding complete MOV documentation, 
+                    and threatening CFPB complaints and potential legal action if they fail to comply.
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-slate-700 text-slate-300"
+                    onClick={() => {
+                      setShowRound2Modal(false);
+                      setRound2Data({ originalLetterId: 0, reason: '', currentAddress: '' });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+                    onClick={() => {
+                      if (!round2Data.currentAddress || !round2Data.reason) {
+                        toast.error('Please fill in all required fields');
+                        return;
+                      }
+                      setIsGeneratingRound2(true);
+                      // Get the original letter to find accounts
+                      const originalLetter = letters?.find(l => l.id === round2Data.originalLetterId);
+                      const accountsDisputed = originalLetter?.accountsDisputed ? JSON.parse(originalLetter.accountsDisputed) : [];
+                      
+                      generateRound2Mutation.mutate({
+                        originalLetterId: round2Data.originalLetterId,
+                        verifiedAccounts: accountsDisputed.map((id: number) => ({
+                          id,
+                          accountName: `Account #${id}`,
+                          reason: round2Data.reason,
+                        })),
+                        currentAddress: round2Data.currentAddress,
+                      });
+                    }}
+                    disabled={isGeneratingRound2 || !round2Data.currentAddress || !round2Data.reason}
+                  >
+                    {isGeneratingRound2 ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-2" /> Generating...</>
+                    ) : (
+                      <><Zap className="h-4 w-4 mr-2" /> Generate Escalation Letter</>
+                    )}
                   </Button>
                 </div>
               </CardContent>
