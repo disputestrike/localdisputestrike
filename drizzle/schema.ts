@@ -329,3 +329,54 @@ export const emailLeads = mysqlTable("email_leads", {
 
 export type EmailLead = typeof emailLeads.$inferSelect;
 export type InsertEmailLead = typeof emailLeads.$inferInsert;
+
+/**
+ * Credit Education Course Progress
+ */
+export const courseProgress = mysqlTable("course_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Lesson tracking
+  lessonId: varchar("lessonId", { length: 100 }).notNull(), // e.g., "module1-lesson1"
+  moduleId: varchar("moduleId", { length: 50 }).notNull(), // e.g., "module1"
+  
+  // Progress
+  completed: boolean("completed").default(false).notNull(),
+  completedAt: timestamp("completedAt"),
+  
+  // Quiz scores (if applicable)
+  quizScore: int("quizScore"), // 0-100
+  quizAttempts: int("quizAttempts").default(0).notNull(),
+  
+  // Time tracking
+  timeSpentSeconds: int("timeSpentSeconds").default(0).notNull(),
+  lastAccessedAt: timestamp("lastAccessedAt").defaultNow().notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CourseProgress = typeof courseProgress.$inferSelect;
+export type InsertCourseProgress = typeof courseProgress.$inferInsert;
+
+/**
+ * Course certificates earned
+ */
+export const courseCertificates = mysqlTable("course_certificates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  
+  // Certificate details
+  certificateNumber: varchar("certificateNumber", { length: 50 }).notNull().unique(),
+  earnedAt: timestamp("earnedAt").defaultNow().notNull(),
+  
+  // Completion stats
+  totalTimeSpentSeconds: int("totalTimeSpentSeconds").default(0).notNull(),
+  averageQuizScore: int("averageQuizScore"), // 0-100
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type CourseCertificate = typeof courseCertificates.$inferSelect;
+export type InsertCourseCertificate = typeof courseCertificates.$inferInsert;

@@ -23,11 +23,14 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
+import { Building2 } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [uploadingBureau, setUploadingBureau] = useState<string | null>(null);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
+  const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
@@ -526,6 +529,18 @@ export default function Dashboard() {
                             </ul>
                           </div>
                         )}
+                        {/* Furnisher Letter Button */}
+                        <div className="mt-4 pt-4 border-t">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setFurnisherModalAccount(account)}
+                            className="w-full"
+                          >
+                            <Building2 className="h-4 w-4 mr-2" />
+                            Dispute Directly with Creditor
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
@@ -646,6 +661,18 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Furnisher Letter Modal */}
+      {furnisherModalAccount && (
+        <FurnisherLetterModal
+          isOpen={!!furnisherModalAccount}
+          onClose={() => setFurnisherModalAccount(null)}
+          account={furnisherModalAccount}
+          onSuccess={() => {
+            refetchLetters();
+          }}
+        />
+      )}
     </div>
   );
 }

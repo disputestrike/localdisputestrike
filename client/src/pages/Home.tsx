@@ -11,6 +11,7 @@ import { LiveCounter } from "@/components/LiveCounter";
 import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
 import ExitIntentEmailPopup from "@/components/ExitIntentEmailPopup";
 import { BannerCountdown } from "@/components/BannerCountdown";
+import MonitorYourCredit from "@/components/MonitorYourCredit";
 import { useState } from "react";
 
 export default function Home() {
@@ -313,6 +314,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Monitor Your Credit Section */}
+      <MonitorYourCredit />
 
       {/* How It Works Timeline */}
       <section className="py-20 bg-white">

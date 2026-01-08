@@ -1232,6 +1232,58 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         return { success: true };
       }),
   }),
+
+  // Course Progress Router
+  courseProgress: router({
+    // Get user's course progress
+    getProgress: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserCourseProgress(ctx.user.id);
+    }),
+
+    // Mark a lesson as complete
+    completeLesson: protectedProcedure
+      .input(z.object({
+        lessonId: z.string(),
+        moduleId: z.string(),
+        timeSpentSeconds: z.number().optional(),
+        quizScore: z.number().min(0).max(100).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.markLessonComplete(
+          ctx.user.id,
+          input.lessonId,
+          input.moduleId,
+          input.timeSpentSeconds,
+          input.quizScore
+        );
+      }),
+
+    // Update time spent on a lesson
+    updateTimeSpent: protectedProcedure
+      .input(z.object({
+        lessonId: z.string(),
+        moduleId: z.string(),
+        timeSpentSeconds: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.updateLessonTimeSpent(
+          ctx.user.id,
+          input.lessonId,
+          input.moduleId,
+          input.timeSpentSeconds
+        );
+      }),
+
+    // Get certificate if earned
+    getCertificate: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserCertificate(ctx.user.id);
+    }),
+
+    // Generate certificate if all lessons complete
+    generateCertificate: protectedProcedure.mutation(async ({ ctx }) => {
+      return await db.generateCourseCertificate(ctx.user.id);
+    }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

@@ -98,7 +98,10 @@
 
 ## 🔄 IN PROGRESS
 
-(None currently)
+- [x] Create Monitor Your Credit section (like Dispute Beast style)
+- [x] Add furnisher letter generation button to Dashboard
+- [x] Add course progress database storage
+- [x] Add video content to credit education lessons
 
 ---
 

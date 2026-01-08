@@ -26,7 +26,13 @@ import {
   ContactSubmission,
   emailLeads,
   InsertEmailLead,
-  EmailLead
+  EmailLead,
+  courseProgress,
+  InsertCourseProgress,
+  CourseProgress,
+  courseCertificates,
+  InsertCourseCertificate,
+  CourseCertificate
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -803,4 +809,228 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
     subject,
     html: htmlContent,
   });
+}
+
+
+// ============================================================================
+// COURSE PROGRESS OPERATIONS
+// ============================================================================
+
+// Total lessons in the course
+const TOTAL_LESSONS = 33;
+
+/**
+ * Get user's course progress
+ */
+export async function getUserCourseProgress(userId: number): Promise<CourseProgress[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(courseProgress)
+    .where(eq(courseProgress.userId, userId));
+}
+
+/**
+ * Mark a lesson as complete
+ */
+export async function markLessonComplete(
+  userId: number,
+  lessonId: string,
+  moduleId: string,
+  timeSpentSeconds?: number,
+  quizScore?: number
+): Promise<CourseProgress> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  // Check if progress exists
+  const existing = await dbInstance
+    .select()
+    .from(courseProgress)
+    .where(and(
+      eq(courseProgress.userId, userId),
+      eq(courseProgress.lessonId, lessonId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await dbInstance
+      .update(courseProgress)
+      .set({
+        completed: true,
+        completedAt: new Date(),
+        timeSpentSeconds: timeSpentSeconds ?? existing[0].timeSpentSeconds,
+        quizScore: quizScore ?? existing[0].quizScore,
+        quizAttempts: quizScore !== undefined ? existing[0].quizAttempts + 1 : existing[0].quizAttempts,
+        lastAccessedAt: new Date(),
+      })
+      .where(eq(courseProgress.id, existing[0].id));
+
+    const updated = await dbInstance
+      .select()
+      .from(courseProgress)
+      .where(eq(courseProgress.id, existing[0].id))
+      .limit(1);
+    
+    return updated[0];
+  } else {
+    // Create new
+    const [result] = await dbInstance.insert(courseProgress).values({
+      userId,
+      lessonId,
+      moduleId,
+      completed: true,
+      completedAt: new Date(),
+      timeSpentSeconds: timeSpentSeconds ?? 0,
+      quizScore: quizScore ?? null,
+      quizAttempts: quizScore !== undefined ? 1 : 0,
+      lastAccessedAt: new Date(),
+    }).$returningId();
+
+    const inserted = await dbInstance
+      .select()
+      .from(courseProgress)
+      .where(eq(courseProgress.id, result.id))
+      .limit(1);
+    
+    return inserted[0];
+  }
+}
+
+/**
+ * Update time spent on a lesson
+ */
+export async function updateLessonTimeSpent(
+  userId: number,
+  lessonId: string,
+  moduleId: string,
+  timeSpentSeconds: number
+): Promise<CourseProgress> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  // Check if progress exists
+  const existing = await dbInstance
+    .select()
+    .from(courseProgress)
+    .where(and(
+      eq(courseProgress.userId, userId),
+      eq(courseProgress.lessonId, lessonId)
+    ))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing
+    await dbInstance
+      .update(courseProgress)
+      .set({
+        timeSpentSeconds: existing[0].timeSpentSeconds + timeSpentSeconds,
+        lastAccessedAt: new Date(),
+      })
+      .where(eq(courseProgress.id, existing[0].id));
+
+    const updated = await dbInstance
+      .select()
+      .from(courseProgress)
+      .where(eq(courseProgress.id, existing[0].id))
+      .limit(1);
+    
+    return updated[0];
+  } else {
+    // Create new
+    const [result] = await dbInstance.insert(courseProgress).values({
+      userId,
+      lessonId,
+      moduleId,
+      completed: false,
+      timeSpentSeconds,
+      lastAccessedAt: new Date(),
+    }).$returningId();
+
+    const inserted = await dbInstance
+      .select()
+      .from(courseProgress)
+      .where(eq(courseProgress.id, result.id))
+      .limit(1);
+    
+    return inserted[0];
+  }
+}
+
+/**
+ * Get user's certificate if earned
+ */
+export async function getUserCertificate(userId: number): Promise<CourseCertificate | null> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return null;
+
+  const result = await dbInstance
+    .select()
+    .from(courseCertificates)
+    .where(eq(courseCertificates.userId, userId))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+/**
+ * Generate course certificate if all lessons complete
+ */
+export async function generateCourseCertificate(userId: number): Promise<CourseCertificate> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  // Check if certificate already exists
+  const existing = await dbInstance
+    .select()
+    .from(courseCertificates)
+    .where(eq(courseCertificates.userId, userId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return existing[0];
+  }
+
+  // Get all progress
+  const progress = await dbInstance
+    .select()
+    .from(courseProgress)
+    .where(and(
+      eq(courseProgress.userId, userId),
+      eq(courseProgress.completed, true)
+    ));
+
+  // Check if all lessons complete
+  if (progress.length < TOTAL_LESSONS) {
+    throw new Error(`Complete all ${TOTAL_LESSONS} lessons to earn your certificate. You have completed ${progress.length}.`);
+  }
+
+  // Calculate stats
+  const totalTimeSpent = progress.reduce((sum, p) => sum + (p.timeSpentSeconds || 0), 0);
+  const quizScores = progress.filter(p => p.quizScore !== null).map(p => p.quizScore as number);
+  const avgQuizScore = quizScores.length > 0 
+    ? Math.round(quizScores.reduce((sum, s) => sum + s, 0) / quizScores.length)
+    : null;
+
+  // Generate certificate number
+  const certNumber = `DS-${Date.now().toString(36).toUpperCase()}-${userId}`;
+
+  // Create certificate
+  const [result] = await dbInstance.insert(courseCertificates).values({
+    userId,
+    certificateNumber: certNumber,
+    totalTimeSpentSeconds: totalTimeSpent,
+    averageQuizScore: avgQuizScore,
+  }).$returningId();
+
+  const inserted = await dbInstance
+    .select()
+    .from(courseCertificates)
+    .where(eq(courseCertificates.id, result.id))
+    .limit(1);
+
+  return inserted[0];
 }
