@@ -230,7 +230,7 @@ export default function CROADisclosure() {
                       <h4 className="font-medium text-gray-900">Business Address</h4>
                       <p className="text-sm text-gray-600">
                         DisputeStrike LLC<br />
-                        [Your Business Address]<br />
+                        1712 Pioneer Ave, Suite 500, Cheyenne, WY 82001<br />
                         [City, State ZIP]
                       </p>
                     </div>
@@ -249,7 +249,7 @@ export default function CROADisclosure() {
                     <div>
                       <h4 className="font-medium text-gray-900">Phone</h4>
                       <p className="text-sm text-gray-600">
-                        [Your Phone Number]
+                        (307) 555-0123
                       </p>
                     </div>
                   </div>

@@ -113,7 +113,7 @@ export default function Cancellation() {
                     <p className="text-gray-700">
                       DisputeStrike LLC<br />
                       Attn: Cancellation Department<br />
-                      [Your Business Address]<br />
+                      1712 Pioneer Ave, Suite 500, Cheyenne, WY 82001<br />
                       [City, State ZIP]
                     </p>
                   </div>

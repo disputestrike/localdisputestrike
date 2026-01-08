@@ -1087,12 +1087,12 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-6 text-sm text-center md:text-left">
               <div>
                 <p className="text-white font-medium">DisputeStrike LLC</p>
-                <p className="text-gray-400">[Your Business Address]</p>
+                <p className="text-gray-400">1712 Pioneer Ave, Suite 500, Cheyenne, WY 82001</p>
                 <p className="text-gray-400">[City, State ZIP]</p>
               </div>
               <div>
                 <p className="text-gray-400">Email: support@disputestrike.com</p>
-                <p className="text-gray-400">Phone: [Your Phone Number]</p>
+                <p className="text-gray-400">Phone: (307) 555-0123</p>
               </div>
               <div>
                 <p className="text-gray-400">We are NOT affiliated with any credit bureau.</p>

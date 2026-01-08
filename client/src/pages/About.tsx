@@ -208,6 +208,7 @@ export default function About() {
               <ul className="space-y-2">
                 <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
+                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">110% Guarantee</Link></li>
               </ul>
             </div>
             <div>
