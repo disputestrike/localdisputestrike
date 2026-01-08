@@ -63,7 +63,7 @@ export default function Features() {
               <span className="text-orange-600">Strike Precision</span> Into Professional-Grade <span className="text-orange-600">Dispute Automation</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Powerful AI technology meets litigation-grade legal expertise. Strike with precision, defend with decisive action.
+              AI-assisted document preparation tools focused on accuracy, documentation, and FCRA compliance. You generate and mail your own letters.
             </p>
             
             {/* Credit Score Gauge Visual */}
@@ -158,7 +158,7 @@ export default function Features() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg mb-4">
-                  Unique, human-like letters that bureaus can't detect as templates. 70-85% deletion rate vs 30-40% for generic templates.
+                  Unique, human-like letters that bureaus can't detect as templates. results vary by case vs 30-40% for generic templates.
                 </p>
                 <ul className="space-y-2 text-left">
                   <li className="flex items-start gap-2">
@@ -265,7 +265,7 @@ export default function Features() {
                   Our advanced AI automatically extracts every negative item from your credit reports and analyzes them for legal violations, inconsistencies, and Attack opportunities.
                 </p>
                 <p className="text-lg text-gray-700">
-                  The system compares all three bureaus simultaneously to find conflicts that force deletions under FCRA law. This is the secret weapon that gives us 70-85% deletion rates.
+                  The system compares all three bureaus simultaneously to find conflicts that support removal requests under FCRA law. This is the secret weapon that gives us results vary by cases.
                 </p>
               </div>
             </div>
@@ -317,7 +317,7 @@ export default function Features() {
         <div className="container">
           <h2 className="text-4xl md:text-6xl font-extrabold text-center text-gray-900 mb-4">See How It Works</h2>
           <p className="text-xl text-gray-700 text-center mb-16 max-w-3xl mx-auto">
-            Real examples of our litigation-grade letters and cross-bureau conflict detection
+            Real examples of our documentation-driven letters and cross-bureau conflict detection
           </p>
           
           <div className="space-y-20">

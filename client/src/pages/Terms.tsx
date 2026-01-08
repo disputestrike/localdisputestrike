@@ -109,7 +109,7 @@ export default function Terms() {
                 <li>Your compliance with FCRA procedures and deadlines</li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
-                While our customers have achieved an average 70-85% deletion rate and 80+ point score increases, your individual results may vary. Past performance does not guarantee future results.
+                While our customers have achieved an average results vary by case and score improvements (results vary), your individual results may vary. Past performance does not guarantee future results.
               </p>
             </section>
 

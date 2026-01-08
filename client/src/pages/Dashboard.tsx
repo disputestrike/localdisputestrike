@@ -616,7 +616,7 @@ export default function Dashboard() {
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
                   No letters generated yet. Go to <strong>Negative Accounts</strong> and click "Generate Letters" 
-                  to create your litigation-grade Attack letters.
+                  to create your documentation-driven Attack letters.
                 </AlertDescription>
               </Alert>
             )}

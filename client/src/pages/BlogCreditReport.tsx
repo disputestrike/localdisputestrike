@@ -144,7 +144,7 @@ export default function BlogCreditReport() {
               <CardContent className="pt-6">
                 <h3 className="font-bold text-xl mb-4">DisputeStrike Can Help</h3>
                 <p className="text-gray-700 mb-4">
-                  DisputeStrike helps you generate professional, litigation-grade dispute letters with proper FCRA citations. Our AI-powered platform makes it easy to:
+                  DisputeStrike helps you generate professional, documentation-driven dispute letters with proper FCRA citations. Our AI-powered platform makes it easy to:
                 </p>
                 <ul className="text-gray-700 space-y-2 mb-6">
                   <li>• Identify items to dispute across all 3 bureaus</li>

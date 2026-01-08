@@ -148,7 +148,7 @@ export default function Pricing() {
       <section className="container py-16 text-center">
         <Badge className="mb-4" variant="outline">
           <TrendingUp className="mr-1 h-3 w-3" />
-          70-85% Success Rate
+          Results Vary By Case
         </Badge>
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
           Choose Your <span className="text-primary">Credit Monitoring</span> Plan
@@ -259,7 +259,7 @@ export default function Pricing() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500" />
-                  <span>Litigation-grade letters (10/10 quality)</span>
+                  <span>Documentation-driven letters (10/10 quality)</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500" />
@@ -267,7 +267,7 @@ export default function Pricing() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500" />
-                  <span>70-85% deletion rate</span>
+                  <span>results vary by case</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Check className="h-5 w-5 text-green-500" />
@@ -357,7 +357,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                We offer one-time pricing ($29-79) instead of forcing a $49.99/month subscription. Our letters are litigation-grade (10/10 quality) with cross-bureau conflict detection, not generic AI templates. You can choose to add monitoring later for $39.99/month if you want it.
+                We offer one-time pricing ($29-79) instead of forcing a $49.99/month subscription. Our letters are documentation-driven (10/10 quality) with cross-bureau conflict detection, not generic AI templates. You can choose to add monitoring later for $39.99/month if you want it.
               </p>
             </CardContent>
           </Card>
@@ -381,7 +381,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Attack Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets 70-85% success rates vs 30-40% for bulk mail.
+                Yes, for best results. Credit bureaus use AI to detect third-party mailers (like Attack Beast's Sprint Mail). When YOU mail from your local post office in a handwritten envelope, it's undetectable and gets results vary by cases vs 30-40% for bulk mail.
               </p>
             </CardContent>
           </Card>
@@ -405,7 +405,7 @@ export default function Pricing() {
           <CardHeader>
             <CardTitle className="text-3xl">Ready to Fix Your Credit?</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Join thousands who've improved their credit with our litigation-grade Attack letters
+              Join thousands who've improved their credit with our documentation-driven Attack letters
             </CardDescription>
           </CardHeader>
           <CardContent>

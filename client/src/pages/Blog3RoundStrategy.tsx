@@ -123,7 +123,7 @@ export default function Blog3RoundStrategy() {
             <div className="bg-red-50 border-l-4 border-red-600 p-6 mb-8">
               <h3 className="font-bold text-xl mb-4 text-red-900">Goal: Signal Potential Legal Action</h3>
               <p className="text-gray-700 mb-4">
-                Round 3 is the most aggressive approach. This is where you signal that you're prepared to take legal action if the bureau continues to report inaccurate information. You may also involve a credit attorney or expert at this stage.
+                Round 3 is the most structured and documented approach. This is where you signal that you're prepared to take legal action if the bureau continues to report inaccurate information. You may also involve a credit attorney or expert at this stage.
               </p>
             </div>
 

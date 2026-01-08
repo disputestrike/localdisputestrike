@@ -62,7 +62,7 @@ export default function About() {
               </p>
               
               <p>
-                In 2024, we launched DisputeStrike with a bold vision: use cutting-edge AI technology to generate litigation-grade Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
+                In 2024, we launched DisputeStrike with a bold vision: use cutting-edge AI technology to generate documentation-driven Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
               </p>
               
               <p>
@@ -82,7 +82,7 @@ export default function About() {
               Credit Should Be Affordable. For everyone. Always.
             </p>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make litigation-grade Attack letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
+              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make documentation-driven Attack letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
             </p>
           </div>
         </div>
@@ -147,16 +147,16 @@ export default function About() {
               <div className="text-xl font-medium">Happy Customers</div>
             </div>
             <div>
-              <div className="text-5xl md:text-6xl font-extrabold mb-2">80+ pts</div>
-              <div className="text-xl font-medium">Average Score Increase</div>
+              <div className="text-5xl md:text-6xl font-extrabold mb-2">3 Bureaus</div>
+              <div className="text-xl font-medium">Cross-Bureau Analysis</div>
             </div>
             <div>
-              <div className="text-5xl md:text-6xl font-extrabold mb-2">70-85%</div>
-              <div className="text-xl font-medium">Deletion Rate</div>
+              <div className="text-5xl md:text-6xl font-extrabold mb-2">FCRA</div>
+              <div className="text-xl font-medium">Compliant Letters</div>
             </div>
             <div>
-              <div className="text-5xl md:text-6xl font-extrabold mb-2">95%</div>
-              <div className="text-xl font-medium">Success Rate</div>
+              <div className="text-5xl md:text-6xl font-extrabold mb-2">110%</div>
+              <div className="text-xl font-medium">Money-Back Guarantee</div>
             </div>
           </div>
           

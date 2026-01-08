@@ -5,7 +5,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getLoginUrl } from "@/const";
-import { ArrowRight, CheckCircle2, Shield, TrendingUp, FileText, Star, Play, Check, X, Facebook, Twitter, Instagram, Linkedin, ChevronDown } from "lucide-react";
+import { ArrowRight, CheckCircle2, Shield, TrendingUp, FileText, Star, Play, Check, X, XCircle, Facebook, Twitter, Instagram, Linkedin, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { LiveCounter } from "@/components/LiveCounter";
 import { CreditScoreAnimation } from "@/components/CreditScoreAnimation";
@@ -85,7 +85,7 @@ export default function Home() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
-              Strike with Precision. Defend with Force. Master your credit with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
+              Technology-assisted credit dispute support. Generate FCRA-compliant dispute letters with AI assistance. You're in control - you generate, print, and mail your own letters. Track your progress and exercise your rights under federal law.
             </p>
             
             {/* 110% Guarantee Badge */}
@@ -228,7 +228,7 @@ export default function Home() {
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">3</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Launch Attacks</h3>
-              <p className="text-gray-700">AI generates litigation-grade Attack letters instantly</p>
+              <p className="text-gray-700">AI generates documentation-driven Attack letters instantly</p>
             </div>
             
             <div className="text-center">
@@ -295,7 +295,7 @@ export default function Home() {
               <CardContent className="pt-8">
                 <img src="/icon-feature-ai-letters.png" alt="AI Letters" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">AI-Powered Attack Letters</h3>
-                <p className="text-gray-700">Litigation-grade letters with FCRA citations generated instantly</p>
+                <p className="text-gray-700">Documentation-driven letters with FCRA citations generated instantly</p>
               </CardContent>
             </Card>
             
@@ -507,7 +507,7 @@ export default function Home() {
                 </div>
                 <h4 className="text-xl font-bold text-gray-900 mb-2 text-center">Professional Attack Letters</h4>
                 <p className="text-center text-gray-700 leading-relaxed">
-                  Generate litigation-grade Attack letters with proper FCRA citations. Our AI creates unique, professional letters for each account you want to Attack. You print and mail them yourself.
+                  Generate documentation-driven Attack letters with proper FCRA citations. Our AI creates unique, professional letters for each account you want to Attack. You print and mail them yourself.
                 </p>
               </div>
               
@@ -574,7 +574,7 @@ export default function Home() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Round 2: Attack</Badge>
                 <h3 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Launch Your First Attack</h3>
                 <p className="text-lg text-gray-700">
-                  Our AI detects cross-bureau conflicts, generates litigation-grade Attack letters with proper FCRA citations, and creates personalized arguments for each account.
+                  Our AI detects cross-bureau conflicts, generates documentation-driven Attack letters with proper FCRA citations, and creates personalized arguments for each account.
                 </p>
               </div>
               <div className="order-1 md:order-2">
@@ -612,6 +612,88 @@ export default function Home() {
           <div className="mt-20 max-w-4xl mx-auto text-center">
             <p className="text-lg text-gray-700">
               Our platform provides the tools and monitoring you need to Attack credit report inaccuracies. Results vary based on individual circumstances.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Who This Is For / Not For */}
+      <section className="py-20 bg-gray-50">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">Is DisputeStrike Right For You?</h2>
+            <p className="text-xl text-gray-700">We're transparent about who we can help</p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* Who This IS For */}
+            <Card className="border-2 border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-green-800 flex items-center gap-2">
+                  <CheckCircle2 className="h-6 w-6" />
+                  DisputeStrike IS For You If...
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 font-bold">✓</span>
+                  You have inaccurate, incomplete, or unverifiable information on your credit report
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 font-bold">✓</span>
+                  You want to exercise your rights under the Fair Credit Reporting Act (FCRA)
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 font-bold">✓</span>
+                  You're willing to print and mail your own dispute letters
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 font-bold">✓</span>
+                  You want AI-assisted tools to help organize and track your disputes
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-green-600 font-bold">✓</span>
+                  You understand results vary and are not guaranteed
+                </p>
+              </CardContent>
+            </Card>
+            
+            {/* Who This is NOT For */}
+            <Card className="border-2 border-red-200 bg-red-50">
+              <CardHeader>
+                <CardTitle className="text-red-800 flex items-center gap-2">
+                  <XCircle className="h-6 w-6" />
+                  DisputeStrike is NOT For You If...
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-red-600 font-bold">✗</span>
+                  You want someone else to dispute on your behalf (we don't do that)
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-red-600 font-bold">✗</span>
+                  You expect guaranteed removal of accurate information (that's illegal)
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-red-600 font-bold">✗</span>
+                  You need legal advice (we're software, not attorneys)
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-red-600 font-bold">✗</span>
+                  You want to dispute accurate debts you legitimately owe
+                </p>
+                <p className="flex items-start gap-2 text-gray-700">
+                  <span className="text-red-600 font-bold">✗</span>
+                  You expect specific credit score improvements (results vary)
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div className="mt-12 text-center">
+            <p className="text-gray-600 max-w-3xl mx-auto">
+              <strong>Important:</strong> You can dispute inaccurate information directly with credit bureaus for free at <a href="https://www.annualcreditreport.com" target="_blank" rel="noopener noreferrer" className="text-orange-600 hover:underline">AnnualCreditReport.com</a>. DisputeStrike provides tools to help you exercise this right more efficiently.
             </p>
           </div>
         </div>
@@ -810,7 +892,7 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Litigation-grade FCRA citations</span>
+                  <span className="text-gray-700 font-semibold">Documentation-driven FCRA citations</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
@@ -890,7 +972,7 @@ export default function Home() {
               },
               {
                 q: "What if nothing gets deleted?",
-                a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters."
+                a: "While many customers see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters."
               }
             ].map((faq, i) => (
               <Card key={i} className="border-2 cursor-pointer hover:border-orange-600 transition-colors" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
@@ -958,13 +1040,15 @@ export default function Home() {
               </ul>
             </div>
             
-            {/* Company */}
+            {/* Legal */}
             <div>
-              <h3 className="font-bold text-white text-lg mb-4">Company</h3>
-                     <ul className="space-y-2">
-                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+              <h3 className="font-bold text-white text-lg mb-4">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/croa-disclosure" className="hover:text-white transition-colors">CROA Disclosure</Link></li>
+                <li><Link href="/cancellation" className="hover:text-white transition-colors">Cancellation Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
               </ul>
             </div>
@@ -989,14 +1073,39 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="border-t border-gray-700 pt-8 text-center text-sm">
+          {/* Legal Entity Info */}
+          <div className="border-t border-gray-700 pt-8 mb-6">
+            <div className="grid md:grid-cols-3 gap-6 text-sm text-center md:text-left">
+              <div>
+                <p className="text-white font-medium">DisputeStrike LLC</p>
+                <p className="text-gray-400">[Your Business Address]</p>
+                <p className="text-gray-400">[City, State ZIP]</p>
+              </div>
+              <div>
+                <p className="text-gray-400">Email: support@disputestrike.com</p>
+                <p className="text-gray-400">Phone: [Your Phone Number]</p>
+              </div>
+              <div>
+                <p className="text-gray-400">We are NOT affiliated with any credit bureau.</p>
+                <p className="text-gray-400">We are NOT a credit repair organization.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-700 pt-6 text-center text-sm">
             <div className="bg-gray-900 rounded-lg p-6 mb-6 text-left max-w-4xl mx-auto">
-              <p className="font-bold text-white mb-2">LEGAL DISCLAIMER - CROA COMPLIANCE:</p>
+              <p className="font-bold text-white mb-2">IMPORTANT CONSUMER DISCLOSURE:</p>
+              <p className="text-gray-300 text-xs leading-relaxed mb-3">
+                DisputeStrike is dispute preparation software. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679. You have the right to dispute inaccurate information directly with credit bureaus at no cost. Visit <a href="https://www.annualcreditreport.com" target="_blank" rel="noopener noreferrer" className="text-orange-400 hover:text-orange-300">AnnualCreditReport.com</a> for free credit reports.
+              </p>
+              <p className="text-gray-300 text-xs leading-relaxed mb-3">
+                We provide AI-assisted document preparation tools and educational resources. YOU generate, print, and mail your own dispute letters. We do not contact credit bureaus on your behalf. We do not guarantee removal of any information or specific credit score improvements. Results vary based on individual circumstances.
+              </p>
               <p className="text-gray-300 text-xs leading-relaxed">
-                DisputeStrike is dispute automation software. We are NOT a credit repair organization as defined under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679, et seq. Federal law allows you to dispute inaccurate credit information for free by contacting credit bureaus directly. We provide AI-powered software tools, educational resources, and tracking services to help you generate and manage your own credit disputes. You are solely responsible for generating, printing, mailing, and following up on your own dispute letters. We do not mail letters on your behalf, contact credit bureaus for you, or guarantee any specific results. All results vary based on individual circumstances and the accuracy of information in your credit reports.
+                <strong>Your Rights:</strong> You may cancel within 3 business days for a full refund. <Link href="/croa-disclosure" className="text-orange-400 hover:text-orange-300">Read full CROA disclosure →</Link>
               </p>
             </div>
-            <p>&copy; 2026 DisputeStrike. All rights reserved.</p>
+            <p>&copy; 2026 DisputeStrike LLC. All rights reserved.</p>
           </div>
         </div>
       </footer>

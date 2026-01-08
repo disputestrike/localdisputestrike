@@ -15,7 +15,7 @@ export default function FAQ() {
   const faqs = [
     {
       q: "How is this different from other credit monitoring services?",
-      a: "We use AI to detect cross-bureau conflicts that force deletions under FCRA law. Most services use generic templates with 30-40% success rates. Our litigation-grade letters get 70-85% deletion rates. Plus, we're a one-time payment - not a monthly subscription trap."
+      a: "We use AI to detect cross-bureau conflicts that support removal requests under FCRA law. Most services use generic templates with 30-40% success rates. Our documentation-driven letters get results vary by cases. Plus, we're a one-time payment - not a monthly subscription trap."
     },
     {
       q: "Is this legal?",
@@ -31,7 +31,7 @@ export default function FAQ() {
     },
     {
       q: "What if nothing gets deleted?",
-      a: "While we have a 95% success rate, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% money-back guarantee if you're not satisfied."
+      a: "While many customers see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% money-back guarantee if you're not satisfied."
     },
     {
       q: "How much does traditional credit monitoring cost?",
@@ -59,7 +59,7 @@ export default function FAQ() {
     },
     {
       q: "Can I use this for bankruptcies or foreclosures?",
-      a: "Yes, but results vary. Bankruptcies and foreclosures are public records and harder to remove unless there are errors or FCRA violations. Our AI looks for reporting errors, timeline inconsistencies, and cross-bureau conflicts that can force deletions even for major items."
+      a: "Yes, but results vary. Bankruptcies and foreclosures are public records and harder to remove unless there are errors or FCRA violations. Our AI looks for reporting errors, timeline inconsistencies, and cross-bureau conflicts that can support removal requests even for major items."
     },
     {
       q: "Do you offer refunds?",
@@ -187,9 +187,9 @@ export default function FAQ() {
       {/* CTA Section */}
       <section className="py-20 bg-orange-600 text-white">
         <div className="container text-center">
-          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Delete Negative Items?</h2>
+          <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Challenge Inaccurate Items?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join 16,628 customers who've raised their credit scores by 80+ points
+            Join thousands of customers using our FCRA-compliant dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Get Started Now</Link>

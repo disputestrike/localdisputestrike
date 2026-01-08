@@ -116,14 +116,14 @@ export default function HowItWorks() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 2</Badge>
                 <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6">AI Analyzes & Creates Letters</h3>
                 <p className="text-lg text-gray-700 mb-6">
-                  Our AI detects cross-bureau conflicts, generates litigation-grade Attack letters with proper FCRA citations, and creates personalized arguments for each account.
+                  Our AI detects cross-bureau conflicts, generates documentation-driven Attack letters with proper FCRA citations, and creates personalized arguments for each account.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
                     <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
                     <div>
                       <p className="font-semibold text-gray-900">Cross-bureau conflict detection</p>
-                      <p className="text-gray-600">Finds discrepancies that force deletions</p>
+                      <p className="text-gray-600">Finds discrepancies that support removal requests</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
