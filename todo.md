@@ -1412,3 +1412,8 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 
 - [x] Replace "110% Guarantee" with "Money Back Guarantee" in all headers
 - [x] Save checkpoint
+
+## Phase 61: Remove Duplicate Disclaimer from Hero
+
+- [x] Remove "DisputeStrike is software — not a credit repair service" box from hero section
+- [x] Save checkpoint

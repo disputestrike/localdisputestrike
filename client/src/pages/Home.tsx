@@ -91,13 +91,6 @@ export default function Home() {
               Technology-assisted credit dispute support. Generate FCRA-compliant dispute letters with AI assistance. You're in control - you generate, print, and mail your own letters. Track your progress and exercise your rights under federal law.
             </p>
             
-            {/* Plain-English Software Disclaimer */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto">
-              <p className="text-sm text-blue-800">
-                <strong>DisputeStrike is software — not a credit repair service.</strong> You remain fully in control of all disputes. We provide tools to help you exercise your legal rights under the FCRA. Results vary by individual.
-              </p>
-            </div>
-            
             {/* Money Back Guarantee Badge */}
             <div className="flex items-center justify-center gap-3">
               <Link href="/guarantee">
