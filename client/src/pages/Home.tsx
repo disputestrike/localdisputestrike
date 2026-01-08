@@ -57,7 +57,7 @@ export default function Home() {
               FAQ
             </Link>
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
-              110% Guarantee
+              Money Back Guarantee
             </Link>
             {isAuthenticated ? (
               <UserDropdown />
@@ -98,7 +98,7 @@ export default function Home() {
               </p>
             </div>
             
-            {/* 110% Guarantee Badge */}
+            {/* Money Back Guarantee Badge */}
             <div className="flex items-center justify-center gap-3">
               <Link href="/guarantee">
                 <Badge className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base cursor-pointer transition-all hover:scale-105">

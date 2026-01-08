@@ -31,7 +31,7 @@ export default function CROADisclosure() {
               FAQ
             </Link>
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
-              110% Guarantee
+              Money Back Guarantee
             </Link>
             {isAuthenticated ? (
               <UserDropdown />

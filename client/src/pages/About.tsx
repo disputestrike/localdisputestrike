@@ -22,7 +22,7 @@ export default function About() {
               <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium">How It Works</Link>
               <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
               <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium">FAQ</Link>
-              <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium">110% Guarantee</Link>
+              <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium">Money Back Guarantee</Link>
               <UserDropdown />
             </nav>
 
@@ -209,7 +209,7 @@ export default function About() {
               <ul className="space-y-2">
                 <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">110% Guarantee</Link></li>
+                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">Money Back Guarantee</Link></li>
               </ul>
             </div>
             <div>

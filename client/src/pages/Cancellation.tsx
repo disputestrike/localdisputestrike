@@ -31,7 +31,7 @@ export default function Cancellation() {
               FAQ
             </Link>
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
-              110% Guarantee
+              Money Back Guarantee
             </Link>
             {isAuthenticated ? (
               <UserDropdown />
@@ -164,7 +164,7 @@ export default function Cancellation() {
                   
                   <div className="flex items-start gap-3">
                     <div className="bg-orange-100 text-orange-800 rounded-full px-3 py-1 text-sm font-medium">
-                      110% Guarantee
+                      Money Back Guarantee
                     </div>
                     <div>
                       <p className="text-gray-700">

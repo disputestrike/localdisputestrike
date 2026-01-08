@@ -1407,3 +1407,8 @@ Navigation is ALREADY correctly implemented with conditional rendering:
 - [x] Use DisputeStrike branding and messaging
 - [x] Position near top of homepage (after main hero)
 - [x] Save checkpoint
+
+## Phase 60: Rename 110% Guarantee to Money Back Guarantee
+
+- [x] Replace "110% Guarantee" with "Money Back Guarantee" in all headers
+- [x] Save checkpoint

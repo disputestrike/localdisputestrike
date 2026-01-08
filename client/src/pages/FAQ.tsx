@@ -106,7 +106,7 @@ export default function FAQ() {
               <a className="text-orange-600 hover:text-orange-700 font-medium transition-colors">FAQ</a>
             </Link>
             <Link href="/money-back-guarantee">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">110% Guarantee</a>
+              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Money Back Guarantee</a>
             </Link>
             {isAuthenticated ? (
               <UserDropdown />

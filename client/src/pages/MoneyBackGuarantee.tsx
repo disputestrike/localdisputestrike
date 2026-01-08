@@ -22,7 +22,7 @@ export default function MoneyBackGuarantee() {
               <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium">How It Works</Link>
               <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
               <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium">FAQ</Link>
-              <Link href="/money-back-guarantee" className="text-orange-600 hover:text-orange-700 font-medium">110% Guarantee</Link>
+              <Link href="/money-back-guarantee" className="text-orange-600 hover:text-orange-700 font-medium">Money Back Guarantee</Link>
               <UserDropdown />
             </nav>
 
@@ -125,7 +125,7 @@ export default function MoneyBackGuarantee() {
                 <ol className="space-y-4 text-gray-700">
                   <li className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">1</div>
-                    <span>Email your claim to <strong>support@disputestrike.com</strong> with "110% Guarantee Claim" in the subject line.</span>
+                    <span>Email your claim to <strong>support@disputestrike.com</strong> with "Money Back Guarantee Claim" in the subject line.</span>
                   </li>
                   <li className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">2</div>
@@ -252,7 +252,7 @@ export default function MoneyBackGuarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 mb-4">
-                  For questions or concerns about the DisputeStrike 110% Software Satisfaction Guarantee, email <strong>support@disputestrike.com</strong>. Include "110% Guarantee Inquiry" in the subject line for a prompt response.
+                  For questions or concerns about the DisputeStrike 110% Software Satisfaction Guarantee, email <strong>support@disputestrike.com</strong>. Include "Money Back Guarantee Inquiry" in the subject line for a prompt response.
                 </p>
               </CardContent>
             </Card>
@@ -304,8 +304,8 @@ export default function MoneyBackGuarantee() {
               <ul className="space-y-2">
                 <li><Link href="/terms" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
                 <li><Link href="/privacy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">110% Guarantee</Link></li>
-                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">110% Guarantee</Link></li>
+                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">Money Back Guarantee</Link></li>
+                <li><Link href="/money-back-guarantee" className="text-gray-400 hover:text-white">Money Back Guarantee</Link></li>
               </ul>
             </div>
             <div>
