@@ -19,7 +19,9 @@ import {
   Shield,
   Bot,
   Trash2,
-  Loader2
+  Loader2,
+  Printer,
+  ArrowUpDown
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -35,6 +37,9 @@ export default function Dashboard() {
   
   // Bulk account selection state
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number>>(new Set());
+  
+  // Sort state for accounts
+  const [sortBy, setSortBy] = useState<'default' | 'conflicts' | 'balance'>('default');
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
@@ -111,6 +116,23 @@ export default function Dashboard() {
       setSelectedAccountIds(new Set(negativeAccounts.map(a => a.id)));
     }
   };
+  
+  // Sort accounts based on selected criteria
+  const sortedAccounts = negativeAccounts ? [...negativeAccounts].sort((a, b) => {
+    if (sortBy === 'conflicts') {
+      // Conflicts first (true = 1, false = 0, so we want descending)
+      if (a.hasConflicts && !b.hasConflicts) return -1;
+      if (!a.hasConflicts && b.hasConflicts) return 1;
+      return 0;
+    }
+    if (sortBy === 'balance') {
+      // Highest balance first
+      const balanceA = parseFloat(String(a.balance || '0'));
+      const balanceB = parseFloat(String(b.balance || '0'));
+      return balanceB - balanceA;
+    }
+    return 0; // default order
+  }) : [];
 
   const submitGenerateLetters = async () => {
     if (!currentAddress.trim()) {
@@ -569,7 +591,18 @@ export default function Dashboard() {
                       {negativeAccounts.filter(a => a.hasConflicts).length} accounts have cross-bureau conflicts
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {/* Sort Dropdown */}
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'default' | 'conflicts' | 'balance')}
+                      className="px-3 py-1.5 text-sm border rounded-md bg-background"
+                    >
+                      <option value="default">Sort: Default</option>
+                      <option value="conflicts">🚨 Conflicts First</option>
+                      <option value="balance">💰 Highest Balance</option>
+                    </select>
+                    
                     {/* Select All / Deselect All */}
                     <Button 
                       variant="outline" 
@@ -610,7 +643,7 @@ export default function Dashboard() {
                 )}
 
                 <div className="grid gap-4">
-                  {negativeAccounts.map((account) => (
+                  {sortedAccounts.map((account) => (
                     <Card 
                       key={account.id}
                       className={`cursor-pointer transition-all ${
@@ -747,12 +780,46 @@ export default function Dashboard() {
           <TabsContent value="letters" className="space-y-6">
             {disputeLetters && disputeLetters.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold">Your Dispute Letters</h3>
                     <p className="text-sm text-muted-foreground">
                       {disputeLetters.length} letters generated
                     </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Open all letters in new tabs for printing
+                        disputeLetters.forEach((letter, idx) => {
+                          setTimeout(() => {
+                            window.open(`/letter/${letter.id}?print=true`, '_blank');
+                          }, idx * 500); // Stagger to avoid popup blocker
+                        });
+                        toast.success(`Opening ${disputeLetters.length} letters for printing...`);
+                      }}
+                    >
+                      <Printer className="h-4 w-4 mr-2" />
+                      Print All Letters
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Download all letters
+                        disputeLetters.forEach((letter, idx) => {
+                          setTimeout(() => {
+                            window.open(`/api/letters/${letter.id}/pdf`, '_blank');
+                          }, idx * 300);
+                        });
+                        toast.success(`Downloading ${disputeLetters.length} letters...`);
+                      }}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download All
+                    </Button>
                   </div>
                 </div>
 
@@ -779,12 +846,20 @@ export default function Dashboard() {
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-wrap">
                           <Button variant="outline" size="sm" asChild>
                             <Link href={`/letter/${letter.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
-                              View Letter
+                              View
                             </Link>
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => window.open(`/letter/${letter.id}?print=true`, '_blank')}
+                          >
+                            <Printer className="h-4 w-4 mr-2" />
+                            Print
                           </Button>
                           {letter.status === "generated" && (
                             <Button size="sm" className="gradient-primary text-primary-foreground">

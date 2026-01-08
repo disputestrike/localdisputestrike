@@ -4,14 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Download, Mail, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Download, Mail, CheckCircle2, AlertTriangle, Printer } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
+import { useEffect } from "react";
 
 export default function LetterView() {
   const [, params] = useRoute("/letter/:letterId");
   const letterId = params?.letterId ? parseInt(params.letterId) : 0;
+  
+  // Check for print query param
+  const urlParams = new URLSearchParams(window.location.search);
+  const shouldPrint = urlParams.get('print') === 'true';
 
   const { data: letter, isLoading } = trpc.disputeLetters.get.useQuery({ id: letterId });
   const updateStatus = trpc.disputeLetters.updateStatus.useMutation({
@@ -69,6 +74,20 @@ export default function LetterView() {
       trackingNumber: trackingNumber || undefined,
     });
   };
+  
+  const handlePrint = () => {
+    window.print();
+  };
+  
+  // Auto-print if ?print=true in URL
+  useEffect(() => {
+    if (shouldPrint && letter && !isLoading) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  }, [shouldPrint, letter, isLoading]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,6 +101,10 @@ export default function LetterView() {
             </Link>
           </Button>
           <div className="flex-1" />
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print
+          </Button>
           <Button variant="outline" onClick={handleDownload}>
             <Download className="h-4 w-4 mr-2" />
             Download

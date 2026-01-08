@@ -162,6 +162,64 @@ export default function DisputeTracking() {
           </p>
         </div>
 
+        {/* Deadline Warning Alert */}
+        {letters && letters.some(l => {
+          const days = getDaysSinceMailed(l.mailedAt);
+          return days !== null && days >= 25 && days <= 30 && l.status === 'mailed';
+        }) && (
+          <Card className="bg-orange-500/10 border-orange-500/30">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-orange-500/20 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-orange-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-orange-400">Deadline Approaching!</p>
+                  <p className="text-sm text-slate-300 mt-1">
+                    {letters.filter(l => {
+                      const days = getDaysSinceMailed(l.mailedAt);
+                      return days !== null && days >= 25 && days <= 30 && l.status === 'mailed';
+                    }).length} dispute(s) are approaching the 30-day deadline. 
+                    If the bureau doesn't respond within 30 days, the item must be deleted under FCRA § 611.
+                  </p>
+                  <p className="text-xs text-orange-400 mt-2">
+                    💡 Tip: If no response by day 30, you can escalate with a "Failure to Respond" letter citing FCRA violations.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Overdue Alert */}
+        {letters && letters.some(l => {
+          const days = getDaysSinceMailed(l.mailedAt);
+          return days !== null && days > 30 && l.status === 'mailed';
+        }) && (
+          <Card className="bg-red-500/10 border-red-500/30">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-red-500/20 rounded-lg">
+                  <XCircle className="h-5 w-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-red-400">FCRA Violation - Bureau Overdue!</p>
+                  <p className="text-sm text-slate-300 mt-1">
+                    {letters.filter(l => {
+                      const days = getDaysSinceMailed(l.mailedAt);
+                      return days !== null && days > 30 && l.status === 'mailed';
+                    }).length} dispute(s) have exceeded the 30-day deadline without response. 
+                    Under FCRA § 611(a)(1), the bureau must delete unverified information.
+                  </p>
+                  <p className="text-xs text-red-400 mt-2">
+                    🔥 Action: Send a "Failure to Respond" escalation letter demanding immediate deletion.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-slate-900 border-slate-800">

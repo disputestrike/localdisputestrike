@@ -357,3 +357,12 @@ DisputeStrike
 - Stripe is in test mode (sandbox needs to be claimed)
 - Email drip campaign system is built but requires SMTP credentials
 - All "litigation-grade" language has been updated to "FCRA-compliant"
+
+
+## Phase 54: Branding Fix + Competitive Improvements (User Request)
+
+- [x] Fix all branding to "DisputeStrike" (already correct in codebase)
+- [x] Add deadline warning alerts (25-30 days approaching, >30 days overdue) on Tracking page
+- [x] Add "Sort by Conflicts" option in Negative Accounts tab (also sort by balance)
+- [x] Add print multiple selected letters at once (Print All, Download All buttons)
+- [x] Add print button to individual letters with auto-print URL parameter
