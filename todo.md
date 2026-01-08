@@ -310,6 +310,14 @@
 
 ---
 
+## Phase 53: Three New Features (User Request)
+
+- [x] Mark as Mailed functionality with 30-day countdown timer
+- [x] Cross-bureau conflict highlighting in red (Negative Accounts tab)
+- [x] Bulk account selection for letter generation
+
+---
+
 ## 📊 PROJECT STATS
 
 | Metric | Count |

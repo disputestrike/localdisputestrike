@@ -32,6 +32,9 @@ export default function Dashboard() {
   const [uploadingBureau, setUploadingBureau] = useState<string | null>(null);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
   const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);
+  
+  // Bulk account selection state
+  const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number>>(new Set());
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
@@ -76,8 +79,37 @@ export default function Dashboard() {
       return;
     }
     
+    // If no accounts selected, use all accounts
+    if (selectedAccountIds.size === 0) {
+      // Auto-select all accounts
+      setSelectedAccountIds(new Set(negativeAccounts.map(a => a.id)));
+    }
+    
     // Show address modal to collect user's address
     setShowAddressModal(true);
+  };
+  
+  // Toggle account selection
+  const toggleAccountSelection = (accountId: number) => {
+    setSelectedAccountIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(accountId)) {
+        newSet.delete(accountId);
+      } else {
+        newSet.add(accountId);
+      }
+      return newSet;
+    });
+  };
+  
+  // Select/deselect all accounts
+  const toggleSelectAll = () => {
+    if (!negativeAccounts) return;
+    if (selectedAccountIds.size === negativeAccounts.length) {
+      setSelectedAccountIds(new Set());
+    } else {
+      setSelectedAccountIds(new Set(negativeAccounts.map(a => a.id)));
+    }
   };
 
   const submitGenerateLetters = async () => {
@@ -90,11 +122,18 @@ export default function Dashboard() {
     setIsGeneratingLetters(true);
     
     try {
+      // Pass selected account IDs if any are selected
+      const accountIds = selectedAccountIds.size > 0 ? Array.from(selectedAccountIds) : undefined;
+      
       await generateLettersMutation.mutateAsync({
         currentAddress,
         previousAddress: previousAddress || undefined,
         bureaus: ['transunion', 'equifax', 'experian'],
+        accountIds,
       });
+      
+      // Clear selection after successful generation
+      setSelectedAccountIds(new Set());
     } catch (error) {
       console.error('Letter generation failed:', error);
     }
@@ -522,40 +561,106 @@ export default function Dashboard() {
               </Alert>
             ) : negativeAccounts && negativeAccounts.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                {/* Header with bulk selection controls */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold">Negative Accounts Found</h3>
                     <p className="text-sm text-muted-foreground">
                       {negativeAccounts.filter(a => a.hasConflicts).length} accounts have cross-bureau conflicts
                     </p>
                   </div>
-                  <Button 
-                    onClick={handleGenerateLetters}
-                    disabled={isGeneratingLetters}
-                  >
-                    {isGeneratingLetters ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
-                    ) : (
-                      <><FileText className="h-4 w-4 mr-2" />Generate Letters</>
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    {/* Select All / Deselect All */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={toggleSelectAll}
+                    >
+                      {selectedAccountIds.size === negativeAccounts.length ? 'Deselect All' : 'Select All'}
+                    </Button>
+                    
+                    {/* Generate Letters Button */}
+                    <Button 
+                      onClick={handleGenerateLetters}
+                      disabled={isGeneratingLetters}
+                    >
+                      {isGeneratingLetters ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
+                      ) : (
+                        <><FileText className="h-4 w-4 mr-2" />
+                          Generate Letters
+                          {selectedAccountIds.size > 0 && selectedAccountIds.size < negativeAccounts.length && (
+                            <span className="ml-1">({selectedAccountIds.size})</span>
+                          )}
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
+                
+                {/* Selection info banner */}
+                {selectedAccountIds.size > 0 && selectedAccountIds.size < negativeAccounts.length && (
+                  <Alert className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+                    <CheckCircle2 className="h-4 w-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 dark:text-blue-300">
+                      <strong>{selectedAccountIds.size} of {negativeAccounts.length}</strong> accounts selected for dispute. 
+                      Click "Generate Letters" to create dispute letters for only the selected accounts.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
                 <div className="grid gap-4">
                   {negativeAccounts.map((account) => (
-                    <Card key={account.id}>
+                    <Card 
+                      key={account.id}
+                      className={`cursor-pointer transition-all ${
+                        selectedAccountIds.has(account.id) 
+                          ? 'ring-2 ring-blue-500 ring-offset-2' 
+                          : ''
+                      } ${
+                        account.hasConflicts 
+                          ? "border-2 border-red-500 bg-red-50/50 dark:bg-red-950/20 shadow-red-100 dark:shadow-red-900/20 shadow-lg" 
+                          : ""
+                      }`}
+                      onClick={() => toggleAccountSelection(account.id)}
+                    >
                       <CardHeader>
                         <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-base">{account.accountName}</CardTitle>
-                            <CardDescription>
-                              {account.accountNumber && `Account: ${account.accountNumber}`}
-                            </CardDescription>
+                          <div className="flex items-start gap-3">
+                            {/* Checkbox */}
+                            <div 
+                              className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                selectedAccountIds.has(account.id)
+                                  ? 'bg-blue-600 border-blue-600'
+                                  : 'border-gray-300 dark:border-gray-600'
+                              }`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleAccountSelection(account.id);
+                              }}
+                            >
+                              {selectedAccountIds.has(account.id) && (
+                                <CheckCircle2 className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                            <div>
+                              <CardTitle className={`text-base ${account.hasConflicts ? "text-red-700 dark:text-red-400" : ""}`}>
+                                {account.accountName}
+                                {account.hasConflicts && (
+                                  <span className="ml-2 text-red-600 dark:text-red-400 text-sm font-normal">
+                                    ⚡ High Priority
+                                  </span>
+                                )}
+                              </CardTitle>
+                              <CardDescription>
+                                {account.accountNumber && `Account: ${account.accountNumber}`}
+                              </CardDescription>
+                            </div>
                           </div>
                           {account.hasConflicts && (
-                            <Badge variant="destructive">
+                            <Badge className="bg-red-600 hover:bg-red-700 text-white border-red-600 animate-pulse">
                               <AlertTriangle className="h-3 w-3 mr-1" />
-                              Conflicts Found
+                              CONFLICT DETECTED
                             </Badge>
                           )}
                         </div>
@@ -575,26 +680,42 @@ export default function Dashboard() {
                             <p className="font-semibold">{account.lastActivity || "Unknown"}</p>
                           </div>
                         </div>
+                        
+                        {/* Cross-Bureau Conflict Highlight Section */}
                         {account.hasConflicts && account.conflictDetails && (
-                          <div className="mt-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                            <p className="text-sm font-semibold mb-2">Cross-Bureau Conflicts:</p>
-                            <ul className="text-sm space-y-1">
+                          <div className="mt-4 p-4 rounded-lg bg-red-100 dark:bg-red-900/30 border-2 border-red-500">
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className="p-1.5 bg-red-600 rounded-full">
+                                <AlertTriangle className="h-4 w-4 text-white" />
+                              </div>
+                              <p className="text-sm font-bold text-red-700 dark:text-red-400">
+                                🎯 Cross-Bureau Conflicts Detected - Your Strongest Deletion Argument!
+                              </p>
+                            </div>
+                            <p className="text-xs text-red-600 dark:text-red-400 mb-3">
+                              When bureaus report different information, it proves the data is unverifiable and MUST be deleted under FCRA § 1681i(a)(5).
+                            </p>
+                            <ul className="text-sm space-y-2">
                               {JSON.parse(account.conflictDetails).map((conflict: any, idx: number) => (
-                                <li key={idx} className="flex items-start gap-2">
-                                  <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
-                                  <span>{conflict.description}</span>
+                                <li key={idx} className="flex items-start gap-2 bg-white dark:bg-slate-800 p-2 rounded border border-red-300 dark:border-red-700">
+                                  <span className="text-red-600 font-bold">⚠️</span>
+                                  <span className="text-red-800 dark:text-red-300 font-medium">{conflict.description}</span>
                                 </li>
                               ))}
                             </ul>
                           </div>
                         )}
+                        
                         {/* Furnisher Letter Button */}
                         <div className="mt-4 pt-4 border-t">
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => setFurnisherModalAccount(account)}
-                            className="w-full"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFurnisherModalAccount(account);
+                            }}
+                            className={`w-full ${account.hasConflicts ? "border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950" : ""}`}
                           >
                             <Building2 className="h-4 w-4 mr-2" />
                             Dispute Directly with Creditor

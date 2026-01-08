@@ -20,12 +20,18 @@ import {
   TrendingUp,
   Mail,
   RefreshCw,
+  Send,
 } from "lucide-react";
 
 export default function DisputeTracking() {
   const [selectedLetter, setSelectedLetter] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [showOutcomeModal, setShowOutcomeModal] = useState(false);
+  const [showMailedModal, setShowMailedModal] = useState(false);
+  const [mailedData, setMailedData] = useState({
+    trackingNumber: '',
+    mailedDate: new Date().toISOString().split('T')[0],
+  });
   const [outcomeData, setOutcomeData] = useState({
     outcome: 'pending' as 'deleted' | 'verified' | 'updated' | 'no_response' | 'pending',
     notes: '',
@@ -40,6 +46,18 @@ export default function DisputeTracking() {
       toast.success("Dispute outcome recorded");
       refetchOutcomes();
       setShowOutcomeModal(false);
+    },
+  });
+
+  const updateStatusMutation = trpc.disputeLetters.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Letter marked as mailed! 30-day countdown started.");
+      refetchLetters();
+      setShowMailedModal(false);
+      setMailedData({ trackingNumber: '', mailedDate: new Date().toISOString().split('T')[0] });
+    },
+    onError: (error) => {
+      toast.error(`Failed to update status: ${error.message}`);
     },
   });
 
@@ -92,6 +110,21 @@ export default function DisputeTracking() {
       default:
         return <Badge variant="outline">Pending</Badge>;
     }
+  };
+
+  const handleMarkAsMailed = (letterId: number) => {
+    setSelectedLetter(letterId);
+    setShowMailedModal(true);
+  };
+
+  const submitMailed = () => {
+    if (!selectedLetter) return;
+    updateStatusMutation.mutate({
+      id: selectedLetter,
+      status: 'mailed',
+      mailedAt: mailedData.mailedDate,
+      trackingNumber: mailedData.trackingNumber || undefined,
+    });
   };
 
   const handleRecordOutcome = (letterId: number) => {
@@ -202,8 +235,8 @@ export default function DisputeTracking() {
                 {letters.map((letter) => {
                   const daysSinceMailed = letter.mailedAt ? getDaysSinceMailed(letter.mailedAt) : null;
                   const outcome = outcomes?.find(o => o.disputeLetterId === letter.id);
-                  const daysRemaining = daysSinceMailed ? Math.max(0, 30 - daysSinceMailed) : 30;
-                  const progressPercent = daysSinceMailed ? Math.min(100, (daysSinceMailed / 30) * 100) : 0;
+                  const daysRemaining = daysSinceMailed !== null ? Math.max(0, 30 - daysSinceMailed) : 30;
+                  const progressPercent = daysSinceMailed !== null ? Math.min(100, (daysSinceMailed / 30) * 100) : 0;
 
                   return (
                     <div
@@ -232,15 +265,20 @@ export default function DisputeTracking() {
                                 Mailed: {new Date(letter.mailedAt).toLocaleDateString()}
                               </span>
                             )}
+                            {letter.trackingNumber && (
+                              <span className="flex items-center gap-1 text-cyan-400">
+                                Tracking: {letter.trackingNumber}
+                              </span>
+                            )}
                             <span>Round {letter.round} • {letter.letterType}</span>
                           </div>
 
-                          {/* 30-day countdown */}
+                          {/* 30-day countdown - only show when mailed and no outcome yet */}
                           {letter.status === 'mailed' && !outcome && (
                             <div className="mb-3">
                               <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                                 <span>30-Day Investigation Period</span>
-                                <span className={daysRemaining <= 5 ? 'text-red-400' : ''}>
+                                <span className={daysRemaining <= 5 ? 'text-red-400 font-bold' : daysRemaining <= 10 ? 'text-yellow-400' : ''}>
                                   {daysRemaining} days remaining
                                 </span>
                               </div>
@@ -248,6 +286,11 @@ export default function DisputeTracking() {
                                 value={progressPercent} 
                                 className="h-2 bg-slate-700"
                               />
+                              {daysRemaining === 0 && (
+                                <p className="text-xs text-red-400 mt-1">
+                                  ⚠️ 30-day deadline passed! If no response, file CFPB complaint.
+                                </p>
+                              )}
                             </div>
                           )}
 
@@ -270,6 +313,19 @@ export default function DisputeTracking() {
                             View
                           </Button>
                           
+                          {/* Mark as Mailed button - show only for generated letters */}
+                          {letter.status === 'generated' && (
+                            <Button
+                              size="sm"
+                              className="bg-orange-600 hover:bg-orange-700 text-white"
+                              onClick={() => handleMarkAsMailed(letter.id)}
+                            >
+                              <Send className="h-4 w-4 mr-1" />
+                              Mark as Mailed
+                            </Button>
+                          )}
+                          
+                          {/* Record Outcome button - show only for mailed letters without outcome */}
                           {letter.status === 'mailed' && !outcome && (
                             <Button
                               size="sm"
@@ -281,6 +337,7 @@ export default function DisputeTracking() {
                             </Button>
                           )}
 
+                          {/* Round 2 button - show for verified outcomes */}
                           {outcome?.outcome === 'verified' && (
                             <Button
                               size="sm"
@@ -312,6 +369,84 @@ export default function DisputeTracking() {
           </CardContent>
         </Card>
 
+        {/* Mark as Mailed Modal */}
+        {showMailedModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <Card className="bg-slate-900 border-slate-800 w-full max-w-md mx-4">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Send className="h-5 w-5 text-orange-400" />
+                  Mark as Mailed
+                </CardTitle>
+                <CardDescription className="text-slate-400">
+                  Enter the mailing details to start the 30-day countdown
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Date Mailed *
+                  </label>
+                  <input
+                    type="date"
+                    value={mailedData.mailedDate}
+                    onChange={(e) => setMailedData({ ...mailedData, mailedDate: e.target.value })}
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                    USPS Tracking Number (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={mailedData.trackingNumber}
+                    onChange={(e) => setMailedData({ ...mailedData, trackingNumber: e.target.value })}
+                    placeholder="9400 1234 5678 9012 3456 78"
+                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Certified Mail tracking numbers start with 9407 or 9400
+                  </p>
+                </div>
+
+                <div className="bg-orange-500/10 border border-orange-500/30 rounded-lg p-3">
+                  <p className="text-sm text-orange-300">
+                    <strong>Important:</strong> Once marked as mailed, the 30-day countdown begins. 
+                    Credit bureaus must respond within 30 days under FCRA § 1681i(a)(1).
+                  </p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    className="flex-1 border-slate-700 text-slate-300"
+                    onClick={() => {
+                      setShowMailedModal(false);
+                      setMailedData({ trackingNumber: '', mailedDate: new Date().toISOString().split('T')[0] });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="flex-1 bg-orange-600 hover:bg-orange-700"
+                    onClick={submitMailed}
+                    disabled={updateStatusMutation.isPending || !mailedData.mailedDate}
+                  >
+                    {updateStatusMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Send className="h-4 w-4 mr-2" />
+                    )}
+                    Start 30-Day Countdown
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Outcome Modal */}
         {showOutcomeModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -325,22 +460,23 @@ export default function DisputeTracking() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: 'deleted', label: 'Deleted', icon: CheckCircle2, color: 'green' },
-                    { value: 'verified', label: 'Verified', icon: XCircle, color: 'red' },
-                    { value: 'updated', label: 'Updated', icon: RefreshCw, color: 'blue' },
-                    { value: 'no_response', label: 'No Response', icon: AlertTriangle, color: 'yellow' },
+                    { value: 'deleted', label: 'Deleted', icon: CheckCircle2, color: 'green', desc: 'Item removed from report' },
+                    { value: 'verified', label: 'Verified', icon: XCircle, color: 'red', desc: 'Bureau confirmed accuracy' },
+                    { value: 'updated', label: 'Updated', icon: RefreshCw, color: 'blue', desc: 'Information was corrected' },
+                    { value: 'no_response', label: 'No Response', icon: AlertTriangle, color: 'yellow', desc: 'No reply after 30 days' },
                   ].map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setOutcomeData({ ...outcomeData, outcome: option.value as any })}
-                      className={`p-4 rounded-lg border transition-colors ${
+                      className={`p-4 rounded-lg border transition-colors text-left ${
                         outcomeData.outcome === option.value
                           ? `bg-${option.color}-500/20 border-${option.color}-500/50`
                           : 'bg-slate-800 border-slate-700 hover:border-slate-600'
                       }`}
                     >
-                      <option.icon className={`h-6 w-6 mx-auto mb-2 text-${option.color}-400`} />
-                      <span className="text-sm text-white">{option.label}</span>
+                      <option.icon className={`h-6 w-6 mb-2 text-${option.color}-400`} />
+                      <span className="text-sm font-medium text-white block">{option.label}</span>
+                      <span className="text-xs text-slate-400">{option.desc}</span>
                     </button>
                   ))}
                 </div>

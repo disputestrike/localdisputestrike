@@ -525,13 +525,19 @@ You help users understand their credit reports, identify violations, and develop
         currentAddress: z.string(),
         previousAddress: z.string().optional(),
         bureaus: z.array(z.enum(['transunion', 'equifax', 'experian'])),
+        accountIds: z.array(z.number()).optional(), // Optional: specific accounts to dispute (bulk selection)
       }))
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
         const userName = ctx.user.name || 'User';
 
-        // Get all accounts
-        const accounts = await db.getNegativeAccountsByUserId(userId);
+        // Get accounts - either specific ones or all
+        let accounts = await db.getNegativeAccountsByUserId(userId);
+        
+        // If specific account IDs provided, filter to only those
+        if (input.accountIds && input.accountIds.length > 0) {
+          accounts = accounts.filter(a => input.accountIds!.includes(a.id));
+        }
         
         // Import Manus AI letter generator
         const { invokeLLM } = await import('./_core/llm');
@@ -1058,7 +1064,42 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
         
-        // TODO: Implement update in db.ts
+        // Build updates object
+        const updates: {
+          mailedAt?: Date;
+          trackingNumber?: string;
+          responseDeadline?: Date;
+          responseReceivedAt?: Date;
+        } = {};
+        
+        if (input.mailedAt) {
+          updates.mailedAt = new Date(input.mailedAt);
+          // Set 30-day response deadline
+          const deadline = new Date(input.mailedAt);
+          deadline.setDate(deadline.getDate() + 30);
+          updates.responseDeadline = deadline;
+        }
+        
+        if (input.trackingNumber) {
+          updates.trackingNumber = input.trackingNumber;
+        }
+        
+        if (input.responseReceivedAt) {
+          updates.responseReceivedAt = new Date(input.responseReceivedAt);
+        }
+        
+        await db.updateDisputeLetterStatus(input.id, input.status, updates);
+        
+        // Log activity
+        await db.logActivity({
+          userId,
+          activityType: input.status === 'mailed' ? 'letter_mailed' : `letter_status_${input.status}`,
+          description: input.status === 'mailed' 
+            ? `Marked dispute letter as mailed${input.trackingNumber ? ` (Tracking: ${input.trackingNumber})` : ''}`
+            : `Updated letter status to ${input.status}`,
+          metadata: JSON.stringify({ letterId: input.id, status: input.status, trackingNumber: input.trackingNumber }),
+        });
+        
         return { success: true };
       }),
 
