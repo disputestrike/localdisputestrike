@@ -96,7 +96,7 @@ export default function Home() {
               <Link href="/guarantee">
                 <Badge className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-base cursor-pointer transition-all hover:scale-105">
                   <Shield className="h-5 w-5 mr-2" />
-                  110% Software Satisfaction Guarantee
+                  Money Back Guarantee
                 </Badge>
               </Link>
             </div>
@@ -1206,7 +1206,7 @@ export default function Home() {
               </div>
               <div>
                 <p className="text-gray-400">Email: support@disputestrike.com</p>
-                <p className="text-gray-400">Phone: (307) 555-0123</p>
+                <p className="text-gray-400">Phone: Contact us online</p>
               </div>
               <div>
                 <p className="text-gray-400">We are NOT affiliated with any credit bureau.</p>

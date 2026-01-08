@@ -175,7 +175,7 @@ export default function Pricing() {
           </div>
           <div className="flex items-center gap-1">
             <Check className="h-4 w-4 text-green-500" />
-            <span>110% Software Satisfaction Guarantee</span>
+            <span>Money Back Guarantee</span>
           </div>
           <div className="flex items-center gap-1">
             <Check className="h-4 w-4 text-green-500" />
@@ -333,7 +333,7 @@ export default function Pricing() {
               <strong>Your Rights:</strong> You have the right to dispute inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
             </p>
             <p>
-              <strong>110% Software Satisfaction Guarantee:</strong> If you're not satisfied with our software tools and platform experience within 30 days, you'll receive 110% of your purchase price back. This guarantee covers platform usability — not credit outcomes. <Link href="/money-back-guarantee" className="text-primary underline">See full terms</Link>.
+              <strong>Money Back Guarantee:</strong> If you're not satisfied with our software tools and platform experience within 30 days, you'll receive 110% of your purchase price back. This guarantee covers platform usability — not credit outcomes. <Link href="/money-back-guarantee" className="text-primary underline">See full terms</Link>.
             </p>
           </CardContent>
         </Card>

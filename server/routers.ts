@@ -38,7 +38,7 @@ const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 // System prompt for Manus AI letter generation - UPDATED with real-world success learnings
-const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate 10/10 litigation-grade dispute letters that achieve 70-85% deletion rates.
+const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate 10/10 FCRA-compliant dispute letters that achieve 70-85% deletion rates.
 
 Your letters MUST include:
 
@@ -112,7 +112,7 @@ function buildLetterPrompt(
     experian: 'P.O. Box 4500, Allen, TX 75013',
   };
   
-  return `Generate a litigation-grade FCRA dispute letter for ${bureauNames[bureau]}.
+  return `Generate a FCRA-compliant FCRA dispute letter for ${bureauNames[bureau]}.
 
 User Information:
 - Name: ${userName}
@@ -179,7 +179,7 @@ Pursuant to the Fair Credit Reporting Act (FCRA) § 1681i(a)(1)(A), I am writing
 
 I have identified ${accountCount} account(s) that contain inaccuracies and request immediate investigation and deletion of these items.
 
-[This is a placeholder letter. The full AI-generated litigation-grade dispute letter will be implemented in the next phase.]
+[This is a placeholder letter. The full AI-generated FCRA-compliant dispute letter will be implemented in the next phase.]
 
 I request that you:
 1. Conduct a reasonable reinvestigation of the disputed items

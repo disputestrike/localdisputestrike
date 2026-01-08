@@ -252,7 +252,7 @@ export default function CROADisclosure() {
                     <div>
                       <h4 className="font-medium text-gray-900">Phone</h4>
                       <p className="text-sm text-gray-600">
-                        (307) 555-0123
+                        Contact us online
                       </p>
                     </div>
                   </div>
