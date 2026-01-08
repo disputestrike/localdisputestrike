@@ -254,17 +254,44 @@ export function parseMultipleReports(reports: { text: string; bureau: 'TransUnio
  * Use Vision AI to extract negative accounts from image-based PDF
  */
 async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
-  const systemPrompt = `Extract ALL negative accounts from this credit report. Include collections, charge-offs, late payments, bankruptcies, and any account with negative status. Extract as many as you can find.`;
+  console.log(`[Vision AI] Processing ${bureau} report from: ${fileUrl.slice(0, 80)}...`);
+  
+  const systemPrompt = `You are an expert credit report analyst. Your job is to extract ALL negative accounts from credit reports.
+
+A negative account is ANY account that shows:
+- Collection accounts
+- Charge-offs
+- Late payments (30, 60, 90, 120+ days)
+- Bankruptcies
+- Judgments
+- Tax liens
+- Repossessions
+- Foreclosures
+- Accounts marked as "derogatory", "adverse", or "negative"
+- Any account with a negative payment history
+
+For EACH negative account found, extract:
+- accountName: The creditor or collection agency name
+- accountNumber: The account number (partial is fine, e.g., "****1234")
+- balance: Current balance as a number (0 if paid off)
+- status: Current status (e.g., "Collection", "Charge-off", "Late 90 days")
+- dateOpened: Date account was opened (MM/DD/YYYY format)
+- lastActivity: Last activity date (MM/DD/YYYY format)
+- accountType: Type of account (e.g., "Collection", "Credit Card", "Medical", "Auto Loan")
+- originalCreditor: Original creditor if this is a collection account
+
+Be thorough - extract EVERY negative account you can find in the document.`;
 
   try {
+    // Use file_url for PDFs (not image_url)
     const response = await invokeLLM({
       messages: [
         { role: 'system', content: systemPrompt },
         { 
           role: 'user', 
           content: [
-            { type: 'text', text: `Extract all negative accounts from this ${bureau} credit report:` },
-            { type: 'image_url', image_url: { url: fileUrl } }
+            { type: 'text', text: `This is a ${bureau} credit report. Please carefully analyze every page and extract ALL negative accounts. List each negative account with its details.` },
+            { type: 'file_url', file_url: { url: fileUrl, mime_type: 'application/pdf' } }
           ]
         },
       ],
@@ -303,15 +330,27 @@ async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifa
     });
 
     const content = response.choices[0]?.message?.content;
-    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    console.log(`[Vision AI] Raw response:`, content?.slice(0, 500));
     
-    return parsed.accounts.map((acc: any) => ({
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    console.log(`[Vision AI] Parsed ${parsed.accounts?.length || 0} accounts`);
+    
+    const accounts = parsed.accounts.map((acc: any) => ({
       ...acc,
       dateOpened: acc.dateOpened ? parseDate(acc.dateOpened) : null,
       lastActivity: acc.lastActivity ? parseDate(acc.lastActivity) : null,
+      bureau,
+      rawData: '',
     }));
+    
+    // Log each account found
+    for (const acc of accounts) {
+      console.log(`[Vision AI] Found: ${acc.accountName} - ${acc.status} - $${acc.balance}`);
+    }
+    
+    return accounts;
   } catch (error) {
-    console.error('Vision AI parsing failed:', error);
+    console.error('[Vision AI] Parsing failed:', error);
     return [];
   }
 }

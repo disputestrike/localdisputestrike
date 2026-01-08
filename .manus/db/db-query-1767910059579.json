@@ -1,0 +1,18 @@
+{
+  "query": "SELECT id, bureau, status, round, letterType, createdAt FROM dispute_letters ORDER BY id DESC LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute SELECT id, bureau, status, round, letterType, createdAt FROM dispute_letters ORDER BY id DESC LIMIT 10;",
+  "rows": [
+    {
+      "id": "1",
+      "bureau": "transunion",
+      "status": "generated",
+      "round": "1",
+      "letterType": "initial",
+      "createdAt": "2026-01-08 22:07:35"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tbureau\tstatus\tround\tletterType\tcreatedAt\n1\ttransunion\tgenerated\t1\tinitial\t2026-01-08 22:07:35\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

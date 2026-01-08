@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO payments (userId, stripePaymentId, amount, currency, tier, status, createdAt, updatedAt) VALUES (1, 'test_payment_001', 99.00, 'usd', 'diy_complete', 'completed', NOW(), NOW());",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute INSERT INTO payments (userId, stripePaymentId, amount, currency, tier, status, createdAt, updatedAt) VALUES (1, 'test_payment_001', 99.00, 'usd', 'diy_complete', 'completed', NOW(), NOW());",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 68
+}

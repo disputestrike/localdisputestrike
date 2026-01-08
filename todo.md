@@ -96,7 +96,78 @@
 
 ---
 
-## 🔄 IN PROGRESS
+## 🔄 IN PROGRESS - PRIORITY FIX PLAN
+
+### Phase 1: MVP Core Fixes (CRITICAL - This Week)
+
+**Day 1-2: Verify AI Parsing Flow**
+- [x] FIX: Credit reports uploaded but 0 negative accounts extracted (Vision AI fix for image-based PDFs)
+- [x] Test credit report upload → AI parsing → account extraction end-to-end
+- [x] Ensure Negative Accounts tab displays parsed accounts correctly (22 accounts now showing!)
+- [x] Fix any parsing errors or display issues
+- [ ] Add loading states and error handling for parsing
+
+**Day 3-4: Letter Generation Flow**
+- [x] Test account selection → letter generation → PDF download flow
+- [x] Verify letters have proper FCRA citations (litigation-grade letters generated!)
+- [x] Fix View Letter route (/letter/:letterId)
+- [x] Add letter preview (letter content visible on page)
+- [ ] Ensure PDF download works correctly (in progress)
+
+**Day 5: Tracking System**
+- [ ] Verify Tracking tab shows mailed letters
+- [ ] Test 30-day countdown timer
+- [ ] Ensure status updates work (Mailed → Waiting → Response)
+- [ ] Add outcome tracking (Deleted, Verified, Updated)
+
+### Phase 2: Differentiation (Week 2)
+
+**Cross-Bureau Conflicts**
+- [ ] Highlight conflicts in red on Negative Accounts tab
+- [ ] Show conflict explanation (why this is powerful)
+- [ ] Generate conflict-focused dispute letters
+
+**AI Assistant Improvements**
+- [ ] Add context about user's specific accounts
+- [ ] Improve response quality for dispute strategy questions
+- [ ] Add suggested questions/prompts
+
+**Round 2 & 3 Letters**
+- [ ] Add "Generate Round 2" button on verified accounts
+- [ ] More aggressive language for Round 2
+- [ ] Legal escalation language for Round 3
+
+### Phase 3: Polish (Week 3)
+
+**Analytics & Insights**
+- [ ] Dashboard metrics (total accounts, disputed, success rate)
+- [ ] Progress charts
+- [ ] Credit score impact estimate
+
+**User Experience**
+- [ ] Onboarding tutorial for new users
+- [ ] Email notifications for dispute status changes
+- [ ] Mobile responsive tweaks
+
+### Phase 4: Competitive Positioning
+
+**Marketing Updates**
+- [ ] Add "True Cost Comparison" section to pricing page (CreditFixrr $79.92 vs DisputeStrike $99)
+- [ ] Update hero: "Credit Dispute Software Without Hidden Costs"
+- [ ] Add "No SmartCredit Required" badge
+- [ ] Add "4 Minutes to First Letter" stat to homepage
+- [ ] Create comparison table on Compare page (11/13 categories we win)
+
+**DO NOT BUILD (Competitor Mistakes)**
+- ❌ Family plan (only 10% of market)
+- ❌ Referral program (build after 1000+ customers)
+- ❌ SmartCredit integration (vendor lock-in trap)
+- ❌ Affiliate marketplace (clutter, distraction)
+- ❌ Manual "Profile Optimizer" forms (fake AI)
+
+---
+
+## ✅ RECENTLY COMPLETED
 
 - [x] Create Monitor Your Credit section (like Dispute Beast style)
 - [x] Add furnisher letter generation button to Dashboard

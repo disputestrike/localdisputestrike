@@ -10,8 +10,8 @@ import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 
 export default function LetterView() {
-  const [, params] = useRoute("/letters/:id");
-  const letterId = params?.id ? parseInt(params.id) : 0;
+  const [, params] = useRoute("/letter/:letterId");
+  const letterId = params?.letterId ? parseInt(params.letterId) : 0;
 
   const { data: letter, isLoading } = trpc.disputeLetters.get.useQuery({ id: letterId });
   const updateStatus = trpc.disputeLetters.updateStatus.useMutation({

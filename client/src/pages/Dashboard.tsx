@@ -18,7 +18,8 @@ import {
   Clock,
   Shield,
   Bot,
-  Trash2
+  Trash2,
+  Loader2
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -46,6 +47,58 @@ export default function Dashboard() {
     }
   );
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
+
+  // Letter generation state
+  const [isGeneratingLetters, setIsGeneratingLetters] = useState(false);
+
+  // Generate letters mutation - uses disputeLetters.generate endpoint
+  const generateLettersMutation = trpc.disputeLetters.generate.useMutation({
+    onSuccess: (data) => {
+      const letterCount = data.letters?.length || 0;
+      toast.success(`Generated ${letterCount} dispute letters for ${data.totalAccounts} accounts!`);
+      refetchLetters();
+      setIsGeneratingLetters(false);
+    },
+    onError: (error: { message: string }) => {
+      toast.error(`Failed to generate letters: ${error.message}`);
+      setIsGeneratingLetters(false);
+    },
+  });
+
+  // Address modal state
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [currentAddress, setCurrentAddress] = useState('');
+  const [previousAddress, setPreviousAddress] = useState('');
+
+  const handleGenerateLetters = async () => {
+    if (!negativeAccounts || negativeAccounts.length === 0) {
+      toast.error('No negative accounts to dispute');
+      return;
+    }
+    
+    // Show address modal to collect user's address
+    setShowAddressModal(true);
+  };
+
+  const submitGenerateLetters = async () => {
+    if (!currentAddress.trim()) {
+      toast.error('Please enter your current address');
+      return;
+    }
+    
+    setShowAddressModal(false);
+    setIsGeneratingLetters(true);
+    
+    try {
+      await generateLettersMutation.mutateAsync({
+        currentAddress,
+        previousAddress: previousAddress || undefined,
+        bureaus: ['transunion', 'equifax', 'experian'],
+      });
+    } catch (error) {
+      console.error('Letter generation failed:', error);
+    }
+  };
 
   // Mutations
   const uploadReport = trpc.creditReports.upload.useMutation({
@@ -476,9 +529,15 @@ export default function Dashboard() {
                       {negativeAccounts.filter(a => a.hasConflicts).length} accounts have cross-bureau conflicts
                     </p>
                   </div>
-                  <Button>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Generate Letters
+                  <Button 
+                    onClick={handleGenerateLetters}
+                    disabled={isGeneratingLetters}
+                  >
+                    {isGeneratingLetters ? (
+                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating...</>
+                    ) : (
+                      <><FileText className="h-4 w-4 mr-2" />Generate Letters</>
+                    )}
                   </Button>
                 </div>
 
@@ -601,7 +660,7 @@ export default function Dashboard() {
                       <CardContent className="space-y-4">
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" asChild>
-                            <Link href={`/letters/${letter.id}`}>
+                            <Link href={`/letter/${letter.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
                               View Letter
                             </Link>
@@ -672,6 +731,58 @@ export default function Dashboard() {
             refetchLetters();
           }}
         />
+      )}
+
+      {/* Address Modal for Letter Generation */}
+      {showAddressModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md mx-4">
+            <CardHeader>
+              <CardTitle>Enter Your Address</CardTitle>
+              <CardDescription>
+                We need your address to generate your dispute letters. This will appear on all letters sent to the credit bureaus.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Current Address *</label>
+                <textarea
+                  className="w-full mt-1 p-3 border rounded-md text-sm"
+                  rows={3}
+                  placeholder="123 Main Street&#10;Apt 4B&#10;City, State 12345"
+                  value={currentAddress}
+                  onChange={(e) => setCurrentAddress(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Previous Address (optional)</label>
+                <textarea
+                  className="w-full mt-1 p-3 border rounded-md text-sm"
+                  rows={3}
+                  placeholder="If you've moved in the last 2 years"
+                  value={previousAddress}
+                  onChange={(e) => setPreviousAddress(e.target.value)}
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowAddressModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={submitGenerateLetters}
+                  disabled={!currentAddress.trim()}
+                >
+                  Generate Letters
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
     </div>
   );

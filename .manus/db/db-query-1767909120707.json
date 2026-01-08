@@ -1,0 +1,43 @@
+{
+  "query": "SELECT * FROM credit_reports LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute SELECT * FROM credit_reports LIMIT 10;",
+  "rows": [
+    {
+      "id": "120024",
+      "userId": "1",
+      "bureau": "transunion",
+      "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/transunion/1767723905608-TU.pdf",
+      "fileKey": "credit-reports/1/transunion/1767723905608-TU.pdf",
+      "fileName": "TU.pdf",
+      "uploadedAt": "2026-01-06 18:25:21",
+      "parsedData": "",
+      "isParsed": "1"
+    },
+    {
+      "id": "120025",
+      "userId": "1",
+      "bureau": "equifax",
+      "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/equifax/1767723935712-EQ.pdf",
+      "fileKey": "credit-reports/1/equifax/1767723935712-EQ.pdf",
+      "fileName": "EQ.pdf",
+      "uploadedAt": "2026-01-06 18:25:46",
+      "parsedData": "",
+      "isParsed": "1"
+    },
+    {
+      "id": "120026",
+      "userId": "1",
+      "bureau": "experian",
+      "fileUrl": "https://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/experian/1767723949674-EX.pdf",
+      "fileKey": "credit-reports/1/experian/1767723949674-EX.pdf",
+      "fileName": "EX.pdf",
+      "uploadedAt": "2026-01-06 18:26:10",
+      "parsedData": "",
+      "isParsed": "1"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tuserId\tbureau\tfileUrl\tfileKey\tfileName\tuploadedAt\tparsedData\tisParsed\n120024\t1\ttransunion\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/transunion/1767723905608-TU.pdf\tcredit-reports/1/transunion/1767723905608-TU.pdf\tTU.pdf\t2026-01-06 18:25:21\t\t1\n120025\t1\tequifax\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/equifax/1767723935712-EQ.pdf\tcredit-reports/1/equifax/1767723935712-EQ.pdf\tEQ.pdf\t2026-01-06 18:25:46\t\t1\n120026\t1\texperian\thttps://d2xsxph8kpxj0f.cloudfront.net/310519663188800477/KD8igV5APKrQwmz3rzYZ6D/credit-reports/1/experian/1767723949674-EX.pdf\tcredit-reports/1/experian/1767723949674-EX.pdf\tEX.pdf\t2026-01-06 18:26:10\t\t1\n",
+  "stderr": "",
+  "execution_time_ms": 56
+}
