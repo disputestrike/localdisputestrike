@@ -30,6 +30,16 @@ import CROADisclosure from "./pages/CROADisclosure";
 import Cancellation from "./pages/Cancellation";
 import MoneyBackGuarantee from "./pages/MoneyBackGuarantee";
 import CreditEducation from "./pages/CreditEducation";
+import DashboardHome from "./pages/DashboardHome";
+import CFPBComplaints from "./pages/CFPBComplaints";
+import InquiryRemoval from "./pages/InquiryRemoval";
+import DebtValidation from "./pages/DebtValidation";
+import ProfileOptimizer from "./pages/ProfileOptimizer";
+import CreditBuilding from "./pages/CreditBuilding";
+import Marketplace from "./pages/Marketplace";
+import ReferralProgram from "./pages/ReferralProgram";
+import DashboardSettings from "./pages/DashboardSettings";
+import DashboardSupport from "./pages/DashboardSupport";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -55,7 +65,21 @@ function Router() {
       <Route path="/blog/3-round-strategy" component={Blog3RoundStrategy} />
       <Route path="/blog/fcra-rights" component={BlogFCRARights} />
       <Route path="/quiz" component={Quiz} />
-      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/dashboard" component={DashboardHome} />
+      <Route path="/dashboard/home" component={DashboardHome} />
+      <Route path="/dashboard/reports" component={Dashboard} />
+      <Route path="/dashboard/disputes" component={Dashboard} />
+      <Route path="/dashboard/letters" component={Dashboard} />
+      <Route path="/dashboard/creditor-disputes" component={Dashboard} />
+      <Route path="/dashboard/cfpb" component={CFPBComplaints} />
+      <Route path="/dashboard/inquiries" component={InquiryRemoval} />
+      <Route path="/dashboard/debt-validation" component={DebtValidation} />
+      <Route path="/dashboard/profile" component={ProfileOptimizer} />
+      <Route path="/dashboard/credit-building" component={CreditBuilding} />
+      <Route path="/dashboard/marketplace" component={Marketplace} />
+      <Route path="/dashboard/referrals" component={ReferralProgram} />
+      <Route path="/dashboard/settings" component={DashboardSettings} />
+      <Route path="/dashboard/support" component={DashboardSupport} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={AdminEnhanced} />
       <Route path="/admin/parser" component={HybridParserAdmin} />
