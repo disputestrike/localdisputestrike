@@ -1,0 +1,2 @@
+ALTER TABLE `dispute_letters` MODIFY COLUMN `bureau` enum('transunion','equifax','experian','furnisher','collector','creditor','legal') NOT NULL;--> statement-breakpoint
+ALTER TABLE `dispute_letters` MODIFY COLUMN `letterType` enum('initial','followup','escalation','cfpb','cease_desist','pay_for_delete','intent_to_sue','estoppel','debt_validation') NOT NULL DEFAULT 'initial';

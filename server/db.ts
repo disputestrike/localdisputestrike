@@ -32,7 +32,22 @@ import {
   CourseProgress,
   courseCertificates,
   InsertCourseCertificate,
-  CourseCertificate
+  CourseCertificate,
+  disputeOutcomes,
+  InsertDisputeOutcome,
+  DisputeOutcome,
+  hardInquiries,
+  InsertHardInquiry,
+  HardInquiry,
+  cfpbComplaints,
+  InsertCFPBComplaint,
+  CFPBComplaint,
+  referrals,
+  InsertReferral,
+  Referral,
+  activityLog,
+  InsertActivityLog,
+  ActivityLog
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1033,4 +1048,357 @@ export async function generateCourseCertificate(userId: number): Promise<CourseC
     .limit(1);
 
   return inserted[0];
+}
+
+
+// ============================================================================
+// DISPUTE OUTCOME OPERATIONS
+// ============================================================================
+
+/**
+ * Create dispute outcome record
+ */
+export async function createDisputeOutcome(data: InsertDisputeOutcome): Promise<DisputeOutcome> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  const [result] = await dbInstance.insert(disputeOutcomes).values(data).$returningId();
+  
+  const inserted = await dbInstance
+    .select()
+    .from(disputeOutcomes)
+    .where(eq(disputeOutcomes.id, result.id))
+    .limit(1);
+  
+  return inserted[0];
+}
+
+/**
+ * Get dispute outcomes for a user
+ */
+export async function getUserDisputeOutcomes(userId: number): Promise<DisputeOutcome[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(disputeOutcomes)
+    .where(eq(disputeOutcomes.userId, userId))
+    .orderBy(desc(disputeOutcomes.createdAt));
+}
+
+/**
+ * Update dispute outcome
+ */
+export async function updateDisputeOutcome(
+  outcomeId: number,
+  updates: Partial<Omit<DisputeOutcome, 'id' | 'userId' | 'createdAt'>>
+): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  await dbInstance
+    .update(disputeOutcomes)
+    .set(updates)
+    .where(eq(disputeOutcomes.id, outcomeId));
+}
+
+// ============================================================================
+// HARD INQUIRY OPERATIONS
+// ============================================================================
+
+/**
+ * Create hard inquiry record
+ */
+export async function createHardInquiry(data: InsertHardInquiry): Promise<HardInquiry> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  const [result] = await dbInstance.insert(hardInquiries).values(data).$returningId();
+  
+  const inserted = await dbInstance
+    .select()
+    .from(hardInquiries)
+    .where(eq(hardInquiries.id, result.id))
+    .limit(1);
+  
+  return inserted[0];
+}
+
+/**
+ * Get hard inquiries for a user
+ */
+export async function getUserHardInquiries(userId: number): Promise<HardInquiry[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(hardInquiries)
+    .where(eq(hardInquiries.userId, userId))
+    .orderBy(desc(hardInquiries.createdAt));
+}
+
+/**
+ * Update hard inquiry
+ */
+export async function updateHardInquiry(
+  inquiryId: number,
+  updates: Partial<Omit<HardInquiry, 'id' | 'userId' | 'createdAt'>>
+): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  await dbInstance
+    .update(hardInquiries)
+    .set(updates)
+    .where(eq(hardInquiries.id, inquiryId));
+}
+
+/**
+ * Bulk create hard inquiries from parsed credit report
+ */
+export async function bulkCreateHardInquiries(inquiries: InsertHardInquiry[]): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  if (inquiries.length > 0) {
+    await dbInstance.insert(hardInquiries).values(inquiries);
+  }
+}
+
+// ============================================================================
+// CFPB COMPLAINT OPERATIONS
+// ============================================================================
+
+/**
+ * Create CFPB complaint
+ */
+export async function createCFPBComplaint(data: InsertCFPBComplaint): Promise<CFPBComplaint> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  const [result] = await dbInstance.insert(cfpbComplaints).values(data).$returningId();
+  
+  const inserted = await dbInstance
+    .select()
+    .from(cfpbComplaints)
+    .where(eq(cfpbComplaints.id, result.id))
+    .limit(1);
+  
+  return inserted[0];
+}
+
+/**
+ * Get CFPB complaints for a user
+ */
+export async function getUserCFPBComplaints(userId: number): Promise<CFPBComplaint[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(cfpbComplaints)
+    .where(eq(cfpbComplaints.userId, userId))
+    .orderBy(desc(cfpbComplaints.createdAt));
+}
+
+/**
+ * Update CFPB complaint
+ */
+export async function updateCFPBComplaint(
+  complaintId: number,
+  updates: Partial<Omit<CFPBComplaint, 'id' | 'userId' | 'createdAt'>>
+): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  await dbInstance
+    .update(cfpbComplaints)
+    .set(updates)
+    .where(eq(cfpbComplaints.id, complaintId));
+}
+
+// ============================================================================
+// REFERRAL OPERATIONS
+// ============================================================================
+
+/**
+ * Create referral code for user
+ */
+export async function createReferral(userId: number): Promise<Referral> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  // Generate unique referral code
+  const code = `DS${userId}${Date.now().toString(36).toUpperCase().slice(-4)}`;
+
+  const [result] = await dbInstance.insert(referrals).values({
+    referrerId: userId,
+    referralCode: code,
+  }).$returningId();
+  
+  const inserted = await dbInstance
+    .select()
+    .from(referrals)
+    .where(eq(referrals.id, result.id))
+    .limit(1);
+  
+  return inserted[0];
+}
+
+/**
+ * Get user's referral data
+ */
+export async function getUserReferral(userId: number): Promise<Referral | undefined> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return undefined;
+
+  const result = await dbInstance
+    .select()
+    .from(referrals)
+    .where(eq(referrals.referrerId, userId))
+    .limit(1);
+  
+  return result[0];
+}
+
+/**
+ * Get all referrals made by a user
+ */
+export async function getUserReferrals(userId: number): Promise<Referral[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(referrals)
+    .where(eq(referrals.referrerId, userId))
+    .orderBy(desc(referrals.createdAt));
+}
+
+/**
+ * Track referral click
+ */
+export async function trackReferralClick(referralCode: string): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return;
+
+  const existing = await dbInstance
+    .select()
+    .from(referrals)
+    .where(eq(referrals.referralCode, referralCode))
+    .limit(1);
+
+  if (existing.length > 0) {
+    await dbInstance
+      .update(referrals)
+      .set({ clickCount: existing[0].clickCount + 1 })
+      .where(eq(referrals.id, existing[0].id));
+  }
+}
+
+/**
+ * Complete referral signup
+ */
+export async function completeReferralSignup(referralCode: string, newUserId: number): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return;
+
+  await dbInstance
+    .update(referrals)
+    .set({
+      referredUserId: newUserId,
+      status: "signed_up",
+      signedUpAt: new Date(),
+    })
+    .where(eq(referrals.referralCode, referralCode));
+}
+
+// ============================================================================
+// ACTIVITY LOG OPERATIONS
+// ============================================================================
+
+/**
+ * Log user activity
+ */
+export async function logActivity(data: InsertActivityLog): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return;
+
+  await dbInstance.insert(activityLog).values(data);
+}
+
+/**
+ * Get recent activity for a user
+ */
+export async function getUserRecentActivity(userId: number, limit: number = 10): Promise<ActivityLog[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(activityLog)
+    .where(eq(activityLog.userId, userId))
+    .orderBy(desc(activityLog.createdAt))
+    .limit(limit);
+}
+
+// ============================================================================
+// DASHBOARD STATS
+// ============================================================================
+
+/**
+ * Get dashboard stats for a user
+ */
+export async function getUserDashboardStats(userId: number): Promise<{
+  totalNegativeAccounts: number;
+  pendingDisputes: number;
+  deletedAccounts: number;
+  successRate: number;
+  totalLetters: number;
+}> {
+  const dbInstance = await getDb();
+  if (!dbInstance) {
+    return {
+      totalNegativeAccounts: 0,
+      pendingDisputes: 0,
+      deletedAccounts: 0,
+      successRate: 0,
+      totalLetters: 0,
+    };
+  }
+
+  // Get negative accounts count
+  const accounts = await dbInstance
+    .select()
+    .from(negativeAccounts)
+    .where(eq(negativeAccounts.userId, userId));
+  
+  // Get letters
+  const letters = await dbInstance
+    .select()
+    .from(disputeLetters)
+    .where(eq(disputeLetters.userId, userId));
+  
+  // Get outcomes
+  const outcomes = await dbInstance
+    .select()
+    .from(disputeOutcomes)
+    .where(eq(disputeOutcomes.userId, userId));
+
+  const totalNegativeAccounts = accounts.length;
+  const totalLetters = letters.length;
+  const pendingDisputes = letters.filter(l => l.status === "generated" || l.status === "mailed").length;
+  const deletedAccounts = outcomes.filter(o => o.outcome === "deleted").length;
+  const resolvedDisputes = outcomes.filter(o => o.outcome !== "pending").length;
+  const successRate = resolvedDisputes > 0 ? Math.round((deletedAccounts / resolvedDisputes) * 100) : 0;
+
+  return {
+    totalNegativeAccounts,
+    pendingDisputes,
+    deletedAccounts,
+    successRate,
+    totalLetters,
+  };
 }

@@ -59,6 +59,7 @@ const navSections = [
       { icon: FileText, label: "Credit Reports", path: "/dashboard/reports", badge: null },
       { icon: AlertTriangle, label: "Disputes", path: "/dashboard/disputes", badge: null },
       { icon: Mail, label: "Letters", path: "/dashboard/letters", badge: null },
+      { icon: Bell, label: "Tracking", path: "/dashboard/tracking", badge: null },
     ],
   },
   {

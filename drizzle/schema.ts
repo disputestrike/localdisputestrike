@@ -73,7 +73,7 @@ export type InsertNegativeAccount = typeof negativeAccounts.$inferInsert;
 export const disputeLetters = mysqlTable("dispute_letters", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
-  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian", "furnisher"]).notNull(),
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian", "furnisher", "collector", "creditor", "legal"]).notNull(),
   recipientName: text("recipientName"), // For furnisher disputes
   recipientAddress: text("recipientAddress"),
   
@@ -81,7 +81,7 @@ export const disputeLetters = mysqlTable("dispute_letters", {
   accountsDisputed: text("accountsDisputed").notNull(), // JSON array of account IDs
   
   round: int("round").default(1).notNull(), // Dispute round (1, 2, 3, etc.)
-  letterType: mysqlEnum("letterType", ["initial", "followup", "escalation", "cfpb"]).default("initial").notNull(),
+  letterType: mysqlEnum("letterType", ["initial", "followup", "escalation", "cfpb", "cease_desist", "pay_for_delete", "intent_to_sue", "estoppel", "debt_validation"]).default("initial").notNull(),
   
   status: mysqlEnum("status", ["generated", "downloaded", "mailed", "response_received", "resolved"]).default("generated").notNull(),
   
@@ -380,3 +380,141 @@ export const courseCertificates = mysqlTable("course_certificates", {
 
 export type CourseCertificate = typeof courseCertificates.$inferSelect;
 export type InsertCourseCertificate = typeof courseCertificates.$inferInsert;
+
+
+/**
+ * Dispute outcomes - tracks the result of each dispute
+ */
+export const disputeOutcomes = mysqlTable("dispute_outcomes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  disputeLetterId: int("disputeLetterId").notNull(),
+  accountId: int("accountId"), // Reference to negative_accounts
+  
+  // Outcome status
+  outcome: mysqlEnum("outcome", ["deleted", "verified", "updated", "no_response", "pending"]).default("pending").notNull(),
+  
+  // Response details
+  responseReceivedAt: timestamp("responseReceivedAt"),
+  responseFileUrl: text("responseFileUrl"), // S3 URL of uploaded response letter
+  responseFileKey: text("responseFileKey"),
+  responseNotes: text("responseNotes"),
+  
+  // For "updated" outcomes
+  updatedFields: text("updatedFields"), // JSON of what was changed
+  
+  // Timeline
+  letterMailedAt: timestamp("letterMailedAt"),
+  deadlineDate: timestamp("deadlineDate"), // 30 days from mailed
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type DisputeOutcome = typeof disputeOutcomes.$inferSelect;
+export type InsertDisputeOutcome = typeof disputeOutcomes.$inferInsert;
+
+/**
+ * Hard inquiries extracted from credit reports
+ */
+export const hardInquiries = mysqlTable("hard_inquiries", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  creditReportId: int("creditReportId"),
+  
+  // Inquiry details
+  creditorName: varchar("creditorName", { length: 255 }).notNull(),
+  inquiryDate: varchar("inquiryDate", { length: 50 }),
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian"]).notNull(),
+  inquiryType: mysqlEnum("inquiryType", ["hard", "soft"]).default("hard").notNull(),
+  
+  // Dispute status
+  isAuthorized: boolean("isAuthorized").default(true).notNull(), // User marks as authorized/unauthorized
+  disputeStatus: mysqlEnum("disputeStatus", ["none", "disputed", "removed", "verified"]).default("none").notNull(),
+  disputedAt: timestamp("disputedAt"),
+  removedAt: timestamp("removedAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type HardInquiry = typeof hardInquiries.$inferSelect;
+export type InsertHardInquiry = typeof hardInquiries.$inferInsert;
+
+/**
+ * CFPB complaints filed by users
+ */
+export const cfpbComplaints = mysqlTable("cfpb_complaints", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Complaint details
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian"]).notNull(),
+  complaintType: varchar("complaintType", { length: 100 }).notNull(), // incorrect_info, investigation_problem, etc.
+  issueDescription: text("issueDescription").notNull(),
+  desiredResolution: text("desiredResolution"),
+  
+  // Generated complaint content
+  complaintContent: text("complaintContent"),
+  
+  // Status tracking
+  status: mysqlEnum("status", ["draft", "submitted", "response_received", "resolved"]).default("draft").notNull(),
+  caseNumber: varchar("caseNumber", { length: 50 }), // CFPB case number
+  submittedAt: timestamp("submittedAt"),
+  responseReceivedAt: timestamp("responseReceivedAt"),
+  responseDetails: text("responseDetails"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CFPBComplaint = typeof cfpbComplaints.$inferSelect;
+export type InsertCFPBComplaint = typeof cfpbComplaints.$inferInsert;
+
+/**
+ * Referral program tracking
+ */
+export const referrals = mysqlTable("referrals", {
+  id: int("id").autoincrement().primaryKey(),
+  referrerId: int("referrerId").notNull(), // User who referred
+  referredUserId: int("referredUserId"), // User who signed up (null until signup)
+  
+  // Referral code
+  referralCode: varchar("referralCode", { length: 20 }).notNull().unique(),
+  
+  // Status
+  status: mysqlEnum("status", ["pending", "signed_up", "subscribed", "paid_out"]).default("pending").notNull(),
+  
+  // Earnings
+  commissionAmount: decimal("commissionAmount", { precision: 10, scale: 2 }).default("50.00"),
+  paidOutAt: timestamp("paidOutAt"),
+  
+  // Tracking
+  clickCount: int("clickCount").default(0).notNull(),
+  signedUpAt: timestamp("signedUpAt"),
+  subscribedAt: timestamp("subscribedAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = typeof referrals.$inferInsert;
+
+/**
+ * User activity log for dashboard
+ */
+export const activityLog = mysqlTable("activity_log", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Activity details
+  activityType: varchar("activityType", { length: 50 }).notNull(), // report_uploaded, letter_generated, letter_mailed, account_deleted, etc.
+  description: text("description").notNull(),
+  metadata: text("metadata"), // JSON with additional details
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ActivityLog = typeof activityLog.$inferSelect;
+export type InsertActivityLog = typeof activityLog.$inferInsert;

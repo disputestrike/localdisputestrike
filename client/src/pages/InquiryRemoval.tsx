@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import {
   Search,
   FileText,
@@ -14,54 +15,28 @@ import {
   CheckCircle2,
   Clock,
   Trash2,
+  Loader2,
 } from "lucide-react";
 
-// Mock inquiries data
+// Mock inquiries data as fallback
 const mockInquiries = [
   {
     id: 1,
-    creditor: "Capital One",
-    date: "2025-01-02",
-    bureau: "TransUnion",
-    type: "Hard",
-    status: "active",
-    authorized: false,
+    creditorName: "Capital One",
+    inquiryDate: "2025-01-02",
+    bureau: "transunion",
+    inquiryType: "hard",
+    disputeStatus: "none",
+    isAuthorized: false,
   },
   {
     id: 2,
-    creditor: "Chase Bank",
-    date: "2024-12-15",
-    bureau: "Equifax",
-    type: "Hard",
-    status: "active",
-    authorized: true,
-  },
-  {
-    id: 3,
-    creditor: "Discover",
-    date: "2024-11-20",
-    bureau: "Experian",
-    type: "Hard",
-    status: "disputed",
-    authorized: false,
-  },
-  {
-    id: 4,
-    creditor: "American Express",
-    date: "2024-10-05",
-    bureau: "TransUnion",
-    type: "Hard",
-    status: "removed",
-    authorized: false,
-  },
-  {
-    id: 5,
-    creditor: "Wells Fargo",
-    date: "2024-09-18",
-    bureau: "Equifax",
-    type: "Hard",
-    status: "active",
-    authorized: false,
+    creditorName: "Chase Bank",
+    inquiryDate: "2024-12-15",
+    bureau: "equifax",
+    inquiryType: "hard",
+    disputeStatus: "none",
+    isAuthorized: true,
   },
 ];
 
@@ -69,9 +44,43 @@ export default function InquiryRemoval() {
   const [selectedInquiries, setSelectedInquiries] = useState<number[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const activeInquiries = mockInquiries.filter((i) => i.status === "active");
-  const disputedInquiries = mockInquiries.filter((i) => i.status === "disputed");
-  const removedInquiries = mockInquiries.filter((i) => i.status === "removed");
+  // Fetch real inquiries from database
+  const { data: dbInquiries, isLoading, refetch } = trpc.hardInquiries.list.useQuery();
+  const disputeMutation = trpc.hardInquiries.dispute.useMutation({
+    onSuccess: () => {
+      toast.success("Inquiry marked for dispute");
+      refetch();
+    },
+  });
+  const updateStatusMutation = trpc.hardInquiries.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Inquiry status updated");
+      refetch();
+    },
+  });
+
+  // Use database inquiries or fallback to mock
+  const inquiries = dbInquiries?.length ? dbInquiries.map(i => ({
+    id: i.id,
+    creditor: i.creditorName,
+    date: i.inquiryDate ? new Date(i.inquiryDate).toISOString().split('T')[0] : 'Unknown',
+    bureau: i.bureau.charAt(0).toUpperCase() + i.bureau.slice(1),
+    type: i.inquiryType === 'hard' ? 'Hard' : 'Soft',
+    status: i.disputeStatus === 'none' ? 'active' : i.disputeStatus,
+    authorized: i.isAuthorized,
+  })) : mockInquiries.map(i => ({
+    id: i.id,
+    creditor: i.creditorName,
+    date: i.inquiryDate,
+    bureau: i.bureau.charAt(0).toUpperCase() + i.bureau.slice(1),
+    type: i.inquiryType === 'hard' ? 'Hard' : 'Soft',
+    status: i.disputeStatus === 'none' ? 'active' : i.disputeStatus,
+    authorized: i.isAuthorized,
+  }));
+
+  const activeInquiries = inquiries.filter((i) => i.status === "active");
+  const disputedInquiries = inquiries.filter((i) => i.status === "disputed");
+  const removedInquiries = inquiries.filter((i) => i.status === "removed");
 
   const toggleInquiry = (id: number) => {
     setSelectedInquiries((prev) =>
@@ -195,8 +204,8 @@ export default function InquiryRemoval() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-white">
-                    {mockInquiries.length > 0
-                      ? Math.round((removedInquiries.length / mockInquiries.length) * 100)
+                    {inquiries.length > 0
+                      ? Math.round((removedInquiries.length / inquiries.length) * 100)
                       : 0}%
                   </p>
                   <p className="text-xs text-slate-400">Removal Rate</p>
@@ -228,7 +237,7 @@ export default function InquiryRemoval() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {mockInquiries.map((inquiry) => (
+              {inquiries.map((inquiry) => (
                 <div
                   key={inquiry.id}
                   className={`p-4 rounded-lg border transition-colors ${
@@ -241,7 +250,7 @@ export default function InquiryRemoval() {
                     <Checkbox
                       checked={selectedInquiries.includes(inquiry.id)}
                       onCheckedChange={() => toggleInquiry(inquiry.id)}
-                      disabled={inquiry.status !== "active" || inquiry.authorized}
+                      disabled={inquiry.status !== "active" || inquiry.authorized as boolean}
                       className="border-slate-600"
                     />
                     <div className="flex-1">

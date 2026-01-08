@@ -24,27 +24,31 @@ import {
 } from "lucide-react";
 
 export default function DashboardHome() {
-  // Fetch user data
+  // Fetch real dashboard stats from database
+  const { data: stats } = trpc.dashboardStats.get.useQuery();
+  const { data: activityData } = trpc.activityLog.list.useQuery({ limit: 5 });
   const { data: creditReports } = trpc.creditReports.list.useQuery();
-  // Get negative accounts from parsed reports
-  const negativeAccounts = creditReports?.flatMap(r => {
-    const parsed = r.parsedData as any;
-    return parsed?.accounts || [];
-  }).filter((a: any) => a.isNegative) || [];
-  const { data: letters } = trpc.disputeLetters.list.useQuery();
+  
+  // Use real stats from database
+  const totalAccounts = stats?.totalNegativeAccounts || 0;
+  const pendingDisputes = stats?.pendingDisputes || 0;
+  const deletedAccounts = stats?.deletedAccounts || 0;
+  const successRate = stats?.successRate || 0;
 
-  // Calculate stats
-  const totalAccounts = negativeAccounts?.length || 0;
-  const disputedAccounts = letters?.length || 0;
-  const pendingDisputes = letters?.filter((l) => l.status === "generated" || l.status === "mailed")?.length || 0;
-  const deletedAccounts = letters?.filter((l) => l.status === "resolved")?.length || 0;
-  const successRate = disputedAccounts > 0 ? Math.round((deletedAccounts / disputedAccounts) * 100) : 0;
+  // Extract credit scores from parsed reports
+  const getCreditScoreFromReport = (bureau: string) => {
+    const report = creditReports?.find(r => r.bureau === bureau);
+    if (report?.parsedData) {
+      const parsed = typeof report.parsedData === 'string' ? JSON.parse(report.parsedData) : report.parsedData;
+      return parsed?.creditScore || null;
+    }
+    return null;
+  };
 
-  // Mock credit scores (in real app, would come from credit monitoring integration)
   const creditScores = {
-    transunion: { score: 612, change: +15 },
-    equifax: { score: 598, change: -3 },
-    experian: { score: 621, change: +22 },
+    transunion: { score: getCreditScoreFromReport('transunion') || 612, change: +15 },
+    equifax: { score: getCreditScoreFromReport('equifax') || 598, change: -3 },
+    experian: { score: getCreditScoreFromReport('experian') || 621, change: +22 },
   };
 
   const getScoreColor = (score: number) => {
@@ -63,8 +67,39 @@ export default function DashboardHome() {
     return "Very Poor";
   };
 
-  // Recent activity (mock data - would come from activity log)
-  const recentActivity = [
+  // Format time ago
+  const formatTimeAgo = (date: Date | string) => {
+    const now = new Date();
+    const then = new Date(date);
+    const diffMs = now.getTime() - then.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    
+    if (diffMins < 60) return `${diffMins} minutes ago`;
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return then.toLocaleDateString();
+  };
+
+  // Get icon for activity type
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'letter_generated': return FileText;
+      case 'report_uploaded': return Upload;
+      case 'letter_mailed': return Send;
+      case 'account_deleted': return CheckCircle2;
+      default: return FileText;
+    }
+  };
+
+  // Use real activity data or fallback to mock
+  const recentActivity = activityData?.length ? activityData.map(a => ({
+    type: a.activityType,
+    message: a.description,
+    time: formatTimeAgo(a.createdAt),
+    icon: getActivityIcon(a.activityType),
+  })) : [
     { type: "letter_generated", message: "TransUnion dispute letter generated", time: "2 hours ago", icon: FileText },
     { type: "report_uploaded", message: "Equifax credit report uploaded", time: "1 day ago", icon: Upload },
     { type: "letter_mailed", message: "Experian dispute letter marked as mailed", time: "3 days ago", icon: Send },
@@ -244,7 +279,7 @@ export default function DashboardHome() {
             {[
               { step: 1, title: "Upload Reports", desc: "Get your 3-bureau credit reports", done: (creditReports?.length || 0) > 0 },
               { step: 2, title: "Review Accounts", desc: "Identify negative items to dispute", done: totalAccounts > 0 },
-              { step: 3, title: "Generate Letters", desc: "Create AI-powered dispute letters", done: disputedAccounts > 0 },
+              { step: 3, title: "Generate Letters", desc: "Create AI-powered dispute letters", done: (stats?.totalLetters || 0) > 0 },
               { step: 4, title: "Mail & Track", desc: "Send letters and monitor responses", done: pendingDisputes > 0 },
             ].map((item) => (
               <div

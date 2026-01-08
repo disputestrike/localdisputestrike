@@ -40,6 +40,7 @@ import Marketplace from "./pages/Marketplace";
 import ReferralProgram from "./pages/ReferralProgram";
 import DashboardSettings from "./pages/DashboardSettings";
 import DashboardSupport from "./pages/DashboardSupport";
+import DisputeTracking from "./pages/DisputeTracking";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -80,6 +81,7 @@ function Router() {
       <Route path="/dashboard/referrals" component={ReferralProgram} />
       <Route path="/dashboard/settings" component={DashboardSettings} />
       <Route path="/dashboard/support" component={DashboardSupport} />
+      <Route path="/dashboard/tracking" component={DisputeTracking} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={AdminEnhanced} />
       <Route path="/admin/parser" component={HybridParserAdmin} />

@@ -1061,6 +1061,237 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         // TODO: Implement update in db.ts
         return { success: true };
       }),
+
+    /**
+     * Generate Cease & Desist letter
+     */
+    generateCeaseDesist: paidProcedure
+      .input(z.object({
+        collectorName: z.string(),
+        collectorAddress: z.string(),
+        accountNumber: z.string().optional(),
+        originalCreditor: z.string().optional(),
+        allegedBalance: z.string().optional(),
+        reasons: z.array(z.string()),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import('./_core/llm');
+        const { CEASE_DESIST_SYSTEM_PROMPT, buildCeaseDesistPrompt } = await import('./additionalLetterGenerators');
+        
+        const prompt = buildCeaseDesistPrompt(
+          ctx.user.name || 'Consumer',
+          input.userAddress,
+          input.collectorName,
+          input.collectorAddress,
+          {
+            accountNumber: input.accountNumber,
+            originalCreditor: input.originalCreditor,
+            allegedBalance: input.allegedBalance,
+          },
+          input.reasons
+        );
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: CEASE_DESIST_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+        });
+        
+        const letterContent = typeof response.choices[0]?.message?.content === 'string'
+          ? response.choices[0].message.content
+          : 'Error generating letter';
+        
+        const letterId = await db.createDisputeLetter({
+          userId: ctx.user.id,
+          bureau: 'collector',
+          recipientName: input.collectorName,
+          recipientAddress: input.collectorAddress,
+          letterContent,
+          accountsDisputed: JSON.stringify([]),
+          round: 1,
+          letterType: 'cease_desist',
+          status: 'generated',
+        });
+        
+        return { letterId, message: 'Cease & Desist letter generated' };
+      }),
+
+    /**
+     * Generate Pay for Delete letter
+     */
+    generatePayForDelete: paidProcedure
+      .input(z.object({
+        creditorName: z.string(),
+        creditorAddress: z.string(),
+        accountNumber: z.string().optional(),
+        originalBalance: z.string().optional(),
+        currentBalance: z.string().optional(),
+        accountType: z.string().optional(),
+        offerAmount: z.string(),
+        offerPercentage: z.number(),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import('./_core/llm');
+        const { PAY_FOR_DELETE_SYSTEM_PROMPT, buildPayForDeletePrompt } = await import('./additionalLetterGenerators');
+        
+        const prompt = buildPayForDeletePrompt(
+          ctx.user.name || 'Consumer',
+          input.userAddress,
+          input.creditorName,
+          input.creditorAddress,
+          {
+            accountNumber: input.accountNumber,
+            originalBalance: input.originalBalance,
+            currentBalance: input.currentBalance,
+            accountType: input.accountType,
+          },
+          input.offerAmount,
+          input.offerPercentage
+        );
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: PAY_FOR_DELETE_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+        });
+        
+        const letterContent = typeof response.choices[0]?.message?.content === 'string'
+          ? response.choices[0].message.content
+          : 'Error generating letter';
+        
+        const letterId = await db.createDisputeLetter({
+          userId: ctx.user.id,
+          bureau: 'creditor',
+          recipientName: input.creditorName,
+          recipientAddress: input.creditorAddress,
+          letterContent,
+          accountsDisputed: JSON.stringify([]),
+          round: 1,
+          letterType: 'pay_for_delete',
+          status: 'generated',
+        });
+        
+        return { letterId, message: 'Pay for Delete letter generated' };
+      }),
+
+    /**
+     * Generate Intent to Sue letter
+     */
+    generateIntentToSue: paidProcedure
+      .input(z.object({
+        defendantName: z.string(),
+        defendantAddress: z.string(),
+        violations: z.array(z.object({
+          statute: z.string(),
+          section: z.string(),
+          description: z.string(),
+        })),
+        demandAmount: z.string(),
+        responseDeadline: z.number().default(30),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import('./_core/llm');
+        const { INTENT_TO_SUE_SYSTEM_PROMPT, buildIntentToSuePrompt } = await import('./additionalLetterGenerators');
+        
+        const prompt = buildIntentToSuePrompt(
+          ctx.user.name || 'Consumer',
+          input.userAddress,
+          input.defendantName,
+          input.defendantAddress,
+          input.violations,
+          input.demandAmount,
+          input.responseDeadline
+        );
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: INTENT_TO_SUE_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+        });
+        
+        const letterContent = typeof response.choices[0]?.message?.content === 'string'
+          ? response.choices[0].message.content
+          : 'Error generating letter';
+        
+        const letterId = await db.createDisputeLetter({
+          userId: ctx.user.id,
+          bureau: 'legal',
+          recipientName: input.defendantName,
+          recipientAddress: input.defendantAddress,
+          letterContent,
+          accountsDisputed: JSON.stringify([]),
+          round: 1,
+          letterType: 'intent_to_sue',
+          status: 'generated',
+        });
+        
+        return { letterId, message: 'Intent to Sue letter generated' };
+      }),
+
+    /**
+     * Generate Estoppel by Silence letter
+     */
+    generateEstoppel: paidProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        originalDisputeDate: z.string(),
+        daysSinceDispute: z.number(),
+        disputedItems: z.array(z.string()),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import('./_core/llm');
+        const { ESTOPPEL_SYSTEM_PROMPT, buildEstoppelPrompt } = await import('./additionalLetterGenerators');
+        
+        const bureauAddresses: Record<string, { name: string; address: string }> = {
+          transunion: { name: 'TransUnion', address: 'P.O. Box 2000, Chester, PA 19016-2000' },
+          equifax: { name: 'Equifax', address: 'P.O. Box 740256, Atlanta, GA 30374-0256' },
+          experian: { name: 'Experian', address: 'P.O. Box 4500, Allen, TX 75013' },
+        };
+        
+        const bureauInfo = bureauAddresses[input.bureau];
+        
+        const prompt = buildEstoppelPrompt(
+          ctx.user.name || 'Consumer',
+          input.userAddress,
+          bureauInfo.name,
+          bureauInfo.address,
+          input.originalDisputeDate,
+          input.daysSinceDispute,
+          input.disputedItems
+        );
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: ESTOPPEL_SYSTEM_PROMPT },
+            { role: 'user', content: prompt },
+          ],
+        });
+        
+        const letterContent = typeof response.choices[0]?.message?.content === 'string'
+          ? response.choices[0].message.content
+          : 'Error generating letter';
+        
+        const letterId = await db.createDisputeLetter({
+          userId: ctx.user.id,
+          bureau: input.bureau,
+          recipientName: bureauInfo.name,
+          recipientAddress: bureauInfo.address,
+          letterContent,
+          accountsDisputed: JSON.stringify([]),
+          round: 2,
+          letterType: 'estoppel',
+          status: 'generated',
+        });
+        
+        return { letterId, message: 'Estoppel by Silence letter generated' };
+      }),
   }),
 
   payments: router({
@@ -1230,6 +1461,204 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         await db.sendFreeGuideEmail(input.email);
 
         return { success: true };
+      }),
+  }),
+
+  // Dashboard Stats Router
+  dashboardStats: router({
+    // Get dashboard stats for user
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserDashboardStats(ctx.user.id);
+    }),
+  }),
+
+  // Dispute Outcomes Router
+  disputeOutcomes: router({
+    // Get all dispute outcomes for user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserDisputeOutcomes(ctx.user.id);
+    }),
+
+    // Create dispute outcome
+    create: protectedProcedure
+      .input(z.object({
+        disputeLetterId: z.number(),
+        accountId: z.number().optional(),
+        outcome: z.enum(['deleted', 'verified', 'updated', 'no_response', 'pending']),
+        responseNotes: z.string().optional(),
+        updatedFields: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return await db.createDisputeOutcome({
+          userId: ctx.user.id,
+          disputeLetterId: input.disputeLetterId,
+          accountId: input.accountId,
+          outcome: input.outcome,
+          responseNotes: input.responseNotes,
+          updatedFields: input.updatedFields,
+          responseReceivedAt: new Date(),
+        });
+      }),
+
+    // Update dispute outcome
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        outcome: z.enum(['deleted', 'verified', 'updated', 'no_response', 'pending']).optional(),
+        responseNotes: z.string().optional(),
+        responseFileUrl: z.string().optional(),
+        responseFileKey: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateDisputeOutcome(input.id, {
+          outcome: input.outcome,
+          responseNotes: input.responseNotes,
+          responseFileUrl: input.responseFileUrl,
+          responseFileKey: input.responseFileKey,
+          responseReceivedAt: new Date(),
+        });
+        return { success: true };
+      }),
+  }),
+
+  // Hard Inquiries Router
+  hardInquiries: router({
+    // Get all hard inquiries for user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserHardInquiries(ctx.user.id);
+    }),
+
+    // Mark inquiry as unauthorized and dispute
+    dispute: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateHardInquiry(input.id, {
+          isAuthorized: false,
+          disputeStatus: 'disputed',
+          disputedAt: new Date(),
+        });
+        return { success: true };
+      }),
+
+    // Update inquiry status
+    updateStatus: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        disputeStatus: z.enum(['none', 'disputed', 'removed', 'verified']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateHardInquiry(input.id, {
+          disputeStatus: input.disputeStatus,
+          ...(input.disputeStatus === 'removed' ? { removedAt: new Date() } : {}),
+        });
+        return { success: true };
+      }),
+  }),
+
+  // CFPB Complaints Router
+  cfpbComplaints: router({
+    // Get all CFPB complaints for user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserCFPBComplaints(ctx.user.id);
+    }),
+
+    // Create CFPB complaint
+    create: protectedProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        complaintType: z.string(),
+        issueDescription: z.string(),
+        desiredResolution: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Generate complaint content using AI
+        const { invokeLLM } = await import('./_core/llm');
+        
+        const prompt = `Generate a formal CFPB complaint for the following issue:
+
+Bureau: ${input.bureau}
+Complaint Type: ${input.complaintType}
+Issue: ${input.issueDescription}
+Desired Resolution: ${input.desiredResolution || 'Correction of inaccurate information'}
+
+Write a professional, detailed complaint that cites relevant FCRA sections and clearly explains the consumer's rights violation.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: 'system', content: 'You are an expert in consumer credit law and CFPB complaint writing.' },
+            { role: 'user', content: prompt },
+          ],
+        });
+
+        const complaintContent = typeof response.choices[0]?.message?.content === 'string'
+          ? response.choices[0].message.content
+          : 'Error generating complaint';
+
+        return await db.createCFPBComplaint({
+          userId: ctx.user.id,
+          bureau: input.bureau,
+          complaintType: input.complaintType,
+          issueDescription: input.issueDescription,
+          desiredResolution: input.desiredResolution,
+          complaintContent,
+          status: 'draft',
+        });
+      }),
+
+    // Update CFPB complaint
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(['draft', 'submitted', 'response_received', 'resolved']).optional(),
+        caseNumber: z.string().optional(),
+        responseDetails: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.updateCFPBComplaint(input.id, {
+          status: input.status,
+          caseNumber: input.caseNumber,
+          responseDetails: input.responseDetails,
+          ...(input.status === 'submitted' ? { submittedAt: new Date() } : {}),
+          ...(input.status === 'response_received' ? { responseReceivedAt: new Date() } : {}),
+        });
+        return { success: true };
+      }),
+  }),
+
+  // Referrals Router
+  referrals: router({
+    // Get user's referral data
+    get: protectedProcedure.query(async ({ ctx }) => {
+      let referral = await db.getUserReferral(ctx.user.id);
+      if (!referral) {
+        referral = await db.createReferral(ctx.user.id);
+      }
+      return referral;
+    }),
+
+    // Get all referrals made by user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return await db.getUserReferrals(ctx.user.id);
+    }),
+
+    // Track referral click (public)
+    trackClick: publicProcedure
+      .input(z.object({ code: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.trackReferralClick(input.code);
+        return { success: true };
+      }),
+  }),
+
+  // Activity Log Router
+  activityLog: router({
+    // Get recent activity for user
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().default(10) }).optional())
+      .query(async ({ ctx, input }) => {
+        return await db.getUserRecentActivity(ctx.user.id, input?.limit || 10);
       }),
   }),
 
