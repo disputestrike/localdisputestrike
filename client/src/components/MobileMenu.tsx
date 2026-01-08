@@ -48,49 +48,44 @@ export function MobileMenu() {
               </div>
             )}
 
-            <Link href="/features">
-              <a
-                onClick={() => setIsOpen(false)}
-                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                Features
-              </a>
+            <Link
+              href="/features"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+            >
+              Features
             </Link>
             
-            <Link href="/how-it-works">
-              <a
-                onClick={() => setIsOpen(false)}
-                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                How It Works
-              </a>
+            <Link
+              href="/how-it-works"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+            >
+              How It Works
             </Link>
             
-            <Link href="/pricing">
-              <a
-                onClick={() => setIsOpen(false)}
-                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                Pricing
-              </a>
+            <Link
+              href="/pricing"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+            >
+              Pricing
             </Link>
             
-            <Link href="/faq">
-              <a
-                onClick={() => setIsOpen(false)}
-                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                FAQ
-              </a>
+            <Link
+              href="/faq"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+            >
+              FAQ
             </Link>
             
-            <Link href="/money-back-guarantee">
-              <a
-                onClick={() => setIsOpen(false)}
-                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
-              >
-                Money Back Guarantee
-              </a>
+            <Link
+              href="/money-back-guarantee"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+            >
+              Money Back Guarantee
             </Link>
 
             <div className="pt-4 border-t border-gray-200 space-y-3">
