@@ -19,11 +19,11 @@ export default function FAQ() {
     },
     {
       q: "Is this legal?",
-      a: "Absolutely. We're exercising your rights under the Fair Credit Reporting Act (FCRA). You have the legal right to Attack inaccurate information on your credit reports. Our letters cite specific FCRA sections (§ 1681i, § 1681s-2) and are 100% compliant with federal law."
+      a: "Absolutely. We're exercising your rights under the Fair Credit Reporting Act (FCRA). You have the legal right to dispute inaccurate information on your credit reports. Our letters cite specific FCRA sections (§ 1681i, § 1681s-2) and are 100% compliant with federal law."
     },
     {
       q: "How long does it take to see results?",
-      a: "Credit bureaus have 30-45 days to investigate Attacks by law (FCRA § 1681i). Most customers see deletions within 45-60 days. Some see results in as little as 30 days. If bureaus don't respond within 30 days, they must delete the items automatically."
+      a: "Credit bureaus have 30-45 days to investigate disputes by law (FCRA § 1681i). Many users see deletions within 45-60 days. Some see results in as little as 30 days. If bureaus don't respond within 30 days, they must delete the items automatically."
     },
     {
       q: "Do I need to upload all 3 bureau reports?",
@@ -31,7 +31,7 @@ export default function FAQ() {
     },
     {
       q: "What if nothing gets deleted?",
-      a: "While many customers see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% money-back guarantee if you're not satisfied."
+      a: "While many users see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% software satisfaction guarantee if you're not satisfied."
     },
     {
       q: "How much does traditional credit monitoring cost?",
@@ -39,15 +39,15 @@ export default function FAQ() {
     },
     {
       q: "What documents do I need to mail with my letters?",
-      a: "You need: (1) Government-issued photo ID (driver's license, passport, state ID), (2) Recent utility bill within 90 days (electric, gas, water, cable, or bank statement), (3) Signed Attack letter, (4) SSN (last 4 digits - already in letter). We provide complete mailing instructions with addresses and checklist."
+      a: "You need: (1) Government-issued photo ID (driver's license, passport, state ID), (2) Recent utility bill within 90 days (electric, gas, water, cable, or bank statement), (3) Signed Dispute letter, (4) SSN (last 4 digits - already in letter). We provide complete mailing instructions with addresses and checklist."
     },
     {
       q: "Do I have to mail letters via Certified Mail?",
-      a: "Yes! Certified Mail with Return Receipt is required for legal proof of delivery. This costs about $8 per letter at the post office. Without proof of delivery, bureaus can claim they never received your Attack. We provide step-by-step mailing instructions."
+      a: "Yes! Certified Mail with Return Receipt is required for legal proof of delivery. This costs about $8 per letter at the post office. Without proof of delivery, bureaus can claim they never received your dispute. We provide step-by-step mailing instructions."
     },
     {
-      q: "Can I Attack accurate information?",
-      a: "No. You can only Attack inaccurate, unverifiable, or outdated information. Our system focuses on finding legal violations and cross-bureau conflicts - not helping you Attack legitimate debts. We operate 100% within FCRA guidelines."
+      q: "Can I dispute accurate information?",
+      a: "No. You can only dispute inaccurate, unverifiable, or outdated information. Our system focuses on finding legal violations and cross-bureau conflicts - not helping you dispute legitimate debts. We operate 100% within FCRA guidelines."
     },
     {
       q: "What happens after I mail my letters?",
@@ -55,7 +55,7 @@ export default function FAQ() {
     },
     {
       q: "Will this hurt my credit score?",
-      a: "No! Challenging inaccurate information is your legal right and does not hurt your score. In fact, successful deletions can improve your score. Many customers see meaningful improvements to what matters most."
+      a: "No! Challenging inaccurate information is your legal right and does not hurt your score. In fact, successful deletions can improve your score. Many users see meaningful improvements to what matters most."
     },
     {
       q: "Can I use this for bankruptcies or foreclosures?",
@@ -63,15 +63,15 @@ export default function FAQ() {
     },
     {
       q: "Do you offer refunds?",
-      a: "Yes! We offer a 110% money-back guarantee. If you follow our process and don't see any changes within 60 days, you'll receive a refund of your purchase plus 10%. No questions asked."
+      a: "Yes! We offer a 110% software satisfaction guarantee. If you're not satisfied with our software tools and platform experience within 30 days, you'll receive a refund of your purchase plus 10%. This guarantee covers platform usability — not credit outcomes, which vary by individual."
     },
     {
       q: "Is my personal information secure?",
       a: "Absolutely. We use bank-level encryption (256-bit SSL) and store all data on secure servers. Your credit reports and personal information are never shared with third parties. We're fully GDPR and CCPA compliant."
     },
     {
-      q: "Can I Attack items that are already 7 years old?",
-      a: "Most negative items must be removed after 7 years automatically (bankruptcies after 10 years). If an item is past the reporting limit and still showing, you should definitely Attack it - that's an FCRA violation and must be deleted immediately."
+      q: "Can I dispute items that are already 7 years old?",
+      a: "Most negative items must be removed after 7 years automatically (bankruptcies after 10 years). If an item is past the reporting limit and still showing, you should definitely dispute it - that's an FCRA violation and must be deleted immediately."
     },
     {
       q: "What if I need help or have questions?",
@@ -189,7 +189,7 @@ export default function FAQ() {
         <div className="container text-center">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Ready to Challenge Inaccurate Items?</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join thousands of customers using our FCRA-compliant dispute tools
+            Join thousands of users using our FCRA-compliant dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Get Started Now</Link>

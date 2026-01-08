@@ -195,7 +195,7 @@ export default function Dashboard() {
             </TabsTrigger>
             <TabsTrigger value="letters">
               <FileText className="h-4 w-4 mr-2" />
-              Attack Letters
+              Dispute Letters
               {disputeLetters && disputeLetters.length > 0 && (
                 <Badge className="ml-2">{disputeLetters.length}</Badge>
               )}
@@ -548,13 +548,13 @@ export default function Dashboard() {
             )}
           </TabsContent>
 
-          {/* Attack Letters Tab */}
+          {/* Dispute Letters Tab */}
           <TabsContent value="letters" className="space-y-6">
             {disputeLetters && disputeLetters.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold">Your Attack Letters</h3>
+                    <h3 className="text-lg font-semibold">Your Dispute Letters</h3>
                     <p className="text-sm text-muted-foreground">
                       {disputeLetters.length} letters generated
                     </p>
@@ -616,7 +616,7 @@ export default function Dashboard() {
                 <FileText className="h-4 w-4" />
                 <AlertDescription>
                   No letters generated yet. Go to <strong>Negative Accounts</strong> and click "Generate Letters" 
-                  to create your documentation-driven Attack letters.
+                  to create your documentation-driven Dispute letters.
                 </AlertDescription>
               </Alert>
             )}
@@ -627,19 +627,19 @@ export default function Dashboard() {
             <Alert>
               <Mail className="h-4 w-4" />
               <AlertDescription>
-                Track your Attack progress and get reminders when responses are due.
+                Track your dispute progress and get reminders when responses are due.
               </AlertDescription>
             </Alert>
 
             {/* Placeholder for tracking timeline */}
             <Card>
               <CardHeader>
-                <CardTitle>Attack Timeline</CardTitle>
-                <CardDescription>Track all your Attacks in one place</CardDescription>
+                <CardTitle>Dispute Timeline</CardTitle>
+                <CardDescription>Track all your disputes in one place</CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground text-center py-8">
-                  Your Attack timeline will appear here once you mail your letters
+                  Your dispute timeline will appear here once you mail your letters
                 </p>
               </CardContent>
             </Card>

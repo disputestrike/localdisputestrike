@@ -198,7 +198,7 @@ export default function Contact() {
               Looking for Quick Answers?
             </h2>
             <p className="text-xl text-gray-700 mb-8">
-              Check out our FAQ page for instant answers to common questions about credit monitoring, Attack letters, and our service.
+              Check out our FAQ page for instant answers to common questions about credit monitoring, Dispute letters, and our service.
             </p>
             <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-lg px-8 py-6" asChild>
               <Link href="/faq">View FAQ</Link>

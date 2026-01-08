@@ -63,7 +63,7 @@ export default function HowItWorks() {
               How <span className="text-orange-600">DisputeStrike</span> Works
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              Professional-grade dispute automation in three powerful rounds. Launch your Attacks with precision strikes.
+              Professional-grade dispute automation in three powerful rounds. Launch your disputes with precision strikes.
             </p>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function HowItWorks() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 2</Badge>
                 <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6">AI Analyzes & Creates Letters</h3>
                 <p className="text-lg text-gray-700 mb-6">
-                  Our AI detects cross-bureau conflicts, generates documentation-driven Attack letters with proper FCRA citations, and creates personalized arguments for each account.
+                  Our AI detects cross-bureau conflicts, generates documentation-driven Dispute letters with proper FCRA citations, and creates personalized arguments for each account.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -156,7 +156,7 @@ export default function HowItWorks() {
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>
                 <h3 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-6">Send & Track Results</h3>
                 <p className="text-lg text-gray-700 mb-6">
-                  Download professional PDF letters, mail via Certified Mail, and track your Attacks. Watch negative items get deleted and your score rise.
+                  Download professional PDF letters, mail via Certified Mail, and track your disputes. Watch negative items get deleted and your score rise.
                 </p>
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
@@ -206,7 +206,7 @@ export default function HowItWorks() {
                 </div>
                 <div className="flex-1 bg-white p-6 rounded-xl shadow-md">
                   <h4 className="text-xl font-bold text-gray-900 mb-2">Upload & Generate Letters</h4>
-                  <p className="text-gray-700">Upload your credit reports and let our AI generate your Attack letters. Takes 5-10 minutes.</p>
+                  <p className="text-gray-700">Upload your credit reports and let our AI generate your Dispute letters. Takes 5-10 minutes.</p>
                 </div>
               </div>
 

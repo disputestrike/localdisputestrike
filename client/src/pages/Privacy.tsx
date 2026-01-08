@@ -80,7 +80,7 @@ export default function Privacy() {
                 We use the information we collect for the following purposes:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
-                <li><strong>Service Delivery:</strong> Generate Attack letters, analyze credit reports, provide credit education</li>
+                <li><strong>Service Delivery:</strong> Generate Dispute letters, analyze credit reports, provide credit education</li>
                 <li><strong>Payment Processing:</strong> Process transactions, prevent fraud, issue refunds</li>
                 <li><strong>Account Management:</strong> Create and maintain your account, authenticate users, provide customer support</li>
                 <li><strong>Communication:</strong> Send service updates, respond to inquiries, provide technical support</li>

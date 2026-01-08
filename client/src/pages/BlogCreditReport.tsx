@@ -148,7 +148,7 @@ export default function BlogCreditReport() {
                 </p>
                 <ul className="text-gray-700 space-y-2 mb-6">
                   <li>• Identify items to dispute across all 3 bureaus</li>
-                  <li>• Generate Attack letters with legal citations</li>
+                  <li>• Generate Dispute letters with legal citations</li>
                   <li>• Track your disputes in real-time</li>
                   <li>• Escalate with Round 2 and Round 3 strategies</li>
                 </ul>

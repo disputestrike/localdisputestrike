@@ -53,13 +53,13 @@ export default function Terms() {
                 DisputeStrike provides the following services:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li><strong>Software Tools:</strong> AI-powered document generation software that creates Attack letters based on your input</li>
+                <li><strong>Software Tools:</strong> AI-powered document generation software that creates Dispute letters based on your input</li>
                 <li><strong>Educational Resources:</strong> Credit education, FCRA training, and mailing instructions</li>
                 <li><strong>Credit Analysis:</strong> Automated analysis of credit reports to identify potential inaccuracies</li>
                 <li><strong>Document Templates:</strong> Professional letter templates with proper legal citations</li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
-                You retain full control over the Attack process. We do not contact credit bureaus on your behalf, nor do we guarantee any specific results. All actions taken with credit bureaus are performed by you, the consumer, exercising your rights under federal law.
+                You retain full control over the dispute process. We do not contact credit bureaus on your behalf, nor do we guarantee any specific results. All actions taken with credit bureaus are performed by you, the consumer, exercising your rights under federal law.
               </p>
             </section>
 
@@ -70,9 +70,9 @@ export default function Terms() {
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2">
                 <li>Provide accurate and truthful information when using our services</li>
-                <li>Only Attack items on your credit report that you believe to be inaccurate, incomplete, or unverifiable</li>
+                <li>Only challenge items on your credit report that you believe to be inaccurate, incomplete, or unverifiable</li>
                 <li>Comply with all applicable federal and state laws, including the FCRA</li>
-                <li>Not use our service to Attack accurate information or engage in fraudulent activity</li>
+                <li>Not use our service to dispute accurate information or engage in fraudulent activity</li>
                 <li>Review all generated documents before sending them to credit bureaus</li>
                 <li>Take full responsibility for all communications sent to credit bureaus</li>
                 <li>Maintain the confidentiality of your account credentials</li>
@@ -85,27 +85,27 @@ export default function Terms() {
                 DisputeStrike offers one-time payment packages with no recurring subscriptions:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li><strong>Starter Package ($29):</strong> 3 Attack letters, basic FCRA citations, PDF downloads</li>
-                <li><strong>Professional Package ($99):</strong> 15 Attack letters, cross-bureau conflict detection, priority support</li>
-                <li><strong>Complete Package Package ($399):</strong> Unlimited letters, advanced legal arguments, 1-on-1 consultation</li>
+                <li><strong>Starter Package ($29):</strong> 3 Dispute letters, basic FCRA citations, PDF downloads</li>
+                <li><strong>Professional Package ($99):</strong> 15 Dispute letters, cross-bureau conflict detection, priority support</li>
+                <li><strong>Complete Package ($399):</strong> Unlimited letters, advanced FCRA documentation, 1-on-1 educational coaching (not legal advice)</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
                 All payments are processed securely through Stripe. By purchasing a package, you agree to pay the stated price and authorize us to charge your payment method.
               </p>
               <p className="text-gray-700 leading-relaxed">
-                <strong>Refund Policy:</strong> We offer a 30-day money-back guarantee. If you're not satisfied with our service, contact us within 30 days of purchase for a full refund. Refunds are not available after Attack letters have been mailed to credit bureaus.
+                <strong>Refund Policy:</strong> We offer a 30-day software satisfaction guarantee. If you're not satisfied with our service, contact us within 30 days of purchase for a full refund. Refunds are not available after Dispute letters have been mailed to credit bureaus.
               </p>
             </section>
 
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">5. No Guarantees</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeStrike provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit Attack outcomes depend on many factors outside our control, including:
+                DisputeStrike provides software tools and educational resources, but we cannot and do not guarantee any specific results. Credit dispute outcomes depend on many factors outside our control, including:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li>The accuracy of information on your credit reports</li>
                 <li>The responsiveness of credit bureaus and data furnishers</li>
-                <li>The strength of evidence supporting your Attacks</li>
+                <li>The strength of evidence supporting your disputes</li>
                 <li>Your compliance with FCRA procedures and deadlines</li>
               </ul>
               <p className="text-gray-700 leading-relaxed">
@@ -153,7 +153,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">10. Governing Law</h2>
               <p className="text-gray-700 leading-relaxed">
-                These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Delaware, without regard to its conflict of law provisions. Any Attacks arising from these Terms shall be resolved in the state or federal courts located in Delaware.
+                These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Delaware, without regard to its conflict of law provisions. Any disputes arising from these Terms shall be resolved in the state or federal courts located in Delaware.
               </p>
             </section>
 

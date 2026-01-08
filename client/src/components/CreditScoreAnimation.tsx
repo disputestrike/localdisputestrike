@@ -46,6 +46,11 @@ export function CreditScoreAnimation({ className = '' }: CreditScoreAnimationPro
           />
         ))}
       </div>
+      
+      {/* Proximity disclaimer */}
+      <p className="text-xs text-gray-500 text-center mt-2 italic">
+        Illustrative example. Not typical. No score improvement is guaranteed. Results vary by individual.
+      </p>
     </div>
   );
 }

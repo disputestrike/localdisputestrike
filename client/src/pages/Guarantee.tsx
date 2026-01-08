@@ -51,10 +51,10 @@ export default function Guarantee() {
               <Shield className="h-12 w-12 text-orange-600" />
             </div>
             <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 mb-6">
-              110% <span className="text-orange-600">Money-Back</span> Guarantee
+              110% <span className="text-orange-600">Software Satisfaction</span> Guarantee
             </h1>
             <p className="text-xl md:text-2xl text-gray-700">
-              We're so confident in our platform that if you don't see any changes to your credit report, you'll receive 110% of your purchase back. Zero risk.
+              We're so confident in our software tools that if you're not satisfied with the platform experience, you'll receive 110% of your purchase back. This guarantee covers software usability and access — not credit outcomes, which vary by individual circumstances.
             </p>
           </div>
         </div>
@@ -75,7 +75,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Purchase any package and use our platform for 30 days. Generate your letters, send your Attacks, and track your results.
+                  Purchase any package and use our platform for 30 days. Generate your letters, send your disputes, and track your results.
                 </p>
               </CardContent>
             </Card>
@@ -89,7 +89,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  Use our tools to generate and mail your Attack letters. Monitor your credit report for changes over the next 30-60 days.
+                  Use our tools to generate and mail your Dispute letters. Monitor your credit report for changes over the next 30-60 days.
                 </p>
               </CardContent>
             </Card>
@@ -103,7 +103,7 @@ export default function Guarantee() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 text-center text-lg">
-                  No changes to your credit report? Email us within 60 days for a 110% refund. No questions, no hassle.
+                  Not satisfied with our software tools? Email us within 30 days for a 110% refund. This covers platform usability — not credit outcomes.
                 </p>
               </CardContent>
             </Card>
@@ -122,9 +122,9 @@ export default function Guarantee() {
                 <div className="flex items-start gap-4">
                   <CheckCircle2 className="h-8 w-8 text-green-600 flex-shrink-0 mt-1" />
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">110% Refund Within 60 Days</h3>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">110% Software Satisfaction Refund</h3>
                     <p className="text-gray-700">
-                      If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. That's right - you get MORE money back than you paid.
+                      If you're not satisfied with our software tools and platform experience within 30 days, you'll receive 110% of your purchase price back. This guarantee covers platform usability and access — not credit outcomes, which vary by individual.
                     </p>
                   </div>
                 </div>
@@ -144,7 +144,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Keep Your Letters</h3>
                     <p className="text-gray-700">
-                      Even if you request a refund, you can keep all the Attack letters you've generated. We want you to succeed either way.
+                      Even if you request a refund, you can keep all the Dispute letters you've generated. We want you to succeed either way.
                     </p>
                   </div>
                 </div>
@@ -175,7 +175,7 @@ export default function Guarantee() {
             
             <div className="bg-orange-50 rounded-2xl p-8 border-2 border-orange-200">
               <p className="text-lg text-gray-700 leading-relaxed">
-                We're not like other companies that promise specific results. We provide professional tools and monitoring to help YOU exercise your legal rights under the FCRA. Our 110% guarantee means you have nothing to lose and everything to gain.
+                We're not like other companies that promise specific credit outcomes. We provide professional software tools to help YOU exercise your legal rights under the FCRA. Our 110% guarantee covers your satisfaction with the software platform — not credit results, which depend on your individual circumstances and cannot be guaranteed by any service.
               </p>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function Guarantee() {
         <div className="container text-center">
           <h2 className="text-4xl md:text-6xl font-extrabold mb-6">Try It Risk-Free Today</h2>
           <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
-            Join thousands of users who are taking control of their credit with our monitoring and Attack tools
+            Join thousands of users who are taking control of their credit with our monitoring and dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
             <Link href="/quiz">Start Free Analysis</Link>

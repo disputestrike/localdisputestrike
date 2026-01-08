@@ -207,7 +207,7 @@ export default function BlogFCRARights() {
             <ul className="list-disc pl-6 mb-8 text-gray-700 space-y-2">
               <li><strong>AI-powered dispute letters:</strong> Generate professional letters with proper FCRA citations</li>
               <li><strong>MOV request templates:</strong> Automatically generate Method of Verification demands</li>
-              <li><strong>Escalation strategy:</strong> 3-Round Attack approach mirrors what attorneys use</li>
+              <li><strong>Escalation strategy:</strong> 3-Round Dispute approach mirrors what attorneys use</li>
               <li><strong>Progress tracking:</strong> Dashboard shows status of all disputes</li>
               <li><strong>Mailing instructions:</strong> Step-by-step guidance for certified mail</li>
             </ul>

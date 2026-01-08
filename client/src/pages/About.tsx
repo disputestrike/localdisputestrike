@@ -40,7 +40,7 @@ export default function About() {
               About <span className="text-orange-600">DisputeStrike</span>
             </h1>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We're on a mission to democratize dispute automation by making professional-grade Attack letters accessible to everyone—not just those who can afford expensive attorneys.
+              We're on a mission to democratize dispute automation by making professional-grade Dispute letters accessible to everyone—not just those who can afford expensive attorneys.
             </p>
           </div>
         </div>
@@ -58,15 +58,15 @@ export default function About() {
               </p>
               
               <p>
-                Our founders spent years studying the Fair Credit Reporting Act (FCRA), analyzing thousands of successful Attack letters, and understanding what makes credit bureaus delete negative items. We discovered that the secret wasn't magic—it was proper legal citations, cross-bureau conflict detection, and personalized arguments that credit bureaus couldn't ignore.
+                Our founders spent years studying the Fair Credit Reporting Act (FCRA), analyzing thousands of successful Dispute letters, and understanding what makes credit bureaus delete negative items. We discovered that the secret wasn't magic—it was proper legal citations, cross-bureau conflict detection, and personalized arguments that credit bureaus couldn't ignore.
               </p>
               
               <p>
-                In 2024, we launched DisputeStrike with a bold vision: use cutting-edge AI technology to generate documentation-driven Attack letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
+                In 2024, we launched DisputeStrike with a bold vision: use cutting-edge AI technology to generate documentation-driven Dispute letters that rival what $2,500 attorneys produce, but make them available for just $29. We wanted to level the playing field and give everyone access to the same powerful dispute automation tools.
               </p>
               
               <p>
-                Today, we've helped over 16,000 users automate their credit disputes with professional-grade tools. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized Attack letters with proper FCRA citations—all automatically. We've proven that dispute automation doesn't have to be expensive to be powerful.
+                Today, we've helped over 16,000 users automate their credit disputes with professional-grade tools. Our AI-powered platform analyzes credit reports, detects cross-bureau conflicts, and generates personalized Dispute letters with proper FCRA citations—all automatically. We've proven that dispute automation doesn't have to be expensive to be powerful.
               </p>
             </div>
           </div>
@@ -82,7 +82,7 @@ export default function About() {
               Credit Should Be Affordable. For everyone. Always.
             </p>
             <p className="text-xl text-gray-700 leading-relaxed">
-              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make documentation-driven Attack letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
+              We believe that everyone deserves access to powerful credit monitoring tools, regardless of their income. Our mission is to make documentation-driven Dispute letters accessible to all Americans, helping families escape the cycle of bad credit and build the financial future they deserve.
             </p>
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function About() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Legal Excellence</h3>
               <p className="text-gray-700 leading-relaxed">
-                Every letter we generate includes proper FCRA citations, legal arguments, and compelling evidence. We don't cut corners—our AI produces attorney-quality work that credit bureaus take seriously.
+                Every letter we generate includes proper FCRA citations, statute references, and supporting documentation. We don't cut corners—our AI produces attorney-quality work that credit bureaus take seriously.
               </p>
             </div>
 
@@ -120,7 +120,7 @@ export default function About() {
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Transparency</h3>
               <p className="text-gray-700 leading-relaxed">
-                No hidden fees, no recurring subscriptions, no surprises. You pay once and get exactly what we promise: professional Attack letters with full mailing instructions. Simple, honest, transparent.
+                No hidden fees, no recurring subscriptions, no surprises. You pay once and get exactly what we promise: professional Dispute letters with full mailing instructions. Simple, honest, transparent.
               </p>
             </div>
 
@@ -156,7 +156,7 @@ export default function About() {
             </div>
             <div>
               <div className="text-5xl md:text-6xl font-extrabold mb-2">110%</div>
-              <div className="text-xl font-medium">Money-Back Guarantee</div>
+              <div className="text-xl font-medium">Software Satisfaction Guarantee</div>
             </div>
           </div>
           
@@ -175,7 +175,7 @@ export default function About() {
               Ready to Experience the Difference?
             </h2>
             <p className="text-xl text-gray-700 mb-8">
-              Join thousands of customers who've successfully deleted negative items and raised their credit scores.
+              Join thousands of users who've successfully deleted negative items and raised their credit scores.
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
               <Link href="/quiz">Start Free Analysis</Link>

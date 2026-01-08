@@ -132,7 +132,7 @@ export default function Admin() {
             <CardContent>
               <div className="text-2xl font-bold">{stats?.successRate || 0}%</div>
               <p className="text-xs text-muted-foreground">
-                Based on {stats?.completedDisputes || 0} Attacks
+                Based on {stats?.completedDisputes || 0} disputes
               </p>
             </CardContent>
           </Card>

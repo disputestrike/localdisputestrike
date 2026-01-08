@@ -7,9 +7,9 @@ export default function WhatToExpect() {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="container max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-4">What to Expect During Your Attack</h1>
+          <h1 className="text-4xl font-bold mb-4">What to Expect During Your Dispute</h1>
           <p className="text-xl text-gray-600">
-            Understanding the credit Attack process and your legal protections
+            Understanding the credit dispute process and your legal protections
           </p>
         </div>
 
@@ -31,7 +31,7 @@ export default function WhatToExpect() {
               </div>
               <div>
                 <h3 className="font-bold">Bureau Receives Your Letters</h3>
-                <p className="text-gray-600">Credit bureaus log your Attack and begin the investigation process.</p>
+                <p className="text-gray-600">Credit bureaus log your dispute and begin the investigation process.</p>
               </div>
             </div>
 
@@ -143,7 +143,7 @@ export default function WhatToExpect() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="text-green-600 flex-shrink-0 mt-1" />
               <div>
-                <strong>No New Late Payments:</strong> The Attack process is separate from payment history. You won't get new late payment marks.
+                <strong>No New Late Payments:</strong> The dispute process is separate from payment history. You won't get new late payment marks.
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -173,7 +173,7 @@ export default function WhatToExpect() {
           <div className="space-y-4">
             <div>
               <h3 className="font-bold text-lg">FCRA § 1681i(a)(1)(A)</h3>
-              <p className="text-gray-600">You have the right to Attack any inaccurate information on your credit report.</p>
+              <p className="text-gray-600">You have the right to dispute any inaccurate information on your credit report.</p>
             </div>
             <div>
               <h3 className="font-bold text-lg">FCRA § 1681i(a)(5)(A)</h3>
@@ -200,7 +200,7 @@ export default function WhatToExpect() {
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg">
               <p className="font-bold text-lg text-green-700">+42 Points in 2 Days</p>
-              <p className="text-gray-600">Equifax score jumped from 582 to 624 immediately after Attack was filed.</p>
+              <p className="text-gray-600">Equifax score jumped from 582 to 624 immediately after dispute was filed.</p>
             </div>
             <div className="bg-white p-4 rounded-lg">
               <p className="font-bold text-lg text-green-700">3 Accounts Deleted</p>

@@ -21,7 +21,7 @@ export default function SuccessStories() {
       scoreIncrease: 42,
       accountsDeleted: 3,
       daysToResults: 2,
-      testimonial: "DisputeStrike gave me the power to fight back against inaccurate information on my credit report. The AI-powered Attack letters were professional and legally sound - I felt like I had a litigation team in my corner. The platform helped me take control of my credit journey and understand my FCRA rights. I'm finally in the driver's seat!",
+      testimonial: "DisputeStrike gave me the power to fight back against inaccurate information on my credit report. The AI-powered Dispute letters were professional and legally sound - I felt like I had a litigation team in my corner. The platform helped me take control of my credit journey and understand my FCRA rights. I'm finally in the driver's seat!",
       specificDeletions: ["Credit Union of Texas", "PNC Bank", "Ford Motor Credit"],
       isFeatured: true,
     },
@@ -33,7 +33,7 @@ export default function SuccessStories() {
       scoreIncrease: 58,
       accountsDeleted: 5,
       daysToResults: 28,
-      testimonial: "After years of feeling powerless, DisputeStrike helped me challenge what I believed was inaccurate on my credit report. The Force/Power positioning is real - I went from feeling helpless to feeling like I'm in control of my financial future. The Attack letters gave me the confidence to defend my rights under federal law.",
+      testimonial: "After years of feeling powerless, DisputeStrike helped me challenge what I believed was inaccurate on my credit report. The Force/Power positioning is real - I went from feeling helpless to feeling like I'm in control of my financial future. The Dispute letters gave me the confidence to defend my rights under federal law.",
       specificDeletions: null,
       isFeatured: true,
     },
@@ -64,8 +64,11 @@ export default function SuccessStories() {
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
               Success Stories
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="text-xl text-gray-600 mb-6">
               See how DisputeStrike users are striking with precision and defending their credit rights.
+            </p>
+            <p className="text-sm text-gray-500 italic mb-8">
+              Results shown are individual experiences and are not typical. Your results will vary based on your specific credit situation. No specific outcomes are guaranteed.
             </p>
             <div className="flex flex-wrap justify-center gap-8 text-center">
               <div>
@@ -78,7 +81,7 @@ export default function SuccessStories() {
               </div>
               <div>
                 <div className="text-3xl font-bold text-green-600">110%</div>
-                <div className="text-sm text-gray-600">Money-Back Guarantee</div>
+                <div className="text-sm text-gray-600">Software Satisfaction Guarantee</div>
               </div>
             </div>
           </div>

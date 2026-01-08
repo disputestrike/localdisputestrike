@@ -44,7 +44,7 @@ export default function LetterView() {
         <Card className="max-w-md">
           <CardHeader>
             <CardTitle>Letter Not Found</CardTitle>
-            <CardDescription>The Attack letter you're looking for doesn't exist.</CardDescription>
+            <CardDescription>The Dispute letter you're looking for doesn't exist.</CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild>
@@ -101,7 +101,7 @@ export default function LetterView() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div>
-                <CardTitle className="capitalize">{letter.bureau} Attack Letter</CardTitle>
+                <CardTitle className="capitalize">{letter.bureau} Dispute Letter</CardTitle>
                 <CardDescription>
                   Round {letter.round} • {letter.letterType} • Generated {new Date(letter.createdAt).toLocaleDateString()}
                 </CardDescription>
@@ -143,7 +143,7 @@ export default function LetterView() {
             <AlertDescription>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <strong>Ready to mail?</strong> Follow our complete mailing guide to ensure your Attack is processed correctly.
+                  <strong>Ready to mail?</strong> Follow our complete mailing guide to ensure your dispute is processed correctly.
                   <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
                     <li>What documents to include (ID, utility bill)</li>
                     <li>How to send via Certified Mail with Return Receipt</li>

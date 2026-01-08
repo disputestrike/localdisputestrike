@@ -27,7 +27,7 @@ export default function AIAssistant() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello ${user?.name || 'there'}! I'm your AI credit monitoring assistant powered by Manus AI. I have expert knowledge of FCRA law, cross-bureau conflict detection, and documentation-driven Attack strategies.\n\nI can help you with:\n- Analyzing your credit reports\n- Identifying cross-bureau conflicts\n- Explaining FCRA violations\n- Reviewing Attack letters\n- Answering credit monitoring questions\n\nWhat would you like help with today?`,
+      content: `Hello ${user?.name || 'there'}! I'm your AI credit monitoring assistant powered by Manus AI. I have expert knowledge of FCRA law, cross-bureau conflict detection, and documentation-driven dispute strategies.\n\nI can help you with:\n- Analyzing your credit reports\n- Identifying cross-bureau conflicts\n- Explaining FCRA violations\n- Reviewing Dispute letters\n- Answering credit monitoring questions\n\nWhat would you like help with today?`,
       timestamp: new Date(),
     },
   ]);
@@ -168,7 +168,7 @@ export default function AIAssistant() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask me anything about credit monitoring, FCRA law, or Attack strategies..."
+                  placeholder="Ask me anything about credit monitoring, FCRA law, or dispute strategies..."
                   disabled={isLoading}
                   className="flex-1"
                 />

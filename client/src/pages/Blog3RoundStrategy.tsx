@@ -19,7 +19,7 @@ export default function Blog3RoundStrategy() {
             
             <Badge className="mb-4 bg-orange-600">Dispute Strategy</Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              The 3-Round Attack Strategy Explained
+              The 3-Round Dispute Strategy Explained
             </h1>
             <p className="text-xl text-gray-600 mb-8">
               Learn the escalation strategy used by credit professionals to challenge inaccurate information with increasing force.
@@ -27,7 +27,7 @@ export default function Blog3RoundStrategy() {
             
             <img 
               src="/blog-thumb-3-round-strategy.png" 
-              alt="3-Round Attack Strategy" 
+              alt="3-Round Dispute Strategy" 
               className="w-full rounded-lg shadow-xl mb-8"
             />
           </div>
@@ -42,7 +42,7 @@ export default function Blog3RoundStrategy() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Why a 3-Round Strategy?</h2>
             
             <p className="text-gray-700 mb-6">
-              Most people who dispute credit information make the mistake of giving up after one attempt. But credit professionals know that persistence and escalation are key. The 3-Round Attack Strategy is designed to increase pressure with each round, making it harder for credit bureaus to simply verify inaccurate information without proper investigation.
+              Most people who dispute credit information make the mistake of giving up after one attempt. But credit professionals know that persistence and escalation are key. The 3-Round Dispute Strategy is designed to increase pressure with each round, making it harder for credit bureaus to simply verify inaccurate information without proper investigation.
             </p>
 
             <Card className="mb-8 border-2 border-orange-200 bg-orange-50">
@@ -174,7 +174,7 @@ export default function Blog3RoundStrategy() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">How DisputeStrike Automates This Strategy</h2>
 
             <p className="text-gray-700 mb-6">
-              DisputeStrike makes it easy to execute the 3-Round Attack Strategy without hiring an expensive attorney:
+              DisputeStrike makes it easy to execute the 3-Round Dispute Strategy without hiring an expensive attorney:
             </p>
 
             <ul className="list-disc pl-6 mb-8 text-gray-700 space-y-2">
@@ -222,7 +222,7 @@ export default function Blog3RoundStrategy() {
         <div className="container">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Ready to Launch Your Attack Strategy?
+              Ready to Launch Your Dispute Strategy?
             </h2>
             <p className="text-xl text-gray-300 mb-8">
               Start with Round 1 today and let DisputeStrike guide you through the escalation process

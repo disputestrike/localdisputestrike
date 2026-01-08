@@ -30,13 +30,13 @@ export default function Pricing() {
       name: "DIY Starter",
       price: "$29",
       period: "one-time",
-      description: "Perfect for getting started with credit monitoring and Attack tools",
+      description: "Perfect for getting started with credit monitoring and dispute tools",
       icon: BookOpen,
       popular: false,
       tier: "diy_quick" as const,
       features: [
         "Credit Education Course",
-        "3 Bureau Attack Letters (1 Round)",
+        "3 Bureau Dispute Letters (1 Round)",
         "Cross-Bureau Conflict Detection",
         "Mailing Instructions & Checklist",
         "30-Day Software Access",
@@ -56,7 +56,7 @@ export default function Pricing() {
       features: [
         "Advanced Credit Education Course",
         "9 Bureau Letters (3 Rounds)",
-        "Furnisher Attack Letters",
+        "Furnisher Dispute Letters",
         "CFPB Complaint Templates",
         "Cross-Bureau Analysis Engine",
         "Mailing Guidance & Tracking",
@@ -70,18 +70,18 @@ export default function Pricing() {
       name: "Pro Subscription",
       price: "$39.99",
       period: "/month",
-      description: "Ultimate credit monitoring and Attack automation platform",
+      description: "Ultimate credit monitoring and dispute automation platform",
       icon: Star,
       popular: false,
       tier: "white_glove" as const,
       features: [
         "Everything in Complete Package",
         "Credit Monitoring (Vantage 3.0)",
-        "Unlimited Attack Letters",
+        "Unlimited Dispute Letters",
         "Automated Deadline Tracking",
         "Monthly Progress Reports",
         "Priority Support",
-        "Monthly Strategy Coaching",
+        "Monthly Educational Coaching (not legal advice)",
         "Cancel Anytime",
       ],
       cta: "Go Pro",
@@ -154,7 +154,7 @@ export default function Pricing() {
           Choose Your <span className="text-primary">Credit Monitoring</span> Plan
         </h1>
         <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-          Credit monitoring + AI Attack tools. You generate, print, and mail letters yourself. No forced subscriptions.
+          Credit monitoring + AI dispute tools. You generate, print, and mail letters yourself. No forced subscriptions.
         </p>
         
         {/* Legal Disclaimer */}
@@ -172,7 +172,7 @@ export default function Pricing() {
           </div>
           <div className="flex items-center gap-1">
             <Check className="h-4 w-4 text-green-500" />
-            <span>110% Money-Back Guarantee</span>
+            <span>110% Software Satisfaction Guarantee</span>
           </div>
           <div className="flex items-center gap-1">
             <Check className="h-4 w-4 text-green-500" />
@@ -330,7 +330,7 @@ export default function Pricing() {
               <strong>Your Rights:</strong> You have the right to dispute inaccurate information in your credit report yourself, at no cost, by contacting the credit reporting agency directly. You may cancel this contract without penalty or obligation at any time before midnight of the 3rd business day after the date on which you signed the contract.
             </p>
             <p>
-              <strong>110% Money-Back Guarantee:</strong> If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. No questions asked. <Link href="/guarantee" className="text-primary underline">See full terms</Link>.
+              <strong>110% Software Satisfaction Guarantee:</strong> If you're not satisfied with our software tools and platform experience within 30 days, you'll receive 110% of your purchase price back. This guarantee covers platform usability — not credit outcomes. <Link href="/guarantee" className="text-primary underline">See full terms</Link>.
             </p>
           </CardContent>
         </Card>
@@ -369,7 +369,7 @@ export default function Pricing() {
             <CardContent>
               <p className="text-muted-foreground">
                 <strong>DIY Starter ($29):</strong> Basic course + 3 letters + 30 days access<br />
-                <strong>Complete Package ($79):</strong> Advanced course + 9 letters + furnisher Attacks + 90 days access<br />
+                <strong>Complete Package ($79):</strong> Advanced course + 9 letters + furnisher disputes + 90 days access<br />
                 <strong>Pro Subscription ($39.99/mo):</strong> Everything + credit monitoring + unlimited letters + coaching
               </p>
             </CardContent>
@@ -392,7 +392,7 @@ export default function Pricing() {
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
-                You're protected by our 110% money-back guarantee. If you don't see ANY changes to your credit report within 60 days, you'll receive 110% of your purchase price back. No questions asked. <Link href="/guarantee" className="text-primary underline">Learn more</Link>.
+                You're protected by our 110% software satisfaction guarantee. If you're not satisfied with our software tools within 30 days, you'll receive 110% of your purchase price back. This covers platform usability — not credit outcomes. <Link href="/guarantee" className="text-primary underline">Learn more</Link>.
               </p>
             </CardContent>
           </Card>
@@ -405,7 +405,7 @@ export default function Pricing() {
           <CardHeader>
             <CardTitle className="text-3xl">Ready to Fix Your Credit?</CardTitle>
             <CardDescription className="text-primary-foreground/80">
-              Join thousands who've improved their credit with our documentation-driven Attack letters
+              Join thousands who've improved their credit with our documentation-driven Dispute letters
             </CardDescription>
           </CardHeader>
           <CardContent>
