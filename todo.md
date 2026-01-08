@@ -105,7 +105,7 @@
 ## ❌ NOT IMPLEMENTED (Future Features)
 
 ### Letter Generation Enhancements
-- [ ] Furnisher dispute letter generator
+- [x] Furnisher dispute letter generator
 - [ ] CFPB complaint generator
 - [ ] Letter quality validation scoring
 
@@ -117,7 +117,7 @@
 - [ ] Re-aging violation detector
 
 ### Credit Education
-- [ ] Credit Education Course component
+- [x] Credit Education Course component and page (/credit-education)
 - [ ] Video tutorials for mailing process
 - [ ] Knowledge base expansion
 

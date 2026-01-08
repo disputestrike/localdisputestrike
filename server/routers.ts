@@ -888,6 +888,128 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
       }),
 
     /**
+     * Generate furnisher dispute letter (direct to creditor/collection agency)
+     */
+    generateFurnisherLetter: paidProcedure
+      .input(z.object({
+        accountId: z.number(),
+        currentAddress: z.string(),
+        furnisherName: z.string().optional(),
+        furnisherAddress: z.string().optional(),
+        customReasons: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const userName = ctx.user.name || 'User';
+        
+        // Get the account
+        const accounts = await db.getNegativeAccountsByUserId(userId);
+        const account = accounts.find(a => a.id === input.accountId);
+        
+        if (!account) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Account not found',
+          });
+        }
+        
+        // Import furnisher letter utilities
+        const {
+          FURNISHER_LETTER_SYSTEM_PROMPT,
+          buildFurnisherLetterPrompt,
+          detectFurnisherType,
+          getStandardDisputeReasons,
+          lookupFurnisherAddress,
+        } = await import('./furnisherLetterGenerator');
+        
+        // Determine furnisher info
+        const creditorName = account.originalCreditor || account.accountName;
+        const furnisherType = detectFurnisherType(creditorName);
+        const isCollectionAgency = furnisherType === 'collection' || furnisherType === 'medical';
+        
+        // Look up or use provided furnisher address
+        let furnisherName = input.furnisherName;
+        let furnisherAddress = input.furnisherAddress;
+        
+        if (!furnisherName || !furnisherAddress) {
+          const lookup = lookupFurnisherAddress(creditorName);
+          if (lookup) {
+            furnisherName = furnisherName || lookup.name;
+            furnisherAddress = furnisherAddress || lookup.address;
+          } else {
+            furnisherName = furnisherName || creditorName;
+            furnisherAddress = furnisherAddress || '[FURNISHER ADDRESS - Please look up the creditor\'s dispute address]';
+          }
+        }
+        
+        // Get dispute reasons
+        const disputeReasons = input.customReasons && input.customReasons.length > 0
+          ? input.customReasons
+          : getStandardDisputeReasons(account.accountType || '', account.status || '');
+        
+        // Build prompt
+        const prompt = buildFurnisherLetterPrompt(
+          userName,
+          input.currentAddress,
+          furnisherName,
+          furnisherAddress,
+          {
+            accountNumber: account.accountNumber || 'Unknown',
+            accountType: account.accountType || 'Unknown',
+            balance: account.balance?.toString() || '0',
+            status: account.status || 'Unknown',
+            dateOpened: account.dateOpened || undefined,
+            lastActivity: account.lastActivity || undefined,
+            originalCreditor: account.originalCreditor || undefined,
+          },
+          disputeReasons,
+          isCollectionAgency
+        );
+        
+        // Generate letter using Manus AI
+        const { invokeLLM } = await import('./_core/llm');
+        
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: 'system',
+              content: FURNISHER_LETTER_SYSTEM_PROMPT,
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        });
+        
+        const rawContent = response.choices[0]?.message?.content;
+        const letterContent = typeof rawContent === 'string'
+          ? rawContent
+          : 'Error generating furnisher dispute letter';
+        
+        // Save letter to database
+        const letterId = await db.createDisputeLetter({
+          userId,
+          bureau: 'furnisher',
+          recipientName: furnisherName,
+          recipientAddress: furnisherAddress,
+          letterContent,
+          accountsDisputed: JSON.stringify([account.id]),
+          round: 1,
+          letterType: 'initial',
+          status: 'generated',
+        });
+        
+        return {
+          letterId,
+          furnisherName,
+          furnisherType,
+          isCollectionAgency,
+          message: `Furnisher dispute letter generated for ${furnisherName}`,
+        };
+      }),
+
+    /**
      * Upload and parse bureau response letter
      */
     uploadBureauResponse: protectedProcedure

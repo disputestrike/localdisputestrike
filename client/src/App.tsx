@@ -29,6 +29,7 @@ import BlogFCRARights from "./pages/BlogFCRARights";
 import CROADisclosure from "./pages/CROADisclosure";
 import Cancellation from "./pages/Cancellation";
 import MoneyBackGuarantee from "./pages/MoneyBackGuarantee";
+import CreditEducation from "./pages/CreditEducation";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/money-back-guarantee" component={MoneyBackGuarantee} />
       <Route path="/what-to-expect" component={WhatToExpect} />
       <Route path="/success-stories" component={SuccessStories} />
+      <Route path="/credit-education" component={CreditEducation} />
       <Route path="/blog/how-to-read-credit-report" component={BlogCreditReport} />
       <Route path="/blog/3-round-strategy" component={Blog3RoundStrategy} />
       <Route path="/blog/fcra-rights" component={BlogFCRARights} />
