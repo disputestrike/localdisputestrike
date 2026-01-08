@@ -83,6 +83,15 @@ export function MobileMenu() {
                 FAQ
               </a>
             </Link>
+            
+            <Link href="/money-back-guarantee">
+              <a
+                onClick={() => setIsOpen(false)}
+                className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
+              >
+                Money Back Guarantee
+              </a>
+            </Link>
 
             <div className="pt-4 border-t border-gray-200 space-y-3">
               {isAuthenticated ? (
