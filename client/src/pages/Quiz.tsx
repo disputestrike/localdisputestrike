@@ -10,7 +10,11 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 // Toast functionality - using simple alerts for now
 const toast = ({ title, description, variant }: { title: string; description?: string; variant?: string }) => {
-  alert(`${title}${description ? '\n' + description : ''}`);
+  if (variant === "destructive") {
+    console.error(title, description);
+  } else {
+    console.log(title, description);
+  }
 };
 
 type QuizData = {

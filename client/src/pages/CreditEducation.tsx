@@ -1,3 +1,4 @@
+import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,6 @@ import {
   FileText,
   GraduationCap,
   Lock,
-  PlayCircle,
   Scale,
   Shield,
   Star,
@@ -24,16 +24,14 @@ import {
   TrendingUp,
   Award,
   Download,
-  ExternalLink,
 } from "lucide-react";
 
 interface Lesson {
   id: string;
   title: string;
   duration: string;
-  type: "video" | "reading" | "quiz";
-  videoUrl?: string; // YouTube embed URL
-  content?: string; // Reading content
+  type: "reading" | "quiz";
+  content?: string; // Reading content only
 }
 
 interface Module {
@@ -46,22 +44,46 @@ interface Module {
   icon: React.ElementType;
 }
 
-// Course content with embedded videos
+// Course content - WRITTEN CONTENT ONLY, NO VIDEOS
 const modules: Module[] = [
   {
     id: 1,
     moduleId: "module1",
     title: "Understanding Your Credit Report",
     description: "Learn how to read and interpret your credit report from all three bureaus.",
-    duration: "45 min",
+    duration: "30 min",
     icon: FileText,
     lessons: [
       { 
         id: "1-1", 
         title: "What is a Credit Report?", 
         duration: "8 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/aXvjuXKiP0c", // Credit report basics
+        type: "reading",
+        content: `# What is a Credit Report?
+
+A credit report is a detailed record of your credit history maintained by credit bureaus. It contains information about:
+
+## Key Components
+
+- **Personal Information**: Name, address, SSN, date of birth, employment history
+- **Credit Accounts**: Credit cards, loans, mortgages, lines of credit
+- **Payment History**: Whether you paid on time, late, or defaulted
+- **Inquiries**: Hard inquiries (when you apply for credit) and soft inquiries (pre-approvals)
+- **Public Records**: Bankruptcies, tax liens, judgments
+- **Negative Items**: Collections, charge-offs, late payments
+
+## Why It Matters
+
+Your credit report directly affects:
+- **Interest rates** you qualify for
+- **Credit limits** offered to you
+- **Loan approval** decisions
+- **Insurance rates** in some states
+- **Employment** opportunities (for certain positions)
+
+## The Three Bureaus
+
+Each of the three major bureaus (Equifax, Experian, TransUnion) maintains separate credit reports on you. They may contain different information because not all creditors report to all bureaus.`,
       },
       { 
         id: "1-2", 
@@ -78,29 +100,165 @@ Not all creditors report to all three bureaus. This means your credit report may
 
 ## Key Differences
 
-- **Equifax**: Founded in 1899, oldest bureau. Strong in mortgage data.
-- **Experian**: Largest bureau globally. Known for detailed employment history.
-- **TransUnion**: Focuses on fraud prevention and identity verification.
+### Equifax
+- Founded in 1899, oldest bureau
+- Strong in mortgage data
+- Known for detailed payment history records
+- Serves over 800 million consumers globally
+
+### Experian
+- Largest bureau globally
+- Known for detailed employment history
+- Strong in alternative data (utility payments, rental history)
+- Serves over 1 billion consumers
+
+### TransUnion
+- Focuses on fraud prevention and identity verification
+- Known for detailed account verification
+- Strong in auto loan data
+- Serves over 700 million consumers
 
 ## Cross-Bureau Conflicts
 
-When the same account shows different information across bureaus (different balances, dates, or statuses), this is called a **cross-bureau conflict** - and it's one of the strongest grounds for dispute.`,
+When the same account shows different information across bureaus (different balances, dates, or statuses), this is called a **cross-bureau conflict** - and it's one of the strongest grounds for dispute.
+
+### Example of Cross-Bureau Conflict
+- **Equifax**: Capital One card shows $2,500 balance, last payment 30 days late
+- **Experian**: Capital One card shows $2,200 balance, current status
+- **TransUnion**: Capital One card shows $2,400 balance, 60 days late
+
+These discrepancies suggest data entry errors or incomplete reporting - perfect grounds for a dispute.`,
       },
       { 
         id: "1-3", 
         title: "How to Get Your Free Credit Reports", 
-        duration: "5 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/HZGCoVF3YvM", // Free credit report
+        duration: "7 min", 
+        type: "reading",
+        content: `# How to Get Your Free Credit Reports
+
+You have the right to free credit reports from all three bureaus every 12 months under the Fair Credit Reporting Act.
+
+## The Official Way
+
+Visit **AnnualCreditReport.com** - the only official website authorized by the Federal Trade Commission.
+
+### Steps:
+1. Go to AnnualCreditReport.com
+2. Provide your name, address, SSN, and date of birth
+3. Choose which bureau(s) you want reports from
+4. Answer security questions to verify your identity
+5. Download or print your reports immediately
+
+**Important**: Never pay for your free annual reports. Legitimate sites don't charge.
+
+## What You'll See
+
+Your credit report will include:
+- Personal identifying information
+- Account history (open and closed accounts)
+- Payment history
+- Inquiries (both hard and soft)
+- Public records and collections
+- Dispute information
+
+## Tips for Review
+
+1. **Check for accuracy** - Verify all personal information is correct
+2. **Look for unfamiliar accounts** - Could indicate identity theft
+3. **Review payment history** - Ensure dates and statuses are accurate
+4. **Note discrepancies** - Different information across bureaus
+5. **Keep copies** - Save for your records and disputes
+
+## Dispute Directly on the Report
+
+Most credit reports include instructions for disputing information directly with the bureau. You can also dispute online through each bureau's website.`,
       },
       { 
         id: "1-4", 
         title: "Reading Your Credit Report Line by Line", 
         duration: "15 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/wPwvzuEBBfE", // Reading credit report
+        type: "reading",
+        content: `# Reading Your Credit Report Line by Line
+
+Understanding each section of your credit report is crucial for identifying errors and disputes.
+
+## Personal Information Section
+
+**What to look for:**
+- Correct name spelling
+- Current address
+- Previous addresses (usually last 7 years)
+- Employment information
+- SSN
+
+**Red flags:**
+- Misspelled name
+- Wrong address
+- Outdated employment
+- Incorrect SSN
+
+## Account History Section
+
+This is the most important section. Each account shows:
+
+### Key Fields:
+- **Creditor Name**: Who issued the account
+- **Account Number**: Usually partially masked
+- **Account Type**: Credit card, installment loan, mortgage, etc.
+- **Status**: Open, Closed, Current, Late, Charged-off, Collections
+- **Balance**: Current amount owed
+- **Credit Limit**: Maximum credit available
+- **Payment History**: Last 24 months of payment status
+- **Date Opened**: When account was opened
+- **Date of Last Activity**: Most recent transaction or payment
+
+### Understanding Payment Status Codes:
+- **Current**: Account is in good standing
+- **30**: Payment 30 days late
+- **60**: Payment 60 days late
+- **90**: Payment 90 days late
+- **120**: Payment 120+ days late
+- **Charged-off**: Creditor gave up on collection
+- **Collections**: Sent to collection agency
+- **Paid**: Account paid in full
+- **Closed**: Account closed by consumer or creditor
+
+## Inquiries Section
+
+**Hard Inquiries** (affect credit score):
+- Appear when you apply for credit
+- Stay on report for 2 years
+- Multiple inquiries in short time = one impact
+
+**Soft Inquiries** (don't affect score):
+- Pre-approvals, account reviews
+- Don't appear to other creditors
+
+## Public Records Section
+
+Serious negative items:
+- **Bankruptcies**: Chapter 7, 11, or 13
+- **Tax Liens**: Unpaid federal/state taxes
+- **Judgments**: Court ordered debt
+- **Foreclosures**: Home repossession
+
+## Collections Section
+
+Accounts sent to collection agencies:
+- Shows original creditor and collection agency
+- Amount owed
+- Date of charge-off
+- Collection status
+
+## Dispute Information Section
+
+Shows any disputes you've filed and their status:
+- **Under Investigation**: Bureau investigating
+- **Verified**: Bureau confirmed information is accurate
+- **Deleted**: Information removed from report
+- **Not Found**: Bureau couldn't verify information`,
       },
-      { id: "1-5", title: "Module 1 Quiz", duration: "7 min", type: "quiz" },
+      { id: "1-5", title: "Module 1 Quiz", duration: "10 min", type: "quiz" },
     ],
   },
   {
@@ -108,15 +266,57 @@ When the same account shows different information across bureaus (different bala
     moduleId: "module2",
     title: "Your Rights Under the FCRA",
     description: "Master the Fair Credit Reporting Act and your consumer rights.",
-    duration: "60 min",
+    duration: "45 min",
     icon: Scale,
     lessons: [
       { 
         id: "2-1", 
         title: "Introduction to the FCRA", 
         duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/KJnPLWgLT3o", // FCRA overview
+        type: "reading",
+        content: `# Introduction to the FCRA
+
+The Fair Credit Reporting Act (FCRA) is the federal law that protects your rights as a consumer regarding credit reporting.
+
+## What is the FCRA?
+
+Enacted in 1970, the FCRA (15 U.S.C. § 1681 et seq.) regulates:
+- How credit bureaus collect and maintain information
+- What information they can report
+- How long information stays on your report
+- Your rights to dispute inaccurate information
+- Penalties for violations
+
+## Your Key Rights Under FCRA
+
+1. **Right to Know** - Access your credit reports free annually
+2. **Right to Dispute** - Challenge inaccurate information
+3. **Right to Investigation** - Bureaus must investigate disputes
+4. **Right to Correction** - Inaccurate info must be corrected or deleted
+5. **Right to Notification** - Be told about negative information
+6. **Right to Limit Use** - Restrict who can see your report
+7. **Right to Sue** - Take legal action for violations
+
+## Time Limits for Negative Information
+
+Most negative information falls off your report after 7 years:
+- **Late payments**: 7 years from first delinquency
+- **Charge-offs**: 7 years from charge-off date
+- **Collections**: 7 years from original delinquency date
+- **Bankruptcies**: 7-10 years depending on type
+- **Hard inquiries**: 2 years
+- **Tax liens**: 7 years (or longer if unpaid)
+- **Judgments**: 7 years (varies by state)
+
+## Violations and Penalties
+
+The FCRA provides strong remedies for violations:
+- Statutory damages: $100-$1,000 per violation
+- Actual damages: Whatever you can prove you lost
+- Punitive damages: Additional punishment
+- Attorney's fees and costs
+
+This makes FCRA violations serious - bureaus and creditors know they face real consequences.`,
       },
       { 
         id: "2-2", 
@@ -125,842 +325,731 @@ When the same account shows different information across bureaus (different bala
         type: "reading",
         content: `# FCRA § 611 - Your Right to Dispute
 
-Under Section 611 of the Fair Credit Reporting Act (15 U.S.C. § 1681i), you have the legal right to dispute any information in your credit report that you believe is inaccurate, incomplete, or unverifiable.
+Section 611 of the Fair Credit Reporting Act (15 U.S.C. § 1681i) is your most powerful tool. It gives you the legal right to dispute any information you believe is inaccurate, incomplete, or unverifiable.
 
 ## The 30-Day Rule
 
-Credit bureaus MUST:
-1. Conduct a reasonable investigation within **30 days**
-2. Forward all relevant information to the furnisher
-3. Review and consider all information you submit
-4. Delete or modify information that cannot be verified
+This is the most important rule in credit disputes. Credit bureaus MUST:
 
-## Your Rights Include:
+1. **Receive your dispute** - In writing, with your name and address
+2. **Conduct reasonable investigation** - Within 30 days
+3. **Forward information to furnisher** - Send your dispute to the creditor
+4. **Review and consider** - Look at all information you submit
+5. **Delete or modify** - If information can't be verified
+6. **Notify you in writing** - Send results within 30 days
 
-- **Free disputes** - No charge to dispute
-- **Written response** - Bureau must send results in writing
-- **Method of Verification** - You can request how they verified the information
-- **Reinvestigation** - You can dispute again with new information
+## What Constitutes a Valid Dispute?
 
-## Penalties for Violations
+Your dispute must:
+- Be in writing (letter, email, or online form)
+- Include your name and address
+- Clearly identify the disputed item(s)
+- Explain why you believe it's inaccurate
+- Include supporting documentation (optional but recommended)
 
-Under FCRA § 1681n, willful noncompliance can result in:
-- $100 to $1,000 per violation
-- Actual damages
-- Punitive damages
-- Attorney's fees`,
+## Your Rights During Investigation
+
+You have the right to:
+- Request the method of verification used
+- Ask for copies of verification documents
+- Submit additional information
+- Request re-investigation if new evidence emerges
+
+## What Happens After Investigation
+
+**If information is verified:**
+- Bureau notifies you in writing
+- Item remains on your report
+- You can dispute again with new evidence
+
+**If information cannot be verified:**
+- Bureau must delete it
+- Bureau must notify you
+- Item is removed from your report
+
+**If information is found to be inaccurate:**
+- Bureau must correct it
+- Bureau must notify you
+- Corrected information is reported to other bureaus
+
+## Reinvestigation Rights
+
+You can dispute the same item multiple times if:
+- You have new evidence
+- You believe the previous investigation was inadequate
+- The item has changed status
+
+## Important: Furnisher Obligations
+
+Under FCRA § 611(b), the creditor (furnisher) who reported the information must:
+- Investigate your dispute
+- Report findings to the bureau
+- Correct or delete if found inaccurate
+- Notify you of results
+
+This means both the bureau AND the creditor must respond to your dispute.`,
       },
       { 
         id: "2-3", 
-        title: "FCRA § 1681i - Investigation Requirements", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/Zy8RoiQDaRU", // Dispute process
-      },
-      { 
-        id: "2-4", 
         title: "FCRA § 1681n & 1681o - Penalties for Violations", 
-        duration: "8 min", 
+        duration: "10 min", 
         type: "reading",
         content: `# FCRA Penalties for Violations
 
-The FCRA provides strong penalties for credit bureaus and furnishers who violate your rights.
+The FCRA provides strong penalties for credit bureaus and furnishers who violate your rights. Understanding these penalties helps you understand why bureaus take disputes seriously.
 
 ## § 1681n - Willful Noncompliance
 
-For **intentional** violations:
-- **Statutory damages**: $100 - $1,000 per violation
-- **Actual damages**: Whatever you can prove you lost
-- **Punitive damages**: Additional punishment for bad behavior
-- **Attorney's fees and costs**: The violator pays your lawyer
+For **intentional** violations (the bureau knew or should have known they were violating the law):
+
+### Damages Available:
+- **Statutory damages**: $100 to $1,000 per violation
+- **Actual damages**: Whatever you can prove you lost (lost wages, emotional distress, etc.)
+- **Punitive damages**: Additional punishment for egregious behavior
+- **Attorney's fees and costs**: The violator pays your lawyer's fees
+
+### Examples of Willful Violations:
+- Failing to investigate a dispute
+- Failing to delete information after 30 days
+- Ignoring your dispute letters
+- Continuing to report inaccurate information
 
 ## § 1681o - Negligent Noncompliance
 
-For **careless** violations:
+For **careless** violations (the bureau was negligent but not intentional):
+
+### Damages Available:
 - **Actual damages**: What you can prove you lost
 - **Attorney's fees and costs**
+- **No statutory damages** (unlike willful violations)
 
-## Real Examples
+### Examples of Negligent Violations:
+- Failing to properly investigate
+- Clerical errors in investigation
+- Inadequate verification procedures
 
-- Consumer wins $1.5 million against Equifax for failing to correct errors
-- $18.6 million class action against TransUnion for FCRA violations
-- Individual awards of $5,000 - $100,000 are common
+## Real-World Examples
 
-## Why This Matters
+### Major FCRA Settlements:
+- **Equifax**: $700 million settlement (2019) for data breach and FCRA violations
+- **TransUnion**: $18.6 million class action settlement for FCRA violations
+- **Experian**: Multiple settlements for inaccurate reporting
 
-These penalties give your dispute letters teeth. When you cite these sections, bureaus know you understand your rights.`,
+### Individual Awards:
+- Consumers routinely win $5,000 - $100,000+ per case
+- Some awards exceed $1 million for egregious violations
+- Average successful claim: $10,000 - $50,000
+
+## Why This Matters for Your Disputes
+
+When you cite FCRA § 611 in your dispute letters:
+- Bureaus know you understand your rights
+- They know violations carry real consequences
+- They're more likely to thoroughly investigate
+- They're more motivated to delete inaccurate information
+
+This is why professional dispute letters reference specific FCRA sections - it shows you're serious and knowledgeable.`,
       },
       { 
-        id: "2-5", 
-        title: "The 30-Day Rule and Your Rights", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/9YLzlIsGdHo", // 30 day rule
+        id: "2-4", 
+        title: "The 30-Day Investigation Timeline", 
+        duration: "8 min", 
+        type: "reading",
+        content: `# The 30-Day Investigation Timeline
+
+Understanding the 30-day timeline is crucial for tracking your disputes and knowing when to follow up.
+
+## Day 1: You Send Your Dispute
+
+**What you do:**
+- Send written dispute to credit bureau
+- Include your name, address, and specific items disputed
+- Provide reason for dispute
+- Include supporting documentation if available
+
+**What the bureau does:**
+- Receives and logs your dispute
+- Assigns a dispute reference number
+- Begins investigation process
+
+## Days 1-5: Bureau Forwards to Creditor
+
+**What the bureau does:**
+- Forwards your dispute to the creditor (furnisher)
+- Includes your dispute letter and documentation
+- Requests investigation and response
+
+**What the creditor does:**
+- Receives dispute from bureau
+- Begins investigation on their end
+- Gathers documentation
+
+## Days 5-25: Investigation Period
+
+**What happens:**
+- Bureau investigates the dispute
+- Creditor investigates the dispute
+- Both sides review documentation
+- Verification procedures are conducted
+
+**What you should do:**
+- Keep copies of everything sent
+- Note the date you sent dispute
+- Track the 30-day deadline
+- Prepare follow-up documentation if needed
+
+## Day 30: Bureau Must Respond
+
+**What the bureau MUST do:**
+- Send you written results
+- Notify you of investigation findings
+- Tell you if item was deleted, verified, or corrected
+- Provide new credit report if item was changed
+
+**What happens to the item:**
+- **Deleted**: Removed from your report (best outcome)
+- **Verified**: Confirmed as accurate, stays on report
+- **Corrected**: Updated with accurate information
+- **Not found**: Item couldn't be located, removed
+
+## After Day 30: Your Options
+
+**If item was deleted or corrected:**
+- Congratulations! Dispute was successful
+- Monitor your report to ensure change sticks
+- Consider disputing other items
+
+**If item was verified:**
+- You can dispute again with new evidence
+- Request method of verification used
+- Ask for copies of verification documents
+- Consider hiring a credit attorney
+
+**If you disagree with results:**
+- You can add a dispute statement to your report
+- You can dispute again if new evidence emerges
+- You can file a complaint with CFPB
+- You can consult an attorney
+
+## Important: The 30-Day Rule is Strict
+
+The 30 days is a legal requirement. Bureaus that miss this deadline are in violation of FCRA § 611. If a bureau fails to respond within 30 days:
+- They must delete the item
+- You have grounds for legal action
+- This is a willful violation (higher damages)
+
+**Pro Tip**: Send your dispute via certified mail with return receipt. This creates proof of when the bureau received it, protecting your 30-day timeline.`,
       },
-      { id: "2-6", title: "Module 2 Quiz", duration: "10 min", type: "quiz" },
+      { id: "2-5", title: "Module 2 Quiz", duration: "10 min", type: "quiz" },
     ],
   },
   {
     id: 3,
     moduleId: "module3",
-    title: "Identifying Errors and Inaccuracies",
-    description: "Learn to spot common errors that can be disputed on your credit report.",
-    duration: "50 min",
+    title: "Identifying Errors and Disputes",
+    description: "Learn to spot common credit report errors and dispute them effectively.",
+    duration: "40 min",
     icon: Target,
     lessons: [
       { 
         id: "3-1", 
         title: "Common Credit Report Errors", 
         duration: "12 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/rI7MnZPT9Uw", // Common errors
+        type: "reading",
+        content: `# Common Credit Report Errors
+
+Credit reports contain errors more often than you'd think. Studies show that 1 in 4 consumers have errors on their credit reports. Here are the most common ones.
+
+## Identity Errors
+
+### Wrong Personal Information
+- Misspelled name
+- Wrong address
+- Incorrect SSN
+- Wrong date of birth
+- Confused with someone else (especially common with similar names)
+
+**How to dispute**: Request correction of personal information. This is usually quick to fix.
+
+### Mixed Files
+- Information from someone else on your report
+- Common with similar names or SSNs
+- Can significantly damage your credit
+
+**How to dispute**: Request investigation and separation of files. Include proof of identity.
+
+## Account Errors
+
+### Accounts Not Yours
+- Fraudulent accounts (identity theft)
+- Accounts opened in error
+- Accounts belonging to someone else
+
+**How to dispute**: "This account is not mine" or "I did not authorize this account."
+
+### Incorrect Account Status
+- Shows as "Charged-off" when you paid it
+- Shows as "Collections" when settled
+- Shows as "Late" when you paid on time
+- Shows as "Open" when you closed it
+
+**How to dispute**: Provide proof of payment or settlement. Include payment receipts or bank statements.
+
+### Wrong Balance
+- Shows higher balance than owed
+- Shows balance when account was paid off
+- Includes duplicate charges
+
+**How to dispute**: Provide account statements showing correct balance. Request verification of balance.
+
+### Wrong Payment History
+- Shows late payments you made on time
+- Shows payments as missed when you paid
+- Shows multiple late payments for single incident
+
+**How to dispute**: Provide bank statements or payment receipts proving timely payment.
+
+## Reporting Errors
+
+### Re-aging
+- Negative item reappears after 7 years
+- Payment date updated to recent date
+- Extends reporting period illegally
+
+**How to dispute**: "This item is beyond the 7-year reporting period" or "This item has been re-aged."
+
+### Duplicate Reporting
+- Same account reported twice
+- Same negative item reported by multiple entities
+- Inflates negative impact on score
+
+**How to dispute**: "This is a duplicate of [other account]" or "This account is already reported."
+
+### Wrong Dates
+- Charge-off date is wrong
+- Delinquency date is wrong
+- Date of last activity is wrong
+
+**How to dispute**: Provide documentation showing correct dates. Request verification.
+
+## Cross-Bureau Conflicts
+
+### Conflicting Information Across Bureaus
+- Different balances on same account
+- Different payment statuses
+- Different delinquency dates
+- One bureau shows account, others don't
+
+**Why this matters**: Cross-bureau conflicts are strong evidence of errors and grounds for deletion.
+
+**How to dispute**: "This information conflicts with [other bureau's report]" and attach copies of both reports.
+
+## Zombie Debts
+
+### Debts That Won't Die
+- Accounts that should have fallen off after 7 years
+- Accounts that were discharged in bankruptcy
+- Accounts that were settled but still showing as active
+
+**How to dispute**: "This account was included in bankruptcy" or "This account is beyond the 7-year reporting period."
+
+## Statute of Limitations Issues
+
+### Debts Beyond Collection Period
+- Accounts still reporting after statute of limitations expired
+- Debts that can't be legally collected but still on report
+- Old accounts that should be deleted
+
+**How to dispute**: "This debt is beyond the statute of limitations" with documentation.`,
       },
       { 
         id: "3-2", 
-        title: "Cross-Bureau Conflicts Explained", 
+        title: "How to Spot Cross-Bureau Conflicts", 
         duration: "10 min", 
         type: "reading",
-        content: `# Cross-Bureau Conflicts
+        content: `# How to Spot Cross-Bureau Conflicts
 
-Cross-bureau conflicts occur when the same account shows **different information** across the three credit bureaus. These are among the strongest grounds for dispute.
+Cross-bureau conflicts are one of the strongest grounds for dispute. When the same account shows different information across bureaus, it indicates errors.
 
-## Types of Conflicts
+## What is a Cross-Bureau Conflict?
+
+A cross-bureau conflict occurs when the same account shows different information on different credit bureaus' reports.
+
+## Common Types of Conflicts
 
 ### Balance Conflicts
-- Equifax shows: $5,000
-- Experian shows: $4,200
-- TransUnion shows: $5,500
+**Example:**
+- Equifax: Capital One card shows $2,500 balance
+- Experian: Capital One card shows $2,200 balance
+- TransUnion: Capital One card shows $2,400 balance
 
-**Both can't be right!**
-
-### Date Conflicts
-- Different dates opened
-- Different last activity dates
-- Different charge-off dates
+**What it means**: One (or more) of these is wrong. The bureaus are reporting different information.
 
 ### Status Conflicts
-- One bureau shows "Paid"
-- Another shows "Charged Off"
-- Third shows "In Collections"
+**Example:**
+- Equifax: Account shows "Current"
+- Experian: Account shows "30 days late"
+- TransUnion: Account shows "Charged-off"
 
-## Why Conflicts Are Powerful
+**What it means**: The account can't be all three statuses. At least two are wrong.
 
-Under FCRA § 1681e(b), bureaus must follow "reasonable procedures to assure maximum possible accuracy." When bureaus report conflicting information, at least one (possibly all) is inaccurate.
+### Date Conflicts
+**Example:**
+- Equifax: Last payment date was 2024-12-15
+- Experian: Last payment date was 2024-11-20
+- TransUnion: Last payment date was 2024-12-01
 
-## How to Use Conflicts
+**What it means**: Only one date can be correct. The others are errors.
 
-In your dispute letter:
-1. Document the conflict with screenshots
-2. Cite the specific discrepancy
-3. Demand deletion since accuracy cannot be verified
-4. Request Method of Verification`,
+### Account Existence Conflicts
+**Example:**
+- Equifax: Shows Chase credit card account
+- Experian: Shows Chase credit card account
+- TransUnion: Does NOT show Chase credit card account
+
+**What it means**: Either TransUnion is missing the account, or the other two have an error.
+
+## Why Cross-Bureau Conflicts Matter
+
+### Proof of Error
+Cross-bureau conflicts prove that at least one (usually more) of the bureaus has inaccurate information. This is powerful evidence in a dispute.
+
+### Stronger Dispute Grounds
+When you cite a cross-bureau conflict in your dispute letter, you're providing objective evidence that something is wrong.
+
+### Higher Deletion Rates
+Disputes citing cross-bureau conflicts have higher success rates because the evidence is clear.
+
+## How to Identify Conflicts
+
+### Step 1: Get All Three Reports
+- Visit AnnualCreditReport.com
+- Order reports from all three bureaus
+- Download or print immediately
+
+### Step 2: Create a Comparison Chart
+Make a spreadsheet with columns for:
+- Account name
+- Equifax info
+- Experian info
+- TransUnion info
+- Conflicts noted
+
+### Step 3: Compare Line by Line
+For each account, compare:
+- Account status (Current, Late, Charged-off, etc.)
+- Balance
+- Credit limit
+- Last payment date
+- Date opened
+- Payment history
+
+### Step 4: Document Conflicts
+For each conflict found:
+- Note which bureaus differ
+- Note what the difference is
+- Mark as potential dispute ground
+
+### Step 5: Prioritize Disputes
+Dispute items with:
+- Conflicts across all three bureaus (strongest)
+- Conflicts across two bureaus (strong)
+- Items that are clearly wrong (moderate)
+
+## Example Dispute Letter Using Cross-Bureau Conflict
+
+"I dispute the Capital One credit card account reported on my credit report. This account shows conflicting information across the three bureaus:
+
+- Equifax: $2,500 balance, Current status
+- Experian: $2,200 balance, 30 days late
+- TransUnion: $2,400 balance, Charged-off
+
+Since these three bureaus report conflicting information about the same account, at least two of these reports must be inaccurate. I request that you investigate and correct this account to reflect accurate information. Please verify the current balance and status with the creditor."
+
+This type of letter is very effective because it provides clear evidence of errors.`,
       },
       { 
         id: "3-3", 
-        title: "Balance Discrepancies", 
-        duration: "8 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/aXvjuXKiP0c", // Balance issues
-      },
-      { 
-        id: "3-4", 
-        title: "Date and Status Conflicts", 
-        duration: "8 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/HZGCoVF3YvM", // Date conflicts
-      },
-      { 
-        id: "3-5", 
-        title: "Re-Aging Violations", 
-        duration: "7 min", 
-        type: "reading",
-        content: `# Re-Aging Violations
-
-Re-aging is the **illegal practice** of updating the date of first delinquency (DOFD) to make an old debt appear newer, keeping it on your credit report longer than allowed.
-
-## The 7-Year Rule
-
-Under FCRA § 1681c, most negative items must be removed after **7 years** from the date of first delinquency.
-
-## Signs of Re-Aging
-
-- Date of first delinquency keeps changing
-- Account shows recent activity but you haven't used it
-- Collection account shows newer date than original account
-- Debt sold to new collector with "new" date
-
-## Re-Aging is Illegal
-
-Re-aging violates:
-- FCRA § 1681c (reporting period limits)
-- FCRA § 1681s-2(a)(5) (furnisher duties)
-- State consumer protection laws
-
-## How to Fight Re-Aging
-
-1. Document the original DOFD from old reports
-2. Compare to current reporting
-3. Cite the violation in your dispute
-4. Report to CFPB if not corrected`,
-      },
-      { id: "3-6", title: "Module 3 Quiz", duration: "5 min", type: "quiz" },
-    ],
-  },
-  {
-    id: 4,
-    moduleId: "module4",
-    title: "The Dispute Process",
-    description: "Step-by-step guide to disputing inaccurate information.",
-    duration: "55 min",
-    icon: Shield,
-    lessons: [
-      { 
-        id: "4-1", 
-        title: "Preparing Your Dispute", 
+        title: "Building Your Dispute Strategy", 
         duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/Zy8RoiQDaRU", // Preparing disputes
-      },
-      { 
-        id: "4-2", 
-        title: "Writing Effective Dispute Letters", 
-        duration: "15 min", 
         type: "reading",
-        content: `# Writing Effective Dispute Letters
+        content: `# Building Your Dispute Strategy
 
-A well-crafted dispute letter is your most powerful tool. Here's how to write one that gets results.
+A successful dispute strategy involves more than just sending letters. Here's how to approach it strategically.
 
-## Essential Elements
+## Phase 1: Assessment
 
-### 1. Your Information
-- Full legal name
-- Current address
-- Date of birth
-- Last 4 of SSN
+### Gather Information
+1. Get all three credit reports
+2. Identify all negative items
+3. Note any errors or conflicts
+4. Prioritize items by impact on score
 
-### 2. Account Identification
-- Creditor name
-- Account number
-- The specific error
+### Prioritize Your Disputes
+Focus on:
+- **High impact items**: Charge-offs, collections, late payments
+- **Clear errors**: Wrong dates, wrong amounts, accounts not yours
+- **Cross-bureau conflicts**: Different info across bureaus
+- **Recent items**: More recent items have bigger score impact
 
-### 3. Legal Citations
-- FCRA § 1681i(a)(1)(A) - Right to dispute
-- FCRA § 1681i(a)(5)(A) - Delete unverifiable info
-- FCRA § 1681s-2(b) - Furnisher investigation duty
+### Avoid Disputing Everything
+- Dispute only items you believe are inaccurate
+- Disputing everything looks like "dispute bombing" and may be ignored
+- Focus on 3-5 strong disputes first
 
-### 4. Specific Demands
-- Investigation within 30 days
-- Written results
-- Method of Verification
-- Deletion if unverifiable
+## Phase 2: Documentation
 
-## What NOT to Do
+### Gather Supporting Evidence
+- Payment receipts
+- Bank statements
+- Settlement agreements
+- Proof of identity
+- Correspondence with creditors
 
-❌ Don't use templates word-for-word
-❌ Don't dispute everything at once
-❌ Don't be vague about the error
-❌ Don't forget to sign in blue ink
-❌ Don't send without certified mail
+### Create a Dispute File
+- Keep organized records
+- Note dates and reference numbers
+- Save all correspondence
+- Document everything in writing
 
-## Pro Tips
+## Phase 3: Dispute Submission
 
-✅ Be specific about what's wrong
-✅ Include supporting documents
-✅ Keep copies of everything
-✅ Send certified mail with return receipt
-✅ Track your 30-day deadline`,
+### Choose Your Method
+- **Online**: Fastest, but less documented
+- **Mail**: Slower, but creates paper trail
+- **Certified mail**: Recommended, creates proof of delivery
+
+### Write Effective Dispute Letters
+- Be specific about what you're disputing
+- Explain why you believe it's inaccurate
+- Reference FCRA § 611
+- Include supporting documentation
+- Keep copies of everything
+
+### Send to Correct Address
+- Send to dispute department (not main address)
+- Include your account number if applicable
+- Request return receipt if mailing
+
+## Phase 4: Follow-Up
+
+### Track the 30-Day Timeline
+- Mark calendar for day 30
+- If no response by day 30, follow up
+- Bureau must respond within 30 days
+
+### Prepare for Responses
+- Item may be verified (stays on report)
+- Item may be deleted (removed from report)
+- Item may be corrected (updated with accurate info)
+
+### Second Round Disputes
+If item is verified:
+- Request method of verification
+- Ask for copies of verification documents
+- Dispute again if new evidence emerges
+
+## Phase 5: Escalation (If Needed)
+
+### If Disputes Aren't Working
+- File complaint with CFPB
+- Consult with credit attorney
+- Consider legal action for FCRA violations
+
+### When to Get a Lawyer
+- Multiple disputes ignored
+- Inaccurate information persists
+- Clear FCRA violations
+- Significant damage to credit
+
+## Timeline for Results
+
+### Realistic Expectations
+- First round: 30-60 days
+- Second round: 30-60 days
+- Third round: 30-60 days
+- Total process: 3-6 months typically
+
+### Monitoring Progress
+- Check credit report monthly
+- Note any changes
+- Document everything
+- Celebrate deletions!
+
+## Key Success Factors
+
+1. **Be organized**: Keep detailed records
+2. **Be persistent**: Follow up if needed
+3. **Be specific**: Don't be vague in disputes
+4. **Be documented**: Include supporting evidence
+5. **Be patient**: Process takes time
+6. **Be professional**: Keep tone respectful but firm`,
       },
-      { 
-        id: "4-3", 
-        title: "What to Include with Your Dispute", 
-        duration: "8 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/wPwvzuEBBfE", // Supporting docs
-      },
-      { 
-        id: "4-4", 
-        title: "Mailing Your Dispute (Certified Mail)", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/9YLzlIsGdHo", // Certified mail
-      },
-      { 
-        id: "4-5", 
-        title: "Tracking Your Dispute", 
-        duration: "7 min", 
-        type: "reading",
-        content: `# Tracking Your Dispute
-
-Proper tracking is essential for enforcing your rights and building a paper trail for potential litigation.
-
-## What to Track
-
-### Mailing Information
-- Date mailed
-- Certified mail tracking number
-- Return receipt (green card)
-- Delivery confirmation date
-
-### Timeline
-- Day 1: Date bureau receives your dispute
-- Day 30: Investigation deadline
-- Day 35: Results must be mailed
-
-### Response Tracking
-- Date response received
-- What they investigated
-- What they verified/deleted
-- Method of Verification (if requested)
-
-## Creating Your Dispute Log
-
-| Date | Action | Tracking # | Notes |
-|------|--------|-----------|-------|
-| 1/1 | Mailed to Equifax | 1234... | Certified |
-| 1/5 | Delivered | - | Green card received |
-| 2/4 | Deadline | - | 30 days |
-| 2/10 | Response received | - | Verified as accurate |
-
-## If They Miss the Deadline
-
-If the bureau doesn't respond within 30 days:
-1. The disputed item MUST be deleted
-2. Send a follow-up demanding deletion
-3. File CFPB complaint
-4. Consider legal action`,
-      },
-      { id: "4-6", title: "Module 4 Quiz", duration: "5 min", type: "quiz" },
-    ],
-  },
-  {
-    id: 5,
-    moduleId: "module5",
-    title: "Escalation Strategies",
-    description: "What to do when your initial dispute doesn't work.",
-    duration: "45 min",
-    icon: TrendingUp,
-    lessons: [
-      { 
-        id: "5-1", 
-        title: "Understanding Bureau Responses", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/KJnPLWgLT3o", // Bureau responses
-      },
-      { 
-        id: "5-2", 
-        title: "Round 2: Method of Verification Requests", 
-        duration: "12 min", 
-        type: "reading",
-        content: `# Method of Verification (MOV) Requests
-
-When your initial dispute comes back "verified," your next step is to demand the Method of Verification.
-
-## What is MOV?
-
-Under FCRA § 1681i(a)(7), you have the right to know:
-- WHO verified the information
-- HOW they verified it
-- WHAT documents they reviewed
-
-## Why MOV Matters
-
-Most "verifications" are just automated e-OSCAR responses. The bureau clicks a button, the furnisher clicks "verified," and no real investigation happens.
-
-## Your MOV Letter Should:
-
-1. Reference your original dispute
-2. Cite FCRA § 1681i(a)(7)
-3. Demand specific documentation:
-   - Name of person who verified
-   - Date of verification
-   - Documents reviewed
-   - Contact information for verifier
-
-## What to Look For
-
-Red flags in MOV responses:
-- Generic "we verified with the furnisher"
-- No specific person named
-- No documents provided
-- Response within 1-2 days (too fast for real investigation)
-
-## Using MOV in Round 3
-
-If the MOV shows inadequate investigation, your Round 3 letter can cite this as evidence of FCRA violations.`,
-      },
-      { 
-        id: "5-3", 
-        title: "Round 3: Intent to Litigate Letters", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/rI7MnZPT9Uw", // Intent to litigate
-      },
-      { 
-        id: "5-4", 
-        title: "Filing a CFPB Complaint", 
-        duration: "8 min", 
-        type: "reading",
-        content: `# Filing a CFPB Complaint
-
-The Consumer Financial Protection Bureau (CFPB) is a powerful ally in your credit dispute journey.
-
-## When to File
-
-File a CFPB complaint when:
-- Bureau doesn't respond within 30 days
-- Bureau doesn't investigate properly
-- Furnisher refuses to correct errors
-- You've exhausted direct disputes
-
-## How to File
-
-1. Go to consumerfinance.gov/complaint
-2. Select "Credit reporting"
-3. Provide detailed information:
-   - What happened
-   - What you've tried
-   - What you want to happen
-
-## What Happens Next
-
-- CFPB forwards complaint to company
-- Company must respond within 15 days
-- You can review and dispute their response
-- CFPB tracks patterns of violations
-
-## CFPB Complaint Tips
-
-✅ Be specific and factual
-✅ Include dates and tracking numbers
-✅ Attach supporting documents
-✅ State what resolution you want
-✅ Keep copies of everything
-
-## Success Rates
-
-CFPB complaints have a high success rate because:
-- Companies know CFPB is watching
-- Patterns lead to enforcement actions
-- Public complaint database affects reputation`,
-      },
-      { id: "5-5", title: "Module 5 Quiz", duration: "5 min", type: "quiz" },
-    ],
-  },
-  {
-    id: 6,
-    moduleId: "module6",
-    title: "Building and Maintaining Good Credit",
-    description: "Strategies for improving and protecting your credit score.",
-    duration: "40 min",
-    icon: Star,
-    lessons: [
-      { 
-        id: "6-1", 
-        title: "The 5 Factors of Your Credit Score", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/aXvjuXKiP0c", // Credit score factors
-      },
-      { 
-        id: "6-2", 
-        title: "Credit Utilization Strategies", 
-        duration: "8 min", 
-        type: "reading",
-        content: `# Credit Utilization Strategies
-
-Credit utilization is the second most important factor in your credit score (30%). Here's how to optimize it.
-
-## What is Utilization?
-
-Credit utilization = (Credit Used ÷ Credit Available) × 100
-
-Example: $3,000 balance ÷ $10,000 limit = 30% utilization
-
-## Optimal Utilization Levels
-
-| Utilization | Impact |
-|-------------|--------|
-| 0% | Good, but shows no activity |
-| 1-9% | EXCELLENT - Ideal range |
-| 10-29% | Good |
-| 30-49% | Fair - Starting to hurt |
-| 50%+ | Poor - Significant damage |
-
-## Strategies to Lower Utilization
-
-### 1. Pay Before Statement Closes
-Your statement balance is what gets reported. Pay down before the statement date.
-
-### 2. Request Credit Limit Increases
-More available credit = lower utilization ratio.
-
-### 3. Spread Balances
-Better to have 20% on 3 cards than 60% on 1 card.
-
-### 4. Keep Old Cards Open
-Closing cards reduces available credit.
-
-### 5. Become an Authorized User
-Get added to someone's old, high-limit card.
-
-## The AZEO Method
-
-**A**ll **Z**ero **E**xcept **O**ne
-
-- Pay all cards to $0
-- Leave one small balance ($5-50)
-- Shows activity without high utilization`,
-      },
-      { 
-        id: "6-3", 
-        title: "Building Positive Credit History", 
-        duration: "10 min", 
-        type: "video",
-        videoUrl: "https://www.youtube.com/embed/HZGCoVF3YvM", // Building credit
-      },
-      { 
-        id: "6-4", 
-        title: "Protecting Yourself from Identity Theft", 
-        duration: "7 min", 
-        type: "reading",
-        content: `# Protecting Yourself from Identity Theft
-
-Identity theft can destroy your credit overnight. Here's how to protect yourself.
-
-## Prevention Strategies
-
-### Freeze Your Credit
-- Free at all three bureaus
-- Prevents new accounts from being opened
-- Unfreeze temporarily when you need credit
-
-### Monitor Your Reports
-- Check all three bureaus regularly
-- Set up fraud alerts
-- Use credit monitoring services
-
-### Protect Your Information
-- Shred sensitive documents
-- Use strong, unique passwords
-- Enable two-factor authentication
-- Be wary of phishing emails
-
-## Warning Signs
-
-Watch for:
-- Accounts you didn't open
-- Inquiries you didn't authorize
-- Bills for unknown accounts
-- Calls from debt collectors about unknown debts
-- Missing mail or statements
-
-## If You're a Victim
-
-1. **Place fraud alerts** on all three bureaus
-2. **File FTC report** at IdentityTheft.gov
-3. **File police report** for documentation
-4. **Dispute fraudulent accounts** with bureaus
-5. **Contact creditors** directly
-6. **Consider credit freeze**
-
-## Extended Fraud Alert
-
-Victims can place a 7-year fraud alert requiring creditors to verify identity before opening new accounts.`,
-      },
-      { id: "6-5", title: "Final Exam", duration: "5 min", type: "quiz" },
+      { id: "3-4", title: "Module 3 Quiz", duration: "10 min", type: "quiz" },
     ],
   },
 ];
 
 export default function CreditEducation() {
-  const { isAuthenticated, user } = useAuth();
-  const [expandedModule, setExpandedModule] = useState<number | null>(1);
+  const { user, isAuthenticated } = useAuth();
+  const [expandedModule, setExpandedModule] = useState<string | null>("module1");
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  
-  // Fetch progress from database
-  const { data: progressData, refetch: refetchProgress } = trpc.courseProgress.getProgress.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
-  );
-  const { data: certificate } = trpc.courseProgress.getCertificate.useQuery(
-    undefined,
-    { enabled: isAuthenticated }
-  );
-  
-  const completeLesson = trpc.courseProgress.completeLesson.useMutation({
-    onSuccess: () => {
-      refetchProgress();
-      toast.success("Lesson completed!");
-    },
-  });
-  
-  const generateCertificate = trpc.courseProgress.generateCertificate.useMutation({
-    onSuccess: () => {
-      toast.success("Congratulations! Your certificate has been generated!");
-      refetchProgress();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
-  // Calculate progress
-  const completedLessonIds = progressData?.filter(p => p.completed).map(p => p.lessonId) || [];
-  const totalLessons = modules.reduce((acc, m) => acc + m.lessons.length, 0);
-  const progressPercent = (completedLessonIds.length / totalLessons) * 100;
+  // TODO: Add education router endpoints
+  // const completeLesson = trpc.education.completeLesson.useMutation();
+  // const { data: progress } = trpc.education.getProgress.useQuery();
+  const progress = { completedLessons: Array.from(completedLessons) };
 
-  const isLessonCompleted = (lessonId: string) => completedLessonIds.includes(lessonId);
-
-  const handleCompleteLesson = (lesson: Lesson, moduleId: string) => {
-    if (!isAuthenticated) {
-      toast.error("Please sign in to track your progress");
-      return;
+  useEffect(() => {
+    if (progress?.completedLessons) {
+      setCompletedLessons(new Set(progress.completedLessons as string[]));
     }
-    
-    completeLesson.mutate({
-      lessonId: lesson.id,
-      moduleId,
-      timeSpentSeconds: parseInt(lesson.duration) * 60,
-      quizScore: lesson.type === "quiz" ? 100 : undefined,
-    });
+  }, [progress]);
+
+  const handleCompleteLesson = async (lesson: Lesson, moduleId: string) => {
+    try {
+      // TODO: Implement completeLesson mutation
+      // await completeLesson.mutateAsync({
+      //   lessonId: lesson.id,
+      //   moduleId,
+      // });
+      const newSet = new Set(completedLessons);
+      newSet.add(lesson.id);
+      setCompletedLessons(newSet);
+      toast.success(`Completed: ${lesson.title}`);
+    } catch (error) {
+      toast.error("Failed to mark lesson as complete");
+    }
   };
 
-  const getModuleProgress = (module: Module) => {
-    const completed = module.lessons.filter(l => isLessonCompleted(l.id)).length;
-    return { completed, total: module.lessons.length };
+  const isLessonCompleted = (lessonId: string) => completedLessons.has(lessonId);
+
+  const calculateProgress = () => {
+    const totalLessons = modules.reduce((sum, m) => sum + m.lessons.length, 0);
+    return Math.round((completedLessons.size / totalLessons) * 100);
   };
+
+
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation */}
-      <nav className="border-b bg-white sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <img loading="lazy" src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
-            <span className="font-bold text-xl">DisputeStrike</span>
-          </Link>
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-gray-600 hover:text-gray-900">Features</Link>
-            <Link href="/how-it-works" className="text-gray-600 hover:text-gray-900">How It Works</Link>
-            <Link href="/pricing" className="text-gray-600 hover:text-gray-900">Pricing</Link>
-            <Link href="/dashboard" className="text-gray-600 hover:text-gray-900">Dashboard</Link>
-          </div>
-          <Link href="/quiz">
-            <Button className="bg-orange-500 hover:bg-orange-600">Start Free Analysis</Button>
-          </Link>
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <BookOpen className="h-8 w-8 text-orange-500" />
+            Credit Education Course
+          </h1>
+          <p className="text-gray-600 mt-2">
+            Master credit repair, FCRA law, and dispute strategies. Written content only.
+          </p>
         </div>
-      </nav>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 to-indigo-900 py-16">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-4 bg-blue-500">Free with Your Purchase</Badge>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
-              Credit Education Course
-            </h1>
-            <p className="text-xl text-blue-100 mb-8">
-              Master your credit rights and learn how to effectively dispute inaccuracies. 
-              This comprehensive course is included free with any DisputeStrike package.
+        {/* Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span>Your Progress</span>
+              <Badge variant="outline">{calculateProgress()}% Complete</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Progress value={calculateProgress()} className="h-2" />
+            <p className="text-sm text-gray-600 mt-3">
+              {completedLessons.size} of {modules.reduce((sum, m) => sum + m.lessons.length, 0)} lessons completed
             </p>
-            <div className="flex flex-wrap justify-center gap-6 text-white/80">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                <span>6 Modules</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                <span>{totalLessons} Lessons</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                <span>~5 Hours Total</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5" />
-                <span>Certificate Included</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      {/* Progress Bar */}
-      <section className="bg-white border-b py-6">
-        <div className="container">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-semibold">Your Progress</span>
-              <span className="text-sm text-gray-600">
-                {completedLessonIds.length} of {totalLessons} lessons completed
-              </span>
-            </div>
-            <Progress value={progressPercent} className="h-3" />
-            
-            {/* Certificate Section */}
-            {progressPercent === 100 && !certificate && (
-              <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+        {/* Modules */}
+        <div className="space-y-4">
+          {modules.map((module) => (
+            <Card key={module.id}>
+              <CardHeader
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => setExpandedModule(expandedModule === module.moduleId ? null : module.moduleId)}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Award className="h-8 w-8 text-green-600" />
+                    <module.icon className="h-6 w-6 text-orange-500" />
                     <div>
-                      <p className="font-semibold text-green-900">Congratulations! You've completed all lessons!</p>
-                      <p className="text-sm text-green-700">Generate your certificate of completion.</p>
+                      <CardTitle>{module.title}</CardTitle>
+                      <p className="text-sm text-gray-600">{module.description}</p>
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => generateCertificate.mutate()}
-                    disabled={generateCertificate.isPending}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    <Award className="h-4 w-4 mr-2" />
-                    Get Certificate
-                  </Button>
-                </div>
-              </div>
-            )}
-            
-            {certificate && (
-              <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Award className="h-8 w-8 text-yellow-600" />
-                    <div>
-                      <p className="font-semibold text-yellow-900">Certificate Earned!</p>
-                      <p className="text-sm text-yellow-700">Certificate #{certificate.certificateNumber}</p>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline">{module.duration}</Badge>
+                    {expandedModule === module.moduleId ? (
+                      <ChevronDown className="h-5 w-5" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5" />
+                    )}
                   </div>
-                  <Button variant="outline" className="border-yellow-400 text-yellow-700">
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Certificate
-                  </Button>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </section>
+              </CardHeader>
 
-      {/* Course Content */}
-      <section className="py-12">
-        <div className="container">
-          <div className="max-w-4xl mx-auto space-y-4">
-            {modules.map((module) => {
-              const { completed, total } = getModuleProgress(module);
-              const isExpanded = expandedModule === module.id;
-              const ModuleIcon = module.icon;
-
-              return (
-                <Card key={module.id} className="overflow-hidden">
-                  <CardHeader
-                    className="cursor-pointer hover:bg-gray-50 transition-colors"
-                    onClick={() => setExpandedModule(isExpanded ? null : module.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-blue-100 rounded-lg">
-                          <ModuleIcon className="h-6 w-6 text-blue-600" />
+              {expandedModule === module.moduleId && (
+                <CardContent className="space-y-3 border-t pt-4">
+                  {module.lessons.map((lesson) => {
+                    const isCompleted = isLessonCompleted(lesson.id);
+                    return (
+                      <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {isCompleted ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : lesson.type === "quiz" ? (
+                            <GraduationCap className="h-5 w-5 text-gray-400" />
+                          ) : (
+                            <FileText className="h-5 w-5 text-gray-400" />
+                          )}
+                          <div>
+                            <p className={`font-medium ${isCompleted ? "text-green-700" : ""}`}>
+                              {lesson.title}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {lesson.type === "quiz" ? "Quiz" : "Reading"} • {lesson.duration}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <CardTitle className="text-lg">
-                            Module {module.id}: {module.title}
-                          </CardTitle>
-                          <p className="text-sm text-gray-600 mt-1">{module.description}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-500">{module.duration}</p>
-                          <p className="text-sm font-medium">
-                            {completed}/{total} lessons
-                          </p>
-                        </div>
-                        {isExpanded ? (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-400" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-
-                  {isExpanded && (
-                    <CardContent className="border-t bg-gray-50 p-0">
-                      <div className="divide-y">
-                        {module.lessons.map((lesson) => {
-                          const isCompleted = isLessonCompleted(lesson.id);
-                          
-                          return (
-                            <div
-                              key={lesson.id}
-                              className="flex items-center justify-between p-4 hover:bg-gray-100 transition-colors"
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setActiveLesson(lesson)}
+                          >
+                            {lesson.type === "quiz" ? (
+                              <>
+                                <GraduationCap className="h-4 w-4 mr-1" />
+                                Take Quiz
+                              </>
+                            ) : (
+                              <>
+                                <FileText className="h-4 w-4 mr-1" />
+                                Read
+                              </>
+                            )}
+                          </Button>
+                          {!isCompleted && lesson.type !== "quiz" && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleCompleteLesson(lesson, module.moduleId)}
+                              disabled={false}
                             >
-                              <div className="flex items-center gap-3">
-                                {isCompleted ? (
-                                  <CheckCircle className="h-5 w-5 text-green-500" />
-                                ) : lesson.type === "video" ? (
-                                  <PlayCircle className="h-5 w-5 text-gray-400" />
-                                ) : lesson.type === "quiz" ? (
-                                  <GraduationCap className="h-5 w-5 text-gray-400" />
-                                ) : (
-                                  <FileText className="h-5 w-5 text-gray-400" />
-                                )}
-                                <div>
-                                  <p className={`font-medium ${isCompleted ? "text-green-700" : ""}`}>
-                                    {lesson.title}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    {lesson.type === "video" ? "Video" : lesson.type === "quiz" ? "Quiz" : "Reading"} • {lesson.duration}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setActiveLesson(lesson)}
-                                >
-                                  {lesson.type === "video" ? (
-                                    <>
-                                      <PlayCircle className="h-4 w-4 mr-1" />
-                                      Watch
-                                    </>
-                                  ) : lesson.type === "quiz" ? (
-                                    <>
-                                      <GraduationCap className="h-4 w-4 mr-1" />
-                                      Take Quiz
-                                    </>
-                                  ) : (
-                                    <>
-                                      <FileText className="h-4 w-4 mr-1" />
-                                      Read
-                                    </>
-                                  )}
-                                </Button>
-                                {!isCompleted && (
-                                  <Button
-                                    size="sm"
-                                    onClick={() => handleCompleteLesson(lesson, module.moduleId)}
-                                    disabled={completeLesson.isPending}
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-1" />
-                                    Complete
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Complete
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                    </CardContent>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
+                    );
+                  })}
+                </CardContent>
+              )}
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
 
       {/* Lesson Modal */}
       {activeLesson && (
@@ -973,16 +1062,6 @@ export default function CreditEducation() {
               </Button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {activeLesson.type === "video" && activeLesson.videoUrl && (
-                <div className="aspect-video">
-                  <iframe
-                    src={activeLesson.videoUrl}
-                    className="w-full h-full rounded-lg"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                </div>
-              )}
               {activeLesson.type === "reading" && activeLesson.content && (
                 <div className="prose prose-blue max-w-none">
                   <div dangerouslySetInnerHTML={{ 
@@ -994,7 +1073,6 @@ export default function CreditEducation() {
                       .replace(/^- (.*$)/gm, '<li class="ml-4">$1</li>')
                       .replace(/^\d+\. (.*$)/gm, '<li class="ml-4 list-decimal">$1</li>')
                       .replace(/\n\n/g, '</p><p class="mb-4">')
-                      .replace(/\|.*\|/g, (match) => `<code class="bg-gray-100 px-1 rounded">${match}</code>`)
                   }} />
                 </div>
               )}
@@ -1005,9 +1083,11 @@ export default function CreditEducation() {
                   <p className="text-gray-600 mb-6">
                     Test your knowledge from this module. You need 70% to pass.
                   </p>
-                  <Button className="bg-blue-600 hover:bg-blue-700">
-                    Start Quiz
-                  </Button>
+                  <Link href={`/dashboard/quiz/${activeLesson.id}`}>
+                    <Button className="bg-blue-600 hover:bg-blue-700">
+                      Start Quiz
+                    </Button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -1015,7 +1095,7 @@ export default function CreditEducation() {
               <Button variant="outline" onClick={() => setActiveLesson(null)}>
                 Close
               </Button>
-              {!isLessonCompleted(activeLesson.id) && (
+              {!isLessonCompleted(activeLesson.id) && activeLesson.type !== "quiz" && (
                 <Button 
                   onClick={() => {
                     const module = modules.find(m => m.lessons.some(l => l.id === activeLesson.id));
@@ -1033,69 +1113,6 @@ export default function CreditEducation() {
           </div>
         </div>
       )}
-
-      {/* What You'll Learn */}
-      <section className="py-16 bg-white">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">What You'll Learn</h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              { icon: FileText, title: "Read Credit Reports", desc: "Understand every section of your credit report and identify potential errors." },
-              { icon: Scale, title: "Know Your FCRA Rights", desc: "Master the federal laws that protect you and give you the power to dispute." },
-              { icon: Target, title: "Identify Errors", desc: "Spot common errors, cross-bureau conflicts, and re-aging violations." },
-              { icon: Shield, title: "Dispute Effectively", desc: "Learn the step-by-step process for disputing and escalating when needed." },
-              { icon: TrendingUp, title: "Build Better Credit", desc: "Strategies for improving and maintaining a healthy credit score." },
-              { icon: Award, title: "Earn a Certificate", desc: "Complete the course and receive a certificate of completion." },
-            ].map((item, idx) => (
-              <div key={idx} className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <item.icon className="h-8 w-8 text-blue-600" />
-                </div>
-                <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                <p className="text-gray-600">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 bg-gradient-to-r from-orange-500 to-orange-600">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
-            Ready to Take Control of Your Credit?
-          </h2>
-          <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-            Get the Credit Education Course free with any DisputeStrike package. 
-            Start disputing inaccuracies with confidence.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/pricing">
-              <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100">
-                View Pricing
-              </Button>
-            </Link>
-            <Link href="/quiz">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Start Free Analysis
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-8">
-        <div className="container text-center">
-          <p>© 2025 DisputeStrike. All rights reserved.</p>
-          <div className="flex justify-center gap-6 mt-4">
-            <Link href="/privacy" className="hover:text-white">Privacy</Link>
-            <Link href="/terms" className="hover:text-white">Terms</Link>
-            <Link href="/croa-disclosure" className="hover:text-white">CROA Disclosure</Link>
-            <Link href="/contact" className="hover:text-white">Contact</Link>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </DashboardLayout>
   );
 }

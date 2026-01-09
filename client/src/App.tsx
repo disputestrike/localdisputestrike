@@ -42,6 +42,7 @@ import DashboardSettings from "./pages/DashboardSettings";
 import DashboardSupport from "./pages/DashboardSupport";
 import DisputeTracking from "./pages/DisputeTracking";
 import ScoreSimulator from "./pages/ScoreSimulator";
+import CertificateView from "./pages/CertificateView";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -89,6 +90,7 @@ function Router() {
       <Route path="/admin/parser" component={HybridParserAdmin} />
       <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
+      <Route path="/certificate/:id" component={CertificateView} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
