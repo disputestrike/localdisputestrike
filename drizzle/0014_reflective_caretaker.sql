@@ -1,0 +1,21 @@
+CREATE TABLE `user_profiles` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`fullName` text,
+	`dateOfBirth` varchar(20),
+	`ssnLast4` varchar(4),
+	`phone` varchar(20),
+	`email` varchar(320),
+	`currentAddress` text,
+	`currentCity` varchar(100),
+	`currentState` varchar(50),
+	`currentZip` varchar(20),
+	`previousAddress` text,
+	`previousCity` varchar(100),
+	`previousState` varchar(50),
+	`previousZip` varchar(20),
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `user_profiles_id` PRIMARY KEY(`id`),
+	CONSTRAINT `user_profiles_userId_unique` UNIQUE(`userId`)
+);

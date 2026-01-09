@@ -19,6 +19,41 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
+ * User profile with personal information for dispute letters
+ */
+export const userProfiles = mysqlTable("user_profiles", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  
+  // Personal info
+  fullName: text("fullName"),
+  dateOfBirth: varchar("dateOfBirth", { length: 20 }), // Format: YYYY-MM-DD
+  ssnLast4: varchar("ssnLast4", { length: 4 }), // Last 4 digits only
+  
+  // Contact info
+  phone: varchar("phone", { length: 20 }),
+  email: varchar("email", { length: 320 }),
+  
+  // Current address
+  currentAddress: text("currentAddress"),
+  currentCity: varchar("currentCity", { length: 100 }),
+  currentState: varchar("currentState", { length: 50 }),
+  currentZip: varchar("currentZip", { length: 20 }),
+  
+  // Previous address (for bureau verification)
+  previousAddress: text("previousAddress"),
+  previousCity: varchar("previousCity", { length: 100 }),
+  previousState: varchar("previousState", { length: 50 }),
+  previousZip: varchar("previousZip", { length: 20 }),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type InsertUserProfile = typeof userProfiles.$inferInsert;
+
+/**
  * Credit reports uploaded by users
  */
 export const creditReports = mysqlTable("credit_reports", {

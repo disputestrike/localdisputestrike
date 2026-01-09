@@ -3,6 +3,9 @@ import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
   users, 
+  userProfiles,
+  InsertUserProfile,
+  UserProfile,
   creditReports,
   InsertCreditReport,
   CreditReport,
@@ -1401,4 +1404,119 @@ export async function getUserDashboardStats(userId: number): Promise<{
     successRate,
     totalLetters,
   };
+}
+
+
+// ============================================================================
+// USER PROFILE OPERATIONS
+// ============================================================================
+
+/**
+ * Get user profile by user ID
+ */
+export async function getUserProfile(userId: number): Promise<UserProfile | undefined> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return undefined;
+
+  const result = await dbInstance
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId))
+    .limit(1);
+
+  return result[0];
+}
+
+/**
+ * Create or update user profile
+ */
+export async function upsertUserProfile(userId: number, data: Partial<Omit<InsertUserProfile, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<UserProfile> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  // Check if profile exists
+  const existing = await dbInstance
+    .select()
+    .from(userProfiles)
+    .where(eq(userProfiles.userId, userId))
+    .limit(1);
+
+  if (existing.length > 0) {
+    // Update existing profile
+    await dbInstance
+      .update(userProfiles)
+      .set(data)
+      .where(eq(userProfiles.userId, userId));
+    
+    const updated = await dbInstance
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, userId))
+      .limit(1);
+    
+    return updated[0];
+  } else {
+    // Create new profile
+    const [result] = await dbInstance.insert(userProfiles).values({
+      userId,
+      ...data,
+    }).$returningId();
+    
+    const inserted = await dbInstance
+      .select()
+      .from(userProfiles)
+      .where(eq(userProfiles.id, result.id))
+      .limit(1);
+    
+    return inserted[0];
+  }
+}
+
+/**
+ * Get full address string from profile
+ */
+export function formatProfileAddress(profile: UserProfile | undefined): string {
+  if (!profile) return '';
+  
+  const parts = [
+    profile.currentAddress,
+    profile.currentCity,
+    profile.currentState,
+    profile.currentZip
+  ].filter(Boolean);
+  
+  if (parts.length < 2) return profile.currentAddress || '';
+  
+  // Format as "123 Main St, City, ST 12345"
+  const address = profile.currentAddress || '';
+  const cityStateZip = [
+    profile.currentCity,
+    profile.currentState ? `${profile.currentState} ${profile.currentZip || ''}`.trim() : profile.currentZip
+  ].filter(Boolean).join(', ');
+  
+  return [address, cityStateZip].filter(Boolean).join(', ');
+}
+
+/**
+ * Get previous address string from profile
+ */
+export function formatPreviousAddress(profile: UserProfile | undefined): string | undefined {
+  if (!profile || !profile.previousAddress) return undefined;
+  
+  const parts = [
+    profile.previousAddress,
+    profile.previousCity,
+    profile.previousState,
+    profile.previousZip
+  ].filter(Boolean);
+  
+  if (parts.length < 2) return profile.previousAddress || undefined;
+  
+  const address = profile.previousAddress || '';
+  const cityStateZip = [
+    profile.previousCity,
+    profile.previousState ? `${profile.previousState} ${profile.previousZip || ''}`.trim() : profile.previousZip
+  ].filter(Boolean).join(', ');
+  
+  return [address, cityStateZip].filter(Boolean).join(', ');
 }

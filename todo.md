@@ -416,3 +416,14 @@ DisputeStrike
 - [x] Add severity grading logic that calculates severity from account data
 - [x] Post-process AI output to ensure all required sections are present
 - [x] Test with real letter generation to verify improvements (25 tests pass)
+
+## Phase 61: Profile Fields + Preview Letter (User Request)
+
+- [x] Add DOB field to user profile schema and Settings page
+- [x] Add last 4 SSN field to user profile schema and Settings page  
+- [x] Add Preview Letter button with modal before final generation
+- [x] Update letter generation to include DOB/SSN4 when provided
+- [x] Add user profile table with all required fields (fullName, DOB, SSN4, phone, email, addresses)
+- [x] Add profile API endpoints (get, update)
+- [x] Add comprehensive Settings page with profile form
+- [x] Add preview modal showing letter info before generation

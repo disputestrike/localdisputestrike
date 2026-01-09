@@ -78,6 +78,27 @@ export default function Dashboard() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [currentAddress, setCurrentAddress] = useState('');
   const [previousAddress, setPreviousAddress] = useState('');
+  
+  // Preview modal state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewContent, setPreviewContent] = useState<string | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  
+  // Preview letter mutation
+  const previewLetterMutation = trpc.disputeLetters.preview.useMutation({
+    onSuccess: (data) => {
+      setPreviewContent(data.previewContent);
+      setShowPreviewModal(true);
+      setIsLoadingPreview(false);
+    },
+    onError: (error: { message: string }) => {
+      toast.error(`Failed to generate preview: ${error.message}`);
+      setIsLoadingPreview(false);
+    },
+  });
+  
+  // Fetch user profile for address auto-fill
+  const { data: userProfile } = trpc.profile.get.useQuery();
 
   const handleGenerateLetters = async () => {
     if (!negativeAccounts || negativeAccounts.length === 0) {
@@ -1009,7 +1030,28 @@ export default function Dashboard() {
                   Cancel
                 </Button>
                 <Button
+                  variant="outline"
                   className="flex-1"
+                  onClick={() => {
+                    if (!currentAddress.trim()) {
+                      toast.error('Please enter your address first');
+                      return;
+                    }
+                    setIsLoadingPreview(true);
+                    previewLetterMutation.mutate({
+                      currentAddress,
+                      previousAddress: previousAddress || undefined,
+                      bureau: 'transunion',
+                      accountIds: selectedAccountIds.size > 0 ? Array.from(selectedAccountIds) : undefined,
+                    });
+                  }}
+                  disabled={!currentAddress.trim() || isLoadingPreview}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  {isLoadingPreview ? 'Loading...' : 'Preview'}
+                </Button>
+                <Button
+                  className="flex-1 bg-orange-500 hover:bg-orange-600"
                   onClick={submitGenerateLetters}
                   disabled={!currentAddress.trim()}
                 >
@@ -1017,6 +1059,45 @@ export default function Dashboard() {
                 </Button>
               </div>
             </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {showPreviewModal && previewContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-3xl mx-4 max-h-[80vh] flex flex-col">
+            <CardHeader className="flex-shrink-0">
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-orange-500" />
+                Letter Preview
+              </CardTitle>
+              <CardDescription>
+                Review the information that will be included in your dispute letters
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 overflow-auto">
+              <pre className="bg-gray-50 p-4 rounded-lg text-sm font-mono whitespace-pre-wrap overflow-x-auto border">
+                {previewContent}
+              </pre>
+            </CardContent>
+            <div className="p-4 border-t flex gap-3 justify-end flex-shrink-0">
+              <Button
+                variant="outline"
+                onClick={() => setShowPreviewModal(false)}
+              >
+                Close Preview
+              </Button>
+              <Button
+                className="bg-orange-500 hover:bg-orange-600"
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  submitGenerateLetters();
+                }}
+              >
+                Generate Letters Now
+              </Button>
+            </div>
           </Card>
         </div>
       )}

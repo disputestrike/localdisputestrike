@@ -705,6 +705,122 @@ You help users understand their credit reports, identify violations, and develop
       }),
 
     /**
+     * Preview letter before generating - shows what the letter will look like
+     */
+    preview: paidProcedure
+      .input(z.object({
+        currentAddress: z.string(),
+        previousAddress: z.string().optional(),
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        accountIds: z.array(z.number()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const userName = ctx.user.name || 'User';
+        
+        // Get user profile for full details
+        const profile = await db.getUserProfile(userId);
+        
+        // Get accounts to preview
+        const allAccounts = await db.getNegativeAccountsByUserId(userId);
+        const accounts = input.accountIds && input.accountIds.length > 0
+          ? allAccounts.filter(a => input.accountIds!.includes(a.id))
+          : allAccounts;
+        
+        if (accounts.length === 0) {
+          throw new Error('No accounts selected for preview');
+        }
+        
+        // Build preview content with user data filled in
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        const bureauAddresses: Record<string, string> = {
+          transunion: 'TransUnion Consumer Solutions\nP.O. Box 2000\nChester, PA 19016',
+          equifax: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374',
+          experian: 'Experian\nP.O. Box 4500\nAllen, TX 75013',
+        };
+        
+        // Format user info
+        const fullName = profile?.fullName || userName;
+        const address = input.currentAddress;
+        const dob = profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '[DOB Not Set - Update in Settings]';
+        const ssn4 = profile?.ssnLast4 || '[SSN Not Set - Update in Settings]';
+        const phone = profile?.phone || '[Phone Not Set]';
+        const email = profile?.email || ctx.user.email || '[Email Not Set]';
+        
+        // Generate preview content
+        const previewContent = `
+═══════════════════════════════════════════════════════════════════════════════
+                              LETTER PREVIEW
+                         ${input.bureau.toUpperCase()} DISPUTE LETTER
+═══════════════════════════════════════════════════════════════════════════════
+
+📋 YOUR INFORMATION (from profile):
+─────────────────────────────────────────────────────────────────────────────────
+   Full Name:     ${fullName}
+   Address:       ${address}
+   Date of Birth: ${dob}
+   SSN (Last 4):  ${ssn4}
+   Phone:         ${phone}
+   Email:         ${email}
+   Date:          ${formattedDate}
+
+📬 SENDING TO:
+─────────────────────────────────────────────────────────────────────────────────
+${bureauAddresses[input.bureau]}
+
+📊 ACCOUNTS TO DISPUTE (${accounts.length} total):
+─────────────────────────────────────────────────────────────────────────────────
+${accounts.map((acc: typeof allAccounts[0], i: number) => {
+  const severity = acc.hasConflicts ? '🔴 CRITICAL' : '🟡 MEDIUM';
+  return `
+${i + 1}. ${acc.accountName || 'Unknown Account'}
+   Account #:    ${acc.accountNumber || 'N/A'}
+   Type:         ${acc.accountType || 'Unknown'}
+   Balance:      $${acc.balance || '0'}
+   Status:       ${acc.status || 'Unknown'}
+   Severity:     ${severity}
+   ${acc.hasConflicts ? '⚠️  CROSS-BUREAU CONFLICT DETECTED' : ''}
+`;
+}).join('')}
+
+═══════════════════════════════════════════════════════════════════════════════
+                            WHAT HAPPENS NEXT
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ✅ Click "Generate Letters" to create your official dispute letters
+2. 📄 Each letter will include:
+   • Your personal information (filled in automatically)
+   • Account details with specific dispute reasons
+   • Legal citations (FCRA § 611, § 623)
+   • Summary of demands table
+   • Exhibit system with enclosures checklist
+   • Mailing instructions
+
+3. 📬 After generation:
+   • Print each letter
+   • Attach copies of your ID and proof of address
+   • Mail via Certified Mail with Return Receipt
+   • Track your 30-day response deadline
+
+⚠️  MISSING INFORMATION:
+─────────────────────────────────────────────────────────────────────────────────
+${!profile?.dateOfBirth ? '• Date of Birth - Required by bureaus. Update in Settings → Profile\n' : ''}${!profile?.ssnLast4 ? '• Last 4 SSN - Required by bureaus. Update in Settings → Profile\n' : ''}${!profile?.phone ? '• Phone Number - Recommended. Update in Settings → Profile\n' : ''}
+${profile?.dateOfBirth && profile?.ssnLast4 ? '✅ All required information is complete!' : ''}
+
+═══════════════════════════════════════════════════════════════════════════════
+`;
+        
+        return {
+          previewContent,
+          accountCount: accounts.length,
+          bureau: input.bureau,
+          hasAllRequiredInfo: !!(profile?.dateOfBirth && profile?.ssnLast4),
+        };
+      }),
+
+    /**
      * Generate Round 2 escalation letter with Method of Verification (MOV) request
      */
     generateRound2: paidProcedure
@@ -1923,6 +2039,59 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
     runDailyCheck: adminProcedure.mutation(async () => {
       const { runDailyNotifications } = await import('./emailNotifications');
       return await runDailyNotifications();
+    }),
+  }),
+
+  // User Profile Router
+  profile: router({
+    // Get user profile
+    get: protectedProcedure.query(async ({ ctx }) => {
+      const profile = await db.getUserProfile(ctx.user.id);
+      return profile || null;
+    }),
+
+    // Update user profile
+    update: protectedProcedure
+      .input(z.object({
+        fullName: z.string().optional(),
+        dateOfBirth: z.string().optional(), // YYYY-MM-DD format
+        ssnLast4: z.string().max(4).optional(),
+        phone: z.string().optional(),
+        email: z.string().email().optional(),
+        currentAddress: z.string().optional(),
+        currentCity: z.string().optional(),
+        currentState: z.string().optional(),
+        currentZip: z.string().optional(),
+        previousAddress: z.string().optional(),
+        previousCity: z.string().optional(),
+        previousState: z.string().optional(),
+        previousZip: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await db.upsertUserProfile(ctx.user.id, input);
+        
+        // Log activity
+        await db.logActivity({
+          userId: ctx.user.id,
+          activityType: 'profile_updated',
+          description: 'Updated profile information',
+        });
+        
+        return profile;
+      }),
+
+    // Get formatted address for letters
+    getFormattedAddress: protectedProcedure.query(async ({ ctx }) => {
+      const profile = await db.getUserProfile(ctx.user.id);
+      return {
+        currentAddress: db.formatProfileAddress(profile),
+        previousAddress: db.formatPreviousAddress(profile),
+        fullName: profile?.fullName || ctx.user.name || '',
+        dateOfBirth: profile?.dateOfBirth || '',
+        ssnLast4: profile?.ssnLast4 || '',
+        phone: profile?.phone || '',
+        email: profile?.email || ctx.user.email || '',
+      };
     }),
   }),
 });
