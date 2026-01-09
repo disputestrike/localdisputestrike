@@ -509,3 +509,5 @@ DisputeStrike
 - [x] Clear fake recent activity data from dashboard - remove "Marked dispute letter as mailed (Tracking: eeww)"
 - [x] Remove placeholder inquiries from Inquiry Removal page - only show real data from uploaded reports
 - [x] Move Score Simulator from hidden tab to sidebar as standalone menu item under DISPUTE TOOLS
+
+- [x] Remove Score Simulator tab from Credit Reports page (now in sidebar)

@@ -28,7 +28,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
-import { CreditScoreSimulator } from "@/components/CreditScoreSimulator";
+// CreditScoreSimulator moved to standalone page at /dashboard/score-simulator
 import { Building2, Calculator } from "lucide-react";
 
 export default function Dashboard() {
@@ -332,10 +332,6 @@ export default function Dashboard() {
             <TabsTrigger value="tracking">
               <Mail className="h-4 w-4 mr-2" />
               Tracking
-            </TabsTrigger>
-            <TabsTrigger value="simulator">
-              <Calculator className="h-4 w-4 mr-2" />
-              Score Simulator
             </TabsTrigger>
           </TabsList>
 
@@ -931,40 +927,7 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
 
-          {/* Score Simulator Tab */}
-          <TabsContent value="simulator" className="space-y-6">
-            <Alert>
-              <Calculator className="h-4 w-4" />
-              <AlertDescription>
-                See the estimated impact of removing negative items from your credit report. Select accounts to simulate their removal.
-              </AlertDescription>
-            </Alert>
 
-            {negativeAccounts && negativeAccounts.length > 0 ? (
-              <CreditScoreSimulator 
-                accounts={negativeAccounts.map(acc => ({
-                  id: acc.id,
-                  accountName: acc.accountName || 'Unknown Account',
-                  accountType: acc.accountType || 'Unknown',
-                  balance: acc.balance,
-                  paymentStatus: acc.status,
-                  dateOpened: acc.dateOpened,
-                  hasConflicts: acc.hasConflicts || false,
-                }))}
-                currentScore={580}
-              />
-            ) : (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <Calculator className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-lg font-medium mb-2">No Negative Accounts Found</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Upload your credit reports to see negative accounts and simulate score improvements
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
         </Tabs>
       </div>
 
