@@ -8,15 +8,17 @@ import { ArrowLeft, Download, Mail, CheckCircle2, AlertTriangle, Printer } from 
 import { Link, useRoute } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
 export default function LetterView() {
   const [, params] = useRoute("/letter/:letterId");
   const letterId = params?.letterId ? parseInt(params.letterId) : 0;
   
-  // Check for print query param
-  const urlParams = new URLSearchParams(window.location.search);
-  const shouldPrint = urlParams.get('print') === 'true';
+  // Check for print query param - memoize to avoid re-computation
+  const shouldPrint = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get('print') === 'true';
+  }, []);
 
   const { data: letter, isLoading } = trpc.disputeLetters.get.useQuery({ id: letterId });
   const updateStatus = trpc.disputeLetters.updateStatus.useMutation({
@@ -34,6 +36,34 @@ export default function LetterView() {
       toast.error("Failed to generate PDF. Please try again.");
     },
   });
+
+  // Auto-print if ?print=true in URL - MUST be before any early returns
+  useEffect(() => {
+    if (shouldPrint && letter && !isLoading) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        window.print();
+      }, 500);
+    }
+  }, [shouldPrint, letter, isLoading]);
+
+  const handleDownload = () => {
+    toast.loading("Generating PDF...");
+    downloadPDF.mutate({ id: letter!.id });
+  };
+
+  const handleMarkAsMailed = () => {
+    const trackingNumber = prompt("Enter tracking number (optional):");
+    updateStatus.mutate({
+      id: letter!.id,
+      status: "mailed",
+      trackingNumber: trackingNumber || undefined,
+    });
+  };
+  
+  const handlePrint = () => {
+    window.print();
+  };
 
   if (isLoading) {
     return (
@@ -60,34 +90,6 @@ export default function LetterView() {
       </div>
     );
   }
-
-  const handleDownload = () => {
-    toast.loading("Generating PDF...");
-    downloadPDF.mutate({ id: letter.id });
-  };
-
-  const handleMarkAsMailed = () => {
-    const trackingNumber = prompt("Enter tracking number (optional):");
-    updateStatus.mutate({
-      id: letter.id,
-      status: "mailed",
-      trackingNumber: trackingNumber || undefined,
-    });
-  };
-  
-  const handlePrint = () => {
-    window.print();
-  };
-  
-  // Auto-print if ?print=true in URL
-  useEffect(() => {
-    if (shouldPrint && letter && !isLoading) {
-      // Small delay to ensure content is rendered
-      setTimeout(() => {
-        window.print();
-      }, 500);
-    }
-  }, [shouldPrint, letter, isLoading]);
 
   return (
     <div className="min-h-screen bg-background">
