@@ -641,9 +641,3 @@ DisputeStrike
 ## Phase 80: Fix Agency Signup 404 (Jan 9, 2026)
 - [ ] Fix agency signup route showing 404
 - [ ] Verify all agency routes work
-
-## Phase 81: Enterprise Features (Jan 9, 2026)
-- [x] Stripe Checkout for agency subscriptions (real payment flow)
-- [x] CSV Bulk Client Import (upload CSV to add multiple clients)
-- [x] Agency Onboarding Wizard (guided setup for new agencies)
-- [x] Fix logout functionality (now redirects to home page)
