@@ -75,6 +75,9 @@ export const creditReports = mysqlTable("credit_reports", {
   uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
   parsedData: longtext("parsedData"), // JSON string of parsed credit report data (can be large)
   isParsed: boolean("isParsed").default(false).notNull(),
+  // Credit score extracted from report
+  creditScore: int("creditScore"), // 300-850
+  scoreModel: varchar("scoreModel", { length: 50 }), // FICO, VantageScore 3.0, etc.
 });
 
 export type CreditReport = typeof creditReports.$inferSelect;

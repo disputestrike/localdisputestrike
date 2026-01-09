@@ -661,3 +661,16 @@ DisputeStrike
 - [x] Add Status Correction Detector (paid accounts showing negative = MEDIUM)
 - [x] Stack ALL violations per account in dispute letters
 - [x] Generate multi-angle arguments with severity grouping
+
+## Phase 85: Bug Fixes & New Features (Jan 9, 2026)
+- [ ] Add "Previously Disputed" flag detection to violation detector
+- [ ] Add letter comparison view (single-angle vs multi-angle)
+- [ ] Fix credit report parsing to extract ALL negative accounts (20+ not 17)
+- [ ] Fix dashboard to show current credit score being pulled from reports
+
+## Phase 86: Fix 5 Missing Detection Modules for A+ Letters (Jan 9, 2026)
+- [x] Fix Balance Discrepancy Analysis - detect $8K+ differences across bureaus
+- [x] Fix Duplicate Pattern Detection - find 3 same-day accounts with same balance
+- [x] Fix Re-aging Detection - activity AFTER account closure
+- [x] Fix Unverifiable Balance - "No payment history" but balance > 0
+- [x] Fix Status Corrections - Paid accounts with 100% on-time showing negative

@@ -472,6 +472,28 @@ export default function Dashboard() {
                             </>
                           )}
                           
+                          {/* Credit Score Display */}
+                          {(report as any).creditScore && (
+                            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-xs text-blue-600 font-medium">{(report as any).scoreModel || 'Credit Score'}</div>
+                                  <div className="text-2xl font-bold text-blue-700">{(report as any).creditScore}</div>
+                                </div>
+                                <div className={`px-2 py-1 rounded text-xs font-medium ${
+                                  (report as any).creditScore >= 740 ? 'bg-green-100 text-green-700' :
+                                  (report as any).creditScore >= 670 ? 'bg-yellow-100 text-yellow-700' :
+                                  (report as any).creditScore >= 580 ? 'bg-orange-100 text-orange-700' :
+                                  'bg-red-100 text-red-700'
+                                }`}>
+                                  {(report as any).creditScore >= 740 ? 'Excellent' :
+                                   (report as any).creditScore >= 670 ? 'Good' :
+                                   (report as any).creditScore >= 580 ? 'Fair' : 'Poor'}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-2 text-sm">
                             <CheckCircle2 className="h-4 w-4 text-secondary" />
                             <span>Uploaded {new Date(report.uploadedAt).toLocaleDateString()}</span>

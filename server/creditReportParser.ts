@@ -36,6 +36,8 @@ export interface PersonalInfo {
   }[];
   dateOfBirth: string | null;
   ssnLast4: string | null;
+  creditScore: number | null;
+  scoreModel: string | null; // FICO, VantageScore, etc.
 }
 
 export interface ParsedCreditReport {
@@ -287,7 +289,7 @@ Be EXHAUSTIVE - extract EVERY negative account. Missing accounts means the consu
 export async function parsePersonalInfoWithAI(text: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<PersonalInfo | null> {
   console.log(`[AI Parser] Extracting personal info from ${bureau} report`);
   
-  const systemPrompt = `You are an expert credit report analyst. Extract the consumer's personal information from the credit report header.
+  const systemPrompt = `You are an expert credit report analyst. Extract the consumer's personal information from the credit report.
 
 Extract:
 - fullName: The consumer's full legal name as shown on the report
@@ -295,11 +297,15 @@ Extract:
 - previousAddresses: Any previous addresses listed (array)
 - dateOfBirth: Date of birth (MM/DD/YYYY format)
 - ssnLast4: Last 4 digits of SSN (just the 4 digits, no dashes)
+- creditScore: The credit score shown on the report (3-digit number like 650, 720, etc.)
+- scoreModel: The score model used (FICO, VantageScore 3.0, VantageScore 4.0, etc.)
 
 IMPORTANT:
 - Use EXACT name as shown on credit report (this must match bureau records)
 - Use EXACT address as shown (for legal compliance)
 - If SSN shows as XXX-XX-1234, extract just "1234"
+- Credit score is usually prominently displayed at the top of the report
+- Look for "FICO Score", "VantageScore", "Credit Score", or similar labels
 - If any field is not found, use null
 
 Return valid JSON only.`;
@@ -346,8 +352,10 @@ Return valid JSON only.`;
               },
               dateOfBirth: { type: ['string', 'null'] },
               ssnLast4: { type: ['string', 'null'] },
+              creditScore: { type: ['number', 'null'] },
+              scoreModel: { type: ['string', 'null'] },
             },
-            required: ['fullName', 'currentAddress', 'previousAddresses', 'dateOfBirth', 'ssnLast4'],
+            required: ['fullName', 'currentAddress', 'previousAddresses', 'dateOfBirth', 'ssnLast4', 'creditScore', 'scoreModel'],
             additionalProperties: false,
           },
         },
@@ -376,6 +384,8 @@ Return valid JSON only.`;
       previousAddresses,
       dateOfBirth: parsed.dateOfBirth,
       ssnLast4: parsed.ssnLast4,
+      creditScore: parsed.creditScore,
+      scoreModel: parsed.scoreModel,
     };
   } catch (error) {
     console.error('Failed to extract personal info:', error);
@@ -660,8 +670,10 @@ export async function parseAndSaveReport(
       })),
       bureau: bureauMap[bureau],
       reportDate: new Date(),
+      creditScore: personalInfo?.creditScore || null,
+      scoreModel: personalInfo?.scoreModel || null,
     };
-    await updateCreditReportParsedData(reportId, JSON.stringify(parsedData));
+    await updateCreditReportParsedData(reportId, JSON.stringify(parsedData), personalInfo?.creditScore || null, personalInfo?.scoreModel || null);
 
     console.log(`Successfully parsed ${accounts.length} accounts from ${bureau} report`);
   } catch (error) {
