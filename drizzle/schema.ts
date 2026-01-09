@@ -709,3 +709,43 @@ export const agencyClientLetters = mysqlTable("agency_client_letters", {
 
 export type AgencyClientLetter = typeof agencyClientLetters.$inferSelect;
 export type InsertAgencyClientLetter = typeof agencyClientLetters.$inferInsert;
+
+
+/**
+ * In-app notifications for users
+ */
+export const userNotifications = mysqlTable("user_notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Notification content
+  type: mysqlEnum("type", [
+    "deadline_reminder",
+    "response_received",
+    "letter_generated",
+    "payment_confirmed",
+    "account_deleted",
+    "system_alert"
+  ]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  
+  // Related entity (optional)
+  relatedEntityType: mysqlEnum("relatedEntityType", ["dispute_letter", "negative_account", "credit_report", "payment"]),
+  relatedEntityId: int("relatedEntityId"),
+  
+  // Status
+  isRead: boolean("isRead").default(false).notNull(),
+  readAt: timestamp("readAt"),
+  
+  // Priority
+  priority: mysqlEnum("priority", ["low", "normal", "high", "urgent"]).default("normal").notNull(),
+  
+  // Expiration (optional)
+  expiresAt: timestamp("expiresAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type UserNotification = typeof userNotifications.$inferSelect;
+export type InsertUserNotification = typeof userNotifications.$inferInsert;

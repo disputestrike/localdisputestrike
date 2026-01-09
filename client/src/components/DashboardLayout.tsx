@@ -107,13 +107,63 @@ const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
 
+// Notification type interface
+interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  priority: string;
+  isRead: boolean;
+  createdAt: Date;
+}
+
 // Dynamic Notification Bell Component
 function NotificationBell() {
-  const { data: alerts } = trpc.notifications.getDeadlineAlerts.useQuery(undefined, {
-    refetchInterval: 60000, // Refresh every minute
+  const utils = trpc.useUtils();
+  const { data: notifications } = trpc.notifications.list.useQuery(
+    { unreadOnly: false, limit: 10 },
+    { refetchInterval: 60000 }
+  );
+  const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, {
+    refetchInterval: 60000,
   });
   
-  const hasNotifications = alerts && alerts.length > 0;
+  const markAsRead = trpc.notifications.markAsRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+    },
+  });
+  
+  const markAllAsRead = trpc.notifications.markAllAsRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.unreadCount.invalidate();
+    },
+  });
+  
+  const hasNotifications = unreadCount && unreadCount > 0;
+  
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'urgent': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'normal': return 'bg-blue-500';
+      default: return 'bg-gray-400';
+    }
+  };
+  
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'deadline_reminder': return '⏰';
+      case 'response_received': return '📬';
+      case 'letter_generated': return '📄';
+      case 'payment_confirmed': return '✅';
+      case 'account_deleted': return '🎉';
+      default: return '🔔';
+    }
+  };
   
   return (
     <DropdownMenu>
@@ -125,28 +175,60 @@ function NotificationBell() {
         >
           <Bell className="h-5 w-5" />
           {hasNotifications && (
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </span>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        {!hasNotifications ? (
-          <div className="p-4 text-center text-gray-500">
-            <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">No notifications</p>
+      <DropdownMenuContent align="end" className="w-96">
+        <div className="flex items-center justify-between px-4 py-2 border-b">
+          <span className="font-semibold">Notifications</span>
+          {hasNotifications && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-blue-600 hover:text-blue-800"
+              onClick={() => markAllAsRead.mutate()}
+            >
+              Mark all read
+            </Button>
+          )}
+        </div>
+        {!notifications || notifications.length === 0 ? (
+          <div className="p-6 text-center text-gray-500">
+            <Bell className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm font-medium">No notifications yet</p>
+            <p className="text-xs text-gray-400 mt-1">We'll notify you about important updates</p>
           </div>
         ) : (
-          <div className="max-h-80 overflow-y-auto">
-            {alerts.map((alert, index) => (
-              <DropdownMenuItem key={index} className="flex flex-col items-start p-3 cursor-pointer">
-                <div className="flex items-center gap-2 w-full">
-                  <span className={`w-2 h-2 rounded-full ${alert.alertType === 'overdue' ? 'bg-red-500' : 'bg-yellow-500'}`} />
-                  <span className="font-medium text-sm">{alert.bureau}</span>
-                  <span className={`ml-auto text-xs px-2 py-0.5 rounded ${alert.alertType === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                    {alert.alertType === 'overdue' ? 'OVERDUE' : `${alert.daysRemaining} days left`}
-                  </span>
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.map((notification: Notification) => (
+              <DropdownMenuItem
+                key={notification.id}
+                className={`flex flex-col items-start p-4 cursor-pointer border-b last:border-0 ${!notification.isRead ? 'bg-blue-50/50' : ''}`}
+                onClick={() => {
+                  if (!notification.isRead) {
+                    markAsRead.mutate({ notificationId: notification.id });
+                  }
+                }}
+              >
+                <div className="flex items-start gap-3 w-full">
+                  <span className="text-lg">{getTypeIcon(notification.type)}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${getPriorityColor(notification.priority)}`} />
+                      <span className="font-medium text-sm truncate">{notification.title}</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(notification.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {!notification.isRead && (
+                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                  )}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">{alert.message}</p>
               </DropdownMenuItem>
             ))}
           </div>

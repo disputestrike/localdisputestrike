@@ -680,6 +680,55 @@ export const appRouter = router({
       }),
   }),
 
+  notifications: router({
+    /**
+     * Get user notifications
+     */
+    list: protectedProcedure
+      .input(z.object({
+        unreadOnly: z.boolean().optional(),
+        limit: z.number().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        return db.getUserNotifications(ctx.user.id, input);
+      }),
+
+    /**
+     * Get unread notification count
+     */
+    unreadCount: protectedProcedure.query(async ({ ctx }) => {
+      return db.getUnreadNotificationCount(ctx.user.id);
+    }),
+
+    /**
+     * Mark notification as read
+     */
+    markAsRead: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.markNotificationAsRead(input.notificationId, ctx.user.id);
+        return { success: true };
+      }),
+
+    /**
+     * Mark all notifications as read
+     */
+    markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
+      await db.markAllNotificationsAsRead(ctx.user.id);
+      return { success: true };
+    }),
+
+    /**
+     * Delete notification
+     */
+    delete: protectedProcedure
+      .input(z.object({ notificationId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await db.deleteNotification(input.notificationId, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
   negativeAccounts: router({
     /**
      * List all negative accounts for user
@@ -2129,62 +2178,7 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
     }),
   }),
 
-  // Notifications Router
-  notifications: router({
-    // Get pending deadline notifications for user
-    getDeadlineAlerts: protectedProcedure.query(async ({ ctx }) => {
-      const letters = await db.getDisputeLettersByUserId(ctx.user.id);
-      const now = Date.now();
-      
-      const alerts: Array<{
-        letterId: number;
-        bureau: string;
-        daysSinceMailed: number;
-        daysRemaining: number;
-        alertType: 'approaching' | 'overdue';
-        message: string;
-      }> = [];
-      
-      for (const letter of letters) {
-        if (!letter.mailedAt || letter.status === 'response_received' || letter.status === 'resolved') {
-          continue;
-        }
-        
-        const mailedDate = new Date(letter.mailedAt).getTime();
-        const daysSinceMailed = Math.floor((now - mailedDate) / (1000 * 60 * 60 * 24));
-        const daysRemaining = Math.max(0, 30 - daysSinceMailed);
-        const bureauName = letter.bureau.charAt(0).toUpperCase() + letter.bureau.slice(1);
-        
-        if (daysSinceMailed >= 25 && daysSinceMailed <= 30) {
-          alerts.push({
-            letterId: letter.id,
-            bureau: bureauName,
-            daysSinceMailed,
-            daysRemaining,
-            alertType: 'approaching',
-            message: `Your ${bureauName} dispute is on Day ${daysSinceMailed}. Check your mail for bureau response!`,
-          });
-        } else if (daysSinceMailed > 30) {
-          alerts.push({
-            letterId: letter.id,
-            bureau: bureauName,
-            daysSinceMailed,
-            daysRemaining: 0,
-            alertType: 'overdue',
-            message: `FCRA Violation! ${bureauName} is ${daysSinceMailed - 30} days overdue. File CFPB complaint now!`,
-          });
-        }
-      }
-      
-      return alerts;
-    }),
 
-    // Admin: Run daily notification check manually
-    runDailyCheck: adminProcedure.mutation(async () => {
-      const { runDailyNotifications } = await import('./emailNotifications');
-      return await runDailyNotifications();
-    }),
-  }),
 
   // User Profile Router
   profile: router({

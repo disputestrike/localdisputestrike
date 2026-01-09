@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -65,7 +65,10 @@ import {
   AgencyClientLetter,
   creditScoreHistory,
   InsertCreditScoreHistory,
-  CreditScoreHistory
+  CreditScoreHistory,
+  userNotifications,
+  InsertUserNotification,
+  UserNotification
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2103,4 +2106,174 @@ export async function addScoreEvent(
       .set({ event })
       .where(eq(creditScoreHistory.id, latest.id));
   }
+}
+
+
+// ============================================================================
+// USER NOTIFICATIONS
+// ============================================================================
+
+export async function createNotification(
+  notification: InsertUserNotification
+): Promise<UserNotification> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const [result] = await db.insert(userNotifications).values(notification);
+  const [created] = await db
+    .select()
+    .from(userNotifications)
+    .where(eq(userNotifications.id, result.insertId));
+  return created;
+}
+
+export async function getUserNotifications(
+  userId: number,
+  options?: { unreadOnly?: boolean; limit?: number }
+): Promise<UserNotification[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  const conditions = [eq(userNotifications.userId, userId)];
+  
+  if (options?.unreadOnly) {
+    conditions.push(eq(userNotifications.isRead, false));
+  }
+
+  const results = await db
+    .select()
+    .from(userNotifications)
+    .where(and(...conditions))
+    .orderBy(desc(userNotifications.createdAt))
+    .limit(options?.limit || 50);
+
+  return results;
+}
+
+export async function getUnreadNotificationCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+
+  const results = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(userNotifications)
+    .where(
+      and(
+        eq(userNotifications.userId, userId),
+        eq(userNotifications.isRead, false)
+      )
+    );
+
+  return results[0]?.count || 0;
+}
+
+export async function markNotificationAsRead(
+  notificationId: number,
+  userId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(userNotifications)
+    .set({ 
+      isRead: true, 
+      readAt: new Date() 
+    })
+    .where(
+      and(
+        eq(userNotifications.id, notificationId),
+        eq(userNotifications.userId, userId)
+      )
+    );
+}
+
+export async function markAllNotificationsAsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .update(userNotifications)
+    .set({ 
+      isRead: true, 
+      readAt: new Date() 
+    })
+    .where(
+      and(
+        eq(userNotifications.userId, userId),
+        eq(userNotifications.isRead, false)
+      )
+    );
+}
+
+export async function deleteNotification(
+  notificationId: number,
+  userId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db
+    .delete(userNotifications)
+    .where(
+      and(
+        eq(userNotifications.id, notificationId),
+        eq(userNotifications.userId, userId)
+      )
+    );
+}
+
+export async function createDeadlineNotification(
+  userId: number,
+  bureau: string,
+  deadline: Date,
+  daysRemaining: number
+): Promise<UserNotification> {
+  const bureauName = bureau.charAt(0).toUpperCase() + bureau.slice(1);
+  const priority = daysRemaining <= 3 ? 'urgent' : daysRemaining <= 7 ? 'high' : 'normal';
+  
+  return createNotification({
+    userId,
+    type: 'deadline_reminder',
+    title: `${bureauName} Response Deadline ${daysRemaining <= 3 ? '⚠️ URGENT' : 'Approaching'}`,
+    message: `Your ${bureauName} dispute response deadline is in ${daysRemaining} day${daysRemaining !== 1 ? 's' : ''}. Check your mail for any response letters.`,
+    priority: priority as 'low' | 'normal' | 'high' | 'urgent',
+    relatedEntityType: 'dispute_letter',
+    expiresAt: deadline,
+  });
+}
+
+export async function createLetterGeneratedNotification(
+  userId: number,
+  bureau: string,
+  letterId: number
+): Promise<UserNotification> {
+  const bureauName = bureau.charAt(0).toUpperCase() + bureau.slice(1);
+  
+  return createNotification({
+    userId,
+    type: 'letter_generated',
+    title: `${bureauName} Dispute Letter Ready`,
+    message: `Your ${bureauName} dispute letter has been generated. Download it from your dashboard and mail it via Certified Mail.`,
+    priority: 'normal',
+    relatedEntityType: 'dispute_letter',
+    relatedEntityId: letterId,
+  });
+}
+
+export async function createAccountDeletedNotification(
+  userId: number,
+  accountName: string,
+  bureau: string
+): Promise<UserNotification> {
+  const bureauName = bureau.charAt(0).toUpperCase() + bureau.slice(1);
+  
+  return createNotification({
+    userId,
+    type: 'account_deleted',
+    title: `🎉 Account Deleted from ${bureauName}!`,
+    message: `Great news! "${accountName}" has been successfully deleted from your ${bureauName} credit report.`,
+    priority: 'high',
+    relatedEntityType: 'negative_account',
+  });
 }

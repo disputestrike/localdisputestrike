@@ -10,6 +10,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { startAllCronJobs } from "../cronJobs";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -207,6 +208,9 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     console.log(`[SECURITY] Helmet, CORS, and Rate Limiting enabled`);
+    
+    // Start cron jobs after server is running
+    startAllCronJobs();
   });
 }
 
