@@ -224,7 +224,7 @@ export default function Dashboard() {
         const uploadResult = await uploadToS3.mutateAsync({
           fileKey,
           fileData: Array.from(uint8Array),
-          contentType: file.type,
+          contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
         });
         
         // Now create credit report record
