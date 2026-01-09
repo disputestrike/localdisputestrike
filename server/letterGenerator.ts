@@ -69,34 +69,68 @@ export async function generateDisputeLetter(input: LetterGenerationInput): Promi
 /**
  * System prompt for GPT-4 (defines the 10/10 letter structure)
  */
-const SYSTEM_PROMPT = `You are an expert credit dispute attorney who writes litigation-grade FCRA dispute letters.
+const SYSTEM_PROMPT = `You are an expert credit dispute attorney who writes A+ litigation-grade FCRA dispute letters.
 
-Your letters MUST follow this exact 10/10 structure:
+Your letters MUST attack EACH account from MULTIPLE angles (5-6 violations per account when possible):
+
+**VIOLATION TYPES TO DETECT AND ARGUE:**
+1. **IMPOSSIBLE TIMELINE (CRITICAL)** - Activity before account opened = automatic deletion
+2. **CROSS-BUREAU CONFLICTS (CRITICAL)** - Different dates, balances, statuses across bureaus
+3. **ILLEGAL RE-AGING (CRITICAL)** - Activity after account closed/charged-off
+4. **BALANCE DISCREPANCIES (CRITICAL)** - Different balances across bureaus
+5. **UNVERIFIABLE BALANCE (HIGH)** - Balance with no payment history documentation
+6. **DUPLICATE REPORTING (HIGH)** - Same debt reported multiple times
+7. **MISSING DOCUMENTATION (HIGH)** - Collections without debt validation
+8. **STATUS CORRECTION (MEDIUM)** - Paid accounts showing negative
+
+**LETTER STRUCTURE (10/10 A+ FORMAT):**
 
 1. **Legal Opening Statement** - Establish FCRA rights immediately
 2. **Address & Name Correction** - State correct information upfront
-3. **Cross-Bureau Conflicts Section** - This is the PRIMARY argument
-4. **Account-by-Account Analysis** - For each disputed account:
-   - "Account Information You Report"
-   - "What Other Bureaus Report"
-   - "VIOLATIONS IDENTIFIED" (numbered list)
-   - "LEGAL REQUIREMENT FOR DELETION"
-   - "DEMAND" (clear: DELETE or CORRECT)
-5. **Legal Consequences** - CFPB, FTC, litigation threats
-6. **30-Day Deadline** - Cite § 1681i(a)(3)(A)
-7. **Professional Exhibits** - List all supporting documents
-8. **Professional Closing** - Formal signature block
+3. **Account-by-Account Analysis** - For EACH disputed account:
+   a. "Account Information You Report" (what this bureau shows)
+   b. "What Other Bureaus Report" (cross-bureau comparison)
+   c. **CRITICAL ERRORS** (impossible timelines, re-aging - lead with these)
+   d. **HIGH PRIORITY VIOLATIONS** (cross-bureau conflicts, unverifiable balances)
+   e. **ADDITIONAL ISSUES** (status corrections, missing docs)
+   f. "LEGAL REQUIREMENT FOR DELETION" (cite specific FCRA sections)
+   g. "DEMAND: DELETE IMMEDIATELY" (clear and firm)
+4. **Legal Consequences** - CFPB complaint, FTC referral, litigation
+5. **30-Day Deadline** - Cite § 1681i(a)(3)(A)
+6. **Professional Exhibits** - List supporting documents (A-F)
+7. **Professional Closing** - Formal signature block
 
-CRITICAL RULES:
-- Use EXACT FCRA citations (§ 1681i, § 1681s-2, etc.)
-- Lead with CROSS-BUREAU CONFLICTS (strongest argument)
-- Be specific with dates, amounts, and status codes
-- Use professional legal tone (not aggressive, just authoritative)
-- Include "DEMAND: DELETE this account" for each violation
+**CRITICAL RULES:**
+- STACK MULTIPLE VIOLATIONS per account (5-6 angles when possible)
+- Lead with CRITICAL errors (impossible timeline, re-aging) - these are automatic wins
+- Use EXACT FCRA citations (§ 1681i, § 1681s-2, § 1681c, etc.)
+- Be SPECIFIC with dates, amounts, and status codes
+- Include detailed legal reasoning for EACH violation
+- Professional legal tone (authoritative, not aggressive)
 - Reference exhibits (A-F) for supporting documents
-- Keep paragraphs concise and scannable
 
-Your letters get 70-85% deletion rates because they're LEGALLY BULLETPROOF.`;
+**EXAMPLE MULTI-ANGLE ATTACK:**
+
+Account: PROCOLLECT,INC
+
+CRITICAL ERROR - IMPOSSIBLE TIMELINE:
+Account shows Last Activity on February 1, 2025 but Date Opened on February 20, 2025.
+The account had activity 19 days BEFORE it was opened. This is physically impossible.
+Under FCRA § 1681i(a)(5)(A), this impossible timeline ALONE requires immediate deletion.
+
+CROSS-BUREAU CONFLICTS:
+• Last Activity: Feb 20 (Experian) vs Dec 1 (TransUnion) = 10-month discrepancy
+• Status: "CHARGE OFF" (Experian) vs "OPEN" (Equifax)
+
+UNVERIFIABLE BALANCE:
+Report shows $5,614 balance but "No payment history available."
+Without payment history, this balance cannot be verified per § 1681i(a)(4).
+
+DEMAND: DELETE IMMEDIATELY
+
+This account has 4 documented violations. The impossible timeline ALONE requires deletion.
+
+Your letters get 80-90% deletion rates because they attack from EVERY angle.`;
 
 /**
  * Build the prompt for letter generation
@@ -149,40 +183,74 @@ ${bureauAddresses[bureau]}
 **CONFLICTS DETECTED:**
 `;
 
-    if (accountConflicts.length > 0) {
-      for (const conflict of accountConflicts) {
-        prompt += `- ${conflict.type.toUpperCase()}: ${conflict.description}
-  - Severity: ${conflict.severity}
-  - FCRA Violation: ${conflict.fcraViolation}
-  - Details: ${JSON.stringify(conflict.details)}
-  - Deletion Probability: ${conflict.deletionProbability}%
-`;
+    // Group conflicts by severity for multi-angle attack
+    const criticalConflicts = accountConflicts.filter(c => c.severity === 'critical');
+    const highConflicts = accountConflicts.filter(c => c.severity === 'high');
+    const mediumConflicts = accountConflicts.filter(c => c.severity === 'medium');
+
+    if (criticalConflicts.length > 0) {
+      prompt += `\n**CRITICAL ERRORS (Automatic Deletion Required):**\n`;
+      for (const conflict of criticalConflicts) {
+        prompt += `- ${conflict.type.toUpperCase()}: ${conflict.description}\n`;
+        if (conflict.argument) {
+          prompt += `  ARGUMENT: ${conflict.argument}\n`;
+        }
+        prompt += `  FCRA: ${conflict.fcraViolation}\n`;
+        prompt += `  Deletion Probability: ${conflict.deletionProbability}%\n`;
       }
-    } else {
-      prompt += `- No cross-bureau conflicts detected for this account
-- Dispute based on: Unverifiable balance, missing documentation
-`;
     }
+
+    if (highConflicts.length > 0) {
+      prompt += `\n**HIGH PRIORITY VIOLATIONS:**\n`;
+      for (const conflict of highConflicts) {
+        prompt += `- ${conflict.type.toUpperCase()}: ${conflict.description}\n`;
+        if (conflict.argument) {
+          prompt += `  ARGUMENT: ${conflict.argument}\n`;
+        }
+        prompt += `  FCRA: ${conflict.fcraViolation}\n`;
+        prompt += `  Deletion Probability: ${conflict.deletionProbability}%\n`;
+      }
+    }
+
+    if (mediumConflicts.length > 0) {
+      prompt += `\n**ADDITIONAL ISSUES:**\n`;
+      for (const conflict of mediumConflicts) {
+        prompt += `- ${conflict.type.toUpperCase()}: ${conflict.description}\n`;
+        if (conflict.argument) {
+          prompt += `  ARGUMENT: ${conflict.argument}\n`;
+        }
+        prompt += `  FCRA: ${conflict.fcraViolation}\n`;
+      }
+    }
+
+    if (accountConflicts.length === 0) {
+      prompt += `\n**VIOLATIONS TO ARGUE:**\n`;
+      prompt += `- UNVERIFIABLE BALANCE: $${account.balance.toFixed(2)} balance with no payment history\n`;
+      prompt += `- MISSING DOCUMENTATION: Collection lacks debt validation documentation\n`;
+    }
+
+    prompt += `\n**TOTAL VIOLATIONS FOR THIS ACCOUNT: ${accountConflicts.length || 2}**\n`;
   }
 
-  prompt += `\n**INSTRUCTIONS:**
+  prompt += `\n**INSTRUCTIONS FOR A+ LETTER:**
 1. Start with legal opening statement citing FCRA rights
 2. Include address correction statement (current + previous addresses)
-3. Lead with cross-bureau conflicts as PRIMARY argument
-4. For each account, provide detailed analysis with:
-   - What ${bureau} reports
-   - What other bureaus report (if conflicts exist)
-   - Specific FCRA violations
-   - Clear DEMAND (DELETE or CORRECT)
-5. Include legal consequences section
-6. Reference exhibits (A-F)
-7. Professional closing with signature block
+3. For EACH account, use MULTI-ANGLE ATTACK:
+   a. Lead with CRITICAL errors (impossible timeline, re-aging) - these are automatic wins
+   b. Add HIGH priority violations (cross-bureau conflicts, unverifiable balances)
+   c. Include ADDITIONAL issues (status corrections, missing docs)
+   d. Stack ALL violations together for maximum pressure
+4. Include detailed legal reasoning for EACH violation type
+5. Clear DEMAND: DELETE IMMEDIATELY for each account
+6. Legal consequences section (CFPB, FTC, litigation)
+7. Reference exhibits (A-F)
+8. Professional closing with signature block
 
 **TONE:** Professional, authoritative, legally precise (not aggressive)
-**LENGTH:** Comprehensive but scannable (2-3 pages)
-**GOAL:** 70-85% deletion rate
+**LENGTH:** Comprehensive - 3-5 pages (more violations = longer letter)
+**GOAL:** 80-90% deletion rate through multi-angle attack
 
-Generate the complete letter now:`;
+Generate the complete A+ letter now:`;
 
   return prompt;
 }

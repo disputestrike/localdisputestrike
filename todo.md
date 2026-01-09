@@ -651,3 +651,13 @@ DisputeStrike
 - [x] Add re-parse button for existing credit reports
 - [x] Show parsing progress indicator during PDF processing
 - [x] Add account count validation warning if fewer than expected
+
+## Phase 84: Comprehensive Violation Detection - A+ Letters (Jan 9, 2026)
+- [x] Add Impossible Timeline Detector (lastActivity < dateOpened = CRITICAL)
+- [x] Add Unverifiable Balance Detector (balance > 0 but no payment history = HIGH)
+- [x] Add Duplicate Account Detector (same-day openings, same balances = HIGH)
+- [x] Add Re-aging Detector (activity after account closed = CRITICAL)
+- [x] Add Balance Discrepancy Detector (compare balances across bureaus = CRITICAL)
+- [x] Add Status Correction Detector (paid accounts showing negative = MEDIUM)
+- [x] Stack ALL violations per account in dispute letters
+- [x] Generate multi-angle arguments with severity grouping
