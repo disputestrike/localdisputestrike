@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -88,19 +89,25 @@ export default function AIAssistant() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
-      <div className="container max-w-4xl mx-auto">
-        <Card className="shadow-xl">
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Bot className="h-6 w-6 text-orange-500" />
+            AI Assistant
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Get expert advice on credit disputes, FCRA law, and dispute strategies
+          </p>
+        </div>
+
+        <Card className="shadow-lg">
           <CardHeader className="border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-            <div className="flex items-center gap-3">
-              <Bot className="h-8 w-8" />
-              <div>
-                <CardTitle className="text-2xl">AI Credit Monitoring Assistant</CardTitle>
-                <CardDescription className="text-blue-100">
-                  Powered by Manus AI - Expert FCRA Knowledge
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle className="text-xl">Credit Dispute AI Assistant</CardTitle>
+            <CardDescription className="text-blue-100">
+              Powered by Manus AI - Expert FCRA Knowledge
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <ScrollArea className="h-[500px] p-6" ref={scrollRef}>
@@ -191,6 +198,6 @@ export default function AIAssistant() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </DashboardLayout>
   );
 }

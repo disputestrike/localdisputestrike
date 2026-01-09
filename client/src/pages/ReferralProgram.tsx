@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useState } from "react";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 import {
   Users,
   DollarSign,
@@ -18,24 +18,50 @@ import {
   Facebook,
   Mail,
   MessageCircle,
+  Loader2,
 } from "lucide-react";
 
 export default function ReferralProgram() {
-  const [referralLink] = useState("https://disputestrike.com/ref/ABC123XYZ");
+  // Get user's referral data from database
+  const { data: referralData, isLoading: loadingReferral } = trpc.referrals.get.useQuery();
   
-  // Mock referral stats
+  // Get all referrals made by user
+  const { data: referralsList, isLoading: loadingList } = trpc.referrals.list.useQuery();
+
+  // Calculate stats from real data
   const stats = {
-    totalReferrals: 12,
-    pendingReferrals: 3,
-    completedReferrals: 9,
-    totalEarnings: 450,
-    pendingEarnings: 150,
-    paidEarnings: 300,
+    totalReferrals: referralsList?.length || 0,
+    pendingReferrals: referralsList?.filter(r => r.status === 'pending' || r.status === 'signed_up').length || 0,
+    completedReferrals: referralsList?.filter(r => r.status === 'subscribed' || r.status === 'paid_out').length || 0,
+    totalEarnings: referralsList?.reduce((sum, r) => {
+      if (r.status === 'subscribed' || r.status === 'paid_out') {
+        return sum + Number(r.commissionAmount || 50);
+      }
+      return sum;
+    }, 0) || 0,
+    pendingEarnings: referralsList?.reduce((sum, r) => {
+      if (r.status === 'subscribed') {
+        return sum + Number(r.commissionAmount || 50);
+      }
+      return sum;
+    }, 0) || 0,
+    paidEarnings: referralsList?.reduce((sum, r) => {
+      if (r.status === 'paid_out') {
+        return sum + Number(r.commissionAmount || 50);
+      }
+      return sum;
+    }, 0) || 0,
   };
 
+  // Generate referral link from real code
+  const referralCode = referralData?.referralCode || '';
+  const referralLink = referralCode ? `${window.location.origin}/ref/${referralCode}` : '';
+
   const copyLink = () => {
-    navigator.clipboard.writeText(referralLink);
-    toast.success("Referral link copied to clipboard!");
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      toast.success("Referral link copied to clipboard!");
+    }
   };
 
   const shareOnTwitter = () => {
@@ -53,14 +79,17 @@ export default function ReferralProgram() {
     window.open(`mailto:?subject=${subject}&body=${body}`);
   };
 
-  // Mock referral history
-  const referralHistory = [
-    { id: 1, name: "John D.", date: "2025-01-05", status: "completed", earned: 50 },
-    { id: 2, name: "Sarah M.", date: "2025-01-03", status: "completed", earned: 50 },
-    { id: 3, name: "Mike R.", date: "2025-01-01", status: "pending", earned: 0 },
-    { id: 4, name: "Lisa K.", date: "2024-12-28", status: "completed", earned: 50 },
-    { id: 5, name: "Tom B.", date: "2024-12-25", status: "pending", earned: 0 },
-  ];
+  const isLoading = loadingReferral || loadingList;
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -96,7 +125,7 @@ export default function ReferralProgram() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-yellow-500/10 rounded-xl">
-                  <Clock className="h-6 w-6 text-yellow-400" />
+                  <Clock className="h-6 w-6 text-yellow-500" />
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-gray-900">${stats.pendingEarnings}</p>
@@ -110,7 +139,7 @@ export default function ReferralProgram() {
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-500/10 rounded-xl">
-                  <CheckCircle2 className="h-6 w-6 text-green-400" />
+                  <CheckCircle2 className="h-6 w-6 text-green-500" />
                 </div>
                 <div>
                   <p className="text-3xl font-bold text-gray-900">${stats.paidEarnings}</p>
@@ -135,13 +164,14 @@ export default function ReferralProgram() {
           <CardContent className="space-y-4">
             <div className="flex gap-2">
               <Input
-                value={referralLink}
+                value={referralLink || "Generating your referral link..."}
                 readOnly
                 className="bg-gray-100 border-gray-300 text-gray-900 font-mono text-sm"
               />
               <Button
                 onClick={copyLink}
-                className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
+                disabled={!referralLink}
+                className="bg-cyan-500 hover:bg-orange-500 text-white"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copy
@@ -152,6 +182,7 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareOnTwitter}
+                disabled={!referralLink}
                 className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Twitter className="h-4 w-4 mr-2" />
@@ -160,6 +191,7 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareOnFacebook}
+                disabled={!referralLink}
                 className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Facebook className="h-4 w-4 mr-2" />
@@ -168,6 +200,7 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareByEmail}
+                disabled={!referralLink}
                 className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Mail className="h-4 w-4 mr-2" />
@@ -175,6 +208,7 @@ export default function ReferralProgram() {
               </Button>
               <Button
                 variant="outline"
+                disabled={!referralLink}
                 className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
@@ -201,11 +235,15 @@ export default function ReferralProgram() {
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-700">Completed</span>
-                  <span className="text-xl font-bold text-green-400">{stats.completedReferrals}</span>
+                  <span className="text-xl font-bold text-green-500">{stats.completedReferrals}</span>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <span className="text-gray-700">Pending</span>
-                  <span className="text-xl font-bold text-yellow-400">{stats.pendingReferrals}</span>
+                  <span className="text-xl font-bold text-yellow-500">{stats.pendingReferrals}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-700">Link Clicks</span>
+                  <span className="text-xl font-bold text-blue-500">{referralData?.clickCount || 0}</span>
                 </div>
               </div>
             </CardContent>
@@ -251,39 +289,56 @@ export default function ReferralProgram() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {referralHistory.length === 0 ? (
+            {!referralsList || referralsList.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
                 <p className="text-gray-500">No referrals yet. Start sharing your link!</p>
+                <p className="text-sm text-gray-400 mt-2">
+                  When friends sign up using your link, they'll appear here.
+                </p>
               </div>
             ) : (
               <div className="space-y-3">
-                {referralHistory.map((referral) => (
+                {referralsList.map((referral) => (
                   <div
                     key={referral.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-900 font-medium">
-                        {referral.name.charAt(0)}
+                        {referral.referredUserId ? "U" : "?"}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{referral.name}</p>
-                        <p className="text-xs text-gray-400">{referral.date}</p>
+                        <p className="font-medium text-gray-900">
+                          {referral.referredUserId ? `User #${referral.referredUserId}` : "Pending Signup"}
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          {referral.signedUpAt 
+                            ? new Date(referral.signedUpAt).toLocaleDateString()
+                            : new Date(referral.createdAt).toLocaleDateString()
+                          }
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge
                         className={
-                          referral.status === "completed"
-                            ? "bg-green-500/20 text-green-400 border-green-500/30"
-                            : "bg-yellow-500/20 text-yellow-400 border-yellow-500/30"
+                          referral.status === "paid_out"
+                            ? "bg-green-500/20 text-green-600 border-green-500/30"
+                            : referral.status === "subscribed"
+                            ? "bg-blue-500/20 text-blue-600 border-blue-500/30"
+                            : referral.status === "signed_up"
+                            ? "bg-yellow-500/20 text-yellow-600 border-yellow-500/30"
+                            : "bg-gray-500/20 text-gray-600 border-gray-500/30"
                         }
                       >
-                        {referral.status === "completed" ? "Completed" : "Pending"}
+                        {referral.status === "paid_out" ? "Paid" 
+                          : referral.status === "subscribed" ? "Subscribed"
+                          : referral.status === "signed_up" ? "Signed Up"
+                          : "Pending"}
                       </Badge>
-                      {referral.earned > 0 && (
-                        <span className="text-green-400 font-medium">+${referral.earned}</span>
+                      {(referral.status === "subscribed" || referral.status === "paid_out") && (
+                        <span className="text-green-500 font-medium">+${referral.commissionAmount || 50}</span>
                       )}
                     </div>
                   </div>
