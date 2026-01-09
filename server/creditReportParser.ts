@@ -184,25 +184,49 @@ export async function parseWithAI(text: string, bureau: 'TransUnion' | 'Equifax'
   console.log(`[AI Parser] Processing ${bureau} report, text length: ${text.length}`);
   console.log(`[AI Parser] First 300 chars:`, text.slice(0, 300));
   
-  const systemPrompt = `You are an expert credit report analyst. Extract ONLY negative accounts (collections, charge-offs, late payments, bankruptcies, etc.) from credit reports.
+  const systemPrompt = `You are an expert credit report analyst. Your CRITICAL task is to extract EVERY SINGLE negative account from this credit report. Do NOT miss any accounts.
 
-For each negative account, extract:
-- accountName: Creditor/collection agency name
-- accountNumber: Account number
-- balance: Current balance (as number)
-- status: Status (e.g., "Collection", "Charge-off", "Late Payment")
+A NEGATIVE ACCOUNT includes ANY of these:
+- Collection accounts (from collection agencies like LVNV, Midland, Portfolio Recovery, etc.)
+- Charge-offs (accounts written off by creditors)
+- Late payments (30, 60, 90, 120+ days late - even if now current)
+- Bankruptcies
+- Judgments and tax liens
+- Repossessions and foreclosures
+- Medical debt
+- Utility collections
+- Student loan defaults
+- Accounts marked "derogatory", "adverse", "negative", or "potentially negative"
+- Accounts with payment history showing any late marks (30/60/90/120/150/180)
+- Closed accounts with negative history
+- Accounts in dispute
+- ANY account that could negatively impact credit score
+
+IMPORTANT: Credit reports typically have 20-50+ negative items. If you find fewer than 10, you are likely MISSING accounts. Look more carefully at:
+- The "Accounts" section
+- The "Collections" section  
+- The "Public Records" section
+- The "Potentially Negative" section
+- The "Adverse Accounts" section
+- Payment history grids showing late payments
+
+For EACH negative account, extract:
+- accountName: Creditor/collection agency name (REQUIRED)
+- accountNumber: Account number (partial is fine)
+- balance: Current balance as number (0 if paid)
+- status: Current status (Collection, Charge-off, Late 30/60/90, Paid Collection, etc.)
 - dateOpened: Date opened (MM/DD/YYYY)
 - lastActivity: Last activity date (MM/DD/YYYY)
-- accountType: Type (e.g., "Collection", "Credit Card", "Medical")
-- originalCreditor: Original creditor if different
+- accountType: Type (Collection, Credit Card, Medical, Auto Loan, Mortgage, Student Loan, etc.)
+- originalCreditor: Original creditor if this is a collection
 
-Return valid JSON array only.`;
+Be EXHAUSTIVE - extract EVERY negative account. Missing accounts means the consumer cannot dispute them.`;
 
   try {
     const response = await invokeLLM({
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `Extract negative accounts from this ${bureau} credit report:\n\n${text}` },
+        { role: 'user', content: `CRITICAL: Extract EVERY SINGLE negative account from this ${bureau} credit report. Do NOT miss any accounts. Most reports have 20-50+ negative items. If you find fewer than 15, you are missing accounts - look more carefully.\n\nCredit Report Text:\n${text}` },
       ],
       response_format: {
         type: 'json_schema',
@@ -380,31 +404,50 @@ export function parseMultipleReports(reports: { text: string; bureau: 'TransUnio
 async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
   console.log(`[Vision AI] Processing ${bureau} report from: ${fileUrl.slice(0, 80)}...`);
   
-  const systemPrompt = `You are an expert credit report analyst. Your job is to extract ALL negative accounts from credit reports.
+  const systemPrompt = `You are an expert credit report analyst. Your CRITICAL task is to extract EVERY SINGLE negative account from this credit report PDF. Do NOT miss any accounts.
 
-A negative account is ANY account that shows:
-- Collection accounts
-- Charge-offs
-- Late payments (30, 60, 90, 120+ days)
-- Bankruptcies
-- Judgments
-- Tax liens
-- Repossessions
+SCAN EVERY PAGE CAREFULLY. Credit reports are typically 20-50+ pages with accounts scattered throughout.
+
+A NEGATIVE ACCOUNT includes ANY of these:
+- Collection accounts (LVNV, Midland, Portfolio Recovery, Cavalry, Encore Capital, etc.)
+- Charge-offs (accounts written off by original creditors)
+- Late payments (30, 60, 90, 120+ days late - even if account is now current)
+- Bankruptcies (Chapter 7, Chapter 13)
+- Judgments and civil judgments
+- Tax liens (federal, state, local)
+- Repossessions (auto repos)
 - Foreclosures
-- Accounts marked as "derogatory", "adverse", or "negative"
-- Any account with a negative payment history
+- Medical debt and medical collections
+- Utility collections (electric, gas, water, phone)
+- Student loan defaults or delinquencies
+- Accounts marked "derogatory", "adverse", "negative", or "potentially negative"
+- Accounts with payment history showing ANY late marks (30/60/90/120/150/180)
+- Closed accounts with negative history
+- Accounts currently in dispute
+- Paid collections (still negative even if paid)
+- Settled accounts (settled for less than full balance)
+- ANY account that could negatively impact credit score
 
-For EACH negative account found, extract:
-- accountName: The creditor or collection agency name
+IMPORTANT: Most credit reports have 20-50+ negative items. If you find fewer than 15, you are likely MISSING accounts. Look at:
+- "Accounts" or "Account Information" section
+- "Collections" section
+- "Public Records" section
+- "Potentially Negative" or "Adverse" section
+- "Closed Accounts" section
+- Payment history grids (look for any 30/60/90/120 marks)
+- Each page of the PDF - accounts are often spread across many pages
+
+For EACH negative account, extract:
+- accountName: The creditor or collection agency name (REQUIRED - never leave blank)
 - accountNumber: The account number (partial is fine, e.g., "****1234")
 - balance: Current balance as a number (0 if paid off)
-- status: Current status (e.g., "Collection", "Charge-off", "Late 90 days")
+- status: Current status (Collection, Charge-off, Late 30/60/90, Paid Collection, Settled, etc.)
 - dateOpened: Date account was opened (MM/DD/YYYY format)
 - lastActivity: Last activity date (MM/DD/YYYY format)
-- accountType: Type of account (e.g., "Collection", "Credit Card", "Medical", "Auto Loan")
+- accountType: Type of account (Collection, Credit Card, Medical, Auto Loan, Mortgage, Student Loan, Personal Loan, etc.)
 - originalCreditor: Original creditor if this is a collection account
 
-Be thorough - extract EVERY negative account you can find in the document.`;
+Be EXHAUSTIVE - extract EVERY negative account from EVERY page. Missing accounts means the consumer cannot dispute them and fix their credit.`;
 
   try {
     // Use file_url for PDFs (not image_url)
@@ -414,7 +457,7 @@ Be thorough - extract EVERY negative account you can find in the document.`;
         { 
           role: 'user', 
           content: [
-            { type: 'text', text: `This is a ${bureau} credit report. Please carefully analyze every page and extract ALL negative accounts. List each negative account with its details.` },
+            { type: 'text', text: `This is a ${bureau} credit report PDF. CRITICAL: You MUST extract EVERY SINGLE negative account from ALL pages of this document. Do not stop early. Do not summarize. Extract each account individually with full details. Most reports have 20-50+ negative items - if you find fewer than 15, look again more carefully at every page. List EVERY negative account found.` },
             { type: 'file_url', file_url: { url: fileUrl, mime_type: 'application/pdf' } }
           ]
         },
