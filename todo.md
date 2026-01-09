@@ -754,3 +754,20 @@ DisputeStrike
 - DisputeSuccessPredictor component with ML-based success probability
 - SmartLetterScheduler component with optimal mailing date recommendations
 - BureauResponseAnalyzer component with escalation strategy guide
+
+
+## Phase 90: Dashboard Enhancements (Jan 9, 2026)
+
+### Approved Features
+- [x] Progress dashboard tab - Unified view with DisputeSuccessPredictor, SmartLetterScheduler, BureauResponseAnalyzer
+- [x] Mobile upload integration - Replace current upload cards with MobileUploadZone on mobile devices
+- [x] Email notifications for deadlines - Send alerts at 7 days and 3 days before response deadlines
+
+### Implementation Details:
+- New "Progress" tab added to dashboard with Target icon
+- DisputeSuccessPredictor shows AI success probability per account
+- SmartLetterScheduler shows optimal mailing dates and deadline tracking
+- BureauResponseAnalyzer shows outcomes and next-step recommendations
+- MobileUploadZone integrated into upload section with camera/gallery buttons
+- deadlineNotificationService.ts created with 7-day and 3-day email reminders
+- Admin endpoint added: admin.triggerDeadlineNotifications

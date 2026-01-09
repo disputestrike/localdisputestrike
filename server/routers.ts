@@ -359,6 +359,13 @@ export const appRouter = router({
         hasActiveSubscription: false, // Would check subscriptions table
       }));
     }),
+    // Trigger deadline notification emails
+    triggerDeadlineNotifications: adminProcedure.mutation(async ({ ctx }) => {
+      const { runDeadlineNotificationJob } = await import('./deadlineNotificationService');
+      await runDeadlineNotificationJob();
+      return { success: true, message: 'Deadline notifications sent' };
+    }),
+
     recentLetters: adminProcedure.query(async ({ ctx }) => {
       
       const { getAllDisputeLetters, getAllUsers } = await import('./db');

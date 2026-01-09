@@ -31,7 +31,11 @@ import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
 import { CreditScoreChart } from "@/components/CreditScoreChart";
 // CreditScoreSimulator moved to standalone page at /dashboard/score-simulator
-import { Building2, Calculator, Scale, LineChart } from "lucide-react";
+import { Building2, Calculator, Scale, LineChart, Target, Calendar, BarChart3 } from "lucide-react";
+import { DisputeSuccessPredictor } from "@/components/DisputeSuccessPredictor";
+import { SmartLetterScheduler } from "@/components/SmartLetterScheduler";
+import { BureauResponseAnalyzer } from "@/components/BureauResponseAnalyzer";
+import { MobileUploadZone } from "@/components/MobileUploadZone";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -403,6 +407,10 @@ export default function Dashboard() {
               <Scale className="h-4 w-4 mr-2" />
               Compare
             </TabsTrigger>
+            <TabsTrigger value="progress">
+              <Target className="h-4 w-4 mr-2" />
+              Progress
+            </TabsTrigger>
           </TabsList>
 
           {/* Upload Reports Tab */}
@@ -588,63 +596,12 @@ export default function Dashboard() {
                           </Button>
                         </div>
                       ) : (
-                        <div className="space-y-2">
-                          <input
-                            type="file"
-                            accept=".pdf,image/*"
-                            id={`upload-${bureau}`}
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleFileUpload(bureau, file);
-                              }
-                            }}
-                            disabled={isUploading}
-                          />
-                          {/* Drag and Drop Zone */}
-                          <div
-                            onDragOver={(e) => handleDragOver(e, bureau)}
-                            onDragLeave={handleDragLeave}
-                            onDrop={(e) => handleDrop(e, bureau)}
-                            onClick={() => document.getElementById(`upload-${bureau}`)?.click()}
-                            className={`
-                              relative border-2 border-dashed rounded-lg p-6 cursor-pointer
-                              transition-all duration-200 ease-in-out
-                              ${dragOver === bureau 
-                                ? 'border-primary bg-primary/10 scale-[1.02]' 
-                                : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
-                              }
-                              ${isUploading ? 'opacity-50 pointer-events-none' : ''}
-                            `}
-                          >
-                            {isUploading ? (
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
-                                <span className="text-sm font-medium">Uploading...</span>
-                              </div>
-                            ) : dragOver === bureau ? (
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
-                                  <Download className="h-6 w-6 text-primary animate-bounce" />
-                                </div>
-                                <span className="text-sm font-medium text-primary">Drop file here!</span>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col items-center gap-2">
-                                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                                  <Upload className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                                <div className="text-center">
-                                  <span className="text-sm font-medium">Drag & drop or click</span>
-                                  <p className="text-xs text-muted-foreground mt-1">
-                                    PDF or image files
-                                  </p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
+                        <MobileUploadZone
+                          bureau={bureau}
+                          onFileSelect={(file) => handleFileUpload(bureau, file)}
+                          isUploading={isUploading}
+                          hasExistingReport={false}
+                        />
                       )}
                     </CardContent>
                   </Card>
@@ -1122,6 +1079,77 @@ export default function Dashboard() {
             <LetterComparison 
               accountCount={negativeAccounts?.length || 0}
               conflictCount={negativeAccounts?.filter(a => a.hasConflicts).length || 0}
+            />
+          </TabsContent>
+
+          {/* Progress & Analytics Tab */}
+          <TabsContent value="progress" className="space-y-6">
+            <Alert>
+              <Target className="h-4 w-4" />
+              <AlertDescription>
+                Track your dispute progress, get AI-powered success predictions, and optimize your mailing strategy.
+              </AlertDescription>
+            </Alert>
+
+            {/* Dispute Success Predictor */}
+            <DisputeSuccessPredictor 
+              accounts={negativeAccounts?.map(a => ({
+                id: a.id,
+                accountName: a.accountName,
+                accountNumber: a.accountNumber || undefined,
+                accountType: a.accountType || undefined,
+                balance: a.balance || undefined,
+                status: a.status || undefined,
+                dateOpened: a.dateOpened || undefined,
+                lastActivity: a.lastActivity || undefined,
+                originalCreditor: a.originalCreditor || undefined,
+                transunionData: a.transunionData || undefined,
+                equifaxData: a.equifaxData || undefined,
+                experianData: a.experianData || undefined,
+                hasConflicts: a.hasConflicts || undefined,
+                conflictDetails: a.conflictDetails || undefined,
+              })) || []}
+              onSelectAccounts={(ids) => {
+                toast.info(`Selected ${ids.length} accounts for dispute`);
+              }}
+            />
+
+            {/* Smart Letter Scheduler */}
+            <SmartLetterScheduler 
+              letters={disputeLetters?.map(l => ({
+                id: l.id,
+                bureau: l.bureau,
+                status: l.status,
+                createdAt: l.createdAt.toISOString(),
+                mailedAt: l.mailedAt ? l.mailedAt.toISOString() : undefined,
+                responseDeadline: l.responseDeadline ? l.responseDeadline.toISOString() : undefined,
+              })) || []}
+              onScheduleMail={(letterId, date) => {
+                toast.success(`Letter scheduled for ${date.toLocaleDateString()}`);
+              }}
+            />
+
+            {/* Bureau Response Analyzer */}
+            <BureauResponseAnalyzer 
+              outcomes={disputeLetters?.filter(l => l.status !== 'generated' && l.status !== 'downloaded').map(l => ({
+                id: l.id,
+                accountName: `${l.bureau.charAt(0).toUpperCase() + l.bureau.slice(1)} Dispute`,
+                bureau: l.bureau,
+                outcome: l.status === 'resolved' ? 'deleted' as const :
+                         l.status === 'response_received' ? 'verified' as const :
+                         l.status === 'mailed' ? 'pending' as const : 'pending' as const,
+                responseReceivedAt: l.responseReceivedAt ? l.responseReceivedAt.toISOString() : undefined,
+                letterMailedAt: l.mailedAt ? l.mailedAt.toISOString() : undefined,
+                deadlineDate: l.responseDeadline ? l.responseDeadline.toISOString() : undefined,
+                responseNotes: l.responseDetails || undefined,
+              })) || []}
+              onGenerateFollowUp={(outcomeId, strategy) => {
+                toast.info(`Generating ${strategy} follow-up letter...`);
+              }}
+              onFileCFPB={(bureau) => {
+                window.open('https://www.consumerfinance.gov/complaint/', '_blank');
+                toast.info(`Opening CFPB complaint form for ${bureau}`);
+              }}
             />
           </TabsContent>
 

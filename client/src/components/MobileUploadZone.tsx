@@ -17,13 +17,15 @@ interface MobileUploadZoneProps {
   onFileSelect: (file: File) => void;
   isUploading: boolean;
   hasExistingReport: boolean;
+  standalone?: boolean; // If true, renders with Card wrapper
 }
 
 export function MobileUploadZone({ 
   bureau, 
   onFileSelect, 
   isUploading, 
-  hasExistingReport 
+  hasExistingReport,
+  standalone = false
 }: MobileUploadZoneProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -143,15 +145,9 @@ export function MobileUploadZone({
     return null;
   }
 
-  return (
-    <Card className={`overflow-hidden ${selectedFile ? bureauBgColors[bureau] : ''}`}>
-      <CardHeader className={`bg-gradient-to-r ${bureauColors[bureau]} text-white py-3`}>
-        <CardTitle className="capitalize text-lg">{bureau}</CardTitle>
-        <CardDescription className="text-white/80 text-sm">
-          Upload your credit report
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-4">
+  // Content to render (shared between standalone and embedded modes)
+  const uploadContent = (
+    <>
         {/* Hidden file inputs */}
         <input
           ref={fileInputRef}
@@ -296,9 +292,28 @@ export function MobileUploadZone({
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+    </>
   );
+
+  // Standalone mode with Card wrapper
+  if (standalone) {
+    return (
+      <Card className={`overflow-hidden ${selectedFile ? bureauBgColors[bureau] : ''}`}>
+        <CardHeader className={`bg-gradient-to-r ${bureauColors[bureau]} text-white py-3`}>
+          <CardTitle className="capitalize text-lg">{bureau}</CardTitle>
+          <CardDescription className="text-white/80 text-sm">
+            Upload your credit report
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-4">
+          {uploadContent}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Embedded mode without Card wrapper
+  return <div className="space-y-2">{uploadContent}</div>;
 }
 
 /**
