@@ -830,6 +830,99 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
 }
 
 
+/**
+ * Send quiz analysis email to lead
+ */
+export async function sendQuizAnalysisEmail(
+  email: string,
+  data: {
+    creditScoreRange: string;
+    negativeItemsCount: string;
+    bureaus: string[];
+    zipCode: string;
+  }
+): Promise<void> {
+  const { sendEmail } = await import("./emailService");
+
+  const itemsCount = parseInt(data.negativeItemsCount.split("-")[0] || "0");
+  const estimatedDeletions = Math.round(itemsCount * 0.7);
+  const estimatedScoreIncrease = estimatedDeletions * 5;
+
+  const subject = "Your Free Credit Dispute Analysis - DisputeStrike";
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #ea580c 0%, #f97316 100%); padding: 40px 20px; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">Your Free Analysis is Ready</h1>
+        <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">Based on your quiz responses</p>
+      </div>
+      
+      <div style="padding: 40px 20px; background: #ffffff;">
+        <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
+          Hi there! Thanks for taking our quiz. Based on your answers, here's what we found:
+        </p>
+        
+        <div style="background: #f0f9ff; border-left: 4px solid #ea580c; padding: 20px; margin: 30px 0; border-radius: 4px;">
+          <h2 style="color: #1f2937; margin-top: 0; font-size: 20px;">Your Estimated Results</h2>
+          
+          <div style="margin: 15px 0;">
+            <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 14px;">Credit Score Range:</p>
+            <p style="color: #1f2937; margin: 0; font-size: 18px; font-weight: bold;">${data.creditScoreRange}</p>
+          </div>
+          
+          <div style="margin: 15px 0;">
+            <p style="color: #6b7280; margin: 0 0 5px 0; font-size: 14px;">Negative Items Found:</p>
+            <p style="color: #1f2937; margin: 0; font-size: 18px; font-weight: bold;">${data.negativeItemsCount}</p>
+          </div>
+          
+          <div style="margin: 15px 0; padding: 15px; background: #dcfce7; border-radius: 4px;">
+            <p style="color: #166534; margin: 0 0 5px 0; font-size: 14px;">Estimated Deletions:</p>
+            <p style="color: #166534; margin: 0; font-size: 20px; font-weight: bold;">~${estimatedDeletions} accounts</p>
+          </div>
+          
+          <div style="margin: 15px 0; padding: 15px; background: #dbeafe; border-radius: 4px;">
+            <p style="color: #1e40af; margin: 0 0 5px 0; font-size: 14px;">Potential Score Increase:</p>
+            <p style="color: #1e40af; margin: 0; font-size: 20px; font-weight: bold;">+${estimatedScoreIncrease} points</p>
+          </div>
+        </div>
+        
+        <h3 style="color: #ea580c; font-size: 18px; margin-top: 30px; margin-bottom: 15px;">What Happens Next?</h3>
+        <ol style="font-size: 15px; color: #4b5563; line-height: 2;">
+          <li><strong>Upload Your Reports</strong> - Get your credit reports from all 3 bureaus (free at annualcreditreport.com)</li>
+          <li><strong>AI Analysis</strong> - Our AI identifies the strongest disputes and conflicts</li>
+          <li><strong>Generate Letters</strong> - FCRA-compliant dispute letters ready to send</li>
+          <li><strong>Track Progress</strong> - Monitor responses and deletions in real-time</li>
+        </ol>
+        
+        <div style="text-align: center; margin: 40px 0;">
+          <a href="https://disputestrike.com/dashboard" style="display: inline-block; background: #ea580c; color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+            Get Started Now
+          </a>
+        </div>
+        
+        <p style="font-size: 14px; color: #6b7280; margin-top: 40px;">
+          Questions? Reply to this email - we're here to help.
+        </p>
+      </div>
+      
+      <div style="background: #f3f4f6; padding: 20px; text-align: center;">
+        <p style="font-size: 12px; color: #6b7280; margin: 0;">
+          DisputeStrike - The Force Behind Your Credit Disputes
+        </p>
+        <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">
+          <a href="https://disputestrike.com" style="color: #ea580c; text-decoration: none;">disputestrike.com</a>
+        </p>
+      </div>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject,
+    html: htmlContent,
+  });
+}
+
 // ============================================================================
 // COURSE PROGRESS OPERATIONS
 // ============================================================================

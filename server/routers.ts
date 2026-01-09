@@ -448,34 +448,32 @@ export const appRouter = router({
         })).optional(),
       }))
       .mutation(async ({ input }) => {
-        const { invokeLLM } = await import('./_core/llm');
+        const { aiProvider } = await import('./aiProvider');
         
-        const messages = [
-          {
-            role: 'system' as const,
-            content: `You are an expert credit dispute AI assistant with deep knowledge of:
-- FCRA law (§ 1681i, § 1681s-2, § 1681n, § 1681o)
-- Cross-bureau conflict detection
-- Litigation-grade dispute strategies
-- Credit bureau procedures
-- Furnisher responsibilities
-
-You help users understand their credit reports, identify violations, and develop winning dispute strategies. You explain complex legal concepts in clear, accessible language while maintaining professional expertise.`,
-          },
-          ...(input.conversationHistory || []),
-          {
-            role: 'user' as const,
-            content: input.message,
-          },
-        ];
+        const systemPrompt = `You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies.`;
         
-        const response = await invokeLLM({ messages });
-        const rawContent = response.choices[0]?.message?.content;
-        const responseText = typeof rawContent === 'string' ? rawContent : 'I apologize, but I encountered an error. Please try again.';
+        const conversationText = [
+          systemPrompt,
+          ...(input.conversationHistory || []).map((msg: any) => `${msg.role}: ${msg.content}`),
+          `user: ${input.message}`
+        ].join('\n\n');
         
-        return {
-          response: responseText,
-        };
+        try {
+          const result = await aiProvider.generate(conversationText);
+          console.log(`[AI Chat] Used provider: ${result.provider}`);
+          
+          return {
+            response: result.content,
+            provider: result.provider,
+          };
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`[AI Chat] All providers failed: ${errorMsg}`);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'AI service temporarily unavailable. Please try again later.',
+          });
+        }
       }),
   }),
   system: systemRouter,
@@ -655,7 +653,7 @@ You help users understand their credit reports, identify violations, and develop
         }
         
         // Import Manus AI letter generator
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         // Generate AI-powered letters using Manus LLM
         const letters = [];
@@ -872,7 +870,7 @@ ${profile?.dateOfBirth && profile?.ssnLast4 ? '✅ All required information is c
         const bureau = originalLetter.bureau;
         
         // Import Manus AI
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         // Build Round 2 escalation prompt
         const round2Prompt = `Generate a Round 2 ESCALATION letter demanding Method of Verification (MOV) for verified accounts.
@@ -1052,7 +1050,7 @@ Tone: Professional but FIRM. Make it clear you know the law and will pursue lega
         };
         
         // Import Manus AI
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         // Build CFPB complaint prompt
         const cfpbPrompt = `Generate a formal CFPB complaint letter for FCRA violations.
@@ -1229,7 +1227,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         );
         
         // Generate letter using Manus AI
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         const response = await invokeLLM({
           messages: [
@@ -1373,7 +1371,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         userAddress: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         const { CEASE_DESIST_SYSTEM_PROMPT, buildCeaseDesistPrompt } = await import('./additionalLetterGenerators');
         
         const prompt = buildCeaseDesistPrompt(
@@ -1431,7 +1429,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         userAddress: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         const { PAY_FOR_DELETE_SYSTEM_PROMPT, buildPayForDeletePrompt } = await import('./additionalLetterGenerators');
         
         const prompt = buildPayForDeletePrompt(
@@ -1492,7 +1490,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         userAddress: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         const { INTENT_TO_SUE_SYSTEM_PROMPT, buildIntentToSuePrompt } = await import('./additionalLetterGenerators');
         
         const prompt = buildIntentToSuePrompt(
@@ -1543,7 +1541,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         userAddress: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         const { ESTOPPEL_SYSTEM_PROMPT, buildEstoppelPrompt } = await import('./additionalLetterGenerators');
         
         const bureauAddresses: Record<string, { name: string; address: string }> = {
@@ -1733,8 +1731,18 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           source: 'quiz_funnel',
         });
 
-        // TODO: Send email with analysis results
-        // await sendLeadEmail(input.email, input);
+        // Send email with analysis results
+        try {
+          await db.sendQuizAnalysisEmail(input.email, {
+            creditScoreRange: input.creditScoreRange,
+            negativeItemsCount: input.negativeItemsCount,
+            bureaus: input.bureaus,
+            zipCode: input.zipCode,
+          });
+        } catch (error) {
+          console.error('Failed to send quiz analysis email:', error);
+          // Don't fail the lead capture if email fails
+        }
 
         return { success: true };
       }),
@@ -1871,7 +1879,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
       }))
       .mutation(async ({ ctx, input }) => {
         // Generate complaint content using AI
-        const { invokeLLM } = await import('./_core/llm');
+        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         const prompt = `Generate a formal CFPB complaint for the following issue:
 
