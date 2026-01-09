@@ -97,7 +97,7 @@ Write the testimonial now:`;
  */
 function anonymizeName(fullName: string, level: TestimonialOptions['anonymizationLevel']): string {
   if (level === 'anonymous') {
-    return 'A DisputeForce User';
+    return 'A DisputeStrike User';
   }
 
   const nameParts = fullName.trim().split(' ');

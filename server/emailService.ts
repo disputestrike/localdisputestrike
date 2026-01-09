@@ -52,7 +52,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
     const transport = getTransporter();
     
     await transport.sendMail({
-      from: `"DisputeForce" <${process.env.SMTP_USER}>`,
+      from: `"DisputeStrike" <${process.env.SMTP_USER}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -161,10 +161,10 @@ export async function sendDisputeLetterEmail(
       <p>Good luck! We're rooting for you! 💪</p>
       
       <p>Best regards,<br>
-      The DisputeForce Team</p>
+      The DisputeStrike Team</p>
     </div>
     <div class="footer">
-      <p>DisputeForce - Litigation-Grade Credit Dispute Software</p>
+      <p>DisputeStrike - Litigation-Grade Credit Dispute Software</p>
       <p>This is an automated message. Please do not reply to this email.</p>
     </div>
   </div>
@@ -174,7 +174,7 @@ export async function sendDisputeLetterEmail(
 
   return sendEmail({
     to: userEmail,
-    subject: `Your ${bureau} Dispute Letter is Ready - DisputeForce`,
+    subject: `Your ${bureau} Dispute Letter is Ready - DisputeStrike`,
     html,
     text: `Your ${bureau} dispute letter is ready! Download the attached PDF, print it, sign in blue ink, and mail it via Certified Mail with Return Receipt. Include a copy of your ID and a recent utility bill.`,
     attachments: [
@@ -223,7 +223,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 <body>
   <div class="container">
     <div class="header">
-      <h1>Welcome to DisputeForce! 🎉</h1>
+      <h1>Welcome to DisputeStrike! 🎉</h1>
     </div>
     <div class="content">
       <p>Hi ${userName},</p>
@@ -241,7 +241,7 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
       <p>Ready to get started? Log in to your dashboard and upload your first credit report!</p>
       
       <p>Best regards,<br>
-      The DisputeForce Team</p>
+      The DisputeStrike Team</p>
     </div>
   </div>
 </body>
@@ -250,9 +250,9 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 
   return sendEmail({
     to: userEmail,
-    subject: 'Welcome to DisputeForce - Let\'s Fix Your Credit!',
+    subject: 'Welcome to DisputeStrike - Let\'s Fix Your Credit!',
     html,
-    text: `Welcome to DisputeForce! Upload your credit reports to get started with AI-powered dispute letters.`,
+    text: `Welcome to DisputeStrike! Upload your credit reports to get started with AI-powered dispute letters.`,
   });
 }
 
@@ -321,7 +321,7 @@ export async function sendPaymentConfirmationEmail(
       <p>You now have full access to all features. Start generating your dispute letters!</p>
       
       <p>Best regards,<br>
-      The DisputeForce Team</p>
+      The DisputeStrike Team</p>
     </div>
   </div>
 </body>
@@ -330,7 +330,7 @@ export async function sendPaymentConfirmationEmail(
 
   return sendEmail({
     to: userEmail,
-    subject: 'Payment Confirmed - DisputeForce',
+    subject: 'Payment Confirmed - DisputeStrike',
     html,
     text: `Payment confirmed! You've been charged $${amount} for ${tier}. Thank you!`,
   });

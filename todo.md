@@ -387,3 +387,12 @@ DisputeStrike
 ## Phase 57: Bug Fix - LetterView Page Error
 
 - [x] Fix React hooks error "Rendered more hooks than during the previous render" in LetterView.tsx
+
+
+## Phase 58: Letter Generation Fixes (User Feedback)
+
+- [x] Fix placeholder text not auto-populated ([Your Name], [Date], [DOB], etc.)
+- [x] Fix duplicate signature blocks (two "Sincerely" sections)
+- [x] Change "DisputeForce" branding to "DisputeStrike"
+- [x] Fix duplicate RE: lines in letter
+- [x] Ensure user profile data fills into letter automatically

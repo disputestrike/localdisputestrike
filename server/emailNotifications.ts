@@ -240,12 +240,12 @@ Bureau responses typically arrive between Day 25-30. Look for:
 
 **Deadline:** ${deadline ? new Date(deadline).toLocaleDateString() : 'In 5 days'}
 
-Check your DisputeForce dashboard to update your letter status when you receive the response.
+Check your DisputeStrike dashboard to update your letter status when you receive the response.
 
 Questions? Reply to this email or contact support.
 
 Best regards,
-DisputeForce Team
+DisputeStrike Team
 `;
 }
 
@@ -359,7 +359,7 @@ ${bureau} has FAILED to respond to your dispute within the required 30-day perio
 **IMMEDIATE ACTION REQUIRED:**
 
 1. **File CFPB Complaint**
-   - Log into your DisputeForce dashboard
+   - Log into your DisputeStrike dashboard
    - Click "Generate CFPB Complaint" for this letter
    - Download and mail to CFPB immediately
 
@@ -390,7 +390,7 @@ Log into your dashboard now to generate your CFPB complaint letter.
 We're here to help you fight back against ${bureau}'s illegal behavior.
 
 Best regards,
-DisputeForce Team
+DisputeStrike Team
 
 P.S. This is NOT legal advice. Consult with an attorney for legal guidance.
 `;

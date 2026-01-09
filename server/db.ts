@@ -754,7 +754,7 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
       
       <div style="padding: 40px 20px; background: #ffffff;">
         <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
-          Thanks for your interest in DisputeForce! Here's your free guide to reading your credit report like a pro.
+          Thanks for your interest in DisputeStrike! Here's your free guide to reading your credit report like a pro.
         </p>
         
         <h2 style="color: #1f2937; font-size: 22px; margin-top: 30px;">How to Read Your Credit Report Like a Pro</h2>
@@ -794,7 +794,7 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
         
         <h3 style="color: #ea580c; font-size: 18px; margin-top: 25px;">Ready to Take Action?</h3>
         <p style="font-size: 15px; color: #4b5563; line-height: 1.8;">
-          DisputeForce makes it easy to exercise your FCRA § 611 rights with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
+          DisputeStrike makes it easy to exercise your FCRA § 611 rights with AI-powered Attack letters and litigation-grade FCRA citations. You're in control - launch your Attacks, track your progress, and improve what matters most.
         </p>
         
         <div style="text-align: center; margin: 40px 0;">
@@ -810,7 +810,7 @@ export async function sendFreeGuideEmail(email: string): Promise<void> {
       
       <div style="background: #f3f4f6; padding: 20px; text-align: center;">
         <p style="font-size: 12px; color: #6b7280; margin: 0;">
-          DisputeForce - The Force Behind Your Credit Disputes
+          DisputeStrike - The Force Behind Your Credit Disputes
         </p>
         <p style="font-size: 12px; color: #6b7280; margin: 5px 0 0 0;">
           <a href="https://disputestrike.com" style="color: #ea580c; text-decoration: none;">disputestrike.com</a>
