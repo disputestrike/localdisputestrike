@@ -78,6 +78,17 @@ export default function Dashboard() {
   const [showAddressModal, setShowAddressModal] = useState(false);
   const [currentAddress, setCurrentAddress] = useState('');
   const [previousAddress, setPreviousAddress] = useState('');
+  const [addressConfirmed, setAddressConfirmed] = useState(false);
+  const [addressChanged, setAddressChanged] = useState(false);
+  
+  // Parsed personal info from credit reports (PRIMARY source)
+  const [parsedPersonalInfo, setParsedPersonalInfo] = useState<{
+    fullName: string;
+    currentAddress: string;
+    previousAddresses: string[];
+    dateOfBirth: string | null;
+    ssnLast4: string | null;
+  } | null>(null);
   
   // Preview modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -990,42 +1001,119 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Address Modal for Letter Generation */}
+      {/* Address Verification Modal for Letter Generation */}
       {showAddressModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-md mx-4">
+          <Card className="w-full max-w-lg mx-4">
             <CardHeader>
-              <CardTitle>Enter Your Address</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5 text-orange-500" />
+                Verify Your Information
+              </CardTitle>
               <CardDescription>
-                We need your address to generate your dispute letters. This will appear on all letters sent to the credit bureaus.
+                Your personal information is pulled from your credit reports. Please verify it's correct.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Show parsed info from credit report */}
+              {userProfile && (
+                <Alert className="bg-blue-50 border-blue-200">
+                  <AlertDescription className="text-sm">
+                    <strong>From Your Credit Reports:</strong>
+                    <div className="mt-2 space-y-1">
+                      <div><span className="text-gray-500">Name:</span> {userProfile.fullName || 'Not found'}</div>
+                      <div><span className="text-gray-500">DOB:</span> {userProfile.dateOfBirth || 'Not found'}</div>
+                      <div><span className="text-gray-500">SSN:</span> {userProfile.ssnLast4 ? `XXX-XX-${userProfile.ssnLast4}` : 'Not found'}</div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+              
+              {/* Address verification */}
               <div>
-                <label className="text-sm font-medium">Current Address *</label>
+                <label className="text-sm font-medium flex items-center gap-2">
+                  Current Address *
+                  {!addressChanged && userProfile?.currentAddress && (
+                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">From Credit Report</Badge>
+                  )}
+                </label>
                 <textarea
                   className="w-full mt-1 p-3 border rounded-md text-sm"
                   rows={3}
-                  placeholder="123 Main Street&#10;Apt 4B&#10;City, State 12345"
+                  placeholder="123 Main Street&#10;City, State 12345"
                   value={currentAddress}
-                  onChange={(e) => setCurrentAddress(e.target.value)}
+                  onChange={(e) => {
+                    setCurrentAddress(e.target.value);
+                    if (userProfile?.currentAddress && e.target.value !== userProfile.currentAddress) {
+                      setAddressChanged(true);
+                    }
+                  }}
                 />
+                {!currentAddress && userProfile?.currentAddress && (
+                  <Button
+                    variant="link"
+                    className="text-xs p-0 h-auto text-orange-600"
+                    onClick={() => {
+                      const fullAddr = [userProfile.currentAddress, userProfile.currentCity, userProfile.currentState, userProfile.currentZip].filter(Boolean).join(', ');
+                      setCurrentAddress(fullAddr || '');
+                    }}
+                  >
+                    Use address from credit report
+                  </Button>
+                )}
               </div>
+              
+              {/* Address change warning */}
+              {addressChanged && (
+                <Alert className="bg-yellow-50 border-yellow-200">
+                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                  <AlertDescription className="text-sm text-yellow-800">
+                    <strong>Address Changed:</strong> If you've moved, include a utility bill as proof of your new address. The letter will include an "ADDRESS CORRECTION" section.
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               <div>
-                <label className="text-sm font-medium">Previous Address (optional)</label>
+                <label className="text-sm font-medium">Previous Address (if moved in last 2 years)</label>
                 <textarea
                   className="w-full mt-1 p-3 border rounded-md text-sm"
-                  rows={3}
-                  placeholder="If you've moved in the last 2 years"
+                  rows={2}
+                  placeholder="Previous address for bureau verification"
                   value={previousAddress}
                   onChange={(e) => setPreviousAddress(e.target.value)}
                 />
               </div>
+              
+              {/* Phone & Email - only fields user needs to provide */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Phone (optional)</label>
+                  <input
+                    type="tel"
+                    className="w-full mt-1 p-2 border rounded-md text-sm"
+                    placeholder="(555) 123-4567"
+                    defaultValue={userProfile?.phone || ''}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Email (optional)</label>
+                  <input
+                    type="email"
+                    className="w-full mt-1 p-2 border rounded-md text-sm"
+                    placeholder="you@email.com"
+                    defaultValue={userProfile?.email || user?.email || ''}
+                  />
+                </div>
+              </div>
+              
               <div className="flex gap-3 pt-2">
                 <Button
                   variant="outline"
                   className="flex-1"
-                  onClick={() => setShowAddressModal(false)}
+                  onClick={() => {
+                    setShowAddressModal(false);
+                    setAddressChanged(false);
+                  }}
                 >
                   Cancel
                 </Button>

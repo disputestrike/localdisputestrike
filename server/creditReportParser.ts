@@ -18,9 +18,30 @@ export interface ParsedAccount {
   rawData: string;
 }
 
+export interface PersonalInfo {
+  fullName: string;
+  currentAddress: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+    fullAddress: string;
+  };
+  previousAddresses: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+    fullAddress: string;
+  }[];
+  dateOfBirth: string | null;
+  ssnLast4: string | null;
+}
+
 export interface ParsedCreditReport {
   bureau: 'TransUnion' | 'Equifax' | 'Experian';
   accounts: ParsedAccount[];
+  personalInfo?: PersonalInfo;
   score?: number;
   reportDate: Date;
   rawText: string;
@@ -236,6 +257,109 @@ Return valid JSON array only.`;
 }
 
 /**
+ * Extract personal information from credit report using AI
+ * This is the PRIMARY source for user data - NOT manual entry
+ */
+export async function parsePersonalInfoWithAI(text: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<PersonalInfo | null> {
+  console.log(`[AI Parser] Extracting personal info from ${bureau} report`);
+  
+  const systemPrompt = `You are an expert credit report analyst. Extract the consumer's personal information from the credit report header.
+
+Extract:
+- fullName: The consumer's full legal name as shown on the report
+- currentAddress: Their current/most recent address (street, city, state, zip)
+- previousAddresses: Any previous addresses listed (array)
+- dateOfBirth: Date of birth (MM/DD/YYYY format)
+- ssnLast4: Last 4 digits of SSN (just the 4 digits, no dashes)
+
+IMPORTANT:
+- Use EXACT name as shown on credit report (this must match bureau records)
+- Use EXACT address as shown (for legal compliance)
+- If SSN shows as XXX-XX-1234, extract just "1234"
+- If any field is not found, use null
+
+Return valid JSON only.`;
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Extract personal information from this ${bureau} credit report header:\n\n${text.slice(0, 5000)}` },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'personal_info',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              fullName: { type: 'string' },
+              currentAddress: {
+                type: 'object',
+                properties: {
+                  street: { type: 'string' },
+                  city: { type: 'string' },
+                  state: { type: 'string' },
+                  zip: { type: 'string' },
+                },
+                required: ['street', 'city', 'state', 'zip'],
+                additionalProperties: false,
+              },
+              previousAddresses: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    street: { type: 'string' },
+                    city: { type: 'string' },
+                    state: { type: 'string' },
+                    zip: { type: 'string' },
+                  },
+                  required: ['street', 'city', 'state', 'zip'],
+                  additionalProperties: false,
+                },
+              },
+              dateOfBirth: { type: ['string', 'null'] },
+              ssnLast4: { type: ['string', 'null'] },
+            },
+            required: ['fullName', 'currentAddress', 'previousAddresses', 'dateOfBirth', 'ssnLast4'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    
+    // Build full address strings
+    const currentAddress = {
+      ...parsed.currentAddress,
+      fullAddress: `${parsed.currentAddress.street}, ${parsed.currentAddress.city}, ${parsed.currentAddress.state} ${parsed.currentAddress.zip}`,
+    };
+    
+    const previousAddresses = (parsed.previousAddresses || []).map((addr: any) => ({
+      ...addr,
+      fullAddress: `${addr.street}, ${addr.city}, ${addr.state} ${addr.zip}`,
+    }));
+    
+    console.log(`[AI Parser] Extracted personal info: ${parsed.fullName}, ${currentAddress.fullAddress}`);
+    
+    return {
+      fullName: parsed.fullName,
+      currentAddress,
+      previousAddresses,
+      dateOfBirth: parsed.dateOfBirth,
+      ssnLast4: parsed.ssnLast4,
+    };
+  } catch (error) {
+    console.error('Failed to extract personal info:', error);
+    return null;
+  }
+}
+
+/**
  * Parse multiple credit reports and merge accounts
  */
 export function parseMultipleReports(reports: { text: string; bureau: 'TransUnion' | 'Equifax' | 'Experian' }[]): ParsedAccount[] {
@@ -433,6 +557,35 @@ export async function parseAndSaveReport(
       console.error('AI parsing failed, using regex fallback:', error);
       const parsed = parseCreditReport(text, bureauMap[bureau]);
       accounts = parsed.accounts;
+    }
+    
+    // CRITICAL: Extract personal info from credit report (PRIMARY source for user data)
+    let personalInfo: PersonalInfo | null = null;
+    try {
+      personalInfo = await parsePersonalInfoWithAI(text, bureauMap[bureau]);
+      if (personalInfo) {
+        console.log(`[Parser] Extracted personal info: ${personalInfo.fullName}`);
+        
+        // Save personal info to user profile (this is the PRIMARY source)
+        const { upsertUserProfile } = await import('./db');
+        await upsertUserProfile(userId, {
+          fullName: personalInfo.fullName,
+          dateOfBirth: personalInfo.dateOfBirth || undefined,
+          ssnLast4: personalInfo.ssnLast4 || undefined,
+          currentAddress: personalInfo.currentAddress.street,
+          currentCity: personalInfo.currentAddress.city,
+          currentState: personalInfo.currentAddress.state,
+          currentZip: personalInfo.currentAddress.zip,
+          // Save first previous address if available
+          previousAddress: personalInfo.previousAddresses[0]?.street,
+          previousCity: personalInfo.previousAddresses[0]?.city,
+          previousState: personalInfo.previousAddresses[0]?.state,
+          previousZip: personalInfo.previousAddresses[0]?.zip,
+        });
+        console.log(`[Parser] Saved personal info to user profile`);
+      }
+    } catch (error) {
+      console.error('[Parser] Failed to extract personal info:', error);
     }
 
     // Save accounts to database

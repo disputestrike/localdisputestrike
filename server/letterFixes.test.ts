@@ -1,93 +1,170 @@
 import { describe, it, expect } from 'vitest';
+import { replacePlaceholders, postProcessLetter, generateCoverPage } from './letterPostProcessor';
 
 describe('Letter Generation Fixes', () => {
-  describe('System Prompt Updates', () => {
-    it('should not contain DisputeForce branding', async () => {
-      // Read the routers.ts file to check branding
-      const fs = await import('fs');
-      const routersContent = fs.readFileSync('./server/routers.ts', 'utf-8');
-      
-      // Check that DisputeForce is not in the file
-      expect(routersContent).not.toContain('DisputeForce');
-      
-      // Check that DisputeStrike IS in the file
-      expect(routersContent).toContain('DisputeStrike');
+  const mockUserData = {
+    fullName: 'Benjamin Peter',
+    address: '1234 Oak Street, Dallas, TX 75201',
+    phone: '555-123-4567',
+    email: 'ben@example.com',
+    dob: '01/15/1985',
+    ssn4: '1234',
+  };
+
+  const mockAccounts = [
+    {
+      id: 1,
+      accountName: 'Capital One',
+      accountNumber: '****1234',
+      balance: '5000',
+      status: 'Collection',
+      dateOpened: '2020-01-15',
+      lastActivity: '2019-06-01', // Impossible timeline - last activity before opened
+    },
+    {
+      id: 2,
+      accountName: 'Chase Bank',
+      accountNumber: '****5678',
+      balance: '2500',
+      status: 'Charge-off',
+      dateOpened: '2018-03-20',
+      lastActivity: '2023-01-15',
+    },
+  ];
+
+  describe('Placeholder Replacement', () => {
+    it('should replace [Your Name] with actual name', () => {
+      const letter = 'Dear Bureau,\n\nI, [Your Name], am writing to dispute...';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).toContain('Benjamin Peter');
+      expect(result).not.toContain('[Your Name]');
     });
 
-    it('should include instructions to avoid placeholder text', async () => {
-      const fs = await import('fs');
-      const routersContent = fs.readFileSync('./server/routers.ts', 'utf-8');
-      
-      // Check that the system prompt includes instructions about placeholders
-      expect(routersContent).toContain('DO NOT use placeholder text');
-      expect(routersContent).toContain('[Your Name]');
-      expect(routersContent).toContain('[Date]');
+    it('should replace [Your Name] followed by value pattern', () => {
+      const letter = 'I, [Your Name] John Doe, am writing...';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).toContain('Benjamin Peter');
+      expect(result).not.toContain('[Your Name]');
+      expect(result).not.toContain('John Doe');
     });
 
-    it('should include instructions for single RE: line', async () => {
-      const fs = await import('fs');
-      const routersContent = fs.readFileSync('./server/routers.ts', 'utf-8');
-      
-      // Check that the system prompt includes instructions about single RE: line
-      expect(routersContent).toContain('ONE RE: line');
-      expect(routersContent).toContain('ONE signature block');
+    it('should replace [Your Street Address] followed by value pattern', () => {
+      const letter = 'My address is [Your Street Address] 45444 Old Street';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).toContain('1234 Oak Street, Dallas, TX 75201');
+      expect(result).not.toContain('[Your Street Address]');
+      expect(result).not.toContain('45444');
+    });
+
+    it('should replace [Date] with current date', () => {
+      const letter = 'Date: [Date]\n\nDear Bureau...';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).not.toContain('[Date]');
+      // Should contain a formatted date like "January 8, 2026"
+      expect(result).toMatch(/[A-Z][a-z]+ \d{1,2}, \d{4}/);
+    });
+
+    it('should replace [DOB] with date of birth', () => {
+      const letter = 'Date of Birth: [DOB]';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).toContain('01/15/1985');
+      expect(result).not.toContain('[DOB]');
+    });
+
+    it('should replace [SSN] with masked SSN', () => {
+      const letter = 'SSN: [Your SSN (last 4 digits)]';
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).toContain('XXX-XX-1234');
+      expect(result).not.toContain('[Your SSN');
+    });
+
+    it('should handle multiple placeholders in one letter', () => {
+      const letter = `
+        [Your Name]
+        [Your Address]
+        [Date]
+        
+        Dear Bureau,
+        I, [Your Name], residing at [Your Address], am disputing...
+        DOB: [DOB]
+        SSN: [Last 4 SSN]
+      `;
+      const result = replacePlaceholders(letter, mockUserData);
+      expect(result).not.toMatch(/\[[^\]]+\]/); // No brackets should remain
+      expect(result).toContain('Benjamin Peter');
+      expect(result).toContain('1234 Oak Street');
     });
   });
 
-  describe('Build Letter Prompt', () => {
-    it('should include formatted date in the prompt', async () => {
-      const fs = await import('fs');
-      const routersContent = fs.readFileSync('./server/routers.ts', 'utf-8');
-      
-      // Check that the prompt includes date formatting
-      expect(routersContent).toContain("toLocaleDateString('en-US'");
-      expect(routersContent).toContain("month: 'long'");
-      expect(routersContent).toContain("day: 'numeric'");
-      expect(routersContent).toContain("year: 'numeric'");
+  describe('No DisputeStrike Branding in Letters', () => {
+    it('should not contain DisputeStrike in post-processed letter', () => {
+      const rawLetter = 'Dear Bureau,\n\nI am disputing the following accounts...';
+      const result = postProcessLetter(rawLetter, mockAccounts, 'TransUnion', mockUserData);
+      expect(result.toLowerCase()).not.toContain('disputestrike');
+      expect(result.toLowerCase()).not.toContain('dispute strike');
     });
 
-    it('should include explicit instructions to use actual values', async () => {
-      const fs = await import('fs');
-      const routersContent = fs.readFileSync('./server/routers.ts', 'utf-8');
-      
-      // Check that the prompt includes explicit instructions
-      expect(routersContent).toContain('IMPORTANT: Use these EXACT values');
-      expect(routersContent).toContain('Consumer Name:');
-      expect(routersContent).toContain('Consumer Address:');
-      expect(routersContent).toContain("Today's Date:");
+    it('should not contain any platform branding in cover page', () => {
+      const coverPage = generateCoverPage(mockAccounts, 'TransUnion', mockUserData);
+      expect(coverPage.toLowerCase()).not.toContain('disputestrike');
+      expect(coverPage.toLowerCase()).not.toContain('dispute strike');
+      expect(coverPage.toLowerCase()).not.toContain('disputeforce');
+      expect(coverPage.toLowerCase()).not.toContain('generated by');
     });
   });
 
-  describe('Email Service Branding', () => {
-    it('should use DisputeStrike branding in email service', async () => {
-      const fs = await import('fs');
-      const emailContent = fs.readFileSync('./server/emailService.ts', 'utf-8');
-      
-      // Check that DisputeStrike is used
-      expect(emailContent).toContain('DisputeStrike');
-      expect(emailContent).not.toContain('DisputeForce');
+  describe('Impossible Timeline Detection', () => {
+    it('should detect accounts where lastActivity < dateOpened', () => {
+      const coverPage = generateCoverPage(mockAccounts, 'TransUnion', mockUserData);
+      // Account 1 has lastActivity (2019-06-01) before dateOpened (2020-01-15)
+      expect(coverPage).toContain('IMPOSSIBLE TIMELINE');
     });
   });
 
-  describe('PDF Generator Branding', () => {
-    it('should use DisputeStrike branding in PDF generator', async () => {
-      const fs = await import('fs');
-      const pdfContent = fs.readFileSync('./server/pdfGenerator.ts', 'utf-8');
-      
-      // Check that DisputeStrike is used
-      expect(pdfContent).toContain('DisputeStrike');
-      expect(pdfContent).not.toContain('DisputeForce');
+  describe('Summary Table Generation', () => {
+    it('should include summary of demands table', () => {
+      const rawLetter = 'Dear Bureau,\n\nI am disputing...';
+      const result = postProcessLetter(rawLetter, mockAccounts, 'TransUnion', mockUserData);
+      expect(result).toContain('SUMMARY OF DEMANDS');
     });
   });
 
-  describe('Email Notifications Branding', () => {
-    it('should use DisputeStrike branding in email notifications', async () => {
+  describe('Exhibit System', () => {
+    it('should include exhibit labels', () => {
+      const rawLetter = 'Dear Bureau,\n\nI am disputing...';
+      const result = postProcessLetter(rawLetter, mockAccounts, 'TransUnion', mockUserData);
+      expect(result).toContain('Exhibit');
+    });
+  });
+
+  describe('Agency Threats', () => {
+    it('should include CFPB, FTC, and State AG references', () => {
+      const rawLetter = 'Dear Bureau,\n\nI am disputing...';
+      const result = postProcessLetter(rawLetter, mockAccounts, 'TransUnion', mockUserData);
+      expect(result).toContain('CFPB');
+      expect(result).toContain('FTC');
+      expect(result).toContain('Attorney General');
+    });
+  });
+
+  describe('File Branding Checks', () => {
+    it('should not contain DisputeStrike in letter post-processor mailing instructions', async () => {
       const fs = await import('fs');
-      const notifContent = fs.readFileSync('./server/emailNotifications.ts', 'utf-8');
+      const content = fs.readFileSync('./server/letterPostProcessor.ts', 'utf-8');
       
-      // Check that DisputeStrike is used
-      expect(notifContent).toContain('DisputeStrike');
-      expect(notifContent).not.toContain('DisputeForce');
+      // The mailing instructions should not have any platform branding
+      // Letters come from the USER, not from any platform
+      expect(content).not.toContain('Generated by DisputeStrike');
+      expect(content).not.toContain('DisputeStrike Team');
+    });
+
+    it('should not have platform branding in PDF generator for letters', async () => {
+      const fs = await import('fs');
+      const content = fs.readFileSync('./server/pdfGenerator.ts', 'utf-8');
+      
+      // PDF footer should not have "Generated by DisputeStrike"
+      // Letters are personal correspondence from the user
+      expect(content).not.toContain('Generated by DisputeStrike');
     });
   });
 });
