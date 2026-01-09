@@ -10,6 +10,15 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  
+  // Agency/Merchant Account Fields
+  accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
+  agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies
+  agencyPlanTier: mysqlEnum("agencyPlanTier", ["starter", "professional", "enterprise"]),
+  clientSlotsIncluded: int("clientSlotsIncluded").default(0), // 50, 200, or 500 based on plan
+  clientSlotsUsed: int("clientSlotsUsed").default(0),
+  agencyMonthlyPrice: decimal("agencyMonthlyPrice", { precision: 10, scale: 2 }), // 497, 997, or 1997
+  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -553,3 +562,130 @@ export const activityLog = mysqlTable("activity_log", {
 
 export type ActivityLog = typeof activityLog.$inferSelect;
 export type InsertActivityLog = typeof activityLog.$inferInsert;
+
+
+/**
+ * Agency Clients - Sub-accounts managed by agency accounts
+ */
+export const agencyClients = mysqlTable("agency_clients", {
+  id: int("id").autoincrement().primaryKey(),
+  agencyUserId: int("agencyUserId").notNull(), // The agency that owns this client
+  
+  // Client info
+  clientName: varchar("clientName", { length: 255 }).notNull(),
+  clientEmail: varchar("clientEmail", { length: 320 }),
+  clientPhone: varchar("clientPhone", { length: 20 }),
+  
+  // Personal info for dispute letters
+  dateOfBirth: varchar("dateOfBirth", { length: 20 }),
+  ssnLast4: varchar("ssnLast4", { length: 4 }),
+  currentAddress: text("currentAddress"),
+  currentCity: varchar("currentCity", { length: 100 }),
+  currentState: varchar("currentState", { length: 50 }),
+  currentZip: varchar("currentZip", { length: 20 }),
+  previousAddress: text("previousAddress"),
+  previousCity: varchar("previousCity", { length: 100 }),
+  previousState: varchar("previousState", { length: 50 }),
+  previousZip: varchar("previousZip", { length: 20 }),
+  
+  // Status
+  status: mysqlEnum("status", ["active", "archived", "paused"]).default("active").notNull(),
+  
+  // Stats
+  totalLettersGenerated: int("totalLettersGenerated").default(0).notNull(),
+  totalAccountsDisputed: int("totalAccountsDisputed").default(0).notNull(),
+  lastActivityAt: timestamp("lastActivityAt"),
+  
+  // Notes
+  internalNotes: text("internalNotes"), // Agency's private notes about this client
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgencyClient = typeof agencyClients.$inferSelect;
+export type InsertAgencyClient = typeof agencyClients.$inferInsert;
+
+/**
+ * Agency Client Credit Reports - Credit reports uploaded for agency clients
+ */
+export const agencyClientReports = mysqlTable("agency_client_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  agencyClientId: int("agencyClientId").notNull(),
+  agencyUserId: int("agencyUserId").notNull(), // For quick filtering
+  
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian"]).notNull(),
+  fileUrl: text("fileUrl").notNull(),
+  fileKey: text("fileKey").notNull(),
+  fileName: text("fileName"),
+  uploadedAt: timestamp("uploadedAt").defaultNow().notNull(),
+  parsedData: longtext("parsedData"),
+  isParsed: boolean("isParsed").default(false).notNull(),
+});
+
+export type AgencyClientReport = typeof agencyClientReports.$inferSelect;
+export type InsertAgencyClientReport = typeof agencyClientReports.$inferInsert;
+
+/**
+ * Agency Client Negative Accounts - Accounts extracted from client reports
+ */
+export const agencyClientAccounts = mysqlTable("agency_client_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  agencyClientId: int("agencyClientId").notNull(),
+  agencyUserId: int("agencyUserId").notNull(),
+  
+  accountName: text("accountName").notNull(),
+  accountNumber: varchar("accountNumber", { length: 255 }),
+  accountType: varchar("accountType", { length: 100 }),
+  balance: decimal("balance", { precision: 10, scale: 2 }),
+  originalCreditor: text("originalCreditor"),
+  dateOpened: varchar("dateOpened", { length: 50 }),
+  lastActivity: varchar("lastActivity", { length: 50 }),
+  status: text("status"),
+  
+  transunionData: text("transunionData"),
+  equifaxData: text("equifaxData"),
+  experianData: text("experianData"),
+  
+  hasConflicts: boolean("hasConflicts").default(false).notNull(),
+  conflictDetails: text("conflictDetails"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgencyClientAccount = typeof agencyClientAccounts.$inferSelect;
+export type InsertAgencyClientAccount = typeof agencyClientAccounts.$inferInsert;
+
+/**
+ * Agency Client Dispute Letters - Letters generated for agency clients
+ */
+export const agencyClientLetters = mysqlTable("agency_client_letters", {
+  id: int("id").autoincrement().primaryKey(),
+  agencyClientId: int("agencyClientId").notNull(),
+  agencyUserId: int("agencyUserId").notNull(),
+  
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian", "furnisher", "collector", "creditor", "legal"]).notNull(),
+  recipientName: text("recipientName"),
+  recipientAddress: text("recipientAddress"),
+  
+  letterContent: text("letterContent").notNull(),
+  accountsDisputed: text("accountsDisputed").notNull(),
+  
+  round: int("round").default(1).notNull(),
+  letterType: mysqlEnum("letterType", ["initial", "followup", "escalation", "cfpb", "cease_desist", "pay_for_delete", "intent_to_sue", "estoppel", "debt_validation"]).default("initial").notNull(),
+  
+  status: mysqlEnum("status", ["generated", "downloaded", "mailed", "response_received", "resolved"]).default("generated").notNull(),
+  
+  mailedAt: timestamp("mailedAt"),
+  trackingNumber: varchar("trackingNumber", { length: 100 }),
+  responseDeadline: timestamp("responseDeadline"),
+  responseReceivedAt: timestamp("responseReceivedAt"),
+  responseDetails: text("responseDetails"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgencyClientLetter = typeof agencyClientLetters.$inferSelect;
+export type InsertAgencyClientLetter = typeof agencyClientLetters.$inferInsert;

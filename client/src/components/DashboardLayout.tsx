@@ -89,6 +89,12 @@ const navSections = [
       { icon: Bot, label: "AI Assistant", path: "/ai-assistant", badge: null },
     ],
   },
+  {
+    section: "Agency",
+    items: [
+      { icon: Building2, label: "Agency Dashboard", path: "/agency", badge: "B2B" },
+    ],
+  },
 ];
 
 const bottomNavItems = [

@@ -50,7 +50,19 @@ import {
   Referral,
   activityLog,
   InsertActivityLog,
-  ActivityLog
+  ActivityLog,
+  agencyClients,
+  InsertAgencyClient,
+  AgencyClient,
+  agencyClientReports,
+  InsertAgencyClientReport,
+  AgencyClientReport,
+  agencyClientAccounts,
+  InsertAgencyClientAccount,
+  AgencyClientAccount,
+  agencyClientLetters,
+  InsertAgencyClientLetter,
+  AgencyClientLetter
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1612,4 +1624,308 @@ export function formatPreviousAddress(profile: UserProfile | undefined): string 
   ].filter(Boolean).join(', ');
   
   return [address, cityStateZip].filter(Boolean).join(', ');
+}
+
+
+// ============================================================================
+// AGENCY ACCOUNT OPERATIONS
+// ============================================================================
+
+export async function upgradeToAgency(
+  userId: number, 
+  agencyName: string, 
+  planTier: 'starter' | 'professional' | 'enterprise'
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const slotsByPlan = { starter: 50, professional: 200, enterprise: 500 };
+  const priceByPlan = { starter: 497, professional: 997, enterprise: 1997 };
+
+  await db.update(users).set({
+    accountType: 'agency',
+    agencyName,
+    agencyPlanTier: planTier,
+    clientSlotsIncluded: slotsByPlan[planTier],
+    clientSlotsUsed: 0,
+    agencyMonthlyPrice: String(priceByPlan[planTier]),
+  }).where(eq(users.id, userId));
+}
+
+export async function getAgencyStats(agencyUserId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [user] = await db.select().from(users).where(eq(users.id, agencyUserId));
+  if (!user || user.accountType !== 'agency') return null;
+
+  const clients = await db.select().from(agencyClients).where(eq(agencyClients.agencyUserId, agencyUserId));
+  const letters = await db.select().from(agencyClientLetters).where(eq(agencyClientLetters.agencyUserId, agencyUserId));
+
+  const activeClients = clients.filter(c => c.status === 'active').length;
+  const totalLetters = letters.length;
+  const activeDisputes = letters.filter(l => l.status !== 'resolved').length;
+
+  return {
+    agencyName: user.agencyName,
+    planTier: user.agencyPlanTier,
+    clientSlotsIncluded: user.clientSlotsIncluded || 0,
+    clientSlotsUsed: user.clientSlotsUsed || 0,
+    monthlyPrice: user.agencyMonthlyPrice,
+    totalClients: clients.length,
+    activeClients,
+    totalLetters,
+    activeDisputes,
+  };
+}
+
+// ============================================================================
+// AGENCY CLIENT OPERATIONS
+// ============================================================================
+
+export async function createAgencyClient(client: InsertAgencyClient): Promise<AgencyClient | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  // Check if agency has available slots
+  const [agency] = await db.select().from(users).where(eq(users.id, client.agencyUserId));
+  if (!agency || agency.accountType !== 'agency') {
+    throw new Error('User is not an agency account');
+  }
+
+  const slotsUsed = agency.clientSlotsUsed || 0;
+  const slotsIncluded = agency.clientSlotsIncluded || 0;
+  
+  if (slotsUsed >= slotsIncluded) {
+    throw new Error('No available client slots. Upgrade plan or purchase additional slots.');
+  }
+
+  // Create client
+  const result = await db.insert(agencyClients).values(client);
+  const insertId = result[0].insertId;
+
+  // Increment slots used
+  await db.update(users).set({
+    clientSlotsUsed: slotsUsed + 1,
+  }).where(eq(users.id, client.agencyUserId));
+
+  const [newClient] = await db.select().from(agencyClients).where(eq(agencyClients.id, insertId));
+  return newClient || null;
+}
+
+export async function getAgencyClients(agencyUserId: number): Promise<AgencyClient[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select()
+    .from(agencyClients)
+    .where(eq(agencyClients.agencyUserId, agencyUserId))
+    .orderBy(desc(agencyClients.createdAt));
+}
+
+export async function getAgencyClient(clientId: number, agencyUserId: number): Promise<AgencyClient | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [client] = await db.select()
+    .from(agencyClients)
+    .where(and(
+      eq(agencyClients.id, clientId),
+      eq(agencyClients.agencyUserId, agencyUserId)
+    ));
+
+  return client || null;
+}
+
+export async function updateAgencyClient(
+  clientId: number, 
+  agencyUserId: number, 
+  updates: Partial<InsertAgencyClient>
+): Promise<AgencyClient | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  await db.update(agencyClients)
+    .set(updates)
+    .where(and(
+      eq(agencyClients.id, clientId),
+      eq(agencyClients.agencyUserId, agencyUserId)
+    ));
+
+  return getAgencyClient(clientId, agencyUserId);
+}
+
+export async function archiveAgencyClient(clientId: number, agencyUserId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(agencyClients)
+    .set({ status: 'archived' })
+    .where(and(
+      eq(agencyClients.id, clientId),
+      eq(agencyClients.agencyUserId, agencyUserId)
+    ));
+
+  // Decrement slots used
+  const [agency] = await db.select().from(users).where(eq(users.id, agencyUserId));
+  if (agency && agency.clientSlotsUsed && agency.clientSlotsUsed > 0) {
+    await db.update(users).set({
+      clientSlotsUsed: agency.clientSlotsUsed - 1,
+    }).where(eq(users.id, agencyUserId));
+  }
+}
+
+// ============================================================================
+// AGENCY CLIENT REPORTS OPERATIONS
+// ============================================================================
+
+export async function createAgencyClientReport(report: InsertAgencyClientReport): Promise<AgencyClientReport | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.insert(agencyClientReports).values(report);
+  const insertId = result[0].insertId;
+
+  const [newReport] = await db.select().from(agencyClientReports).where(eq(agencyClientReports.id, insertId));
+  return newReport || null;
+}
+
+export async function getAgencyClientReports(clientId: number, agencyUserId: number): Promise<AgencyClientReport[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select()
+    .from(agencyClientReports)
+    .where(and(
+      eq(agencyClientReports.agencyClientId, clientId),
+      eq(agencyClientReports.agencyUserId, agencyUserId)
+    ))
+    .orderBy(desc(agencyClientReports.uploadedAt));
+}
+
+export async function updateAgencyClientReport(
+  reportId: number, 
+  agencyUserId: number, 
+  updates: Partial<InsertAgencyClientReport>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(agencyClientReports)
+    .set(updates)
+    .where(and(
+      eq(agencyClientReports.id, reportId),
+      eq(agencyClientReports.agencyUserId, agencyUserId)
+    ));
+}
+
+// ============================================================================
+// AGENCY CLIENT ACCOUNTS OPERATIONS
+// ============================================================================
+
+export async function createAgencyClientAccount(account: InsertAgencyClientAccount): Promise<AgencyClientAccount | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.insert(agencyClientAccounts).values(account);
+  const insertId = result[0].insertId;
+
+  const [newAccount] = await db.select().from(agencyClientAccounts).where(eq(agencyClientAccounts.id, insertId));
+  return newAccount || null;
+}
+
+export async function getAgencyClientAccounts(clientId: number, agencyUserId: number): Promise<AgencyClientAccount[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select()
+    .from(agencyClientAccounts)
+    .where(and(
+      eq(agencyClientAccounts.agencyClientId, clientId),
+      eq(agencyClientAccounts.agencyUserId, agencyUserId)
+    ))
+    .orderBy(desc(agencyClientAccounts.createdAt));
+}
+
+export async function updateAgencyClientAccount(
+  accountId: number, 
+  agencyUserId: number, 
+  updates: Partial<InsertAgencyClientAccount>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(agencyClientAccounts)
+    .set(updates)
+    .where(and(
+      eq(agencyClientAccounts.id, accountId),
+      eq(agencyClientAccounts.agencyUserId, agencyUserId)
+    ));
+}
+
+// ============================================================================
+// AGENCY CLIENT LETTERS OPERATIONS
+// ============================================================================
+
+export async function createAgencyClientLetter(letter: InsertAgencyClientLetter): Promise<AgencyClientLetter | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const result = await db.insert(agencyClientLetters).values(letter);
+  const insertId = result[0].insertId;
+
+  // Update client stats
+  const [client] = await db.select().from(agencyClients).where(eq(agencyClients.id, letter.agencyClientId));
+  if (client) {
+    await db.update(agencyClients).set({
+      totalLettersGenerated: (client.totalLettersGenerated || 0) + 1,
+      lastActivityAt: new Date(),
+    }).where(eq(agencyClients.id, letter.agencyClientId));
+  }
+
+  const [newLetter] = await db.select().from(agencyClientLetters).where(eq(agencyClientLetters.id, insertId));
+  return newLetter || null;
+}
+
+export async function getAgencyClientLetters(clientId: number, agencyUserId: number): Promise<AgencyClientLetter[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  return await db.select()
+    .from(agencyClientLetters)
+    .where(and(
+      eq(agencyClientLetters.agencyClientId, clientId),
+      eq(agencyClientLetters.agencyUserId, agencyUserId)
+    ))
+    .orderBy(desc(agencyClientLetters.createdAt));
+}
+
+export async function updateAgencyClientLetter(
+  letterId: number, 
+  agencyUserId: number, 
+  updates: Partial<InsertAgencyClientLetter>
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  await db.update(agencyClientLetters)
+    .set(updates)
+    .where(and(
+      eq(agencyClientLetters.id, letterId),
+      eq(agencyClientLetters.agencyUserId, agencyUserId)
+    ));
+}
+
+export async function getAgencyClientLetter(letterId: number, agencyUserId: number): Promise<AgencyClientLetter | null> {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [letter] = await db.select()
+    .from(agencyClientLetters)
+    .where(and(
+      eq(agencyClientLetters.id, letterId),
+      eq(agencyClientLetters.agencyUserId, agencyUserId)
+    ));
+
+  return letter || null;
 }

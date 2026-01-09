@@ -589,3 +589,20 @@ DisputeStrike
 ## Phase 75: Critical Bug Fixes (Jan 8, 2026)
 - [x] Fix AI Assistant not working - fixed API endpoint to use /v1/chat/completions
 - [x] Fix notification red dot static issue - make dynamic based on actual notifications
+
+
+## Phase 76: Agency/Merchant Account Feature (B2B)
+- [ ] Update database schema - add account_type, agency_clients table
+- [ ] Create agency dashboard with client list and stats
+- [ ] Build client detail page with reports/letters management
+- [ ] Add agency pricing tiers ($497/$997/$1997)
+- [ ] Implement client slot management and billing
+
+
+## Phase 76: Agency/Merchant Account Feature (Jan 9, 2026)
+- [x] Database schema for agency accounts and clients (users table + 4 new tables)
+- [x] Agency dashboard UI with client list and stats
+- [x] Client detail page with reports and letters management
+- [x] Agency pricing page ($497/$997/$1997 plans)
+- [x] Add agency link to sidebar navigation
+- [x] API routes for agency client CRUD operations

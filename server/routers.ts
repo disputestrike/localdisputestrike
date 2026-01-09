@@ -18,6 +18,18 @@ const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx });
 });
 
+// Agency-only procedure - requires user.accountType === 'agency'
+const agencyProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const user = await db.getUserById(ctx.user.id);
+  if (!user || user.accountType !== 'agency') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Agency account required. Upgrade to an agency plan to access this feature.'
+    });
+  }
+  return next({ ctx: { ...ctx, agencyUser: user } });
+});
+
 // Paid user procedure - requires completed payment
 const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   const payment = await db.getUserLatestPayment(ctx.user.id);
@@ -2126,6 +2138,136 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         phone: profile?.phone || '',
         email: profile?.email || ctx.user.email || '',
       };
+    }),
+  }),
+
+  // Agency Router - B2B multi-client management
+  agency: router({
+    // Get agency dashboard stats
+    getStats: agencyProcedure.query(async ({ ctx }) => {
+      return await db.getAgencyStats(ctx.user.id);
+    }),
+
+    // Check if user is an agency
+    isAgency: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserById(ctx.user.id);
+      return {
+        isAgency: user?.accountType === 'agency',
+        agencyName: user?.agencyName,
+        planTier: user?.agencyPlanTier,
+        clientSlotsIncluded: user?.clientSlotsIncluded || 0,
+        clientSlotsUsed: user?.clientSlotsUsed || 0,
+      };
+    }),
+
+    // Upgrade to agency account
+    upgradeToAgency: protectedProcedure
+      .input(z.object({
+        agencyName: z.string().min(2).max(255),
+        planTier: z.enum(['starter', 'professional', 'enterprise']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upgradeToAgency(ctx.user.id, input.agencyName, input.planTier);
+        return { success: true };
+      }),
+
+    // Client management
+    clients: router({
+      // List all clients
+      list: agencyProcedure.query(async ({ ctx }) => {
+        return await db.getAgencyClients(ctx.user.id);
+      }),
+
+      // Get single client
+      get: agencyProcedure
+        .input(z.object({ clientId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const client = await db.getAgencyClient(input.clientId, ctx.user.id);
+          if (!client) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Client not found' });
+          }
+          return client;
+        }),
+
+      // Create new client
+      create: agencyProcedure
+        .input(z.object({
+          clientName: z.string().min(2).max(255),
+          clientEmail: z.string().email().optional(),
+          clientPhone: z.string().optional(),
+          dateOfBirth: z.string().optional(),
+          ssnLast4: z.string().max(4).optional(),
+          currentAddress: z.string().optional(),
+          currentCity: z.string().optional(),
+          currentState: z.string().optional(),
+          currentZip: z.string().optional(),
+          previousAddress: z.string().optional(),
+          previousCity: z.string().optional(),
+          previousState: z.string().optional(),
+          previousZip: z.string().optional(),
+          internalNotes: z.string().optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const client = await db.createAgencyClient({
+            agencyUserId: ctx.user.id,
+            ...input,
+          });
+          return client;
+        }),
+
+      // Update client
+      update: agencyProcedure
+        .input(z.object({
+          clientId: z.number(),
+          clientName: z.string().min(2).max(255).optional(),
+          clientEmail: z.string().email().optional(),
+          clientPhone: z.string().optional(),
+          dateOfBirth: z.string().optional(),
+          ssnLast4: z.string().max(4).optional(),
+          currentAddress: z.string().optional(),
+          currentCity: z.string().optional(),
+          currentState: z.string().optional(),
+          currentZip: z.string().optional(),
+          previousAddress: z.string().optional(),
+          previousCity: z.string().optional(),
+          previousState: z.string().optional(),
+          previousZip: z.string().optional(),
+          internalNotes: z.string().optional(),
+          status: z.enum(['active', 'archived', 'paused']).optional(),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          const { clientId, ...updates } = input;
+          return await db.updateAgencyClient(clientId, ctx.user.id, updates);
+        }),
+
+      // Archive client
+      archive: agencyProcedure
+        .input(z.object({ clientId: z.number() }))
+        .mutation(async ({ ctx, input }) => {
+          await db.archiveAgencyClient(input.clientId, ctx.user.id);
+          return { success: true };
+        }),
+
+      // Get client reports
+      getReports: agencyProcedure
+        .input(z.object({ clientId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          return await db.getAgencyClientReports(input.clientId, ctx.user.id);
+        }),
+
+      // Get client accounts
+      getAccounts: agencyProcedure
+        .input(z.object({ clientId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          return await db.getAgencyClientAccounts(input.clientId, ctx.user.id);
+        }),
+
+      // Get client letters
+      getLetters: agencyProcedure
+        .input(z.object({ clientId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          return await db.getAgencyClientLetters(input.clientId, ctx.user.id);
+        }),
     }),
   }),
 });
