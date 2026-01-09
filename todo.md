@@ -584,3 +584,8 @@ DisputeStrike
 - [x] AI Assistant page layout - FIXED (sidebar and header working correctly)
 - [x] Quiz completion email sending - FIXED (added fallback logging when SMTP not configured)
 - [x] Quiz.tsx duplicate useState import - FIXED (removed duplicate import)
+
+
+## Phase 75: Critical Bug Fixes (Jan 8, 2026)
+- [x] Fix AI Assistant not working - fixed API endpoint to use /v1/chat/completions
+- [x] Fix notification red dot static issue - make dynamic based on actual notifications

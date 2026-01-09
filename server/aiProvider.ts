@@ -38,15 +38,32 @@ class AIProviderService {
    */
   private async generateWithManus(prompt: string): Promise<string> {
     try {
-      const response = await fetch(`${this.manusApiUrl}/chat/completions`, {
+      // The Manus Forge API uses OpenAI-compatible format
+      // Make sure we're using the correct endpoint
+      const apiUrl = this.manusApiUrl.endsWith('/') 
+        ? this.manusApiUrl.slice(0, -1) 
+        : this.manusApiUrl;
+      
+      // Try the v1/chat/completions endpoint first (OpenAI compatible)
+      const endpoint = apiUrl.includes('/v1') 
+        ? `${apiUrl}/chat/completions`
+        : `${apiUrl}/v1/chat/completions`;
+      
+      console.log(`[AI] Calling Manus API at: ${endpoint}`);
+      
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${this.manusApiKey}`,
         },
         body: JSON.stringify({
-          model: "gpt-4",
+          model: "gpt-4o",
           messages: [
+            {
+              role: "system",
+              content: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies. Provide helpful, accurate, and actionable advice."
+            },
             {
               role: "user",
               content: prompt,
@@ -58,7 +75,9 @@ class AIProviderService {
       });
 
       if (!response.ok) {
-        throw new Error(`Manus API error: ${response.statusText}`);
+        const errorText = await response.text();
+        console.error(`[AI] Manus API error response: ${errorText}`);
+        throw new Error(`Manus API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -81,6 +100,10 @@ class AIProviderService {
       const response = await this.openai.chat.completions.create({
         model: "gpt-4",
         messages: [
+          {
+            role: "system",
+            content: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies."
+          },
           {
             role: "user",
             content: prompt,
@@ -109,6 +132,7 @@ class AIProviderService {
       const response = await this.claude.messages.create({
         model: "claude-3-5-sonnet-20241022",
         max_tokens: 2000,
+        system: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies.",
         messages: [
           {
             role: "user",

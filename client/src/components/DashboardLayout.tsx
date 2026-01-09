@@ -47,6 +47,7 @@ import {
   Bot,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
+import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 
@@ -99,6 +100,55 @@ const SIDEBAR_WIDTH_KEY = "sidebar-width";
 const DEFAULT_WIDTH = 280;
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 480;
+
+// Dynamic Notification Bell Component
+function NotificationBell() {
+  const { data: alerts } = trpc.notifications.getDeadlineAlerts.useQuery(undefined, {
+    refetchInterval: 60000, // Refresh every minute
+  });
+  
+  const hasNotifications = alerts && alerts.length > 0;
+  
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-gray-500 hover:text-gray-900 relative"
+        >
+          <Bell className="h-5 w-5" />
+          {hasNotifications && (
+            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-80">
+        {!hasNotifications ? (
+          <div className="p-4 text-center text-gray-500">
+            <Bell className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+            <p className="text-sm">No notifications</p>
+          </div>
+        ) : (
+          <div className="max-h-80 overflow-y-auto">
+            {alerts.map((alert, index) => (
+              <DropdownMenuItem key={index} className="flex flex-col items-start p-3 cursor-pointer">
+                <div className="flex items-center gap-2 w-full">
+                  <span className={`w-2 h-2 rounded-full ${alert.alertType === 'overdue' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                  <span className="font-medium text-sm">{alert.bureau}</span>
+                  <span className={`ml-auto text-xs px-2 py-0.5 rounded ${alert.alertType === 'overdue' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
+                    {alert.alertType === 'overdue' ? 'OVERDUE' : `${alert.daysRemaining} days left`}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">{alert.message}</p>
+              </DropdownMenuItem>
+            ))}
+          </div>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export default function DashboardLayout({
   children,
@@ -401,14 +451,7 @@ function DashboardLayoutContent({
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-500 hover:text-gray-900 relative"
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-            </Button>
+            <NotificationBell />
             <Link href="/ai-assistant">
               <Button
                 variant="outline"
