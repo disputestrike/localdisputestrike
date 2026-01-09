@@ -667,9 +667,20 @@ You help users understand their credit reports, identify violations, and develop
           });
           
           const rawContent = response.choices[0]?.message?.content;
-          const letterContent = typeof rawContent === 'string' 
-            ? rawContent 
-            : generatePlaceholderLetter(userName, bureau, input.currentAddress, accounts.length);
+          
+          // Import and use post-processor to ensure all required sections
+          const { postProcessLetter, generateCoverPage } = await import('./letterPostProcessor');
+          
+          let letterContent: string;
+          if (typeof rawContent === 'string') {
+            // Post-process the AI output to add missing sections
+            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userName);
+            // Add cover page summary
+            const coverPage = generateCoverPage(accounts, bureau, userName);
+            letterContent = coverPage + processedLetter;
+          } else {
+            letterContent = generatePlaceholderLetter(userName, bureau, input.currentAddress, accounts.length);
+          }
           
           const letterId = await db.createDisputeLetter({
             userId,
