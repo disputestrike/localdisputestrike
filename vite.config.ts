@@ -24,6 +24,12 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
+    // Minification settings
+    minify: 'esbuild',
+    target: 'es2020',
+    // Source maps only in dev
+    sourcemap: false,
   },
   server: {
     host: true,
