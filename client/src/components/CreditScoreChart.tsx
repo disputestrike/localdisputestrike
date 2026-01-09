@@ -1,7 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 import { 
   TrendingUp, 
   TrendingDown,
@@ -10,7 +16,10 @@ import {
   Award,
   ChevronUp,
   ChevronDown,
-  Minus
+  Minus,
+  Download,
+  Plus,
+  FileText
 } from "lucide-react";
 
 interface ScoreDataPoint {
@@ -27,11 +36,59 @@ interface CreditScoreChartProps {
 }
 
 export function CreditScoreChart({ 
-  scoreHistory = [], 
-  currentScore = 0,
+  scoreHistory: propScoreHistory = [], 
+  currentScore: propCurrentScore = 0,
   targetScore = 750 
 }: CreditScoreChartProps) {
   const [timeRange, setTimeRange] = useState<'3m' | '6m' | '1y' | 'all'>('6m');
+  const [showAddScoreModal, setShowAddScoreModal] = useState(false);
+  const [newScoreBureau, setNewScoreBureau] = useState<'transunion' | 'equifax' | 'experian'>('transunion');
+  const [newScoreValue, setNewScoreValue] = useState('');
+  const [newScoreModel, setNewScoreModel] = useState('');
+  const chartRef = useRef<HTMLDivElement>(null);
+
+  // Fetch real score history from database
+  const { data: dbScoreHistory, refetch: refetchHistory } = trpc.scoreHistory.list.useQuery();
+  const { data: latestScores } = trpc.scoreHistory.latest.useQuery();
+  const recordScoreMutation = trpc.scoreHistory.record.useMutation({
+    onSuccess: () => {
+      toast.success('Credit score recorded!');
+      refetchHistory();
+      setShowAddScoreModal(false);
+      setNewScoreValue('');
+    },
+    onError: (error) => {
+      toast.error(`Failed to record score: ${error.message}`);
+    }
+  });
+
+  // Convert database history to chart format
+  const scoreHistory = useMemo(() => {
+    if (dbScoreHistory && dbScoreHistory.length > 0) {
+      return dbScoreHistory.map(entry => ({
+        date: new Date(entry.recordedAt).toISOString().split('T')[0],
+        score: entry.score,
+        bureau: entry.bureau,
+        event: entry.event || undefined,
+      }));
+    }
+    return propScoreHistory;
+  }, [dbScoreHistory, propScoreHistory]);
+
+  // Get current score from latest data
+  const currentScore = useMemo(() => {
+    if (latestScores) {
+      const scores = [
+        latestScores.transunion?.score,
+        latestScores.equifax?.score,
+        latestScores.experian?.score,
+      ].filter(Boolean) as number[];
+      if (scores.length > 0) {
+        return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+      }
+    }
+    return propCurrentScore;
+  }, [latestScores, propCurrentScore]);
 
   // Generate sample data if none provided
   const chartData = useMemo(() => {
@@ -109,6 +166,162 @@ export function CreditScoreChart({
   const currentRating = getScoreRating(lastScore);
   const targetRating = getScoreRating(targetScore);
 
+  // Handle adding new score
+  const handleAddScore = () => {
+    const score = parseInt(newScoreValue);
+    if (isNaN(score) || score < 300 || score > 850) {
+      toast.error('Please enter a valid score between 300 and 850');
+      return;
+    }
+    recordScoreMutation.mutate({
+      bureau: newScoreBureau,
+      score,
+      scoreModel: newScoreModel || undefined,
+    });
+  };
+
+  // Generate PDF report
+  const generatePDFReport = () => {
+    // Create printable content
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Credit Score Report - DisputeStrike</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+          h1 { color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; }
+          h2 { color: #374151; margin-top: 30px; }
+          .score-box { background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; }
+          .score-large { font-size: 48px; font-weight: bold; color: #1e40af; }
+          .rating { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 14px; }
+          .rating-good { background: #dcfce7; color: #166534; }
+          .rating-fair { background: #fef9c3; color: #854d0e; }
+          .rating-poor { background: #fee2e2; color: #991b1b; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th, td { border: 1px solid #d1d5db; padding: 12px; text-align: left; }
+          th { background: #f3f4f6; }
+          .positive { color: #166534; }
+          .negative { color: #991b1b; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #d1d5db; font-size: 12px; color: #6b7280; }
+          @media print { body { padding: 20px; } }
+        </style>
+      </head>
+      <body>
+        <h1>Credit Score Progress Report</h1>
+        <p>Generated on ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+        
+        <div class="score-box">
+          <div>Current Credit Score</div>
+          <div class="score-large">${lastScore}</div>
+          <span class="rating ${lastScore >= 670 ? 'rating-good' : lastScore >= 580 ? 'rating-fair' : 'rating-poor'}">
+            ${currentRating.label}
+          </span>
+        </div>
+
+        <h2>Score Summary</h2>
+        <table>
+          <tr>
+            <th>Metric</th>
+            <th>Value</th>
+          </tr>
+          <tr>
+            <td>Starting Score</td>
+            <td>${firstScore}</td>
+          </tr>
+          <tr>
+            <td>Current Score</td>
+            <td>${lastScore}</td>
+          </tr>
+          <tr>
+            <td>Total Change</td>
+            <td class="${scoreChange >= 0 ? 'positive' : 'negative'}">${scoreChange >= 0 ? '+' : ''}${scoreChange} points</td>
+          </tr>
+          <tr>
+            <td>Percentage Change</td>
+            <td class="${scoreChange >= 0 ? 'positive' : 'negative'}">${scoreChange >= 0 ? '+' : ''}${percentChange}%</td>
+          </tr>
+          <tr>
+            <td>Target Score</td>
+            <td>${targetScore}</td>
+          </tr>
+          <tr>
+            <td>Points to Target</td>
+            <td>${Math.max(0, targetScore - lastScore)}</td>
+          </tr>
+        </table>
+
+        <h2>Score History</h2>
+        <table>
+          <tr>
+            <th>Date</th>
+            <th>Score</th>
+            <th>Bureau</th>
+            <th>Event</th>
+          </tr>
+          ${filteredData.map(d => `
+            <tr>
+              <td>${new Date(d.date).toLocaleDateString()}</td>
+              <td>${d.score}</td>
+              <td>${d.bureau || 'N/A'}</td>
+              <td>${d.event || '-'}</td>
+            </tr>
+          `).join('')}
+        </table>
+
+        ${latestScores ? `
+        <h2>Bureau Breakdown</h2>
+        <table>
+          <tr>
+            <th>Bureau</th>
+            <th>Score</th>
+            <th>Last Updated</th>
+          </tr>
+          ${latestScores.transunion ? `
+          <tr>
+            <td>TransUnion</td>
+            <td>${latestScores.transunion.score}</td>
+            <td>${new Date(latestScores.transunion.recordedAt).toLocaleDateString()}</td>
+          </tr>
+          ` : ''}
+          ${latestScores.equifax ? `
+          <tr>
+            <td>Equifax</td>
+            <td>${latestScores.equifax.score}</td>
+            <td>${new Date(latestScores.equifax.recordedAt).toLocaleDateString()}</td>
+          </tr>
+          ` : ''}
+          ${latestScores.experian ? `
+          <tr>
+            <td>Experian</td>
+            <td>${latestScores.experian.score}</td>
+            <td>${new Date(latestScores.experian.recordedAt).toLocaleDateString()}</td>
+          </tr>
+          ` : ''}
+        </table>
+        ` : ''}
+
+        <div class="footer">
+          <p>This report was generated by DisputeStrike - Professional Credit Dispute Automation</p>
+          <p>For educational purposes only. Not financial advice.</p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Open in new window and print
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+      }, 250);
+    }
+    toast.success('PDF report generated! Use your browser\'s print dialog to save as PDF.');
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -122,22 +335,96 @@ export function CreditScoreChart({
               Track your credit score improvement over time
             </CardDescription>
           </div>
-          <div className="flex gap-1">
-            {(['3m', '6m', '1y', 'all'] as const).map((range) => (
-              <Button
-                key={range}
-                variant={timeRange === range ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTimeRange(range)}
-                className="px-3"
-              >
-                {range === 'all' ? 'All' : range.toUpperCase()}
-              </Button>
-            ))}
+          <div className="flex gap-2">
+            <div className="flex gap-1">
+              {(['3m', '6m', '1y', 'all'] as const).map((range) => (
+                <Button
+                  key={range}
+                  variant={timeRange === range ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setTimeRange(range)}
+                  className="px-3"
+                >
+                  {range === 'all' ? 'All' : range.toUpperCase()}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Add Score Button */}
+            <Dialog open={showAddScoreModal} onOpenChange={setShowAddScoreModal}>
+              <DialogTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Score
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Record Credit Score</DialogTitle>
+                  <DialogDescription>
+                    Manually add a credit score from your credit monitoring service
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label>Bureau</Label>
+                    <Select value={newScoreBureau} onValueChange={(v: any) => setNewScoreBureau(v)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="transunion">TransUnion</SelectItem>
+                        <SelectItem value="equifax">Equifax</SelectItem>
+                        <SelectItem value="experian">Experian</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Score (300-850)</Label>
+                    <Input
+                      type="number"
+                      min="300"
+                      max="850"
+                      value={newScoreValue}
+                      onChange={(e) => setNewScoreValue(e.target.value)}
+                      placeholder="Enter your credit score"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Score Model (optional)</Label>
+                    <Select value={newScoreModel} onValueChange={setNewScoreModel}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select score model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="FICO 8">FICO 8</SelectItem>
+                        <SelectItem value="FICO 9">FICO 9</SelectItem>
+                        <SelectItem value="VantageScore 3.0">VantageScore 3.0</SelectItem>
+                        <SelectItem value="VantageScore 4.0">VantageScore 4.0</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button 
+                    onClick={handleAddScore} 
+                    className="w-full"
+                    disabled={recordScoreMutation.isPending}
+                  >
+                    {recordScoreMutation.isPending ? 'Saving...' : 'Save Score'}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+
+            {/* Export PDF Button */}
+            <Button variant="outline" size="sm" onClick={generatePDFReport}>
+              <Download className="h-4 w-4 mr-1" />
+              Export PDF
+            </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6" ref={chartRef}>
         {/* Current Score Display */}
         <div className="grid md:grid-cols-3 gap-4">
           <div className="p-4 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg border">
@@ -186,6 +473,39 @@ export function CreditScoreChart({
             </div>
           </div>
         </div>
+
+        {/* Bureau Breakdown */}
+        {latestScores && (latestScores.transunion || latestScores.equifax || latestScores.experian) && (
+          <div className="grid md:grid-cols-3 gap-4">
+            {latestScores.transunion && (
+              <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-xs text-blue-600 font-medium">TransUnion</div>
+                <div className="text-2xl font-bold text-blue-700">{latestScores.transunion.score}</div>
+                <div className="text-xs text-blue-500">
+                  {new Date(latestScores.transunion.recordedAt).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+            {latestScores.equifax && (
+              <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                <div className="text-xs text-red-600 font-medium">Equifax</div>
+                <div className="text-2xl font-bold text-red-700">{latestScores.equifax.score}</div>
+                <div className="text-xs text-red-500">
+                  {new Date(latestScores.equifax.recordedAt).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+            {latestScores.experian && (
+              <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="text-xs text-purple-600 font-medium">Experian</div>
+                <div className="text-2xl font-bold text-purple-700">{latestScores.experian.score}</div>
+                <div className="text-xs text-purple-500">
+                  {new Date(latestScores.experian.recordedAt).toLocaleDateString()}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Chart */}
         <div className="relative h-64 w-full">

@@ -84,6 +84,23 @@ export type CreditReport = typeof creditReports.$inferSelect;
 export type InsertCreditReport = typeof creditReports.$inferInsert;
 
 /**
+ * Credit score history for tracking score changes over time
+ */
+export const creditScoreHistory = mysqlTable("credit_score_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian"]).notNull(),
+  score: int("score").notNull(), // 300-850
+  scoreModel: varchar("scoreModel", { length: 50 }), // FICO, VantageScore 3.0, etc.
+  creditReportId: int("creditReportId"), // Link to the credit report this score came from
+  event: varchar("event", { length: 255 }), // Optional event description (e.g., "Started disputes", "5 accounts deleted")
+  recordedAt: timestamp("recordedAt").defaultNow().notNull(),
+});
+
+export type CreditScoreHistory = typeof creditScoreHistory.$inferSelect;
+export type InsertCreditScoreHistory = typeof creditScoreHistory.$inferInsert;
+
+/**
  * Negative accounts extracted from credit reports
  */
 export const negativeAccounts = mysqlTable("negative_accounts", {

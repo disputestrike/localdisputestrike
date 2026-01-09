@@ -62,7 +62,10 @@ import {
   AgencyClientAccount,
   agencyClientLetters,
   InsertAgencyClientLetter,
-  AgencyClientLetter
+  AgencyClientLetter,
+  creditScoreHistory,
+  InsertCreditScoreHistory,
+  CreditScoreHistory
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -1976,5 +1979,128 @@ export async function incrementAgencyClientLetterCount(
       totalLettersGenerated: (client.totalLettersGenerated || 0) + 1,
       lastActivityAt: new Date(),
     }).where(eq(agencyClients.id, clientId));
+  }
+}
+
+
+// ============================================================================
+// CREDIT SCORE HISTORY OPERATIONS
+// ============================================================================
+
+/**
+ * Record a credit score in history
+ */
+export async function recordCreditScore(data: {
+  userId: number;
+  bureau: 'transunion' | 'equifax' | 'experian';
+  score: number;
+  scoreModel?: string;
+  creditReportId?: number;
+  event?: string;
+}): Promise<CreditScoreHistory> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const [result] = await db.insert(creditScoreHistory).values({
+    userId: data.userId,
+    bureau: data.bureau,
+    score: data.score,
+    scoreModel: data.scoreModel || null,
+    creditReportId: data.creditReportId || null,
+    event: data.event || null,
+  }).$returningId();
+
+  const [inserted] = await db.select()
+    .from(creditScoreHistory)
+    .where(eq(creditScoreHistory.id, result.id));
+  
+  return inserted;
+}
+
+/**
+ * Get credit score history for a user
+ */
+export async function getCreditScoreHistory(
+  userId: number,
+  options?: {
+    bureau?: 'transunion' | 'equifax' | 'experian';
+    limit?: number;
+    startDate?: Date;
+    endDate?: Date;
+  }
+): Promise<CreditScoreHistory[]> {
+  const db = await getDb();
+  if (!db) return [];
+
+  // Build conditions array
+  const conditions = [eq(creditScoreHistory.userId, userId)];
+  
+  if (options?.bureau) {
+    conditions.push(eq(creditScoreHistory.bureau, options.bureau));
+  }
+
+  const results = await db.select()
+    .from(creditScoreHistory)
+    .where(and(...conditions))
+    .orderBy(desc(creditScoreHistory.recordedAt))
+    .limit(options?.limit || 100);
+
+  return results;
+}
+
+/**
+ * Get the latest credit scores for a user (one per bureau)
+ */
+export async function getLatestCreditScores(userId: number): Promise<{
+  transunion: CreditScoreHistory | null;
+  equifax: CreditScoreHistory | null;
+  experian: CreditScoreHistory | null;
+}> {
+  const db = await getDb();
+  if (!db) return { transunion: null, equifax: null, experian: null };
+
+  const bureaus = ['transunion', 'equifax', 'experian'] as const;
+  const result: any = {};
+
+  for (const bureau of bureaus) {
+    const [latest] = await db.select()
+      .from(creditScoreHistory)
+      .where(and(
+        eq(creditScoreHistory.userId, userId),
+        eq(creditScoreHistory.bureau, bureau)
+      ))
+      .orderBy(desc(creditScoreHistory.recordedAt))
+      .limit(1);
+    
+    result[bureau] = latest || null;
+  }
+
+  return result;
+}
+
+/**
+ * Add an event to the most recent score entry
+ */
+export async function addScoreEvent(
+  userId: number,
+  bureau: 'transunion' | 'equifax' | 'experian',
+  event: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const [latest] = await db.select()
+    .from(creditScoreHistory)
+    .where(and(
+      eq(creditScoreHistory.userId, userId),
+      eq(creditScoreHistory.bureau, bureau)
+    ))
+    .orderBy(desc(creditScoreHistory.recordedAt))
+    .limit(1);
+
+  if (latest) {
+    await db.update(creditScoreHistory)
+      .set({ event })
+      .where(eq(creditScoreHistory.id, latest.id));
   }
 }

@@ -675,6 +675,24 @@ export async function parseAndSaveReport(
     };
     await updateCreditReportParsedData(reportId, JSON.stringify(parsedData), personalInfo?.creditScore || null, personalInfo?.scoreModel || null);
 
+    // Record credit score in history if available
+    if (personalInfo?.creditScore) {
+      try {
+        const { recordCreditScore } = await import('./db');
+        await recordCreditScore({
+          userId,
+          bureau,
+          score: personalInfo.creditScore,
+          scoreModel: personalInfo.scoreModel || undefined,
+          creditReportId: reportId,
+          event: accounts.length > 0 ? `Report uploaded with ${accounts.length} negative accounts` : 'Report uploaded',
+        });
+        console.log(`[Parser] Recorded credit score ${personalInfo.creditScore} for ${bureau}`);
+      } catch (scoreError) {
+        console.error('[Parser] Failed to record credit score:', scoreError);
+      }
+    }
+
     console.log(`Successfully parsed ${accounts.length} accounts from ${bureau} report`);
   } catch (error) {
     console.error('Error parsing credit report:', error);

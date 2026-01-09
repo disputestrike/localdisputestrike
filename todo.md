@@ -732,3 +732,25 @@ DisputeStrike
 - [x] Add drag-and-drop credit report upload
 - [x] Add letter comparison view (single-angle vs multi-angle)
 - [x] Add credit score tracking chart over time
+
+## Phase 89: Competitive Winning Features (Jan 9, 2026)
+
+### Approved Features (from user)
+- [x] Score history persistence - Store credit scores in database when reports uploaded
+- [x] PDF score report export - Downloadable credit score improvement journey report
+- [x] Mobile-optimized drag-drop - Touch-friendly upload with tap fallback
+
+### Additional Winning Features (competitive analysis)
+- [x] Dispute success predictor - AI confidence scores showing likelihood of deletion per account
+- [x] Smart letter scheduling - Optimal send time recommendations based on bureau response patterns
+- [x] Bureau response analyzer - AI analysis of bureau responses with next-step recommendations
+
+### Implementation Details:
+- `credit_score_history` table added to database schema
+- `scoreHistory` tRPC router with list, latest, record, addEvent endpoints
+- Auto-recording of scores when credit reports are parsed
+- CreditScoreChart component updated to fetch real data + PDF export
+- MobileUploadZone component with touch-optimized camera/gallery buttons
+- DisputeSuccessPredictor component with ML-based success probability
+- SmartLetterScheduler component with optimal mailing date recommendations
+- BureauResponseAnalyzer component with escalation strategy guide

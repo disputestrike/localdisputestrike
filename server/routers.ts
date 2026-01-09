@@ -619,6 +619,60 @@ export const appRouter = router({
       }),
   }),
 
+  scoreHistory: router({
+    /**
+     * Get credit score history for user
+     */
+    list: protectedProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian']).optional(),
+        limit: z.number().optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        return db.getCreditScoreHistory(ctx.user.id, input);
+      }),
+
+    /**
+     * Get latest scores for all bureaus
+     */
+    latest: protectedProcedure.query(async ({ ctx }) => {
+      return db.getLatestCreditScores(ctx.user.id);
+    }),
+
+    /**
+     * Manually record a credit score (for users who check their score elsewhere)
+     */
+    record: protectedProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        score: z.number().min(300).max(850),
+        scoreModel: z.string().optional(),
+        event: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return db.recordCreditScore({
+          userId: ctx.user.id,
+          bureau: input.bureau,
+          score: input.score,
+          scoreModel: input.scoreModel,
+          event: input.event,
+        });
+      }),
+
+    /**
+     * Add an event to the most recent score
+     */
+    addEvent: protectedProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        event: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.addScoreEvent(ctx.user.id, input.bureau, input.event);
+        return { success: true };
+      }),
+  }),
+
   negativeAccounts: router({
     /**
      * List all negative accounts for user
