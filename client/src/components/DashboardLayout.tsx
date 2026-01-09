@@ -69,6 +69,7 @@ const navSections = [
       { icon: FileWarning, label: "CFPB Complaints", path: "/dashboard/cfpb", badge: "New" },
       { icon: Search, label: "Inquiry Removal", path: "/dashboard/inquiries", badge: null },
       { icon: Shield, label: "Debt Validation", path: "/dashboard/debt-validation", badge: null },
+      { icon: TrendingUp, label: "Score Simulator", path: "/dashboard/score-simulator", badge: null },
     ],
   },
   {

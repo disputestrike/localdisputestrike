@@ -1,0 +1,8 @@
+{
+  "query": "DELETE FROM activity_logs;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute DELETE FROM activity_logs;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1146 (42S02) at line 1: Table 'kd8igv5apkrqwmz3rzyz6d.activity_logs' doesn't exist"
+  ]
+}

@@ -41,6 +41,7 @@ import ReferralProgram from "./pages/ReferralProgram";
 import DashboardSettings from "./pages/DashboardSettings";
 import DashboardSupport from "./pages/DashboardSupport";
 import DisputeTracking from "./pages/DisputeTracking";
+import ScoreSimulator from "./pages/ScoreSimulator";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/dashboard/settings" component={DashboardSettings} />
       <Route path="/dashboard/support" component={DashboardSupport} />
       <Route path="/dashboard/tracking" component={DisputeTracking} />
+      <Route path="/dashboard/score-simulator" component={ScoreSimulator} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin" component={AdminEnhanced} />
       <Route path="/admin/parser" component={HybridParserAdmin} />

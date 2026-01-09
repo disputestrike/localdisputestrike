@@ -18,27 +18,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-// Mock inquiries data as fallback
-const mockInquiries = [
-  {
-    id: 1,
-    creditorName: "Capital One",
-    inquiryDate: "2025-01-02",
-    bureau: "transunion",
-    inquiryType: "hard",
-    disputeStatus: "none",
-    isAuthorized: false,
-  },
-  {
-    id: 2,
-    creditorName: "Chase Bank",
-    inquiryDate: "2024-12-15",
-    bureau: "equifax",
-    inquiryType: "hard",
-    disputeStatus: "none",
-    isAuthorized: true,
-  },
-];
+// No mock data - only show real inquiries from uploaded credit reports
 
 export default function InquiryRemoval() {
   const [selectedInquiries, setSelectedInquiries] = useState<number[]>([]);
@@ -59,7 +39,7 @@ export default function InquiryRemoval() {
     },
   });
 
-  // Use database inquiries or fallback to mock
+  // Use database inquiries only - no mock/placeholder data
   const inquiries = dbInquiries?.length ? dbInquiries.map(i => ({
     id: i.id,
     creditor: i.creditorName,
@@ -68,15 +48,7 @@ export default function InquiryRemoval() {
     type: i.inquiryType === 'hard' ? 'Hard' : 'Soft',
     status: i.disputeStatus === 'none' ? 'active' : i.disputeStatus,
     authorized: i.isAuthorized,
-  })) : mockInquiries.map(i => ({
-    id: i.id,
-    creditor: i.creditorName,
-    date: i.inquiryDate,
-    bureau: i.bureau.charAt(0).toUpperCase() + i.bureau.slice(1),
-    type: i.inquiryType === 'hard' ? 'Hard' : 'Soft',
-    status: i.disputeStatus === 'none' ? 'active' : i.disputeStatus,
-    authorized: i.isAuthorized,
-  }));
+  })) : [];
 
   const activeInquiries = inquiries.filter((i) => i.status === "active");
   const disputedInquiries = inquiries.filter((i) => i.status === "disputed");
@@ -237,45 +209,56 @@ export default function InquiryRemoval() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {inquiries.map((inquiry) => (
-                <div
-                  key={inquiry.id}
-                  className={`p-4 rounded-lg border transition-colors ${
-                    selectedInquiries.includes(inquiry.id)
-                      ? "bg-orange-50 border-orange-300"
-                      : "bg-gray-50 border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <Checkbox
-                      checked={selectedInquiries.includes(inquiry.id)}
-                      onCheckedChange={() => toggleInquiry(inquiry.id)}
-                      disabled={inquiry.status !== "active" || inquiry.authorized as boolean}
-                      className="border-gray-400"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Building2 className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium text-gray-900">{inquiry.creditor}</span>
-                        {getStatusBadge(inquiry.status)}
-                        {inquiry.authorized && (
-                          <Badge variant="outline" className="border-gray-400 text-gray-500">
-                            Authorized
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {inquiry.date}
-                        </span>
-                        <span>{inquiry.bureau}</span>
-                        <span className="text-red-400">{inquiry.type} Inquiry</span>
+              {inquiries.length > 0 ? (
+                inquiries.map((inquiry) => (
+                  <div
+                    key={inquiry.id}
+                    className={`p-4 rounded-lg border transition-colors ${
+                      selectedInquiries.includes(inquiry.id)
+                        ? "bg-orange-50 border-orange-300"
+                        : "bg-gray-50 border-gray-300"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <Checkbox
+                        checked={selectedInquiries.includes(inquiry.id)}
+                        onCheckedChange={() => toggleInquiry(inquiry.id)}
+                        disabled={inquiry.status !== "active" || inquiry.authorized as boolean}
+                        className="border-gray-400"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Building2 className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium text-gray-900">{inquiry.creditor}</span>
+                          {getStatusBadge(inquiry.status)}
+                          {inquiry.authorized && (
+                            <Badge variant="outline" className="border-gray-400 text-gray-500">
+                              Authorized
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {inquiry.date}
+                          </span>
+                          <span>{inquiry.bureau}</span>
+                          <span className="text-red-400">{inquiry.type} Inquiry</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg font-medium text-gray-700">No inquiries found</p>
+                  <p className="text-sm text-gray-400 mt-1">Upload your credit reports to see hard inquiries</p>
+                  <Button variant="outline" className="mt-4" asChild>
+                    <a href="/dashboard/reports">Upload Credit Reports</a>
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>

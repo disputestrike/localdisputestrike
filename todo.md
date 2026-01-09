@@ -505,3 +505,7 @@ DisputeStrike
 - [x] Fix hardcoded credit scores showing when no reports uploaded - now shows empty/placeholder state
 - [x] Fix Dashboard/Credit Reports page layout - now uses DashboardLayout with sidebar (matches Inquiry Removal page)
 - [x] Update logo to use correct DisputeStrike shield icon across all pages (About, Contact, Admin, AdminEnhanced, MailingInstructions)
+
+- [x] Clear fake recent activity data from dashboard - remove "Marked dispute letter as mailed (Tracking: eeww)"
+- [x] Remove placeholder inquiries from Inquiry Removal page - only show real data from uploaded reports
+- [x] Move Score Simulator from hidden tab to sidebar as standalone menu item under DISPUTE TOOLS

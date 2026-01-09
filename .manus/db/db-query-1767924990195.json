@@ -1,0 +1,9 @@
+{
+  "query": "DELETE FROM activity_log;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user hzCbMda76tmFdt4.root --database KD8igV5APKrQwmz3rzYZ6D --execute DELETE FROM activity_log;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 65
+}

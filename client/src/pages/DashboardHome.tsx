@@ -98,18 +98,13 @@ export default function DashboardHome() {
     }
   };
 
-  // Use real activity data or fallback to mock
+  // Use real activity data only - no mock/placeholder data
   const recentActivity = activityData?.length ? activityData.map(a => ({
     type: a.activityType,
     message: a.description,
     time: formatTimeAgo(a.createdAt),
     icon: getActivityIcon(a.activityType),
-  })) : [
-    { type: "letter_generated", message: "TransUnion dispute letter generated", time: "2 hours ago", icon: FileText },
-    { type: "report_uploaded", message: "Equifax credit report uploaded", time: "1 day ago", icon: Upload },
-    { type: "letter_mailed", message: "Experian dispute letter marked as mailed", time: "3 days ago", icon: Send },
-    { type: "account_deleted", message: "Collection account removed from TransUnion", time: "1 week ago", icon: CheckCircle2 },
-  ];
+  })) : [];
 
   // Quick actions
   const quickActions = [
@@ -258,17 +253,25 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-200 last:border-0 last:pb-0">
-                  <div className="p-2 bg-gray-100 rounded-lg">
-                    <activity.icon className="h-4 w-4 text-orange-500" />
+              {recentActivity.length > 0 ? (
+                recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-200 last:border-0 last:pb-0">
+                    <div className="p-2 bg-gray-100 rounded-lg">
+                      <activity.icon className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-900">{activity.message}</p>
+                      <p className="text-xs text-gray-400">{activity.time}</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-900">{activity.message}</p>
-                    <p className="text-xs text-gray-400">{activity.time}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <Clock className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No activity yet</p>
+                  <p className="text-xs text-gray-400">Upload credit reports to get started</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
