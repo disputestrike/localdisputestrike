@@ -37,6 +37,11 @@ export interface LetterAnalysis {
 /**
  * CRITICAL: Replace ALL placeholder text with actual user data
  * This is the foundation - letters are UNUSABLE without this
+ * 
+ * IMPORTANT: The AI sometimes outputs "[Placeholder] ActualValue" format
+ * We need to handle BOTH:
+ * 1. "[Your Name]" alone -> replace with actual value
+ * 2. "[Your Name] Benjamin Peter" -> replace entire thing with actual value
  */
 export function replacePlaceholders(letter: string, userData: UserData): string {
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -44,6 +49,55 @@ export function replacePlaceholders(letter: string, userData: UserData): string 
   // Replace ALL possible placeholder variations
   let result = letter;
   
+  // FIRST: Handle "[Placeholder] Value" pattern (placeholder followed by actual value)
+  // This catches cases where AI outputs "[Your Name] Benjamin Peter"
+  result = result.replace(/\[Your Name\]\s*[^\[\n]*/gi, userData.fullName);
+  result = result.replace(/\[Your Full Name\]\s*[^\[\n]*/gi, userData.fullName);
+  result = result.replace(/\[Consumer Name\]\s*[^\[\n]*/gi, userData.fullName);
+  result = result.replace(/\[Printed Name\]\s*[^\[\n]*/gi, userData.fullName);
+  result = result.replace(/\[Signature\]\s*[^\[\n]*/gi, userData.fullName);
+  
+  // Address - handle "[Your Street Address] 45444" pattern
+  result = result.replace(/\[Your Address\]\s*[^\[\n]*/gi, userData.address);
+  result = result.replace(/\[Your Street Address\]\s*[^\[\n]*/gi, userData.address);
+  result = result.replace(/\[Street Address\]\s*[^\[\n]*/gi, userData.address);
+  result = result.replace(/\[Address\]\s*[^\[\n]*/gi, userData.address);
+  result = result.replace(/\[Your Current Address\]\s*[^\[\n]*/gi, userData.address);
+  
+  // Phone - handle "[Your Phone Number] xxx" pattern
+  const phoneValue = userData.phone || '';
+  result = result.replace(/\[Your Phone Number\]\s*[^\[\n]*/gi, phoneValue);
+  result = result.replace(/\[Phone Number\]\s*[^\[\n]*/gi, phoneValue);
+  result = result.replace(/\[Phone\]\s*[^\[\n]*/gi, phoneValue);
+  
+  // Email - handle "[Your Email Address] xxx" pattern  
+  const emailValue = userData.email || '';
+  result = result.replace(/\[Your Email Address\]\s*[^\[\n]*/gi, emailValue);
+  result = result.replace(/\[Your Email\]\s*[^\[\n]*/gi, emailValue);
+  result = result.replace(/\[Email Address\]\s*[^\[\n]*/gi, emailValue);
+  result = result.replace(/\[Email\]\s*[^\[\n]*/gi, emailValue);
+  
+  // Date - handle "[Date] xxx" pattern
+  result = result.replace(/\[Date\]\s*[^\[\n]*/gi, today);
+  result = result.replace(/\[Today's Date\]\s*[^\[\n]*/gi, today);
+  result = result.replace(/\[Current Date\]\s*[^\[\n]*/gi, today);
+  result = result.replace(/\[DATE\]\s*[^\[\n]*/gi, today);
+  
+  // DOB - handle "[Your DOB] xxx" pattern
+  const dobValue = userData.dob || '';
+  result = result.replace(/\[Your DOB\]\s*[^\[\n]*/gi, dobValue);
+  result = result.replace(/\[DOB\]\s*[^\[\n]*/gi, dobValue);
+  result = result.replace(/\[Date of Birth\]\s*[^\[\n]*/gi, dobValue);
+  result = result.replace(/\[Your Date of Birth\]\s*[^\[\n]*/gi, dobValue);
+  
+  // SSN - handle "[Your SSN...] xxx" pattern
+  const ssnValue = userData.ssn4 ? `XXX-XX-${userData.ssn4}` : '';
+  result = result.replace(/\[Your SSN[^\]]*\]\s*[^\[\n]*/gi, ssnValue);
+  result = result.replace(/\[SSN[^\]]*\]\s*[^\[\n]*/gi, ssnValue);
+  result = result.replace(/\[Last 4 SSN\]\s*[^\[\n]*/gi, ssnValue);
+  result = result.replace(/\[Social Security Number[^\]]*\]\s*[^\[\n]*/gi, ssnValue);
+  
+  // SECOND: Handle standalone placeholders (without trailing value)
   // Name placeholders
   result = result.replace(/\[Your Name\]/gi, userData.fullName);
   result = result.replace(/\[Your Full Name\]/gi, userData.fullName);
