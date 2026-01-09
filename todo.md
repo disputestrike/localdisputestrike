@@ -615,3 +615,24 @@ DisputeStrike
 - [ ] Implement client report upload for agencies
 - [ ] Implement client letter generation from parsed client data
 - [x] Fix Credit Education training section (broken)
+
+
+## Phase 78: Complete Agency Implementation (Jan 9, 2026)
+- [ ] Verify database schema has account_type field (individual/agency)
+- [ ] Verify client_slots_included and client_slots_used fields work
+- [ ] Build agency signup page with plan selection and Stripe checkout
+- [ ] Build complete client detail page with tabs (Info, Reports, Accounts, Letters)
+- [ ] Implement client report upload to S3 with parsing
+- [ ] Implement client letter generation from parsed data
+- [ ] Test full agency flow end-to-end
+
+
+## Phase 78: Complete Agency/Merchant Implementation (Jan 9, 2026)
+- [x] Verify database schema has account_type, client_slots fields
+- [x] Build agency signup page with Stripe checkout
+- [x] Build complete client detail page with tabs (info, reports, accounts, letters)
+- [x] Implement client report upload with S3 and AI parsing
+- [x] Implement client letter generation from parsed accounts
+- [x] Add "Become a Merchant" links to header and footer
+- [x] Redesign Agency Portal with business dashboard (revenue, clients, stats)
+- [x] Agency client list with search/filter - click opens client's credit profile

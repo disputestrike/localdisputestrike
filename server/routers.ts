@@ -2268,6 +2268,131 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         .query(async ({ ctx, input }) => {
           return await db.getAgencyClientLetters(input.clientId, ctx.user.id);
         }),
+
+      // Upload report for client
+      uploadReport: agencyProcedure
+        .input(z.object({
+          clientId: z.number(),
+          fileName: z.string(),
+          fileUrl: z.string(),
+          fileKey: z.string(),
+          bureau: z.enum(['transunion', 'equifax', 'experian']),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          // Verify client belongs to this agency
+          const client = await db.getAgencyClient(input.clientId, ctx.user.id);
+          if (!client) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Client not found' });
+          }
+
+          const report = await db.createAgencyClientReport({
+            agencyClientId: input.clientId,
+            agencyUserId: ctx.user.id,
+            bureau: input.bureau,
+            fileUrl: input.fileUrl,
+            fileKey: input.fileKey,
+            fileName: input.fileName,
+            isParsed: false,
+          });
+
+          if (!report) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create report' });
+          }
+
+          // Trigger AI parsing in background
+          const { parseAndSaveAgencyClientReport } = await import('./creditReportParser');
+          parseAndSaveAgencyClientReport(report.id, input.fileUrl, input.bureau, input.clientId, ctx.user.id).catch((err: Error) => {
+            console.error('Failed to parse agency client report:', err);
+          });
+
+          return {
+            reportId: report.id,
+            success: true,
+            message: 'Report uploaded successfully. AI is extracting accounts...',
+          };
+        }),
+
+      // Generate dispute letter for client
+      generateLetter: agencyProcedure
+        .input(z.object({
+          clientId: z.number(),
+          bureau: z.enum(['transunion', 'equifax', 'experian', 'furnisher', 'collector', 'creditor']),
+          accountIds: z.array(z.number()),
+          letterType: z.enum(['initial', 'followup', 'escalation', 'cfpb', 'cease_desist', 'pay_for_delete', 'intent_to_sue', 'estoppel', 'debt_validation']).default('initial'),
+          round: z.number().default(1),
+        }))
+        .mutation(async ({ ctx, input }) => {
+          // Verify client belongs to this agency
+          const client = await db.getAgencyClient(input.clientId, ctx.user.id);
+          if (!client) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Client not found' });
+          }
+
+          // Get selected accounts
+          const accounts = await db.getAgencyClientAccountsByIds(input.accountIds, input.clientId, ctx.user.id);
+          if (accounts.length === 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'No valid accounts selected' });
+          }
+
+          // Generate letter content using AI
+          const { generateAgencyClientLetter } = await import('./letterGenerator');
+          const letterContent = await generateAgencyClientLetter({
+            client,
+            accounts,
+            bureau: input.bureau,
+            letterType: input.letterType,
+            round: input.round,
+          });
+
+          // Get bureau address
+          const bureauAddresses: Record<string, string> = {
+            transunion: 'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016',
+            equifax: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374',
+            experian: 'Experian\nP.O. Box 4500\nAllen, TX 75013',
+            furnisher: accounts[0]?.accountName || 'Furnisher',
+            collector: accounts[0]?.accountName || 'Collection Agency',
+            creditor: accounts[0]?.originalCreditor || accounts[0]?.accountName || 'Creditor',
+          };
+
+          // Save letter
+          const letter = await db.createAgencyClientLetter({
+            agencyClientId: input.clientId,
+            agencyUserId: ctx.user.id,
+            bureau: input.bureau,
+            recipientName: input.bureau.charAt(0).toUpperCase() + input.bureau.slice(1),
+            recipientAddress: bureauAddresses[input.bureau],
+            letterContent,
+            accountsDisputed: JSON.stringify(accounts.map(a => ({ id: a.id, name: a.accountName, balance: a.balance }))),
+            round: input.round,
+            letterType: input.letterType,
+            status: 'generated',
+          });
+
+          if (!letter) {
+            throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Failed to create letter' });
+          }
+
+          // Update client stats
+          await db.incrementAgencyClientLetterCount(input.clientId, ctx.user.id);
+
+          return {
+            letterId: letter.id,
+            letterContent,
+            success: true,
+            message: 'Dispute letter generated successfully',
+          };
+        }),
+
+      // Download letter as PDF
+      downloadLetter: agencyProcedure
+        .input(z.object({ letterId: z.number() }))
+        .query(async ({ ctx, input }) => {
+          const letter = await db.getAgencyClientLetter(input.letterId, ctx.user.id);
+          if (!letter) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Letter not found' });
+          }
+          return letter;
+        }),
     }),
   }),
 });

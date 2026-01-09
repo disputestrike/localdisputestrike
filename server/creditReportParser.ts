@@ -626,3 +626,125 @@ export async function parseAndSaveReport(
     throw error;
   }
 }
+
+
+/**
+ * Parse and save credit report for agency client
+ */
+export async function parseAndSaveAgencyClientReport(
+  reportId: number,
+  fileUrl: string,
+  bureau: 'transunion' | 'equifax' | 'experian',
+  clientId: number,
+  agencyUserId: number
+): Promise<void> {
+  try {
+    // Fetch file from URL
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`);
+    }
+
+    // Get file as buffer
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    // Map bureau name
+    const bureauMap = {
+      transunion: 'TransUnion' as const,
+      equifax: 'Equifax' as const,
+      experian: 'Experian' as const,
+    };
+
+    // Extract text from PDF
+    let text: string;
+    try {
+      text = await extractTextFromPDF(buffer);
+      console.log(`[Agency] Extracted ${text.length} characters from PDF`);
+      
+      // If extracted text is too short, use vision AI
+      if (text.length < 1000) {
+        console.log('[Agency] Text too short, using vision AI...');
+        const accounts = await parseWithVisionAI(fileUrl, bureauMap[bureau]);
+        console.log(`[Agency] Vision AI extracted ${accounts.length} negative accounts`);
+        
+        // Save accounts to database
+        const { createAgencyClientAccount, updateAgencyClientReport } = await import('./db');
+        for (const account of accounts) {
+          await createAgencyClientAccount({
+            agencyClientId: clientId,
+            agencyUserId,
+            accountName: account.accountName,
+            accountNumber: account.accountNumber,
+            balance: account.balance.toString(),
+            status: account.status,
+            accountType: account.accountType,
+            dateOpened: account.dateOpened?.toISOString() || null,
+            lastActivity: account.lastActivity?.toISOString() || null,
+            originalCreditor: account.originalCreditor || null,
+            hasConflicts: false,
+          });
+        }
+        
+        // Update report as parsed
+        await updateAgencyClientReport(reportId, agencyUserId, { isParsed: true });
+        console.log(`[Agency] Successfully parsed ${accounts.length} accounts from ${bureau} report`);
+        return;
+      }
+    } catch (error) {
+      console.error('[Agency] PDF extraction failed, trying as plain text:', error);
+      text = buffer.toString('utf-8');
+    }
+
+    // Parse the report using AI
+    let accounts: ParsedAccount[];
+    try {
+      accounts = await parseWithAI(text, bureauMap[bureau]);
+      console.log(`[Agency] AI extracted ${accounts.length} negative accounts`);
+    } catch (error) {
+      console.error('[Agency] AI parsing failed, using regex fallback:', error);
+      const parsed = parseCreditReport(text, bureauMap[bureau]);
+      accounts = parsed.accounts;
+    }
+
+    // Save accounts to database
+    const { createAgencyClientAccount, updateAgencyClientReport } = await import('./db');
+    
+    for (const account of accounts) {
+      await createAgencyClientAccount({
+        agencyClientId: clientId,
+        agencyUserId,
+        accountName: account.accountName,
+        accountNumber: account.accountNumber,
+        balance: account.balance.toString(),
+        status: account.status,
+        dateOpened: account.dateOpened?.toISOString() || null,
+        lastActivity: account.lastActivity?.toISOString() || null,
+        accountType: account.accountType,
+        originalCreditor: account.originalCreditor || null,
+        hasConflicts: false,
+      });
+    }
+
+    // Mark report as parsed
+    await updateAgencyClientReport(reportId, agencyUserId, { 
+      isParsed: true,
+      parsedData: JSON.stringify({
+        accountCount: accounts.length,
+        accounts: accounts.map(acc => ({
+          accountName: acc.accountName,
+          accountNumber: acc.accountNumber,
+          balance: acc.balance,
+          status: acc.status,
+          accountType: acc.accountType,
+        })),
+        bureau: bureauMap[bureau],
+        reportDate: new Date(),
+      }),
+    });
+    console.log(`[Agency] Successfully parsed ${accounts.length} accounts from ${bureau} report for client ${clientId}`);
+  } catch (error) {
+    console.error('[Agency] Error parsing credit report:', error);
+    throw error;
+  }
+}

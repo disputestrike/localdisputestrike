@@ -1,4 +1,4 @@
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -1928,4 +1928,44 @@ export async function getAgencyClientLetter(letterId: number, agencyUserId: numb
     ));
 
   return letter || null;
+}
+
+
+// Get agency client accounts by IDs
+export async function getAgencyClientAccountsByIds(
+  accountIds: number[], 
+  clientId: number, 
+  agencyUserId: number
+): Promise<AgencyClientAccount[]> {
+  const db = await getDb();
+  if (!db || accountIds.length === 0) return [];
+
+  return await db.select()
+    .from(agencyClientAccounts)
+    .where(and(
+      inArray(agencyClientAccounts.id, accountIds),
+      eq(agencyClientAccounts.agencyClientId, clientId),
+      eq(agencyClientAccounts.agencyUserId, agencyUserId)
+    ));
+}
+
+// Increment agency client letter count
+export async function incrementAgencyClientLetterCount(
+  clientId: number, 
+  agencyUserId: number
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+
+  const [client] = await db.select().from(agencyClients).where(and(
+    eq(agencyClients.id, clientId),
+    eq(agencyClients.agencyUserId, agencyUserId)
+  ));
+
+  if (client) {
+    await db.update(agencyClients).set({
+      totalLettersGenerated: (client.totalLettersGenerated || 0) + 1,
+      lastActivityAt: new Date(),
+    }).where(eq(agencyClients.id, clientId));
+  }
 }

@@ -309,3 +309,122 @@ Generate a formal CFPB complaint citing specific FCRA violations.`;
   const content = cfpbResponse.choices[0]?.message?.content;
   return typeof content === 'string' ? content : '';
 }
+
+
+// ============================================================================
+// AGENCY CLIENT LETTER GENERATION
+// ============================================================================
+
+export interface AgencyClientLetterInput {
+  client: {
+    clientName: string;
+    currentAddress?: string | null;
+    currentCity?: string | null;
+    currentState?: string | null;
+    currentZip?: string | null;
+    previousAddress?: string | null;
+    previousCity?: string | null;
+    previousState?: string | null;
+    previousZip?: string | null;
+    dateOfBirth?: string | null;
+    ssnLast4?: string | null;
+  };
+  accounts: Array<{
+    id: number;
+    accountName: string;
+    accountNumber?: string | null;
+    accountType?: string | null;
+    balance?: string | null;
+    originalCreditor?: string | null;
+    status?: string | null;
+    hasConflicts?: boolean;
+    conflictDetails?: string | null;
+  }>;
+  bureau: string;
+  letterType: string;
+  round: number;
+}
+
+/**
+ * Generate dispute letter for agency client
+ */
+export async function generateAgencyClientLetter(input: AgencyClientLetterInput): Promise<string> {
+  const { client, accounts, bureau, letterType, round } = input;
+
+  // Build user info from client data
+  const currentAddress = [
+    client.currentAddress,
+    client.currentCity && client.currentState 
+      ? `${client.currentCity}, ${client.currentState} ${client.currentZip || ''}`.trim()
+      : null
+  ].filter(Boolean).join('\\n');
+
+  const previousAddress = [
+    client.previousAddress,
+    client.previousCity && client.previousState 
+      ? `${client.previousCity}, ${client.previousState} ${client.previousZip || ''}`.trim()
+      : null
+  ].filter(Boolean).join('\\n');
+
+  // Build account list for the prompt
+  const accountList = accounts.map((acc, idx) => {
+    return `Account ${idx + 1}:
+- Creditor/Collector: ${acc.accountName}
+- Account Number: ${acc.accountNumber || 'Unknown'}
+- Account Type: ${acc.accountType || 'Unknown'}
+- Balance: $${acc.balance || '0'}
+- Original Creditor: ${acc.originalCreditor || 'N/A'}
+- Status: ${acc.status || 'Unknown'}
+- Has Conflicts: ${acc.hasConflicts ? 'YES - ' + (acc.conflictDetails || 'Cross-bureau discrepancy detected') : 'No'}`;
+  }).join('\\n\\n');
+
+  // Build the prompt
+  const prompt = `Generate a ${letterType.replace(/_/g, ' ')} dispute letter (Round ${round}) for the following:
+
+CONSUMER INFORMATION:
+Name: ${client.clientName}
+Current Address: ${currentAddress || 'Not provided'}
+Previous Address: ${previousAddress || 'N/A'}
+Date of Birth: ${client.dateOfBirth || 'Not provided'}
+SSN Last 4: ${client.ssnLast4 ? '***-**-' + client.ssnLast4 : 'Not provided'}
+
+RECIPIENT:
+Bureau/Entity: ${bureau.charAt(0).toUpperCase() + bureau.slice(1)}
+
+ACCOUNTS TO DISPUTE:
+${accountList}
+
+LETTER TYPE: ${letterType.replace(/_/g, ' ').toUpperCase()}
+ROUND: ${round}
+
+Generate a professional, litigation-grade FCRA dispute letter that:
+1. Opens with proper legal citations
+2. Clearly identifies each account being disputed
+3. States specific violations for each account
+4. Demands deletion or correction
+5. Sets a 30-day deadline per FCRA requirements
+6. Includes professional closing
+
+${letterType === 'initial' ? 'This is an initial dispute - focus on verification demands and FCRA rights.' : ''}
+${letterType === 'followup' ? 'This is a follow-up dispute - reference previous correspondence and escalate demands.' : ''}
+${letterType === 'escalation' ? 'This is an escalation - threaten CFPB complaint and legal action.' : ''}
+${letterType === 'cfpb' ? 'This is a CFPB complaint letter - formal complaint format.' : ''}
+${letterType === 'intent_to_sue' ? 'This is an intent to sue letter - formal legal notice of pending litigation.' : ''}`;
+
+  // Generate letter using LLM
+  const response = await invokeLLM({
+    messages: [
+      {
+        role: 'system',
+        content: SYSTEM_PROMPT,
+      },
+      {
+        role: 'user',
+        content: prompt,
+      },
+    ],
+  });
+
+  const messageContent = response.choices[0]?.message?.content;
+  return typeof messageContent === 'string' ? messageContent : 'Error generating letter';
+}
