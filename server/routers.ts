@@ -729,6 +729,97 @@ export const appRouter = router({
       }),
   }),
 
+  documents: router({
+    /**
+     * List all documents for user
+     */
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return db.getUserDocuments(ctx.user.id);
+    }),
+
+    /**
+     * Get document by ID
+     */
+    getById: protectedProcedure
+      .input(z.object({ documentId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return db.getUserDocumentById(input.documentId, ctx.user.id);
+      }),
+
+    /**
+     * Get documents by type
+     */
+    getByType: protectedProcedure
+      .input(z.object({ documentType: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return db.getUserDocumentsByType(ctx.user.id, input.documentType);
+      }),
+
+    /**
+     * Create new document record
+     */
+    create: protectedProcedure
+      .input(z.object({
+        documentType: z.enum([
+          'government_id', 'drivers_license', 'passport', 'social_security_card',
+          'utility_bill', 'bank_statement', 'lease_agreement', 'mortgage_statement',
+          'pay_stub', 'tax_return', 'proof_of_address', 'dispute_letter',
+          'bureau_response', 'certified_mail_receipt', 'return_receipt', 'other'
+        ]),
+        documentName: z.string(),
+        description: z.string().optional(),
+        fileKey: z.string(),
+        fileUrl: z.string().optional(),
+        fileName: z.string(),
+        fileSize: z.number().optional(),
+        mimeType: z.string().optional(),
+        expiresAt: z.date().optional(),
+        tags: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return db.createUserDocument({
+          userId: ctx.user.id,
+          ...input,
+        });
+      }),
+
+    /**
+     * Update document
+     */
+    update: protectedProcedure
+      .input(z.object({
+        documentId: z.number(),
+        documentName: z.string().optional(),
+        description: z.string().optional(),
+        expiresAt: z.date().optional(),
+        tags: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { documentId, ...updates } = input;
+        const success = await db.updateUserDocument(documentId, ctx.user.id, updates);
+        return { success };
+      }),
+
+    /**
+     * Delete document
+     */
+    delete: protectedProcedure
+      .input(z.object({ documentId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const success = await db.deleteUserDocument(input.documentId, ctx.user.id);
+        return { success };
+      }),
+
+    /**
+     * Get expiring documents
+     */
+    getExpiring: protectedProcedure
+      .input(z.object({ daysUntilExpiry: z.number().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        return db.getExpiringDocuments(ctx.user.id, input?.daysUntilExpiry);
+      }),
+  }),
+
   negativeAccounts: router({
     /**
      * List all negative accounts for user

@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal, longtext } from "drizzle-orm/mysql-core";
+import { int, mysqlEnum, mysqlTable, text, timestamp, varchar, boolean, decimal, longtext, json } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -749,3 +749,57 @@ export const userNotifications = mysqlTable("user_notifications", {
 
 export type UserNotification = typeof userNotifications.$inferSelect;
 export type InsertUserNotification = typeof userNotifications.$inferInsert;
+
+
+/**
+ * Document vault for storing user documents (ID, proof of address, etc.)
+ */
+export const userDocuments = mysqlTable("user_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  // Document info
+  documentType: mysqlEnum("documentType", [
+    "government_id",
+    "drivers_license", 
+    "passport",
+    "social_security_card",
+    "utility_bill",
+    "bank_statement",
+    "lease_agreement",
+    "mortgage_statement",
+    "pay_stub",
+    "tax_return",
+    "proof_of_address",
+    "dispute_letter",
+    "bureau_response",
+    "certified_mail_receipt",
+    "return_receipt",
+    "other"
+  ]).notNull(),
+  
+  documentName: varchar("documentName", { length: 255 }).notNull(),
+  description: text("description"),
+  
+  // File storage
+  fileKey: varchar("fileKey", { length: 512 }).notNull(), // S3 key
+  fileUrl: text("fileUrl"), // Presigned URL (temporary)
+  fileName: varchar("fileName", { length: 255 }).notNull(),
+  fileSize: int("fileSize"), // Size in bytes
+  mimeType: varchar("mimeType", { length: 100 }),
+  
+  // Security
+  isEncrypted: boolean("isEncrypted").default(false),
+  expiresAt: timestamp("expiresAt"), // For documents with expiration dates
+  
+  // Metadata
+  tags: json("tags").$type<string[]>(),
+  metadata: json("metadata").$type<Record<string, unknown>>(),
+  
+  // Timestamps
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type UserDocument = typeof userDocuments.$inferSelect;
+export type InsertUserDocument = typeof userDocuments.$inferInsert;

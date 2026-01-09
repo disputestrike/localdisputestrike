@@ -68,7 +68,10 @@ import {
   CreditScoreHistory,
   userNotifications,
   InsertUserNotification,
-  UserNotification
+  UserNotification,
+  userDocuments,
+  InsertUserDocument,
+  UserDocument
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -2276,4 +2279,106 @@ export async function createAccountDeletedNotification(
     priority: 'high',
     relatedEntityType: 'negative_account',
   });
+}
+
+
+// ============================================================================
+// DOCUMENT VAULT OPERATIONS
+// ============================================================================
+
+export async function createUserDocument(document: InsertUserDocument): Promise<UserDocument | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const result = await db.insert(userDocuments).values(document);
+  const insertId = result[0].insertId;
+  
+  const [newDoc] = await db.select().from(userDocuments).where(eq(userDocuments.id, insertId));
+  return newDoc || null;
+}
+
+export async function getUserDocuments(userId: number): Promise<UserDocument[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select()
+    .from(userDocuments)
+    .where(eq(userDocuments.userId, userId))
+    .orderBy(desc(userDocuments.createdAt));
+}
+
+export async function getUserDocumentById(documentId: number, userId: number): Promise<UserDocument | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const [doc] = await db.select()
+    .from(userDocuments)
+    .where(and(
+      eq(userDocuments.id, documentId),
+      eq(userDocuments.userId, userId)
+    ));
+  
+  return doc || null;
+}
+
+export async function getUserDocumentsByType(userId: number, documentType: string): Promise<UserDocument[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  return db.select()
+    .from(userDocuments)
+    .where(and(
+      eq(userDocuments.userId, userId),
+      eq(userDocuments.documentType, documentType as any)
+    ))
+    .orderBy(desc(userDocuments.createdAt));
+}
+
+export async function updateUserDocument(
+  documentId: number, 
+  userId: number, 
+  updates: Partial<InsertUserDocument>
+): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.update(userDocuments)
+    .set({ ...updates, updatedAt: new Date() })
+    .where(and(
+      eq(userDocuments.id, documentId),
+      eq(userDocuments.userId, userId)
+    ));
+  
+  return result[0].affectedRows > 0;
+}
+
+export async function deleteUserDocument(documentId: number, userId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  
+  const result = await db.delete(userDocuments)
+    .where(and(
+      eq(userDocuments.id, documentId),
+      eq(userDocuments.userId, userId)
+    ));
+  
+  return result[0].affectedRows > 0;
+}
+
+export async function getExpiringDocuments(userId: number, daysUntilExpiry: number = 30): Promise<UserDocument[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const expiryDate = new Date();
+  expiryDate.setDate(expiryDate.getDate() + daysUntilExpiry);
+  
+  return db.select()
+    .from(userDocuments)
+    .where(and(
+      eq(userDocuments.userId, userId),
+      sql`${userDocuments.expiresAt} IS NOT NULL`,
+      sql`${userDocuments.expiresAt} <= ${expiryDate}`,
+      sql`${userDocuments.expiresAt} > NOW()`
+    ))
+    .orderBy(userDocuments.expiresAt);
 }

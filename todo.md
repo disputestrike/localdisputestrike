@@ -799,3 +799,19 @@ DisputeStrike
 - userNotifications table: Stores in-app notifications with types, priorities
 - NotificationBell: Shows unread count, mark as read, priority colors
 - Notification types: deadline_reminder, response_received, letter_generated, payment_confirmed, account_deleted, system_alert
+
+
+## Phase 92: Advanced Competitive Features (Jan 9, 2026)
+
+### New Features
+- [x] Dispute tracking timeline - Visual timeline showing each dispute's journey from creation to resolution
+- [x] CFPB complaint auto-generator - One-click CFPB complaint generation for bureaus that miss 30-day deadline
+- [x] Credit score simulator - Already existed, verified working
+- [x] Document vault - Secure storage for ID copies, utility bills, and proof documents for disputes
+
+### Implementation Details:
+- DisputeTimelineList.tsx: Enhanced timeline with progress bars, status badges, FCRA violation alerts
+- CFPBComplaintGenerator.tsx: Auto-generates CFPB complaint narrative with legal citations
+- DocumentVault.tsx: Full document management with categories, search, expiration tracking
+- userDocuments table: 16 columns for secure document storage with S3 integration
+- documents tRPC router: CRUD operations, type filtering, expiration queries
