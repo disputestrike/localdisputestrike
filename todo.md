@@ -720,3 +720,15 @@ DisputeStrike
 - Cross-bureau conflict detection
 - FCRA citations (§ 1681i, § 1681s-2(b), § 1681n, § 1681o)
 - Multi-angle attack arguments
+
+
+## Phase 88: UX Improvements (Jan 9, 2026)
+- [ ] Add drag-and-drop credit report upload with visual feedback
+- [ ] Add letter comparison view (single-angle vs multi-angle effectiveness)
+- [ ] Add credit score tracking chart showing score history over time
+
+
+## Phase 88: UX Improvements (Jan 9, 2026)
+- [x] Add drag-and-drop credit report upload
+- [x] Add letter comparison view (single-angle vs multi-angle)
+- [x] Add credit score tracking chart over time

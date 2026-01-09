@@ -28,8 +28,10 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
+import { LetterComparison } from "@/components/LetterComparison";
+import { CreditScoreChart } from "@/components/CreditScoreChart";
 // CreditScoreSimulator moved to standalone page at /dashboard/score-simulator
-import { Building2, Calculator } from "lucide-react";
+import { Building2, Calculator, Scale, LineChart } from "lucide-react";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -42,6 +44,9 @@ export default function Dashboard() {
   
   // Sort state for accounts
   const [sortBy, setSortBy] = useState<'default' | 'conflicts' | 'balance'>('default');
+  
+  // Drag and drop state
+  const [dragOver, setDragOver] = useState<string | null>(null);
 
   // Fetch data
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
@@ -208,6 +213,36 @@ export default function Dashboard() {
     },
   });
 
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent, bureau: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(bureau);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, bureau: "transunion" | "equifax" | "experian") => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(null);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      // Validate file type
+      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
+        handleFileUpload(bureau, file);
+      } else {
+        toast.error('Please upload a PDF or image file');
+      }
+    }
+  };
+
   const handleFileUpload = async (bureau: "transunion" | "equifax" | "experian", file: File) => {
     setUploadingBureau(bureau);
     
@@ -337,21 +372,21 @@ export default function Dashboard() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="upload" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="upload">
               <Upload className="h-4 w-4 mr-2" />
-              Upload Reports
+              Upload
             </TabsTrigger>
             <TabsTrigger value="accounts">
               <AlertTriangle className="h-4 w-4 mr-2" />
-              Negative Accounts
+              Accounts
               {negativeAccounts && negativeAccounts.length > 0 && (
                 <Badge variant="destructive" className="ml-2">{negativeAccounts.length}</Badge>
               )}
             </TabsTrigger>
             <TabsTrigger value="letters">
               <FileText className="h-4 w-4 mr-2" />
-              Dispute Letters
+              Letters
               {disputeLetters && disputeLetters.length > 0 && (
                 <Badge className="ml-2">{disputeLetters.length}</Badge>
               )}
@@ -359,6 +394,14 @@ export default function Dashboard() {
             <TabsTrigger value="tracking">
               <Mail className="h-4 w-4 mr-2" />
               Tracking
+            </TabsTrigger>
+            <TabsTrigger value="score">
+              <LineChart className="h-4 w-4 mr-2" />
+              Score
+            </TabsTrigger>
+            <TabsTrigger value="compare">
+              <Scale className="h-4 w-4 mr-2" />
+              Compare
             </TabsTrigger>
           </TabsList>
 
@@ -559,27 +602,48 @@ export default function Dashboard() {
                             }}
                             disabled={isUploading}
                           />
-                          <Button
-                            variant="outline"
-                            className="w-full"
+                          {/* Drag and Drop Zone */}
+                          <div
+                            onDragOver={(e) => handleDragOver(e, bureau)}
+                            onDragLeave={handleDragLeave}
+                            onDrop={(e) => handleDrop(e, bureau)}
                             onClick={() => document.getElementById(`upload-${bureau}`)?.click()}
-                            disabled={isUploading}
+                            className={`
+                              relative border-2 border-dashed rounded-lg p-6 cursor-pointer
+                              transition-all duration-200 ease-in-out
+                              ${dragOver === bureau 
+                                ? 'border-primary bg-primary/10 scale-[1.02]' 
+                                : 'border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50'
+                              }
+                              ${isUploading ? 'opacity-50 pointer-events-none' : ''}
+                            `}
                           >
                             {isUploading ? (
-                              <>
-                                <div className="h-4 w-4 mr-2 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                                Uploading...
-                              </>
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-8 w-8 animate-spin rounded-full border-3 border-primary border-t-transparent" />
+                                <span className="text-sm font-medium">Uploading...</span>
+                              </div>
+                            ) : dragOver === bureau ? (
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                  <Download className="h-6 w-6 text-primary animate-bounce" />
+                                </div>
+                                <span className="text-sm font-medium text-primary">Drop file here!</span>
+                              </div>
                             ) : (
-                              <>
-                                <Upload className="h-4 w-4 mr-2" />
-                                Upload Report
-                              </>
+                              <div className="flex flex-col items-center gap-2">
+                                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                                  <Upload className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <div className="text-center">
+                                  <span className="text-sm font-medium">Drag & drop or click</span>
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    PDF or image files
+                                  </p>
+                                </div>
+                              </div>
                             )}
-                          </Button>
-                          <p className="text-xs text-muted-foreground text-center">
-                            PDF or image files accepted
-                          </p>
+                          </div>
                         </div>
                       )}
                     </CardContent>
@@ -1042,6 +1106,24 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
 
+          {/* Score Tracker Tab */}
+          <TabsContent value="score" className="space-y-6">
+            <CreditScoreChart 
+              currentScore={(() => {
+                const scores = creditReports?.map(r => (r as any).creditScore).filter(Boolean) || [];
+                return scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+              })()}
+              targetScore={750}
+            />
+          </TabsContent>
+
+          {/* Letter Comparison Tab */}
+          <TabsContent value="compare" className="space-y-6">
+            <LetterComparison 
+              accountCount={negativeAccounts?.length || 0}
+              conflictCount={negativeAccounts?.filter(a => a.hasConflicts).length || 0}
+            />
+          </TabsContent>
 
         </Tabs>
       </div>
