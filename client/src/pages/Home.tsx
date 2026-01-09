@@ -60,6 +60,9 @@ export default function Home() {
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
               Money Back Guarantee
             </Link>
+            <Link href="/agency-pricing" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors">
+              Become a Merchant
+            </Link>
             {isAuthenticated ? (
               <UserDropdown />
             ) : (
@@ -1147,7 +1150,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-800 text-gray-300 py-12">
         <div className="container">
-          <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div className="grid md:grid-cols-5 gap-8 mb-8">
             {/* About */}
             <div>
               <h3 className="font-bold text-white text-lg mb-4">About DisputeStrike</h3>
@@ -1164,6 +1167,17 @@ export default function Home() {
                 <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
                 <li><a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a></li>
                 <li><Link href="/mailing-instructions" className="hover:text-white transition-colors">Mailing Guide</Link></li>
+              </ul>
+            </div>
+            
+            {/* For Businesses */}
+            <div>
+              <h3 className="font-bold text-white text-lg mb-4">For Businesses</h3>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/agency-pricing" className="text-orange-400 hover:text-orange-300 font-semibold transition-colors">Become a Merchant →</Link></li>
+                <li><Link href="/agency-pricing" className="hover:text-white transition-colors">Agency Pricing</Link></li>
+                <li><Link href="/agency-pricing" className="hover:text-white transition-colors">Multi-Client Management</Link></li>
+                <li><Link href="/agency-pricing" className="hover:text-white transition-colors">White-Label Options</Link></li>
               </ul>
             </div>
             

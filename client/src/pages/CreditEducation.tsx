@@ -891,8 +891,8 @@ If item is verified:
 ];
 
 export default function CreditEducation() {
-  const { user, isAuthenticated } = useAuth();
-  const [expandedModule, setExpandedModule] = useState<string | null>("module1");
+  const { isAuthenticated } = useAuth();
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 

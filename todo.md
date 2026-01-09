@@ -606,3 +606,12 @@ DisputeStrike
 - [x] Agency pricing page ($497/$997/$1997 plans)
 - [x] Add agency link to sidebar navigation
 - [x] API routes for agency client CRUD operations
+
+
+## Phase 77: Agency Portal Redesign + Fixes (Jan 9, 2026)
+- [x] Add "Become a Merchant" links to header and footer across site
+- [x] Redesign Agency Portal with business dashboard (revenue, active clients, letters generated)
+- [x] Agency client list with search/filter - click opens client's credit profile
+- [ ] Implement client report upload for agencies
+- [ ] Implement client letter generation from parsed client data
+- [x] Fix Credit Education training section (broken)
