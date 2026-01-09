@@ -219,12 +219,12 @@ export async function deleteNegativeAccountsByReportId(reportId: number): Promis
     .where(eq(negativeAccounts.userId, report.userId));
 }
 
-export async function updateCreditReportParsedData(reportId: number, parsedData: string): Promise<void> {
+export async function updateCreditReportParsedData(reportId: number, parsedData: string | null): Promise<void> {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
   await db.update(creditReports)
-    .set({ parsedData, isParsed: true })
+    .set({ parsedData, isParsed: parsedData !== null })
     .where(eq(creditReports.id, reportId));
 }
 

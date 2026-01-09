@@ -646,3 +646,8 @@ DisputeStrike
 - [x] Fix AI parser to extract ALL negative accounts (20+ per bureau)
 - [x] Improve parsing accuracy for large credit reports
 - [x] Ensure no accounts are missed during extraction
+
+## Phase 83: Credit Report Parsing UX Improvements (Jan 9, 2026)
+- [x] Add re-parse button for existing credit reports
+- [x] Show parsing progress indicator during PDF processing
+- [x] Add account count validation warning if fewer than expected

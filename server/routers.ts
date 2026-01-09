@@ -555,6 +555,39 @@ export const appRouter = router({
       }),
 
     /**
+     * Re-parse an existing credit report to extract more accounts
+     * Note: This adds NEW accounts found - it doesn't delete existing ones
+     * since accounts are deduplicated by name during parsing
+     */
+    reparse: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        
+        // Get report to verify ownership
+        const report = await db.getCreditReportById(input.id);
+        if (!report || report.userId !== userId) {
+          throw new Error('Report not found or access denied');
+        }
+
+        // Reset parsed status (don't delete accounts - parsing will dedupe)
+        const { updateCreditReportParsedData } = await import('./db');
+        await updateCreditReportParsedData(input.id, null);
+        
+        // Re-trigger AI parsing with improved prompts
+        // The parser will add any NEW accounts it finds (deduped by name)
+        const { parseAndSaveReport } = await import('./creditReportParser');
+        parseAndSaveReport(report.id, report.fileUrl, report.bureau as 'transunion' | 'equifax' | 'experian', userId).catch((err: Error) => {
+          console.error('Failed to re-parse credit report:', err);
+        });
+
+        return {
+          success: true,
+          message: 'Re-parsing started. AI is extracting accounts with improved detection...',
+        };
+      }),
+
+    /**
      * Delete credit report and associated negative accounts
      */
     delete: protectedProcedure

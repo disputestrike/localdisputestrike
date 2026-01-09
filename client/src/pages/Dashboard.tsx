@@ -258,6 +258,33 @@ export default function Dashboard() {
     },
   });
 
+  // Re-parse mutation
+  const [reparsingReportId, setReparsingReportId] = useState<number | null>(null);
+  const reparseReport = trpc.creditReports.reparse.useMutation({
+    onSuccess: () => {
+      toast.success('Re-parsing started! AI is extracting accounts with improved detection...');
+      refetchReports();
+      // Start polling for updates
+      setTimeout(() => {
+        refetchAccounts();
+        setReparsingReportId(null);
+      }, 5000);
+    },
+    onError: (error) => {
+      toast.error(`Re-parse failed: ${error.message}`);
+      setReparsingReportId(null);
+    },
+  });
+
+  const handleReparseReport = async (reportId: number) => {
+    setReparsingReportId(reportId);
+    try {
+      await reparseReport.mutateAsync({ id: reportId });
+    } catch (error) {
+      console.error('Re-parse failed:', error);
+    }
+  };
+
   const handleDeleteReport = async (reportId: number) => {
     try {
       await deleteReport.mutateAsync({ id: reportId });
@@ -399,7 +426,52 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       {report ? (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
+                          {/* Parsing Status */}
+                          {!report.isParsed || reparsingReportId === report.id ? (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="flex items-center gap-2 text-sm text-blue-700">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span className="font-medium">AI is analyzing your report...</span>
+                              </div>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Extracting negative accounts from all pages. This may take 30-60 seconds.
+                              </p>
+                            </div>
+                          ) : (
+                            <>
+                              {/* Account Count - show total since accounts aren't bureau-specific */}
+                              {(() => {
+                                // Total accounts across all bureaus (accounts are deduplicated)
+                                const totalAccounts = negativeAccounts?.length || 0;
+                                // Show per-bureau estimate (roughly 1/3 of total per bureau)
+                                const accountCount = Math.ceil(totalAccounts / 3);
+                                const isLowCount = totalAccounts < 15;
+                                return (
+                                  <div className={`rounded-lg p-3 ${isLowCount ? 'bg-amber-50 border border-amber-200' : 'bg-green-50 border border-green-200'}`}>
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2 text-sm">
+                                        {isLowCount ? (
+                                          <AlertTriangle className="h-4 w-4 text-amber-600" />
+                                        ) : (
+                                          <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                        )}
+                                        <span className={`font-medium ${isLowCount ? 'text-amber-700' : 'text-green-700'}`}>
+                                          {totalAccounts} total negative account{totalAccounts !== 1 ? 's' : ''}
+                                        </span>
+                                      </div>
+                                    </div>
+                                    {isLowCount && totalAccounts > 0 && (
+                                      <p className="text-xs text-amber-600 mt-1">
+                                        This seems low for a credit report. Try re-parsing to extract more accounts.
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+                            </>
+                          )}
+                          
                           <div className="flex items-center gap-2 text-sm">
                             <CheckCircle2 className="h-4 w-4 text-secondary" />
                             <span>Uploaded {new Date(report.uploadedAt).toLocaleDateString()}</span>
@@ -408,6 +480,8 @@ export default function Dashboard() {
                             <FileText className="h-4 w-4 text-muted-foreground" />
                             <span className="truncate">{report.fileName}</span>
                           </div>
+                          
+                          {/* Action Buttons */}
                           <div className="flex gap-2">
                             <Button 
                               variant="outline" 
@@ -416,18 +490,37 @@ export default function Dashboard() {
                               onClick={() => window.open(report.fileUrl, '_blank')}
                             >
                               <Eye className="h-4 w-4 mr-2" />
-                              View Report
+                              View
                             </Button>
                             <Button 
-                              variant="destructive" 
+                              variant="secondary" 
                               size="sm" 
                               className="flex-1"
-                              onClick={() => handleDeleteReport(report.id)}
+                              onClick={() => handleReparseReport(report.id)}
+                              disabled={reparsingReportId === report.id || !report.isParsed}
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
+                              {reparsingReportId === report.id ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Parsing...
+                                </>
+                              ) : (
+                                <>
+                                  <Bot className="h-4 w-4 mr-2" />
+                                  Re-parse
+                                </>
+                              )}
                             </Button>
                           </div>
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => handleDeleteReport(report.id)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Report
+                          </Button>
                         </div>
                       ) : (
                         <div className="space-y-2">
