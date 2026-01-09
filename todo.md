@@ -476,3 +476,32 @@ DisputeStrike
 - [ ] Professional body with FCRA citations
 - [ ] Enclosures list (ID, SSN card, utility bill if needed)
 - [ ] Single signature block at end
+
+
+## Phase 64: Master Test - Clean Slate
+
+- [ ] Delete all dispute letters for user
+- [ ] Delete all negative accounts for user
+- [ ] Delete all credit reports for user
+- [ ] Delete user profile data (to be re-extracted)
+- [ ] Verify dashboard shows clean state
+- [ ] User re-uploads credit reports
+- [ ] Verify personal info extracted from credit report
+- [ ] Verify negative accounts parsed correctly
+- [ ] Generate new dispute letters
+- [ ] Verify letters have no placeholders and no branding
+
+## Bug Fixes (Master Test)
+- [x] Fix hardcoded credit scores showing when no reports uploaded - should show empty/placeholder state
+
+- [ ] Fix Dashboard/Credit Reports page to use DashboardLayout with sidebar (match Inquiry Removal page)
+- [ ] Update logo to use correct DisputeStrike shield icon (testetre.png)
+
+
+---
+
+## Bug Fixes (Master Test - January 8, 2026)
+
+- [x] Fix hardcoded credit scores showing when no reports uploaded - now shows empty/placeholder state
+- [x] Fix Dashboard/Credit Reports page layout - now uses DashboardLayout with sidebar (matches Inquiry Removal page)
+- [x] Update logo to use correct DisputeStrike shield icon across all pages (About, Contact, Admin, AdminEnhanced, MailingInstructions)

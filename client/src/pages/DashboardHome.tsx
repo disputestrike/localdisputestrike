@@ -45,13 +45,17 @@ export default function DashboardHome() {
     return null;
   };
 
+  // Only show credit scores if we have actual data from uploaded reports
+  const hasReports = creditReports && creditReports.length > 0;
+  
   const creditScores = {
-    transunion: { score: getCreditScoreFromReport('transunion') || 612, change: +15 },
-    equifax: { score: getCreditScoreFromReport('equifax') || 598, change: -3 },
-    experian: { score: getCreditScoreFromReport('experian') || 621, change: +22 },
+    transunion: { score: getCreditScoreFromReport('transunion'), change: 0 },
+    equifax: { score: getCreditScoreFromReport('equifax'), change: 0 },
+    experian: { score: getCreditScoreFromReport('experian'), change: 0 },
   };
 
-  const getScoreColor = (score: number) => {
+  const getScoreColor = (score: number | null) => {
+    if (!score) return "text-gray-400";
     if (score >= 750) return "text-green-400";
     if (score >= 700) return "text-emerald-400";
     if (score >= 650) return "text-yellow-400";
@@ -59,7 +63,8 @@ export default function DashboardHome() {
     return "text-red-400";
   };
 
-  const getScoreLabel = (score: number) => {
+  const getScoreLabel = (score: number | null) => {
+    if (!score) return "No Data";
     if (score >= 750) return "Excellent";
     if (score >= 700) return "Good";
     if (score >= 650) return "Fair";
@@ -124,23 +129,29 @@ export default function DashboardHome() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm font-medium text-gray-500 capitalize">{bureau}</span>
-                <Badge
-                  variant="outline"
-                  className={data.change >= 0 ? "border-green-500/30 text-green-400" : "border-red-500/30 text-red-400"}
-                >
-                  {data.change >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
-                  {data.change >= 0 ? "+" : ""}{data.change}
-                </Badge>
+                {data.score && data.change !== 0 ? (
+                  <Badge
+                    variant="outline"
+                    className={data.change >= 0 ? "border-green-500/30 text-green-400" : "border-red-500/30 text-red-400"}
+                  >
+                    {data.change >= 0 ? <TrendingUp className="h-3 w-3 mr-1" /> : <TrendingDown className="h-3 w-3 mr-1" />}
+                    {data.change >= 0 ? "+" : ""}{data.change}
+                  </Badge>
+                ) : null}
               </div>
               <div className="flex items-end gap-2">
-                <span className={`text-4xl font-bold ${getScoreColor(data.score)}`}>{data.score}</span>
+                <span className={`text-4xl font-bold ${getScoreColor(data.score)}`}>
+                  {data.score || "---"}
+                </span>
                 <span className="text-sm text-gray-400 mb-1">{getScoreLabel(data.score)}</span>
               </div>
               <Progress
-                value={(data.score / 850) * 100}
+                value={data.score ? (data.score / 850) * 100 : 0}
                 className="mt-4 h-2 bg-gray-100"
               />
-              <p className="text-xs text-gray-400 mt-2">Last updated: Today</p>
+              <p className="text-xs text-gray-400 mt-2">
+                {data.score ? "Last updated: Today" : "Upload credit report to see score"}
+              </p>
             </CardContent>
           </Card>
         ))}

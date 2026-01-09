@@ -425,6 +425,18 @@ export const appRouter = router({
         
         return await getRecentParserComparisons(input.limit || 50);
       }),
+    // Cleanup user data for master test
+    cleanupUserData: protectedProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        // Only allow users to cleanup their own data, or admins to cleanup any
+        if (ctx.user.id !== input.userId && ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Cannot cleanup other user data' });
+        }
+        
+        const { cleanupUserData } = await import('./cleanupUserData');
+        return await cleanupUserData(input.userId);
+      }),
   }),
   ai: router({
     chat: protectedProcedure

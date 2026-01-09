@@ -1,3 +1,4 @@
+import DashboardLayout from "@/components/DashboardLayout";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -280,30 +281,8 @@ export default function Dashboard() {
   const progress = (progressSteps.filter(s => s.done).length / progressSteps.length) * 100;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">DisputeStrike AI</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">Welcome, {user?.name}</span>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/ai-assistant">
-                <Bot className="h-4 w-4 mr-2" />
-                AI Assistant
-              </Link>
-            </Button>
-            <Button variant="outline" size="sm" asChild>
-              <Link href="/">Home</Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8 space-y-8">
+    <DashboardLayout>
+      <div className="space-y-6">
         {/* Progress Section */}
         <Card>
           <CardHeader>
@@ -1189,6 +1168,6 @@ export default function Dashboard() {
           </Card>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
