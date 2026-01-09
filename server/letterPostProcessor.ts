@@ -1,7 +1,7 @@
 /**
  * Letter Post-Processor
  * Ensures all required sections are present in generated letters
- * and adds missing components like exhibit system, summary table, etc.
+ * and CRITICALLY: replaces any remaining placeholder text with actual user data
  */
 
 export interface AccountData {
@@ -16,12 +16,132 @@ export interface AccountData {
   lastActivity?: string | null;
 }
 
+export interface UserData {
+  fullName: string;
+  address: string;
+  previousAddress?: string;
+  phone?: string;
+  email?: string;
+  dob?: string;
+  ssn4?: string;
+}
+
 export interface LetterAnalysis {
   hasImpossibleTimeline: boolean;
   impossibleTimelineAccounts: AccountData[];
   severityGrades: Map<number, 'CRITICAL' | 'HIGH' | 'MEDIUM'>;
   crossBureauConflicts: AccountData[];
   balanceDiscrepancies: AccountData[];
+}
+
+/**
+ * CRITICAL: Replace ALL placeholder text with actual user data
+ * This is the foundation - letters are UNUSABLE without this
+ */
+export function replacePlaceholders(letter: string, userData: UserData): string {
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  
+  // Replace ALL possible placeholder variations
+  let result = letter;
+  
+  // Name placeholders
+  result = result.replace(/\[Your Name\]/gi, userData.fullName);
+  result = result.replace(/\[Your Full Name\]/gi, userData.fullName);
+  result = result.replace(/\[Consumer Name\]/gi, userData.fullName);
+  result = result.replace(/\[NAME\]/gi, userData.fullName);
+  result = result.replace(/\[Full Name\]/gi, userData.fullName);
+  result = result.replace(/\[Printed Name\]/gi, userData.fullName);
+  result = result.replace(/\[Signature\]/gi, userData.fullName);
+  
+  // Address placeholders
+  result = result.replace(/\[Your Address\]/gi, userData.address);
+  result = result.replace(/\[Your Street Address\]/gi, userData.address);
+  result = result.replace(/\[Street Address\]/gi, userData.address);
+  result = result.replace(/\[Address\]/gi, userData.address);
+  result = result.replace(/\[Your Current Address\]/gi, userData.address);
+  result = result.replace(/\[City, State ZIP\]/gi, ''); // Already in address
+  result = result.replace(/\[City, State, ZIP\]/gi, '');
+  result = result.replace(/\[City, State Zip\]/gi, '');
+  
+  // Previous address
+  if (userData.previousAddress) {
+    result = result.replace(/\[Previous Address\]/gi, userData.previousAddress);
+    result = result.replace(/\[Your Previous Address\]/gi, userData.previousAddress);
+  } else {
+    result = result.replace(/\[Previous Address\]/gi, '');
+    result = result.replace(/\[Your Previous Address\]/gi, '');
+  }
+  
+  // Date placeholders
+  result = result.replace(/\[Date\]/gi, today);
+  result = result.replace(/\[Today's Date\]/gi, today);
+  result = result.replace(/\[Current Date\]/gi, today);
+  result = result.replace(/\[DATE\]/gi, today);
+  
+  // DOB placeholders
+  if (userData.dob) {
+    result = result.replace(/\[Your DOB\]/gi, userData.dob);
+    result = result.replace(/\[DOB\]/gi, userData.dob);
+    result = result.replace(/\[Date of Birth\]/gi, userData.dob);
+    result = result.replace(/\[Your Date of Birth\]/gi, userData.dob);
+  } else {
+    // Remove DOB lines if not provided
+    result = result.replace(/Date of Birth:?\s*\[Your DOB\]\n?/gi, '');
+    result = result.replace(/DOB:?\s*\[DOB\]\n?/gi, '');
+    result = result.replace(/\[Your DOB\]/gi, '');
+    result = result.replace(/\[DOB\]/gi, '');
+  }
+  
+  // SSN placeholders
+  if (userData.ssn4) {
+    result = result.replace(/\[Your SSN - Last 4 Digits\]/gi, `XXX-XX-${userData.ssn4}`);
+    result = result.replace(/\[SSN Last 4\]/gi, `XXX-XX-${userData.ssn4}`);
+    result = result.replace(/\[Last 4 SSN\]/gi, `XXX-XX-${userData.ssn4}`);
+    result = result.replace(/\[SSN\]/gi, `XXX-XX-${userData.ssn4}`);
+  } else {
+    // Remove SSN lines if not provided
+    result = result.replace(/SSN:?\s*\[Your SSN - Last 4 Digits\]\n?/gi, '');
+    result = result.replace(/Social Security:?\s*\[SSN Last 4\]\n?/gi, '');
+    result = result.replace(/\[Your SSN - Last 4 Digits\]/gi, '');
+    result = result.replace(/\[SSN Last 4\]/gi, '');
+    result = result.replace(/\[Last 4 SSN\]/gi, '');
+    result = result.replace(/\[SSN\]/gi, '');
+  }
+  
+  // Phone placeholders
+  if (userData.phone) {
+    result = result.replace(/\[Your Phone Number\]/gi, userData.phone);
+    result = result.replace(/\[Phone Number\]/gi, userData.phone);
+    result = result.replace(/\[Phone\]/gi, userData.phone);
+  } else {
+    result = result.replace(/Phone:?\s*\[Your Phone Number\]\n?/gi, '');
+    result = result.replace(/\[Your Phone Number\]/gi, '');
+    result = result.replace(/\[Phone Number\]/gi, '');
+    result = result.replace(/\[Phone\]/gi, '');
+  }
+  
+  // Email placeholders
+  if (userData.email) {
+    result = result.replace(/\[Your Email Address\]/gi, userData.email);
+    result = result.replace(/\[Your Email\]/gi, userData.email);
+    result = result.replace(/\[Email Address\]/gi, userData.email);
+    result = result.replace(/\[Email\]/gi, userData.email);
+  } else {
+    result = result.replace(/Email:?\s*\[Your Email Address\]\n?/gi, '');
+    result = result.replace(/\[Your Email Address\]/gi, '');
+    result = result.replace(/\[Your Email\]/gi, '');
+    result = result.replace(/\[Email Address\]/gi, '');
+    result = result.replace(/\[Email\]/gi, '');
+  }
+  
+  // Clean up any remaining bracket placeholders that look like [Something]
+  // This catches any we might have missed
+  result = result.replace(/\[Your [^\]]+\]/gi, '');
+  
+  // Clean up double newlines that might result from removing lines
+  result = result.replace(/\n{3,}/g, '\n\n');
+  
+  return result;
 }
 
 /**
@@ -232,20 +352,45 @@ Generated by DisputeStrike - AI-Powered Credit Dispute Platform
 }
 
 /**
+ * Remove duplicate signature blocks - keep only the LAST one
+ */
+export function removeDuplicateSignatures(letter: string, userName: string): string {
+  // Find all "Sincerely" occurrences
+  const sincerelyMatches = letter.match(/Sincerely,?\s*\n+[^\n]+/gi);
+  
+  if (sincerelyMatches && sincerelyMatches.length > 1) {
+    // Remove all but the last signature block
+    let result = letter;
+    for (let i = 0; i < sincerelyMatches.length - 1; i++) {
+      result = result.replace(sincerelyMatches[i], '');
+    }
+    return result;
+  }
+  
+  return letter;
+}
+
+/**
  * Post-process a letter to ensure all required sections are present
+ * and CRITICALLY: replace all placeholders with actual user data
  */
 export function postProcessLetter(
   rawLetter: string,
   accounts: AccountData[],
   bureau: string,
-  userName: string
+  userData: UserData
 ): string {
   const analysis = analyzeAccounts(accounts);
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   
-  let processedLetter = rawLetter;
+  // STEP 1: Replace ALL placeholders with actual user data
+  // This is the CRITICAL foundation - without this, letters are UNUSABLE
+  let processedLetter = replacePlaceholders(rawLetter, userData);
 
-  // Check if summary table exists, if not add it
+  // STEP 2: Remove duplicate signature blocks
+  processedLetter = removeDuplicateSignatures(processedLetter, userData.fullName);
+
+  // STEP 3: Check if summary table exists, if not add it
   if (!processedLetter.includes('SUMMARY OF DEMANDS') && !processedLetter.includes('Summary of Demands')) {
     // Find a good insertion point (before signature or at end)
     const signatureIndex = processedLetter.lastIndexOf('Sincerely');
@@ -259,7 +404,7 @@ export function postProcessLetter(
     }
   }
 
-  // Check if exhibit section exists, if not add it
+  // STEP 4: Check if exhibit section exists, if not add it
   if (!processedLetter.includes('Exhibit A') && !processedLetter.includes('ENCLOSURES')) {
     const signatureIndex = processedLetter.lastIndexOf('Sincerely');
     if (signatureIndex > 0) {
@@ -272,7 +417,7 @@ export function postProcessLetter(
     }
   }
 
-  // Check if consequences section with agency threats exists
+  // STEP 5: Check if consequences section with agency threats exists
   if (!processedLetter.includes('CFPB') && !processedLetter.includes('Consumer Financial Protection Bureau')) {
     const signatureIndex = processedLetter.lastIndexOf('Sincerely');
     if (signatureIndex > 0) {
@@ -285,18 +430,18 @@ export function postProcessLetter(
     }
   }
 
-  // Add mailing instructions at the very end
+  // STEP 6: Add mailing instructions at the very end
   if (!processedLetter.includes('HOW TO MAIL THIS LETTER')) {
     processedLetter += generateMailingInstructions(bureau);
   }
 
-  // Ensure proper signature
+  // STEP 7: Ensure proper signature
   if (!processedLetter.includes('Sincerely')) {
     processedLetter += `
 
 Sincerely,
 
-${userName}
+${userData.fullName}
 `;
   }
 
@@ -309,7 +454,7 @@ ${userName}
 export function generateCoverPage(
   accounts: AccountData[],
   bureau: string,
-  userName: string
+  userData: UserData
 ): string {
   const analysis = analyzeAccounts(accounts);
   const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -336,7 +481,7 @@ export function generateCoverPage(
                          DISPUTE LETTER SUMMARY
                          Generated: ${today}
                          Bureau: ${bureauName}
-                         Consumer: ${userName}
+                         Consumer: ${userData.fullName}
 ═══════════════════════════════════════════════════════════════════════════════
 
 ACCOUNTS BEING DISPUTED: ${accounts.length} total

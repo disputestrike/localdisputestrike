@@ -671,12 +671,26 @@ You help users understand their credit reports, identify violations, and develop
           // Import and use post-processor to ensure all required sections
           const { postProcessLetter, generateCoverPage } = await import('./letterPostProcessor');
           
+          // Get user profile for complete data
+          const userProfile = await db.getUserProfile(userId);
+          
+          // Build UserData object with all available info
+          const userData = {
+            fullName: userProfile?.fullName || userName,
+            address: input.currentAddress,
+            previousAddress: input.previousAddress,
+            phone: userProfile?.phone || undefined,
+            email: ctx.user.email || undefined,
+            dob: userProfile?.dateOfBirth || undefined,
+            ssn4: userProfile?.ssnLast4 || undefined,
+          };
+          
           let letterContent: string;
           if (typeof rawContent === 'string') {
-            // Post-process the AI output to add missing sections
-            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userName);
+            // Post-process the AI output to add missing sections AND replace placeholders
+            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userData);
             // Add cover page summary
-            const coverPage = generateCoverPage(accounts, bureau, userName);
+            const coverPage = generateCoverPage(accounts, bureau, userData);
             letterContent = coverPage + processedLetter;
           } else {
             letterContent = generatePlaceholderLetter(userName, bureau, input.currentAddress, accounts.length);

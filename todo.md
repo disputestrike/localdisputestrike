@@ -427,3 +427,13 @@ DisputeStrike
 - [x] Add profile API endpoints (get, update)
 - [x] Add comprehensive Settings page with profile form
 - [x] Add preview modal showing letter info before generation
+
+
+## Phase 62: CRITICAL Letter Fixes (User Feedback - URGENT)
+
+- [x] Fix placeholder replacement - [Your Name], [Address], [Phone], [Email], [Date], [DOB], [SSN] now replaced with actual data
+- [x] Add exhibit system (A-F labels) to generated letters
+- [x] Add summary table at end of letters
+- [x] Add impossible timeline detection (flag accounts where Last Activity < Date Opened)
+- [x] Remove duplicate signature blocks
+- [ ] Ensure ALL accounts are included (22 accounts, not just 7) - need to verify
