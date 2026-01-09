@@ -636,3 +636,8 @@ DisputeStrike
 - [x] Add "Become a Merchant" links to header and footer
 - [x] Redesign Agency Portal with business dashboard (revenue, clients, stats)
 - [x] Agency client list with search/filter - click opens client's credit profile
+
+
+## Phase 80: Fix Agency Signup 404 (Jan 9, 2026)
+- [ ] Fix agency signup route showing 404
+- [ ] Verify all agency routes work
