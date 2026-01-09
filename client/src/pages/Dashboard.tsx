@@ -36,6 +36,7 @@ import { DisputeSuccessPredictor } from "@/components/DisputeSuccessPredictor";
 import { SmartLetterScheduler } from "@/components/SmartLetterScheduler";
 import { BureauResponseAnalyzer } from "@/components/BureauResponseAnalyzer";
 import { MobileUploadZone } from "@/components/MobileUploadZone";
+import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -66,6 +67,11 @@ export default function Dashboard() {
     }
   );
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
+  
+  // Document vault queries
+  const { data: userDocuments, refetch: refetchDocuments, isLoading: isLoadingDocuments } = trpc.documents.list.useQuery();
+  const createDocument = trpc.documents.create.useMutation();
+  const deleteDocument = trpc.documents.delete.useMutation();
 
   // Letter generation state
   const [isGeneratingLetters, setIsGeneratingLetters] = useState(false);
@@ -410,6 +416,10 @@ export default function Dashboard() {
             <TabsTrigger value="progress">
               <Target className="h-4 w-4 mr-2" />
               Progress
+            </TabsTrigger>
+            <TabsTrigger value="documents">
+              <Shield className="h-4 w-4 mr-2" />
+              Documents
             </TabsTrigger>
           </TabsList>
 
@@ -1150,6 +1160,66 @@ export default function Dashboard() {
                 window.open('https://www.consumerfinance.gov/complaint/', '_blank');
                 toast.info(`Opening CFPB complaint form for ${bureau}`);
               }}
+            />
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="space-y-6">
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription>
+                Securely store your ID documents, proof of address, and dispute-related files. All documents are encrypted and only accessible by you.
+              </AlertDescription>
+            </Alert>
+
+            <DocumentVault 
+              onUpload={async (file, documentType, documentName) => {
+                try {
+                  // Read file as array buffer
+                  const arrayBuffer = await file.arrayBuffer();
+                  const fileData = Array.from(new Uint8Array(arrayBuffer));
+                  
+                  // Map mime type to allowed content type
+                  const contentTypeMap: Record<string, 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif'> = {
+                    'application/pdf': 'application/pdf',
+                    'image/jpeg': 'image/jpeg',
+                    'image/jpg': 'image/jpeg',
+                    'image/png': 'image/png',
+                    'image/gif': 'image/gif',
+                  };
+                  const contentType = contentTypeMap[file.type] || 'application/pdf';
+                  
+                  // Upload to S3
+                  const result = await uploadToS3.mutateAsync({
+                    fileKey: `documents/${Date.now()}_${file.name}`,
+                    fileData,
+                    contentType,
+                  });
+                  
+                  // Create document record
+                  await createDocument.mutateAsync({
+                    documentType: documentType as any,
+                    documentName,
+                    fileKey: result.key,
+                    fileName: file.name,
+                    fileSize: file.size,
+                    mimeType: file.type,
+                  });
+                  
+                  refetchDocuments();
+                  toast.success('Document uploaded successfully');
+                } catch (error) {
+                  console.error('Upload error:', error);
+                  toast.error('Failed to upload document');
+                }
+              }}
+              onDelete={async (documentId) => {
+                await deleteDocument.mutateAsync({ documentId });
+                refetchDocuments();
+                toast.success('Document deleted');
+              }}
+              documents={userDocuments || []}
+              isLoading={isLoadingDocuments}
             />
           </TabsContent>
 

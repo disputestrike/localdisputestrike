@@ -19,6 +19,13 @@ import {
   AlertCircle,
   Gavel
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import CFPBComplaintGenerator from './CFPBComplaintGenerator';
 
 interface DisputeLetter {
   id: number;
@@ -40,6 +47,7 @@ interface DisputeTimelineListProps {
 
 export default function DisputeTimelineList({ letters, onUpdateStatus, onFileCFPB }: DisputeTimelineListProps) {
   const [expandedLetter, setExpandedLetter] = useState<number | null>(null);
+  const [cfpbModalLetter, setCfpbModalLetter] = useState<DisputeLetter | null>(null);
 
   const getBureauColor = (bureau: string) => {
     switch (bureau.toLowerCase()) {
@@ -340,14 +348,14 @@ export default function DisputeTimelineList({ letters, onUpdateStatus, onFileCFP
                         </Button>
                       </>
                     )}
-                    {isOverdue && onFileCFPB && (
+                    {isOverdue && (
                       <Button 
                         size="sm"
                         variant="destructive"
-                        onClick={() => onFileCFPB(letter.id)}
+                        onClick={() => setCfpbModalLetter(letter)}
                       >
                         <Gavel className="h-4 w-4 mr-2" />
-                        File CFPB Complaint
+                        Generate CFPB Complaint
                       </Button>
                     )}
                   </div>
@@ -449,6 +457,34 @@ export default function DisputeTimelineList({ letters, onUpdateStatus, onFileCFP
           );
         })}
       </div>
+
+      {/* CFPB Complaint Generator Modal */}
+      <Dialog open={!!cfpbModalLetter} onOpenChange={(open) => !open && setCfpbModalLetter(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Generate CFPB Complaint</DialogTitle>
+          </DialogHeader>
+          {cfpbModalLetter && (
+            <CFPBComplaintGenerator
+              letter={{
+                id: cfpbModalLetter.id,
+                bureau: cfpbModalLetter.bureau,
+                mailedAt: cfpbModalLetter.mailedAt || null,
+                responseDeadline: cfpbModalLetter.responseDeadline || null,
+                trackingNumber: cfpbModalLetter.trackingNumber,
+                accounts: cfpbModalLetter.accounts?.map(a => ({
+                  accountName: a.accountName,
+                  accountNumber: '',
+                })),
+              }}
+              onComplaintFiled={(letterId) => {
+                setCfpbModalLetter(null);
+                onFileCFPB?.(letterId);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

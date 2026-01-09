@@ -4,12 +4,14 @@
  */
 
 import { runDeadlineNotificationJob } from './deadlineNotificationService';
+import { processDeadlineSMSNotifications, isSMSEnabled } from './smsService';
 
 // Track if cron jobs are already running
 let cronJobsStarted = false;
 
 // Store interval IDs for cleanup
 let deadlineNotificationInterval: NodeJS.Timeout | null = null;
+let smsNotificationInterval: NodeJS.Timeout | null = null;
 
 /**
  * Calculate milliseconds until next 9am
@@ -66,6 +68,39 @@ export function startDeadlineNotificationCron(): void {
 }
 
 /**
+ * Start the SMS notification cron job
+ * Runs every 4 hours to check for critical deadlines
+ */
+export function startSMSNotificationCron(): void {
+  if (smsNotificationInterval) {
+    console.log('[Cron] SMS notification job already scheduled');
+    return;
+  }
+
+  if (!isSMSEnabled()) {
+    console.log('[Cron] SMS notifications not configured (missing Twilio credentials)');
+    return;
+  }
+
+  console.log('[Cron] Starting SMS notification cron job (every 4 hours)');
+
+  // Run immediately on startup
+  processDeadlineSMSNotifications().catch(err => {
+    console.error('[Cron] SMS notification job failed:', err);
+  });
+
+  // Then run every 4 hours
+  smsNotificationInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled SMS notification job');
+    processDeadlineSMSNotifications().catch(err => {
+      console.error('[Cron] SMS notification job failed:', err);
+    });
+  }, 4 * 60 * 60 * 1000); // 4 hours
+
+  console.log('[Cron] SMS notification cron job scheduled successfully');
+}
+
+/**
  * Stop all cron jobs
  */
 export function stopCronJobs(): void {
@@ -73,6 +108,11 @@ export function stopCronJobs(): void {
     clearInterval(deadlineNotificationInterval);
     deadlineNotificationInterval = null;
     console.log('[Cron] Deadline notification cron job stopped');
+  }
+  if (smsNotificationInterval) {
+    clearInterval(smsNotificationInterval);
+    smsNotificationInterval = null;
+    console.log('[Cron] SMS notification cron job stopped');
   }
 }
 
@@ -90,6 +130,9 @@ export function startAllCronJobs(): void {
   
   // Start deadline notification cron
   startDeadlineNotificationCron();
+  
+  // Start SMS notification cron
+  startSMSNotificationCron();
   
   cronJobsStarted = true;
   console.log('[Cron] All cron jobs started successfully');

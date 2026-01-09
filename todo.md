@@ -815,3 +815,19 @@ DisputeStrike
 - DocumentVault.tsx: Full document management with categories, search, expiration tracking
 - userDocuments table: 16 columns for secure document storage with S3 integration
 - documents tRPC router: CRUD operations, type filtering, expiration queries
+
+
+## Phase 93: Dashboard Integration & SMS (Jan 9, 2026)
+
+### New Features
+- [x] Documents tab in dashboard - Integrate DocumentVault component into dashboard tabs
+- [x] CFPB integration in timeline - Add CFPBComplaintGenerator to overdue disputes in timeline
+- [x] SMS notifications for deadlines - Twilio integration for critical deadline alerts
+
+### Implementation Details:
+- New "Documents" tab added to dashboard with full DocumentVault integration
+- S3 upload support for document storage (PDF, JPG, PNG)
+- CFPB modal integrated into DisputeTimelineList for overdue disputes
+- smsService.ts: Twilio integration with deadline reminders, FCRA violation alerts
+- SMS cron job runs every 4 hours for critical deadline notifications
+- Supports 7-day, 3-day, 1-day, and overdue SMS alerts
