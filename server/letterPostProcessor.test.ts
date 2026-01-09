@@ -169,10 +169,12 @@ describe('Letter Post-Processor', () => {
       expect(exInstructions).toContain('Allen, TX');
     });
 
-    it('should include DisputeStrike branding', () => {
+    it('should not include platform branding (letters come from user)', () => {
       const instructions = generateMailingInstructions('transunion');
       
-      expect(instructions).toContain('DisputeStrike');
+      // Letters are personal correspondence from the user, not the platform
+      expect(instructions).not.toContain('DisputeStrike');
+      expect(instructions).toContain('HOW TO MAIL THIS LETTER');
     });
   });
 

@@ -139,11 +139,19 @@ export function replacePlaceholders(letter: string, userData: UserData): string 
     result = result.replace(/\[Date of Birth\]/gi, userData.dob);
     result = result.replace(/\[Your Date of Birth\]/gi, userData.dob);
   } else {
-    // Remove DOB lines if not provided
+    // Remove DOB lines if not provided - handle ALL variations
     result = result.replace(/Date of Birth:?\s*\[Your DOB\]\n?/gi, '');
+    result = result.replace(/Date of Birth:?\s*\[DOB\]\n?/gi, '');
+    result = result.replace(/Date of Birth:?\s*\[Date of Birth\]\n?/gi, '');
+    result = result.replace(/Date of Birth:?\s*\[Your Date of Birth\]\n?/gi, '');
+    result = result.replace(/Date of Birth:?\s*\n?/gi, ''); // Remove empty DOB lines
     result = result.replace(/DOB:?\s*\[DOB\]\n?/gi, '');
+    result = result.replace(/DOB:?\s*\[Your DOB\]\n?/gi, '');
+    result = result.replace(/DOB:?\s*\n?/gi, ''); // Remove empty DOB lines
     result = result.replace(/\[Your DOB\]/gi, '');
     result = result.replace(/\[DOB\]/gi, '');
+    result = result.replace(/\[Date of Birth\]/gi, '');
+    result = result.replace(/\[Your Date of Birth\]/gi, '');
   }
   
   // SSN placeholders

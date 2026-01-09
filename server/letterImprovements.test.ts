@@ -85,8 +85,9 @@ describe('Letter Generation Improvements', () => {
   });
 
   describe('Branding', () => {
-    it('should use DisputeStrike branding', () => {
-      expect(routersContent).toContain('DisputeStrike');
+    it('should not use DisputeForce branding', () => {
+      // Letters come from the user, not the platform
+      // But we should not have old DisputeForce branding anywhere
       expect(routersContent).not.toContain('DisputeForce');
     });
   });

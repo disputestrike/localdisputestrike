@@ -1,4 +1,8 @@
 import { COOKIE_NAME } from "@shared/const";
+/**
+ * DisputeStrike - AI-Powered Credit Dispute Platform
+ * Main API Router Configuration
+ */
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
