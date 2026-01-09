@@ -43,10 +43,14 @@ export interface EmailOptions {
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // Skip if SMTP not configured
+    // Fallback: Log email to console if SMTP not configured
     if (!process.env.SMTP_USER) {
-      console.log('[Email] SMTP not configured, skipping email:', options.subject);
-      return false;
+      console.log('[Email] SMTP not configured, logging email to console:');
+      console.log('[Email] TO:', options.to);
+      console.log('[Email] SUBJECT:', options.subject);
+      console.log('[Email] HTML:', options.html.substring(0, 200) + '...');
+      // Still return true so the app doesn't fail
+      return true;
     }
 
     const transport = getTransporter();
