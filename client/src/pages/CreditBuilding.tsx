@@ -77,49 +77,49 @@ export default function CreditBuilding() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <TrendingUp className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <TrendingUp className="h-6 w-6 text-orange-500" />
             Credit Building
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-gray-500 mt-1">
             Strategies to build and improve your credit score
           </p>
         </div>
 
         {/* Credit Utilization Calculator */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Calculator className="h-5 w-5 text-cyan-400" />
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Calculator className="h-5 w-5 text-orange-500" />
               Credit Utilization Calculator
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-gray-500">
               Keep your utilization under 30% for best results
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
-                <label className="text-sm text-slate-400">Total Credit Limit</label>
-                <div className="text-2xl font-bold text-white">$10,000</div>
+                <label className="text-sm text-gray-500">Total Credit Limit</label>
+                <div className="text-2xl font-bold text-gray-900">$10,000</div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-400">Current Balance</label>
-                <div className="text-2xl font-bold text-white">$2,500</div>
+                <label className="text-sm text-gray-500">Current Balance</label>
+                <div className="text-2xl font-bold text-gray-900">$2,500</div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm text-slate-400">Utilization Rate</label>
+                <label className="text-sm text-gray-500">Utilization Rate</label>
                 <div className="text-2xl font-bold text-yellow-400">25%</div>
               </div>
             </div>
             <div className="mt-4">
-              <div className="flex justify-between text-sm text-slate-400 mb-2">
+              <div className="flex justify-between text-sm text-gray-500 mb-2">
                 <span>0%</span>
                 <span className="text-green-400">Excellent (1-9%)</span>
                 <span className="text-yellow-400">Good (10-29%)</span>
                 <span className="text-red-400">High (30%+)</span>
               </div>
-              <Progress value={25} className="h-3 bg-slate-800" />
+              <Progress value={25} className="h-3 bg-gray-100" />
             </div>
           </CardContent>
         </Card>
@@ -127,16 +127,16 @@ export default function CreditBuilding() {
         {/* Credit Building Strategies */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {creditBuildingStrategies.map((strategy, index) => (
-            <Card key={index} className="bg-slate-900 border-slate-800">
+            <Card key={index} className="bg-white border-gray-200">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-cyan-500/10 rounded-lg">
-                      <strategy.icon className="h-5 w-5 text-cyan-400" />
+                    <div className="p-2 bg-orange-50 rounded-lg">
+                      <strategy.icon className="h-5 w-5 text-orange-500" />
                     </div>
                     <div>
-                      <CardTitle className="text-white text-lg">{strategy.title}</CardTitle>
-                      <CardDescription className="text-slate-400">
+                      <CardTitle className="text-gray-900 text-lg">{strategy.title}</CardTitle>
+                      <CardDescription className="text-gray-500">
                         {strategy.description}
                       </CardDescription>
                     </div>
@@ -155,14 +155,14 @@ export default function CreditBuilding() {
                   >
                     {strategy.difficulty}
                   </Badge>
-                  <Badge variant="outline" className="border-slate-600 text-slate-400">
+                  <Badge variant="outline" className="border-gray-400 text-gray-500">
                     {strategy.timeToImpact}
                   </Badge>
                 </div>
                 <ul className="space-y-2">
                   {strategy.tips.map((tip, tipIndex) => (
-                    <li key={tipIndex} className="flex items-start gap-2 text-sm text-slate-300">
-                      <CheckCircle2 className="h-4 w-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                    <li key={tipIndex} className="flex items-start gap-2 text-sm text-gray-700">
+                      <CheckCircle2 className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
                       {tip}
                     </li>
                   ))}
@@ -173,9 +173,9 @@ export default function CreditBuilding() {
         </div>
 
         {/* Score Improvement Tips */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-yellow-400" />
               Quick Score Improvement Tips
             </CardTitle>
@@ -199,14 +199,14 @@ export default function CreditBuilding() {
                   impact: "+50-100 points",
                 },
               ].map((tip, index) => (
-                <div key={index} className="p-4 bg-slate-800/50 rounded-lg">
+                <div key={index} className="p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium text-white">{tip.title}</h4>
+                    <h4 className="font-medium text-gray-900">{tip.title}</h4>
                     <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                       {tip.impact}
                     </Badge>
                   </div>
-                  <p className="text-sm text-slate-400">{tip.desc}</p>
+                  <p className="text-sm text-gray-500">{tip.desc}</p>
                 </div>
               ))}
             </div>
@@ -214,23 +214,23 @@ export default function CreditBuilding() {
         </Card>
 
         {/* CTA */}
-        <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-cyan-500/30">
+        <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-orange-300">
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="p-3 bg-cyan-500/20 rounded-xl">
-                  <Target className="h-8 w-8 text-cyan-400" />
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <Target className="h-8 w-8 text-orange-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-white">
+                  <h3 className="text-lg font-semibold text-gray-900">
                     Ready to start building credit?
                   </h3>
-                  <p className="text-sm text-slate-300">
+                  <p className="text-sm text-gray-700">
                     Check out our marketplace for credit building products
                   </p>
                 </div>
               </div>
-              <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
+              <Button className="bg-cyan-500 hover:bg-orange-500 text-gray-900">
                 View Marketplace
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

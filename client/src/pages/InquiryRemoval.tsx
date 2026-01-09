@@ -125,16 +125,16 @@ export default function InquiryRemoval() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Search className="h-6 w-6 text-cyan-400" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Search className="h-6 w-6 text-orange-500" />
               Inquiry Removal
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-gray-500 mt-1">
               Dispute unauthorized hard inquiries on your credit reports
             </p>
           </div>
           <Button
-            className="bg-cyan-500 hover:bg-cyan-600 text-white"
+            className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
             onClick={handleGenerateLetters}
             disabled={isGenerating || selectedInquiries.length === 0}
           >
@@ -154,61 +154,61 @@ export default function InquiryRemoval() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-500/10 rounded-lg">
                   <AlertTriangle className="h-5 w-5 text-red-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{activeInquiries.length}</p>
-                  <p className="text-xs text-slate-400">Active Inquiries</p>
+                  <p className="text-2xl font-bold text-gray-900">{activeInquiries.length}</p>
+                  <p className="text-xs text-gray-500">Active Inquiries</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-yellow-500/10 rounded-lg">
                   <Clock className="h-5 w-5 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{disputedInquiries.length}</p>
-                  <p className="text-xs text-slate-400">Disputed</p>
+                  <p className="text-2xl font-bold text-gray-900">{disputedInquiries.length}</p>
+                  <p className="text-xs text-gray-500">Disputed</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/10 rounded-lg">
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{removedInquiries.length}</p>
-                  <p className="text-xs text-slate-400">Removed</p>
+                  <p className="text-2xl font-bold text-gray-900">{removedInquiries.length}</p>
+                  <p className="text-xs text-gray-500">Removed</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-cyan-500/10 rounded-lg">
-                  <Trash2 className="h-5 w-5 text-cyan-400" />
+                <div className="p-2 bg-orange-50 rounded-lg">
+                  <Trash2 className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">
+                  <p className="text-2xl font-bold text-gray-900">
                     {inquiries.length > 0
                       ? Math.round((removedInquiries.length / inquiries.length) * 100)
                       : 0}%
                   </p>
-                  <p className="text-xs text-slate-400">Removal Rate</p>
+                  <p className="text-xs text-gray-500">Removal Rate</p>
                 </div>
               </div>
             </CardContent>
@@ -216,12 +216,12 @@ export default function InquiryRemoval() {
         </div>
 
         {/* Inquiries List */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-white">Hard Inquiries</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-gray-900">Hard Inquiries</CardTitle>
+                <CardDescription className="text-gray-500">
                   Select unauthorized inquiries to dispute
                 </CardDescription>
               </div>
@@ -229,7 +229,7 @@ export default function InquiryRemoval() {
                 variant="outline"
                 size="sm"
                 onClick={selectAll}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 Select All Unauthorized
               </Button>
@@ -242,8 +242,8 @@ export default function InquiryRemoval() {
                   key={inquiry.id}
                   className={`p-4 rounded-lg border transition-colors ${
                     selectedInquiries.includes(inquiry.id)
-                      ? "bg-cyan-500/10 border-cyan-500/30"
-                      : "bg-slate-800/50 border-slate-700"
+                      ? "bg-orange-50 border-orange-300"
+                      : "bg-gray-50 border-gray-300"
                   }`}
                 >
                   <div className="flex items-center gap-4">
@@ -251,20 +251,20 @@ export default function InquiryRemoval() {
                       checked={selectedInquiries.includes(inquiry.id)}
                       onCheckedChange={() => toggleInquiry(inquiry.id)}
                       disabled={inquiry.status !== "active" || inquiry.authorized as boolean}
-                      className="border-slate-600"
+                      className="border-gray-400"
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <Building2 className="h-4 w-4 text-slate-400" />
-                        <span className="font-medium text-white">{inquiry.creditor}</span>
+                        <Building2 className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium text-gray-900">{inquiry.creditor}</span>
                         {getStatusBadge(inquiry.status)}
                         {inquiry.authorized && (
-                          <Badge variant="outline" className="border-slate-600 text-slate-400">
+                          <Badge variant="outline" className="border-gray-400 text-gray-500">
                             Authorized
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           {inquiry.date}
@@ -281,25 +281,25 @@ export default function InquiryRemoval() {
         </Card>
 
         {/* Info Card */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               About Hard Inquiries
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <h4 className="font-medium text-white mb-2">What are hard inquiries?</h4>
-                <p className="text-sm text-slate-400">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">What are hard inquiries?</h4>
+                <p className="text-sm text-gray-500">
                   Hard inquiries occur when a lender checks your credit for a lending decision.
                   Each hard inquiry can lower your score by 5-10 points and stays on your report for 2 years.
                 </p>
               </div>
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <h4 className="font-medium text-white mb-2">When can you dispute?</h4>
-                <p className="text-sm text-slate-400">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">When can you dispute?</h4>
+                <p className="text-sm text-gray-500">
                   You can dispute inquiries you didn't authorize, inquiries from companies you don't recognize,
                   or duplicate inquiries from the same creditor.
                 </p>

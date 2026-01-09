@@ -97,17 +97,17 @@ export default function CFPBComplaints() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <FileWarning className="h-6 w-6 text-cyan-400" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <FileWarning className="h-6 w-6 text-orange-500" />
               CFPB Complaints
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-gray-500 mt-1">
               File complaints with the Consumer Financial Protection Bureau
             </p>
           </div>
           <Button
             variant="outline"
-            className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+            className="border-orange-300 text-orange-500 hover:bg-orange-50"
             onClick={() => window.open("https://www.consumerfinance.gov/complaint/", "_blank")}
           >
             <ExternalLink className="h-4 w-4 mr-2" />
@@ -116,13 +116,13 @@ export default function CFPBComplaints() {
         </div>
 
         {/* Info Banner */}
-        <Card className="bg-cyan-500/10 border-cyan-500/30">
+        <Card className="bg-orange-50 border-orange-300">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-cyan-400 mt-0.5" />
+              <Info className="h-5 w-5 text-orange-500 mt-0.5" />
               <div>
-                <h3 className="font-medium text-white">When to file a CFPB complaint</h3>
-                <p className="text-sm text-slate-300 mt-1">
+                <h3 className="font-medium text-gray-900">When to file a CFPB complaint</h3>
+                <p className="text-sm text-gray-700 mt-1">
                   File a CFPB complaint if a credit bureau fails to properly investigate your dispute,
                   doesn't respond within 30 days, or continues to report inaccurate information after
                   you've disputed it. CFPB complaints have a 97% response rate and often result in faster resolution.
@@ -134,21 +134,21 @@ export default function CFPBComplaints() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* New Complaint Form */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Send className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <Send className="h-5 w-5 text-orange-500" />
                 File New Complaint
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Generate a CFPB complaint for submission
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Credit Bureau *</Label>
+                <Label className="text-gray-700">Credit Bureau *</Label>
                 <Select value={selectedBureau} onValueChange={setSelectedBureau}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectTrigger className="bg-gray-100 border-gray-300 text-gray-900">
                     <SelectValue placeholder="Select bureau" />
                   </SelectTrigger>
                   <SelectContent>
@@ -162,9 +162,9 @@ export default function CFPBComplaints() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">Complaint Type *</Label>
+                <Label className="text-gray-700">Complaint Type *</Label>
                 <Select value={complaintType} onValueChange={setComplaintType}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectTrigger className="bg-gray-100 border-gray-300 text-gray-900">
                     <SelectValue placeholder="Select complaint type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -178,27 +178,27 @@ export default function CFPBComplaints() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">Describe the Issue *</Label>
+                <Label className="text-gray-700">Describe the Issue *</Label>
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Describe what happened, including dates and specific accounts..."
-                  className="bg-slate-800 border-slate-700 text-white min-h-[120px]"
+                  className="bg-gray-100 border-gray-300 text-gray-900 min-h-[120px]"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">Desired Resolution</Label>
+                <Label className="text-gray-700">Desired Resolution</Label>
                 <Textarea
                   value={desiredResolution}
                   onChange={(e) => setDesiredResolution(e.target.value)}
                   placeholder="What would you like to happen as a result of your complaint?"
-                  className="bg-slate-800 border-slate-700 text-white min-h-[80px]"
+                  className="bg-gray-100 border-gray-300 text-gray-900 min-h-[80px]"
                 />
               </div>
 
               <Button
-                className="w-full bg-cyan-500 hover:bg-cyan-600 text-white"
+                className="w-full bg-cyan-500 hover:bg-orange-500 text-gray-900"
                 onClick={handleSubmit}
                 disabled={isSubmitting}
               >
@@ -218,38 +218,38 @@ export default function CFPBComplaints() {
           </Card>
 
           {/* Complaint History */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Clock className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-500" />
                 Complaint History
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Track your submitted CFPB complaints
               </CardDescription>
             </CardHeader>
             <CardContent>
               {mockComplaints.length === 0 ? (
                 <div className="text-center py-8">
-                  <FileWarning className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No complaints filed yet</p>
+                  <FileWarning className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                  <p className="text-gray-500">No complaints filed yet</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {mockComplaints.map((complaint) => (
                     <div
                       key={complaint.id}
-                      className="p-4 bg-slate-800/50 rounded-lg border border-slate-700"
+                      className="p-4 bg-gray-50 rounded-lg border border-gray-300"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-slate-400" />
-                          <span className="font-medium text-white">{complaint.bureau}</span>
+                          <Building2 className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium text-gray-900">{complaint.bureau}</span>
                         </div>
                         {getStatusBadge(complaint.status)}
                       </div>
-                      <p className="text-sm text-slate-300 mb-2">{complaint.type}</p>
-                      <div className="flex items-center gap-4 text-xs text-slate-500">
+                      <p className="text-sm text-gray-700 mb-2">{complaint.type}</p>
+                      <div className="flex items-center gap-4 text-xs text-gray-400">
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
                           Submitted: {complaint.submittedDate}
@@ -261,7 +261,7 @@ export default function CFPBComplaints() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-slate-500 mt-2">Case #: {complaint.caseNumber}</p>
+                      <p className="text-xs text-gray-400 mt-2">Case #: {complaint.caseNumber}</p>
                     </div>
                   ))}
                 </div>
@@ -271,9 +271,9 @@ export default function CFPBComplaints() {
         </div>
 
         {/* Tips Section */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               Tips for Effective CFPB Complaints
             </CardTitle>
@@ -294,9 +294,9 @@ export default function CFPBComplaints() {
                   desc: "Cite specific FCRA violations like failure to investigate (§1681i) or reporting inaccurate information (§1681e).",
                 },
               ].map((tip, index) => (
-                <div key={index} className="p-4 bg-slate-800/50 rounded-lg">
-                  <h4 className="font-medium text-white mb-2">{tip.title}</h4>
-                  <p className="text-sm text-slate-400">{tip.desc}</p>
+                <div key={index} className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-2">{tip.title}</h4>
+                  <p className="text-sm text-gray-500">{tip.desc}</p>
                 </div>
               ))}
             </div>

@@ -60,16 +60,16 @@ export default function ProfileOptimizer() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <UserCog className="h-6 w-6 text-cyan-400" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <UserCog className="h-6 w-6 text-orange-500" />
               Profile Optimizer
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-gray-500 mt-1">
               Keep your personal information accurate across all bureaus
             </p>
           </div>
           <Button
-            className="bg-cyan-500 hover:bg-cyan-600 text-white"
+            className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
             onClick={handleSave}
             disabled={isSaving}
           >
@@ -88,7 +88,7 @@ export default function ProfileOptimizer() {
         </div>
 
         {/* Profile Completeness */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
@@ -100,63 +100,63 @@ export default function ProfileOptimizer() {
                   )}
                 </div>
                 <div>
-                  <h3 className="font-medium text-white">Profile Completeness</h3>
-                  <p className="text-sm text-slate-400">
+                  <h3 className="font-medium text-gray-900">Profile Completeness</h3>
+                  <p className="text-sm text-gray-500">
                     {completeness === 100
                       ? "Your profile is complete!"
                       : "Complete your profile for better dispute results"}
                   </p>
                 </div>
               </div>
-              <span className="text-2xl font-bold text-white">{completeness}%</span>
+              <span className="text-2xl font-bold text-gray-900">{completeness}%</span>
             </div>
-            <Progress value={completeness} className="h-2 bg-slate-800" />
+            <Progress value={completeness} className="h-2 bg-gray-100" />
           </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Personal Information */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Shield className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-orange-500" />
                 Personal Information
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Your identity information as it should appear on credit reports
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">First Name</Label>
+                  <Label className="text-gray-700">First Name</Label>
                   <Input
                     value={profile.firstName}
                     onChange={(e) => updateField("firstName", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Last Name</Label>
+                  <Label className="text-gray-700">Last Name</Label>
                   <Input
                     value={profile.lastName}
                     onChange={(e) => updateField("lastName", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Social Security Number</Label>
+                  <Label className="text-gray-700">Social Security Number</Label>
                   <Input
                     value={profile.ssn}
                     disabled
-                    className="bg-slate-800 border-slate-700 text-slate-400"
+                    className="bg-gray-100 border-gray-300 text-gray-500"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 flex items-center gap-1">
+                  <Label className="text-gray-700 flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     Date of Birth
                   </Label>
@@ -164,25 +164,25 @@ export default function ProfileOptimizer() {
                     type="date"
                     value={profile.dob}
                     onChange={(e) => updateField("dob", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300 flex items-center gap-1">
+                  <Label className="text-gray-700 flex items-center gap-1">
                     <Phone className="h-3 w-3" />
                     Phone Number
                   </Label>
                   <Input
                     value={profile.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300 flex items-center gap-1">
+                  <Label className="text-gray-700 flex items-center gap-1">
                     <Mail className="h-3 w-3" />
                     Email Address
                   </Label>
@@ -190,7 +190,7 @@ export default function ProfileOptimizer() {
                     type="email"
                     value={profile.email}
                     onChange={(e) => updateField("email", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
@@ -198,90 +198,90 @@ export default function ProfileOptimizer() {
           </Card>
 
           {/* Address History */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-orange-500" />
                 Address History
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Your current and previous addresses
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-slate-300">Current Address</Label>
+                <Label className="text-gray-700">Current Address</Label>
                 <Input
                   value={profile.currentAddress}
                   onChange={(e) => updateField("currentAddress", e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">Previous Address 1</Label>
+                <Label className="text-gray-700">Previous Address 1</Label>
                 <Input
                   value={profile.previousAddress1}
                   onChange={(e) => updateField("previousAddress1", e.target.value)}
-                  className="bg-slate-800 border-slate-700 text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-slate-300">Previous Address 2</Label>
+                <Label className="text-gray-700">Previous Address 2</Label>
                 <Input
                   value={profile.previousAddress2}
                   onChange={(e) => updateField("previousAddress2", e.target.value)}
                   placeholder="Optional"
-                  className="bg-slate-800 border-slate-700 text-white"
+                  className="bg-gray-100 border-gray-300 text-gray-900"
                 />
               </div>
             </CardContent>
           </Card>
 
           {/* Employment Information */}
-          <Card className="bg-slate-900 border-slate-800 lg:col-span-2">
+          <Card className="bg-white border-gray-200 lg:col-span-2">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Briefcase className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <Briefcase className="h-5 w-5 text-orange-500" />
                 Employment Information
               </CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardDescription className="text-gray-500">
                 Your current employment details
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Employer Name</Label>
+                  <Label className="text-gray-700">Employer Name</Label>
                   <Input
                     value={profile.employer}
                     onChange={(e) => updateField("employer", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Job Title</Label>
+                  <Label className="text-gray-700">Job Title</Label>
                   <Input
                     value={profile.jobTitle}
                     onChange={(e) => updateField("jobTitle", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Years Employed</Label>
+                  <Label className="text-gray-700">Years Employed</Label>
                   <Input
                     value={profile.yearsEmployed}
                     onChange={(e) => updateField("yearsEmployed", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Employer Address</Label>
+                  <Label className="text-gray-700">Employer Address</Label>
                   <Input
                     value={profile.employerAddress}
                     onChange={(e) => updateField("employerAddress", e.target.value)}
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
@@ -290,13 +290,13 @@ export default function ProfileOptimizer() {
         </div>
 
         {/* Info Card */}
-        <Card className="bg-cyan-500/10 border-cyan-500/30">
+        <Card className="bg-orange-50 border-orange-300">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-cyan-400 mt-0.5" />
+              <AlertCircle className="h-5 w-5 text-orange-500 mt-0.5" />
               <div>
-                <h3 className="font-medium text-white">Why is this important?</h3>
-                <p className="text-sm text-slate-300 mt-1">
+                <h3 className="font-medium text-gray-900">Why is this important?</h3>
+                <p className="text-sm text-gray-700 mt-1">
                   Keeping your personal information consistent across all three credit bureaus helps ensure
                   your disputes are processed correctly. Inconsistent information can lead to delays or
                   rejected disputes. This information is used to generate your dispute letters.

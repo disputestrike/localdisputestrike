@@ -81,25 +81,25 @@ export default function DashboardSupport() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <HelpCircle className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <HelpCircle className="h-6 w-6 text-orange-500" />
             Help & Support
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-gray-500 mt-1">
             Get help with your account and disputes
           </p>
         </div>
 
         {/* Search */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 placeholder="Search for help..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-slate-800 border-slate-700 text-white"
+                className="pl-10 bg-gray-100 border-gray-300 text-gray-900"
               />
             </div>
           </CardContent>
@@ -107,59 +107,59 @@ export default function DashboardSupport() {
 
         {/* Contact Options */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-slate-900 border-slate-800 hover:border-cyan-500/50 transition-colors cursor-pointer">
+          <Card className="bg-white border-gray-200 hover:border-cyan-500/50 transition-colors cursor-pointer">
             <CardContent className="p-6 text-center">
-              <div className="p-3 bg-cyan-500/10 rounded-xl w-fit mx-auto mb-3">
-                <MessageCircle className="h-6 w-6 text-cyan-400" />
+              <div className="p-3 bg-orange-50 rounded-xl w-fit mx-auto mb-3">
+                <MessageCircle className="h-6 w-6 text-orange-500" />
               </div>
-              <h3 className="font-medium text-white mb-1">Live Chat</h3>
-              <p className="text-sm text-slate-400">Chat with our support team</p>
-              <p className="text-xs text-cyan-400 mt-2">Available 9am-6pm EST</p>
+              <h3 className="font-medium text-gray-900 mb-1">Live Chat</h3>
+              <p className="text-sm text-gray-500">Chat with our support team</p>
+              <p className="text-xs text-orange-500 mt-2">Available 9am-6pm EST</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800 hover:border-cyan-500/50 transition-colors cursor-pointer">
+          <Card className="bg-white border-gray-200 hover:border-cyan-500/50 transition-colors cursor-pointer">
             <CardContent className="p-6 text-center">
-              <div className="p-3 bg-cyan-500/10 rounded-xl w-fit mx-auto mb-3">
-                <Mail className="h-6 w-6 text-cyan-400" />
+              <div className="p-3 bg-orange-50 rounded-xl w-fit mx-auto mb-3">
+                <Mail className="h-6 w-6 text-orange-500" />
               </div>
-              <h3 className="font-medium text-white mb-1">Email Support</h3>
-              <p className="text-sm text-slate-400">support@disputestrike.com</p>
-              <p className="text-xs text-cyan-400 mt-2">Response within 24 hours</p>
+              <h3 className="font-medium text-gray-900 mb-1">Email Support</h3>
+              <p className="text-sm text-gray-500">support@disputestrike.com</p>
+              <p className="text-xs text-orange-500 mt-2">Response within 24 hours</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800 hover:border-cyan-500/50 transition-colors cursor-pointer">
+          <Card className="bg-white border-gray-200 hover:border-cyan-500/50 transition-colors cursor-pointer">
             <CardContent className="p-6 text-center">
-              <div className="p-3 bg-cyan-500/10 rounded-xl w-fit mx-auto mb-3">
-                <Phone className="h-6 w-6 text-cyan-400" />
+              <div className="p-3 bg-orange-50 rounded-xl w-fit mx-auto mb-3">
+                <Phone className="h-6 w-6 text-orange-500" />
               </div>
-              <h3 className="font-medium text-white mb-1">Phone Support</h3>
-              <p className="text-sm text-slate-400">1-800-DISPUTE</p>
-              <p className="text-xs text-cyan-400 mt-2">Mon-Fri 9am-6pm EST</p>
+              <h3 className="font-medium text-gray-900 mb-1">Phone Support</h3>
+              <p className="text-sm text-gray-500">1-800-DISPUTE</p>
+              <p className="text-xs text-orange-500 mt-2">Mon-Fri 9am-6pm EST</p>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* FAQs */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Frequently Asked Questions</CardTitle>
+              <CardTitle className="text-gray-900">Frequently Asked Questions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {filteredFaqs.map((faq, index) => (
                   <details
                     key={index}
-                    className="group bg-slate-800/50 rounded-lg"
+                    className="group bg-gray-50 rounded-lg"
                   >
                     <summary className="flex items-center justify-between p-4 cursor-pointer list-none">
-                      <span className="font-medium text-white pr-4">{faq.question}</span>
-                      <ChevronRight className="h-4 w-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                      <span className="font-medium text-gray-900 pr-4">{faq.question}</span>
+                      <ChevronRight className="h-4 w-4 text-gray-500 group-open:rotate-90 transition-transform" />
                     </summary>
                     <div className="px-4 pb-4">
-                      <p className="text-sm text-slate-400">{faq.answer}</p>
+                      <p className="text-sm text-gray-500">{faq.answer}</p>
                     </div>
                   </details>
                 ))}
@@ -168,24 +168,24 @@ export default function DashboardSupport() {
           </Card>
 
           {/* Resources */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Helpful Resources</CardTitle>
+              <CardTitle className="text-gray-900">Helpful Resources</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
                 {resources.map((resource, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <resource.icon className="h-4 w-4 text-cyan-400" />
-                      <span className="text-white">{resource.title}</span>
+                      <resource.icon className="h-4 w-4 text-orange-500" />
+                      <span className="text-gray-900">{resource.title}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-slate-500">{resource.type}</span>
-                      <ExternalLink className="h-3 w-3 text-slate-400" />
+                      <span className="text-xs text-gray-400">{resource.type}</span>
+                      <ExternalLink className="h-3 w-3 text-gray-500" />
                     </div>
                   </div>
                 ))}
@@ -195,36 +195,36 @@ export default function DashboardSupport() {
         </div>
 
         {/* Submit Ticket */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white">Submit a Support Ticket</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-gray-900">Submit a Support Ticket</CardTitle>
+            <CardDescription className="text-gray-500">
               Can't find what you're looking for? Send us a message.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-slate-300">Subject</Label>
+              <Label className="text-gray-700">Subject</Label>
               <Input
                 value={ticketForm.subject}
                 onChange={(e) => setTicketForm({ ...ticketForm, subject: e.target.value })}
                 placeholder="Brief description of your issue"
-                className="bg-slate-800 border-slate-700 text-white"
+                className="bg-gray-100 border-gray-300 text-gray-900"
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-slate-300">Message</Label>
+              <Label className="text-gray-700">Message</Label>
               <Textarea
                 value={ticketForm.message}
                 onChange={(e) => setTicketForm({ ...ticketForm, message: e.target.value })}
                 placeholder="Describe your issue in detail..."
                 rows={5}
-                className="bg-slate-800 border-slate-700 text-white resize-none"
+                className="bg-gray-100 border-gray-300 text-gray-900 resize-none"
               />
             </div>
             <Button
               onClick={handleSubmitTicket}
-              className="bg-cyan-500 hover:bg-cyan-600 text-white"
+              className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Submitting..." : "Submit Ticket"}

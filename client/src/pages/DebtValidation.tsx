@@ -99,16 +99,16 @@ export default function DebtValidation() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-              <Shield className="h-6 w-6 text-cyan-400" />
+            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Shield className="h-6 w-6 text-orange-500" />
               Debt Validation
             </h1>
-            <p className="text-slate-400 mt-1">
+            <p className="text-gray-500 mt-1">
               Request debt validation under the FDCPA
             </p>
           </div>
           <Button
-            className="bg-cyan-500 hover:bg-cyan-600 text-white"
+            className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
             onClick={() => setShowAddForm(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -118,57 +118,57 @@ export default function DebtValidation() {
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-blue-500/10 rounded-lg">
                   <Building2 className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{mockDebts.length}</p>
-                  <p className="text-xs text-slate-400">Total Debts</p>
+                  <p className="text-2xl font-bold text-gray-900">{mockDebts.length}</p>
+                  <p className="text-xs text-gray-500">Total Debts</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-yellow-500/10 rounded-lg">
                   <Clock className="h-5 w-5 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{pendingCount}</p>
-                  <p className="text-xs text-slate-400">Pending Validation</p>
+                  <p className="text-2xl font-bold text-gray-900">{pendingCount}</p>
+                  <p className="text-xs text-gray-500">Pending Validation</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-500/10 rounded-lg">
                   <CheckCircle2 className="h-5 w-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">{failedCount}</p>
-                  <p className="text-xs text-slate-400">Failed Validation</p>
+                  <p className="text-2xl font-bold text-gray-900">{failedCount}</p>
+                  <p className="text-xs text-gray-500">Failed Validation</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-red-500/10 rounded-lg">
                   <DollarSign className="h-5 w-5 text-red-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-white">${totalAmount.toLocaleString()}</p>
-                  <p className="text-xs text-slate-400">Total Debt</p>
+                  <p className="text-2xl font-bold text-gray-900">${totalAmount.toLocaleString()}</p>
+                  <p className="text-xs text-gray-500">Total Debt</p>
                 </div>
               </div>
             </CardContent>
@@ -177,47 +177,47 @@ export default function DebtValidation() {
 
         {/* Add Debt Form */}
         {showAddForm && (
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Add New Debt</CardTitle>
-              <CardDescription className="text-slate-400">
+              <CardTitle className="text-gray-900">Add New Debt</CardTitle>
+              <CardDescription className="text-gray-500">
                 Enter details about the debt collector contacting you
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Debt Collector Name *</Label>
+                  <Label className="text-gray-700">Debt Collector Name *</Label>
                   <Input
                     value={newDebt.collector}
                     onChange={(e) => setNewDebt({ ...newDebt, collector: e.target.value })}
                     placeholder="e.g., Midland Credit Management"
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Original Creditor</Label>
+                  <Label className="text-gray-700">Original Creditor</Label>
                   <Input
                     value={newDebt.originalCreditor}
                     onChange={(e) => setNewDebt({ ...newDebt, originalCreditor: e.target.value })}
                     placeholder="e.g., Capital One"
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-slate-300">Amount Claimed *</Label>
+                  <Label className="text-gray-700">Amount Claimed *</Label>
                   <Input
                     type="number"
                     value={newDebt.amount}
                     onChange={(e) => setNewDebt({ ...newDebt, amount: e.target.value })}
                     placeholder="0.00"
-                    className="bg-slate-800 border-slate-700 text-white"
+                    className="bg-gray-100 border-gray-300 text-gray-900"
                   />
                 </div>
               </div>
               <div className="flex gap-2">
                 <Button
-                  className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                  className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
                   onClick={handleAddDebt}
                 >
                   Add Debt
@@ -225,7 +225,7 @@ export default function DebtValidation() {
                 <Button
                   variant="outline"
                   onClick={() => setShowAddForm(false)}
-                  className="border-slate-700 text-slate-300"
+                  className="border-gray-300 text-gray-700"
                 >
                   Cancel
                 </Button>
@@ -235,35 +235,35 @@ export default function DebtValidation() {
         )}
 
         {/* Debts List */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white">Your Debts</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-gray-900">Your Debts</CardTitle>
+            <CardDescription className="text-gray-500">
               Manage and validate debts from collection agencies
             </CardDescription>
           </CardHeader>
           <CardContent>
             {mockDebts.length === 0 ? (
               <div className="text-center py-8">
-                <Shield className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">No debts added yet</p>
+                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-500">No debts added yet</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {mockDebts.map((debt) => (
                   <div
                     key={debt.id}
-                    className="p-4 bg-slate-800/50 rounded-lg border border-slate-700"
+                    className="p-4 bg-gray-50 rounded-lg border border-gray-300"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Building2 className="h-4 w-4 text-slate-400" />
-                          <span className="font-medium text-white">{debt.collector}</span>
+                          <Building2 className="h-4 w-4 text-gray-500" />
+                          <span className="font-medium text-gray-900">{debt.collector}</span>
                           {getStatusBadge(debt.status)}
                         </div>
                         {debt.originalCreditor && (
-                          <p className="text-sm text-slate-400 mb-1">
+                          <p className="text-sm text-gray-500 mb-1">
                             Original Creditor: {debt.originalCreditor}
                           </p>
                         )}
@@ -272,12 +272,12 @@ export default function DebtValidation() {
                             <DollarSign className="h-3 w-3" />
                             ${debt.amount.toLocaleString()}
                           </span>
-                          <span className="flex items-center gap-1 text-slate-500">
+                          <span className="flex items-center gap-1 text-gray-400">
                             <Calendar className="h-3 w-3" />
                             Received: {debt.dateReceived}
                           </span>
                           {debt.letterSent && (
-                            <span className="flex items-center gap-1 text-cyan-400">
+                            <span className="flex items-center gap-1 text-orange-500">
                               <Send className="h-3 w-3" />
                               Letter Sent: {debt.letterSent}
                             </span>
@@ -287,7 +287,7 @@ export default function DebtValidation() {
                       {debt.status === "pending_validation" && (
                         <Button
                           size="sm"
-                          className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                          className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
                           onClick={() => handleGenerateLetter(debt.id)}
                           disabled={isGenerating}
                         >
@@ -304,32 +304,32 @@ export default function DebtValidation() {
         </Card>
 
         {/* Info Section */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-gray-900 flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-yellow-400" />
               About Debt Validation
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <h4 className="font-medium text-white mb-2">Your Rights Under FDCPA</h4>
-                <p className="text-sm text-slate-400">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">Your Rights Under FDCPA</h4>
+                <p className="text-sm text-gray-500">
                   Under the Fair Debt Collection Practices Act, you have the right to request
                   validation of any debt within 30 days of first contact.
                 </p>
               </div>
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <h4 className="font-medium text-white mb-2">What They Must Provide</h4>
-                <p className="text-sm text-slate-400">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">What They Must Provide</h4>
+                <p className="text-sm text-gray-500">
                   Collectors must provide: the amount owed, original creditor name,
                   proof you owe the debt, and verification the debt is within statute of limitations.
                 </p>
               </div>
-              <div className="p-4 bg-slate-800/50 rounded-lg">
-                <h4 className="font-medium text-white mb-2">If They Can't Validate</h4>
-                <p className="text-sm text-slate-400">
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <h4 className="font-medium text-gray-900 mb-2">If They Can't Validate</h4>
+                <p className="text-sm text-gray-500">
                   If the collector cannot validate the debt, they must cease collection
                   and remove the account from your credit reports.
                 </p>

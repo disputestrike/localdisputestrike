@@ -67,54 +67,54 @@ export default function ReferralProgram() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Users className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Users className="h-6 w-6 text-orange-500" />
             Referral Program
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-gray-500 mt-1">
             Earn $50 for every friend who signs up and subscribes
           </p>
         </div>
 
         {/* Earnings Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-cyan-500/30">
+          <Card className="bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border-orange-300">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-cyan-500/20 rounded-xl">
-                  <DollarSign className="h-6 w-6 text-cyan-400" />
+                <div className="p-3 bg-orange-100 rounded-xl">
+                  <DollarSign className="h-6 w-6 text-orange-500" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-white">${stats.totalEarnings}</p>
-                  <p className="text-sm text-slate-400">Total Earnings</p>
+                  <p className="text-3xl font-bold text-gray-900">${stats.totalEarnings}</p>
+                  <p className="text-sm text-gray-500">Total Earnings</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-yellow-500/10 rounded-xl">
                   <Clock className="h-6 w-6 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-white">${stats.pendingEarnings}</p>
-                  <p className="text-sm text-slate-400">Pending</p>
+                  <p className="text-3xl font-bold text-gray-900">${stats.pendingEarnings}</p>
+                  <p className="text-sm text-gray-500">Pending</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-green-500/10 rounded-xl">
                   <CheckCircle2 className="h-6 w-6 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-white">${stats.paidEarnings}</p>
-                  <p className="text-sm text-slate-400">Paid Out</p>
+                  <p className="text-3xl font-bold text-gray-900">${stats.paidEarnings}</p>
+                  <p className="text-sm text-gray-500">Paid Out</p>
                 </div>
               </div>
             </CardContent>
@@ -122,13 +122,13 @@ export default function ReferralProgram() {
         </div>
 
         {/* Referral Link */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Share2 className="h-5 w-5 text-cyan-400" />
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Share2 className="h-5 w-5 text-orange-500" />
               Your Referral Link
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-gray-500">
               Share this link with friends and earn $50 for each signup
             </CardDescription>
           </CardHeader>
@@ -137,11 +137,11 @@ export default function ReferralProgram() {
               <Input
                 value={referralLink}
                 readOnly
-                className="bg-slate-800 border-slate-700 text-white font-mono text-sm"
+                className="bg-gray-100 border-gray-300 text-gray-900 font-mono text-sm"
               />
               <Button
                 onClick={copyLink}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white"
+                className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
               >
                 <Copy className="h-4 w-4 mr-2" />
                 Copy
@@ -152,7 +152,7 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareOnTwitter}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Twitter className="h-4 w-4 mr-2" />
                 Twitter
@@ -160,7 +160,7 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareOnFacebook}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Facebook className="h-4 w-4 mr-2" />
                 Facebook
@@ -168,14 +168,14 @@ export default function ReferralProgram() {
               <Button
                 variant="outline"
                 onClick={shareByEmail}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <Mail className="h-4 w-4 mr-2" />
                 Email
               </Button>
               <Button
                 variant="outline"
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 SMS
@@ -186,25 +186,25 @@ export default function ReferralProgram() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Referral Stats */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-orange-500" />
                 Referral Stats
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
-                  <span className="text-slate-300">Total Referrals</span>
-                  <span className="text-xl font-bold text-white">{stats.totalReferrals}</span>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-700">Total Referrals</span>
+                  <span className="text-xl font-bold text-gray-900">{stats.totalReferrals}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
-                  <span className="text-slate-300">Completed</span>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-700">Completed</span>
                   <span className="text-xl font-bold text-green-400">{stats.completedReferrals}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
-                  <span className="text-slate-300">Pending</span>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="text-gray-700">Pending</span>
                   <span className="text-xl font-bold text-yellow-400">{stats.pendingReferrals}</span>
                 </div>
               </div>
@@ -212,10 +212,10 @@ export default function ReferralProgram() {
           </Card>
 
           {/* How It Works */}
-          <Card className="bg-slate-900 border-slate-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Gift className="h-5 w-5 text-cyan-400" />
+              <CardTitle className="text-gray-900 flex items-center gap-2">
+                <Gift className="h-5 w-5 text-orange-500" />
                 How It Works
               </CardTitle>
             </CardHeader>
@@ -228,12 +228,12 @@ export default function ReferralProgram() {
                   { step: 4, title: "You Get Paid", desc: "Earn $50 credited to your account" },
                 ].map((item) => (
                   <div key={item.step} className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400 font-bold text-sm flex-shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-500 font-bold text-sm flex-shrink-0">
                       {item.step}
                     </div>
                     <div>
-                      <h4 className="font-medium text-white">{item.title}</h4>
-                      <p className="text-sm text-slate-400">{item.desc}</p>
+                      <h4 className="font-medium text-gray-900">{item.title}</h4>
+                      <p className="text-sm text-gray-500">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -243,33 +243,33 @@ export default function ReferralProgram() {
         </div>
 
         {/* Referral History */}
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="text-white">Referral History</CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardTitle className="text-gray-900">Referral History</CardTitle>
+            <CardDescription className="text-gray-500">
               Track your referrals and earnings
             </CardDescription>
           </CardHeader>
           <CardContent>
             {referralHistory.length === 0 ? (
               <div className="text-center py-8">
-                <Users className="h-12 w-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">No referrals yet. Start sharing your link!</p>
+                <Users className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-gray-500">No referrals yet. Start sharing your link!</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {referralHistory.map((referral) => (
                   <div
                     key={referral.id}
-                    className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg"
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-medium">
+                      <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-900 font-medium">
                         {referral.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="font-medium text-white">{referral.name}</p>
-                        <p className="text-xs text-slate-500">{referral.date}</p>
+                        <p className="font-medium text-gray-900">{referral.name}</p>
+                        <p className="text-xs text-gray-400">{referral.date}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

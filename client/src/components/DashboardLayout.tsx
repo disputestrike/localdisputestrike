@@ -120,16 +120,16 @@ export default function DashboardLayout({
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-950">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full">
-          <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center mb-4">
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full bg-white rounded-2xl shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <div className="flex flex-col items-center gap-4">
-            <h1 className="text-2xl font-bold text-white text-center">
+            <h1 className="text-2xl font-bold text-gray-900 text-center">
               Welcome to DisputeStrike
             </h1>
-            <p className="text-sm text-slate-400 text-center max-w-sm">
+            <p className="text-sm text-gray-600 text-center max-w-sm">
               Sign in to access your credit dispute dashboard and start improving your credit score.
             </p>
           </div>
@@ -138,7 +138,7 @@ export default function DashboardLayout({
               window.location.href = getLoginUrl();
             }}
             size="lg"
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
+            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all"
           >
             Sign in to Continue
           </Button>
@@ -236,26 +236,26 @@ function DashboardLayoutContent({
       <div className="relative" ref={sidebarRef}>
         <Sidebar
           collapsible="icon"
-          className="border-r border-slate-800 bg-slate-900"
+          className="border-r border-gray-200 bg-white"
           disableTransition={isResizing}
         >
           {/* Logo Header */}
-          <SidebarHeader className="h-16 justify-center border-b border-slate-800">
+          <SidebarHeader className="h-16 justify-center border-b border-gray-200">
             <div className="flex items-center gap-3 px-2 transition-all w-full">
-              <button
-                onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center hover:bg-slate-800 rounded-lg transition-colors focus:outline-none shrink-0"
-                aria-label="Toggle navigation"
-              >
-                <PanelLeft className="h-4 w-4 text-slate-400" />
-              </button>
+                <button
+                  onClick={toggleSidebar}
+                  className="h-8 w-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors focus:outline-none shrink-0"
+                  aria-label="Toggle navigation"
+                >
+                  <PanelLeft className="h-4 w-4 text-gray-500" />
+                </button>
               {!isCollapsed && (
                 <Link href="/">
                   <a className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center">
                       <Shield className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-bold text-white">DisputeStrike</span>
+                    <span className="font-bold text-gray-900">DisputeStrike</span>
                   </a>
                 </Link>
               )}
@@ -267,7 +267,7 @@ function DashboardLayoutContent({
             {navSections.map((section) => (
               <div key={section.section} className="mb-4">
                 {!isCollapsed && (
-                  <h3 className="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <h3 className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     {section.section}
                   </h3>
                 )}
@@ -283,11 +283,11 @@ function DashboardLayoutContent({
                           className={cn(
                             "h-10 transition-all font-normal",
                             active
-                              ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                              : "text-slate-400 hover:text-white hover:bg-slate-800"
+                              ? "bg-orange-50 text-orange-600 border border-orange-200"
+                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                           )}
                         >
-                          <item.icon className={cn("h-4 w-4", active && "text-cyan-400")} />
+                          <item.icon className={cn("h-4 w-4", active && "text-orange-600")} />
                           <span className="flex-1">{item.label}</span>
                           {!isCollapsed && item.badge && (
                             <Badge
@@ -295,11 +295,11 @@ function DashboardLayoutContent({
                               className={cn(
                                 "text-xs ml-auto",
                                 item.badge === "New" &&
-                                  "bg-green-500/20 text-green-400 border-green-500/30",
+                                  "bg-green-100 text-green-600 border-green-200",
                                 item.badge === "Hot" &&
-                                  "bg-orange-500/20 text-orange-400 border-orange-500/30",
+                                  "bg-orange-100 text-orange-600 border-orange-200",
                                 item.badge === "$50" &&
-                                  "bg-cyan-500/20 text-cyan-400 border-cyan-500/30"
+                                  "bg-blue-100 text-blue-600 border-blue-200"
                               )}
                             >
                               {item.badge}
@@ -314,7 +314,7 @@ function DashboardLayoutContent({
             ))}
 
             {/* Bottom Nav Items */}
-            <div className="mt-auto pt-4 border-t border-slate-800">
+            <div className="mt-auto pt-4 border-t border-gray-200">
               <SidebarMenu className="px-2">
                 {bottomNavItems.map((item) => {
                   const active = isActive(item.path);
@@ -327,11 +327,11 @@ function DashboardLayoutContent({
                         className={cn(
                           "h-10 transition-all font-normal",
                           active
-                            ? "bg-cyan-500/10 text-cyan-400"
-                            : "text-slate-400 hover:text-white hover:bg-slate-800"
+                            ? "bg-orange-50 text-orange-600"
+                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                         )}
                       >
-                        <item.icon className={cn("h-4 w-4", active && "text-cyan-400")} />
+                        <item.icon className={cn("h-4 w-4", active && "text-orange-600")} />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
@@ -342,22 +342,22 @@ function DashboardLayoutContent({
           </SidebarContent>
 
           {/* User Profile Footer */}
-          <SidebarFooter className="p-3 border-t border-slate-800">
+          <SidebarFooter className="p-3 border-t border-gray-200">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-slate-800 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none">
-                  <Avatar className="h-9 w-9 border border-slate-700 shrink-0">
+                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-gray-100 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none">
+                  <Avatar className="h-9 w-9 border border-gray-200 shrink-0">
                     <AvatarImage src={undefined} />
-                    <AvatarFallback className="bg-slate-700 text-white text-xs font-medium">
+                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-medium">
                       {user?.name?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   {!isCollapsed && (
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate leading-none">
+                      <p className="text-sm font-medium text-gray-900 truncate leading-none">
                         {user?.name || "-"}
                       </p>
-                      <p className="text-xs text-slate-500 truncate mt-1.5">
+                      <p className="text-xs text-gray-500 truncate mt-1.5">
                         {user?.email || "-"}
                       </p>
                     </div>
@@ -379,7 +379,7 @@ function DashboardLayoutContent({
 
         {/* Resize Handle */}
         <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-cyan-500/20 transition-colors ${
+          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-orange-200 transition-colors ${
             isCollapsed ? "hidden" : ""
           }`}
           onMouseDown={() => {
@@ -390,14 +390,14 @@ function DashboardLayoutContent({
         />
       </div>
 
-      <SidebarInset className="bg-slate-950">
+      <SidebarInset className="bg-gray-50">
         {/* Top Header Bar */}
-        <div className="flex border-b border-slate-800 h-16 items-center justify-between bg-slate-900/80 backdrop-blur-sm px-4 sticky top-0 z-40">
+        <div className="flex border-b border-gray-200 h-16 items-center justify-between bg-white/80 backdrop-blur-sm px-4 sticky top-0 z-40">
           <div className="flex items-center gap-3">
             {isMobile && (
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-slate-800 text-slate-400" />
+              <SidebarTrigger className="h-9 w-9 rounded-lg bg-gray-100 text-gray-600" />
             )}
-            <h1 className="text-lg font-semibold text-white">
+            <h1 className="text-lg font-semibold text-gray-900">
               {activeMenuItem?.label ?? "Dashboard"}
             </h1>
           </div>
@@ -405,7 +405,7 @@ function DashboardLayoutContent({
             <Button
               variant="ghost"
               size="icon"
-              className="text-slate-400 hover:text-white relative"
+              className="text-gray-500 hover:text-gray-900 relative"
             >
               <Bell className="h-5 w-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
@@ -414,7 +414,7 @@ function DashboardLayoutContent({
               <Button
                 variant="outline"
                 size="sm"
-                className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hidden sm:flex"
+                className="border-orange-300 text-orange-600 hover:bg-orange-50 hidden sm:flex"
               >
                 <Bot className="h-4 w-4 mr-2" />
                 AI Assistant

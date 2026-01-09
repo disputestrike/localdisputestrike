@@ -104,11 +104,11 @@ export default function Marketplace() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <CreditCard className="h-6 w-6 text-cyan-400" />
+          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <CreditCard className="h-6 w-6 text-orange-500" />
             Credit Building Marketplace
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className="text-gray-500 mt-1">
             Recommended products to help you build and improve your credit
           </p>
         </div>
@@ -124,14 +124,14 @@ export default function Marketplace() {
         </Card>
 
         <Tabs defaultValue="secured" className="space-y-6">
-          <TabsList className="bg-slate-800 border border-slate-700">
-            <TabsTrigger value="secured" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
+          <TabsList className="bg-gray-100 border border-gray-300">
+            <TabsTrigger value="secured" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-500">
               Secured Cards
             </TabsTrigger>
-            <TabsTrigger value="builder" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
+            <TabsTrigger value="builder" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-500">
               Credit Builders
             </TabsTrigger>
-            <TabsTrigger value="rent" className="data-[state=active]:bg-cyan-500/20 data-[state=active]:text-cyan-400">
+            <TabsTrigger value="rent" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-500">
               Rent Reporting
             </TabsTrigger>
           </TabsList>
@@ -139,35 +139,35 @@ export default function Marketplace() {
           {/* Secured Cards Tab */}
           <TabsContent value="secured" className="space-y-4">
             {securedCards.map((card, index) => (
-              <Card key={index} className="bg-slate-900 border-slate-800">
+              <Card key={index} className="bg-white border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-white">{card.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{card.name}</h3>
                         {card.highlight && (
-                          <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
+                          <Badge className="bg-orange-100 text-orange-500 border-orange-300">
                             {card.highlight}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-slate-400 mb-3">{card.issuer}</p>
+                      <p className="text-sm text-gray-500 mb-3">{card.issuer}</p>
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                         <div>
-                          <p className="text-xs text-slate-500">Deposit</p>
-                          <p className="text-sm font-medium text-white">{card.deposit}</p>
+                          <p className="text-xs text-gray-400">Deposit</p>
+                          <p className="text-sm font-medium text-gray-900">{card.deposit}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">APR</p>
-                          <p className="text-sm font-medium text-white">{card.apr}</p>
+                          <p className="text-xs text-gray-400">APR</p>
+                          <p className="text-sm font-medium text-gray-900">{card.apr}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Annual Fee</p>
+                          <p className="text-xs text-gray-400">Annual Fee</p>
                           <p className="text-sm font-medium text-green-400">{card.annualFee}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Rating</p>
+                          <p className="text-xs text-gray-400">Rating</p>
                           <p className="text-sm font-medium text-yellow-400 flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400" />
                             {card.rating}
@@ -179,7 +179,7 @@ export default function Marketplace() {
                         {card.features.map((feature, fIndex) => (
                           <span
                             key={fIndex}
-                            className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded"
+                            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded"
                           >
                             {feature}
                           </span>
@@ -187,7 +187,7 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <Button className="bg-cyan-500 hover:bg-cyan-600 text-white whitespace-nowrap">
+                    <Button className="bg-cyan-500 hover:bg-orange-500 text-gray-900 whitespace-nowrap">
                       Apply Now
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
@@ -200,31 +200,31 @@ export default function Marketplace() {
           {/* Credit Builders Tab */}
           <TabsContent value="builder" className="space-y-4">
             {creditBuilderLoans.map((product, index) => (
-              <Card key={index} className="bg-slate-900 border-slate-800">
+              <Card key={index} className="bg-white border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
                         {product.highlight && (
                           <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                             {product.highlight}
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-slate-400 mb-3">{product.type}</p>
+                      <p className="text-sm text-gray-500 mb-3">{product.type}</p>
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <p className="text-xs text-slate-500">Amount</p>
-                          <p className="text-sm font-medium text-white">{product.amount}</p>
+                          <p className="text-xs text-gray-400">Amount</p>
+                          <p className="text-sm font-medium text-gray-900">{product.amount}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Term</p>
-                          <p className="text-sm font-medium text-white">{product.term}</p>
+                          <p className="text-xs text-gray-400">Term</p>
+                          <p className="text-sm font-medium text-gray-900">{product.term}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Rating</p>
+                          <p className="text-xs text-gray-400">Rating</p>
                           <p className="text-sm font-medium text-yellow-400 flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400" />
                             {product.rating}
@@ -236,7 +236,7 @@ export default function Marketplace() {
                         {product.features.map((feature, fIndex) => (
                           <span
                             key={fIndex}
-                            className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded"
+                            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded"
                           >
                             {feature}
                           </span>
@@ -244,7 +244,7 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <Button className="bg-cyan-500 hover:bg-cyan-600 text-white whitespace-nowrap">
+                    <Button className="bg-cyan-500 hover:bg-orange-500 text-gray-900 whitespace-nowrap">
                       Learn More
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>
@@ -257,26 +257,26 @@ export default function Marketplace() {
           {/* Rent Reporting Tab */}
           <TabsContent value="rent" className="space-y-4">
             {rentReporting.map((service, index) => (
-              <Card key={index} className="bg-slate-900 border-slate-800">
+              <Card key={index} className="bg-white border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold text-white">{service.name}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">{service.name}</h3>
                       </div>
-                      <p className="text-sm text-slate-400 mb-3">{service.type}</p>
+                      <p className="text-sm text-gray-500 mb-3">{service.type}</p>
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                         <div>
-                          <p className="text-xs text-slate-500">Price</p>
-                          <p className="text-sm font-medium text-white">{service.price}</p>
+                          <p className="text-xs text-gray-400">Price</p>
+                          <p className="text-sm font-medium text-gray-900">{service.price}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Reports To</p>
-                          <p className="text-sm font-medium text-white">{service.bureaus}</p>
+                          <p className="text-xs text-gray-400">Reports To</p>
+                          <p className="text-sm font-medium text-gray-900">{service.bureaus}</p>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500">Rating</p>
+                          <p className="text-xs text-gray-400">Rating</p>
                           <p className="text-sm font-medium text-yellow-400 flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400" />
                             {service.rating}
@@ -288,7 +288,7 @@ export default function Marketplace() {
                         {service.features.map((feature, fIndex) => (
                           <span
                             key={fIndex}
-                            className="text-xs px-2 py-1 bg-slate-800 text-slate-300 rounded"
+                            className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded"
                           >
                             {feature}
                           </span>
@@ -296,7 +296,7 @@ export default function Marketplace() {
                       </div>
                     </div>
 
-                    <Button className="bg-cyan-500 hover:bg-cyan-600 text-white whitespace-nowrap">
+                    <Button className="bg-cyan-500 hover:bg-orange-500 text-gray-900 whitespace-nowrap">
                       Get Started
                       <ExternalLink className="ml-2 h-4 w-4" />
                     </Button>

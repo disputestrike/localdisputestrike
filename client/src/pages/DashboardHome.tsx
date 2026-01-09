@@ -120,10 +120,10 @@ export default function DashboardHome() {
       {/* Credit Scores Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {Object.entries(creditScores).map(([bureau, data]) => (
-          <Card key={bureau} className="bg-slate-900 border-slate-800">
+          <Card key={bureau} className="bg-white border-gray-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-sm font-medium text-slate-400 capitalize">{bureau}</span>
+                <span className="text-sm font-medium text-gray-500 capitalize">{bureau}</span>
                 <Badge
                   variant="outline"
                   className={data.change >= 0 ? "border-green-500/30 text-green-400" : "border-red-500/30 text-red-400"}
@@ -134,13 +134,13 @@ export default function DashboardHome() {
               </div>
               <div className="flex items-end gap-2">
                 <span className={`text-4xl font-bold ${getScoreColor(data.score)}`}>{data.score}</span>
-                <span className="text-sm text-slate-500 mb-1">{getScoreLabel(data.score)}</span>
+                <span className="text-sm text-gray-400 mb-1">{getScoreLabel(data.score)}</span>
               </div>
               <Progress
                 value={(data.score / 850) * 100}
-                className="mt-4 h-2 bg-slate-800"
+                className="mt-4 h-2 bg-gray-100"
               />
-              <p className="text-xs text-slate-500 mt-2">Last updated: Today</p>
+              <p className="text-xs text-gray-400 mt-2">Last updated: Today</p>
             </CardContent>
           </Card>
         ))}
@@ -148,57 +148,57 @@ export default function DashboardHome() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-blue-500/10 rounded-lg">
                 <AlertTriangle className="h-5 w-5 text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{totalAccounts}</p>
-                <p className="text-xs text-slate-400">Negative Accounts</p>
+                <p className="text-2xl font-bold text-gray-900">{totalAccounts}</p>
+                <p className="text-xs text-gray-500">Negative Accounts</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Clock className="h-5 w-5 text-yellow-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{pendingDisputes}</p>
-                <p className="text-xs text-slate-400">Pending Disputes</p>
+                <p className="text-2xl font-bold text-gray-900">{pendingDisputes}</p>
+                <p className="text-xs text-gray-500">Pending Disputes</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <CheckCircle2 className="h-5 w-5 text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{deletedAccounts}</p>
-                <p className="text-xs text-slate-400">Deletions</p>
+                <p className="text-2xl font-bold text-gray-900">{deletedAccounts}</p>
+                <p className="text-xs text-gray-500">Deletions</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-slate-900 border-slate-800">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-cyan-500/10 rounded-lg">
-                <Target className="h-5 w-5 text-cyan-400" />
+              <div className="p-2 bg-orange-50 rounded-lg">
+                <Target className="h-5 w-5 text-orange-500" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-white">{successRate}%</p>
-                <p className="text-xs text-slate-400">Success Rate</p>
+                <p className="text-2xl font-bold text-gray-900">{successRate}%</p>
+                <p className="text-xs text-gray-500">Success Rate</p>
               </div>
             </div>
           </CardContent>
@@ -207,10 +207,10 @@ export default function DashboardHome() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <Card className="bg-slate-900 border-slate-800 lg:col-span-1">
+        <Card className="bg-white border-gray-200 lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Zap className="h-5 w-5 text-cyan-400" />
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Zap className="h-5 w-5 text-orange-500" />
               Quick Actions
             </CardTitle>
           </CardHeader>
@@ -219,15 +219,15 @@ export default function DashboardHome() {
               <Link key={action.href} href={action.href}>
                 <Button
                   variant="outline"
-                  className="w-full justify-between border-slate-700 hover:bg-slate-800 text-white"
+                  className="w-full justify-between border-gray-300 hover:bg-gray-100 text-gray-900"
                 >
                   <span className="flex items-center gap-2">
                     <div className={`p-1.5 rounded ${action.color}`}>
-                      <action.icon className="h-4 w-4 text-white" />
+                      <action.icon className="h-4 w-4 text-gray-900" />
                     </div>
                     {action.label}
                   </span>
-                  <ArrowRight className="h-4 w-4 text-slate-400" />
+                  <ArrowRight className="h-4 w-4 text-gray-500" />
                 </Button>
               </Link>
             ))}
@@ -235,26 +235,26 @@ export default function DashboardHome() {
         </Card>
 
         {/* Recent Activity */}
-        <Card className="bg-slate-900 border-slate-800 lg:col-span-2">
+        <Card className="bg-white border-gray-200 lg:col-span-2">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Clock className="h-5 w-5 text-cyan-400" />
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Clock className="h-5 w-5 text-orange-500" />
               Recent Activity
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-gray-500">
               Your latest dispute actions and updates
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start gap-3 pb-4 border-b border-slate-800 last:border-0 last:pb-0">
-                  <div className="p-2 bg-slate-800 rounded-lg">
-                    <activity.icon className="h-4 w-4 text-cyan-400" />
+                <div key={index} className="flex items-start gap-3 pb-4 border-b border-gray-200 last:border-0 last:pb-0">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <activity.icon className="h-4 w-4 text-orange-500" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm text-white">{activity.message}</p>
-                    <p className="text-xs text-slate-500">{activity.time}</p>
+                    <p className="text-sm text-gray-900">{activity.message}</p>
+                    <p className="text-xs text-gray-400">{activity.time}</p>
                   </div>
                 </div>
               ))}
@@ -264,13 +264,13 @@ export default function DashboardHome() {
       </div>
 
       {/* Progress Overview */}
-      <Card className="bg-slate-900 border-slate-800">
+      <Card className="bg-white border-gray-200">
         <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Shield className="h-5 w-5 text-cyan-400" />
+          <CardTitle className="text-gray-900 flex items-center gap-2">
+            <Shield className="h-5 w-5 text-orange-500" />
             Your Credit Repair Journey
           </CardTitle>
-          <CardDescription className="text-slate-400">
+          <CardDescription className="text-gray-500">
             Follow these steps to maximize your credit score improvement
           </CardDescription>
         </CardHeader>
@@ -286,25 +286,25 @@ export default function DashboardHome() {
                 key={item.step}
                 className={`p-4 rounded-lg border ${
                   item.done
-                    ? "bg-cyan-500/10 border-cyan-500/30"
-                    : "bg-slate-800/50 border-slate-700"
+                    ? "bg-orange-50 border-orange-300"
+                    : "bg-gray-50 border-gray-300"
                 }`}
               >
                 <div className="flex items-center gap-3 mb-2">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                       item.done
-                        ? "bg-cyan-500 text-white"
-                        : "bg-slate-700 text-slate-400"
+                        ? "bg-cyan-500 text-gray-900"
+                        : "bg-gray-200 text-gray-500"
                     }`}
                   >
                     {item.done ? <CheckCircle2 className="h-4 w-4" /> : item.step}
                   </div>
-                  <span className={`font-medium ${item.done ? "text-cyan-400" : "text-white"}`}>
+                  <span className={`font-medium ${item.done ? "text-orange-500" : "text-gray-900"}`}>
                     {item.title}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 ml-11">{item.desc}</p>
+                <p className="text-xs text-gray-500 ml-11">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -312,22 +312,22 @@ export default function DashboardHome() {
       </Card>
 
       {/* CTA Banner */}
-      <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-cyan-500/30">
+      <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-orange-300">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-cyan-500/20 rounded-xl">
-                <CreditCard className="h-8 w-8 text-cyan-400" />
+              <div className="p-3 bg-orange-100 rounded-xl">
+                <CreditCard className="h-8 w-8 text-orange-500" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Ready to boost your credit?</h3>
-                <p className="text-sm text-slate-300">
+                <h3 className="text-lg font-semibold text-gray-900">Ready to boost your credit?</h3>
+                <p className="text-sm text-gray-700">
                   Generate your first dispute letter in under 4 minutes
                 </p>
               </div>
             </div>
             <Link href="/dashboard/disputes">
-              <Button className="bg-cyan-500 hover:bg-cyan-600 text-white">
+              <Button className="bg-cyan-500 hover:bg-orange-500 text-gray-900">
                 Start Disputing
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

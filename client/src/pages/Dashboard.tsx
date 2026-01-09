@@ -735,9 +735,9 @@ export default function Dashboard() {
                             </p>
                             <ul className="text-sm space-y-2">
                               {JSON.parse(account.conflictDetails).map((conflict: any, idx: number) => (
-                                <li key={idx} className="flex items-start gap-2 bg-white dark:bg-slate-800 p-2 rounded border border-red-300 dark:border-red-700">
+                                <li key={idx} className="flex items-start gap-2 bg-white p-2 rounded border border-red-300">
                                   <span className="text-red-600 font-bold">⚠️</span>
-                                  <span className="text-red-800 dark:text-red-300 font-medium">{conflict.description}</span>
+                                  <span className="text-red-800 font-medium">{conflict.description}</span>
                                 </li>
                               ))}
                             </ul>
