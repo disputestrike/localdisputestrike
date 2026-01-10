@@ -22,7 +22,9 @@ import {
   CheckCircle2,
   Mail,
   Home,
+  Zap,
 } from "lucide-react";
+import { MethodsAnalyticsDashboard } from "@/components/MethodsAnalyticsDashboard";
 import { Link, useLocation } from "wouter";
 import { useEffect } from "react";
 
@@ -140,7 +142,7 @@ export default function Admin() {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">
               <Users className="h-4 w-4 mr-2" />
               Users
@@ -152,6 +154,10 @@ export default function Admin() {
             <TabsTrigger value="analytics">
               <TrendingUp className="h-4 w-4 mr-2" />
               Analytics
+            </TabsTrigger>
+            <TabsTrigger value="methods">
+              <Zap className="h-4 w-4 mr-2" />
+              43 Methods
             </TabsTrigger>
           </TabsList>
 
@@ -320,6 +326,21 @@ export default function Admin() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* 43 Methods Analytics Tab */}
+          <TabsContent value="methods" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>43 Dispute Detection Methods Analytics</CardTitle>
+                <CardDescription>
+                  Track which detection algorithms are most effective at achieving deletions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <MethodsAnalyticsDashboard />
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

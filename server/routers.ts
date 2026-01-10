@@ -448,6 +448,47 @@ export const appRouter = router({
         
         return await getRecentParserComparisons(input.limit || 50);
       }),
+    // Method Analytics - 43 Dispute Detection Methods
+    getMethodAnalytics: adminProcedure.query(async ({ ctx }) => {
+      const { 
+        getMethodStats, 
+        getMethodStatsByCategory, 
+        getTopTriggeredMethods, 
+        getMethodTriggerTrends,
+        getMethodAnalyticsSummary 
+      } = await import('./db');
+      
+      const [stats, byCategory, topMethods, trends, summary] = await Promise.all([
+        getMethodStats(),
+        getMethodStatsByCategory(),
+        getTopTriggeredMethods(15),
+        getMethodTriggerTrends(30),
+        getMethodAnalyticsSummary()
+      ]);
+      
+      return {
+        stats,
+        byCategory,
+        topMethods,
+        trends,
+        summary
+      };
+    }),
+    
+    getMethodDetails: adminProcedure
+      .input(z.object({ methodNumber: z.number().min(1).max(43) }))
+      .query(async ({ ctx, input }) => {
+        const { getMethodStats } = await import('./db');
+        const allStats = await getMethodStats();
+        const methodStats = allStats.find(s => s.methodNumber === input.methodNumber);
+        
+        if (!methodStats) {
+          return null;
+        }
+        
+        return methodStats;
+      }),
+
     // Cleanup user data for master test
     cleanupUserData: protectedProcedure
       .input(z.object({ userId: z.number() }))
@@ -1836,6 +1877,130 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         });
         
         return { letterId, message: 'Estoppel by Silence letter generated' };
+      }),
+
+    /**
+     * Generate specialized letter based on specific detection method (1-43)
+     */
+    generateMethodSpecificLetter: paidProcedure
+      .input(z.object({
+        methodNumber: z.number().min(1).max(43),
+        bureau: z.enum(['transunion', 'equifax', 'experian']),
+        accountId: z.number().optional(),
+        accountData: z.record(z.string(), z.any()),
+        userAddress: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { getMethodTemplate, generateSpecializedLetter } = await import('./letterTemplates');
+        const { recordMethodTrigger } = await import('./db');
+        
+        const template = getMethodTemplate(input.methodNumber);
+        if (!template) {
+          throw new Error(`Method template ${input.methodNumber} not found`);
+        }
+        
+        // Get user profile for letter generation
+        const profile = await db.getUserProfile(ctx.user.id);
+        
+        const userInfo = {
+          name: profile?.fullName || ctx.user.name || 'Consumer',
+          address: profile?.currentAddress || input.userAddress,
+          city: profile?.currentCity || '',
+          state: profile?.currentState || '',
+          zip: profile?.currentZip || '',
+          phone: profile?.phone || undefined,
+          email: profile?.email || ctx.user.email || undefined,
+          dob: profile?.dateOfBirth || undefined,
+          ssn4: profile?.ssnLast4 || undefined,
+        };
+        
+        // Generate the specialized letter
+        const letterContent = generateSpecializedLetter(
+          input.methodNumber,
+          userInfo,
+          input.bureau,
+          input.accountData
+        );
+        
+        // Save letter to database
+        const letter = await db.createDisputeLetter({
+          userId: ctx.user.id,
+          bureau: input.bureau,
+          letterContent,
+          accountsDisputed: JSON.stringify(input.accountId ? [input.accountId] : []),
+          round: 1,
+          letterType: 'initial',
+          status: 'generated',
+        });
+        const letterId = letter.id;
+        
+        // Record method trigger for analytics
+        await recordMethodTrigger({
+          userId: ctx.user.id,
+          accountId: input.accountId || null,
+          letterId: letterId,
+          methodNumber: input.methodNumber,
+          methodName: template.methodName,
+          methodCategory: template.category as any,
+          severity: template.severity,
+          deletionProbability: template.deletionProbability,
+          fcraViolation: template.fcraViolation,
+        });
+        
+        return {
+          letterId,
+          methodNumber: input.methodNumber,
+          methodName: template.methodName,
+          deletionProbability: template.deletionProbability,
+          message: `${template.methodName} dispute letter generated`,
+        };
+      }),
+
+    /**
+     * Get all 43 method templates with their details
+     */
+    getMethodTemplates: protectedProcedure.query(async () => {
+      const { ALL_METHOD_TEMPLATES } = await import('./letterTemplates');
+      
+      return ALL_METHOD_TEMPLATES.map(t => ({
+        methodNumber: t.methodNumber,
+        methodName: t.methodName,
+        category: t.category,
+        fcraViolation: t.fcraViolation,
+        deletionProbability: t.deletionProbability,
+        severity: t.severity,
+        legalBasis: t.legalBasis,
+        demandLanguage: t.demandLanguage,
+        evidenceRequired: t.evidenceRequired,
+        escalationPath: t.escalationPath,
+      }));
+    }),
+
+    /**
+     * Get templates filtered by category
+     */
+    getMethodTemplatesByCategory: protectedProcedure
+      .input(z.object({
+        category: z.enum([
+          'date_timeline',
+          'balance_payment',
+          'creditor_ownership',
+          'status_classification',
+          'account_identification',
+          'legal_procedural',
+          'statistical_pattern'
+        ])
+      }))
+      .query(async ({ input }) => {
+        const { getTemplatesByCategory } = await import('./letterTemplates');
+        
+        return getTemplatesByCategory(input.category).map(t => ({
+          methodNumber: t.methodNumber,
+          methodName: t.methodName,
+          fcraViolation: t.fcraViolation,
+          deletionProbability: t.deletionProbability,
+          severity: t.severity,
+        }));
       }),
   }),
 

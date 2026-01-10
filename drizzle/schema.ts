@@ -803,3 +803,71 @@ export const userDocuments = mysqlTable("user_documents", {
 
 export type UserDocument = typeof userDocuments.$inferSelect;
 export type InsertUserDocument = typeof userDocuments.$inferInsert;
+
+
+/**
+ * Method triggers - tracks which of the 43 dispute detection methods are triggered
+ * Used for analytics dashboard to show most effective methods
+ */
+export const methodTriggers = mysqlTable("method_triggers", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  accountId: int("accountId"), // Reference to negative account
+  letterId: int("letterId"), // Reference to dispute letter
+  
+  // Method identification
+  methodNumber: int("methodNumber").notNull(), // 1-43
+  methodName: varchar("methodName", { length: 255 }).notNull(),
+  methodCategory: mysqlEnum("methodCategory", [
+    "date_timeline",
+    "balance_payment", 
+    "creditor_ownership",
+    "status_classification",
+    "account_identification",
+    "legal_procedural",
+    "statistical_pattern"
+  ]).notNull(),
+  
+  // Detection details
+  severity: mysqlEnum("severity", ["critical", "high", "medium", "low"]).default("medium").notNull(),
+  deletionProbability: int("deletionProbability"), // 0-100 percentage
+  fcraViolation: varchar("fcraViolation", { length: 100 }), // e.g., "§ 1681e(b)"
+  
+  // Outcome tracking (updated after dispute resolution)
+  outcome: mysqlEnum("outcome", ["pending", "deleted", "verified", "updated", "no_response"]).default("pending"),
+  outcomeDate: timestamp("outcomeDate"),
+  
+  // Timestamps
+  triggeredAt: timestamp("triggeredAt").defaultNow().notNull(),
+});
+
+export type MethodTrigger = typeof methodTriggers.$inferSelect;
+export type InsertMethodTrigger = typeof methodTriggers.$inferInsert;
+
+/**
+ * Method analytics - daily aggregated stats for the 43 methods
+ */
+export const methodAnalytics = mysqlTable("method_analytics", {
+  id: int("id").autoincrement().primaryKey(),
+  date: varchar("date", { length: 10 }).notNull(), // YYYY-MM-DD
+  
+  // Method identification
+  methodNumber: int("methodNumber").notNull(), // 1-43
+  methodName: varchar("methodName", { length: 255 }).notNull(),
+  methodCategory: varchar("methodCategory", { length: 50 }).notNull(),
+  
+  // Daily stats
+  triggerCount: int("triggerCount").default(0).notNull(),
+  deletionCount: int("deletionCount").default(0).notNull(),
+  verifiedCount: int("verifiedCount").default(0).notNull(),
+  pendingCount: int("pendingCount").default(0).notNull(),
+  
+  // Success metrics
+  successRate: decimal("successRate", { precision: 5, scale: 2 }), // Percentage
+  avgDeletionProbability: decimal("avgDeletionProbability", { precision: 5, scale: 2 }),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MethodAnalytic = typeof methodAnalytics.$inferSelect;
+export type InsertMethodAnalytic = typeof methodAnalytics.$inferInsert;

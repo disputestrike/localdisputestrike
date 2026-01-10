@@ -2382,3 +2382,275 @@ export async function getExpiringDocuments(userId: number, daysUntilExpiry: numb
     ))
     .orderBy(userDocuments.expiresAt);
 }
+
+
+// ============================================================================
+// METHOD ANALYTICS OPERATIONS (43 Dispute Detection Methods)
+// ============================================================================
+
+import { 
+  methodTriggers, 
+  InsertMethodTrigger, 
+  MethodTrigger,
+  methodAnalytics,
+  InsertMethodAnalytic,
+  MethodAnalytic
+} from "../drizzle/schema";
+
+/**
+ * Record a method trigger when a detection algorithm fires
+ */
+export async function recordMethodTrigger(data: InsertMethodTrigger): Promise<MethodTrigger> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  const [result] = await dbInstance.insert(methodTriggers).values(data).$returningId();
+  
+  const inserted = await dbInstance
+    .select()
+    .from(methodTriggers)
+    .where(eq(methodTriggers.id, result.id))
+    .limit(1);
+  
+  return inserted[0];
+}
+
+/**
+ * Record multiple method triggers at once (batch insert)
+ */
+export async function recordMethodTriggersBatch(triggers: InsertMethodTrigger[]): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  if (triggers.length === 0) return;
+  
+  await dbInstance.insert(methodTriggers).values(triggers);
+}
+
+/**
+ * Get method triggers for a user
+ */
+export async function getUserMethodTriggers(userId: number): Promise<MethodTrigger[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(methodTriggers)
+    .where(eq(methodTriggers.userId, userId))
+    .orderBy(desc(methodTriggers.triggeredAt));
+}
+
+/**
+ * Get method triggers for a specific letter
+ */
+export async function getLetterMethodTriggers(letterId: number): Promise<MethodTrigger[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  return dbInstance
+    .select()
+    .from(methodTriggers)
+    .where(eq(methodTriggers.letterId, letterId))
+    .orderBy(methodTriggers.methodNumber);
+}
+
+/**
+ * Update method trigger outcome (after dispute resolution)
+ */
+export async function updateMethodTriggerOutcome(
+  triggerId: number,
+  outcome: 'pending' | 'deleted' | 'verified' | 'updated' | 'no_response'
+): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  await dbInstance
+    .update(methodTriggers)
+    .set({ 
+      outcome,
+      outcomeDate: new Date()
+    })
+    .where(eq(methodTriggers.id, triggerId));
+}
+
+/**
+ * Get aggregated method statistics across all users
+ */
+export async function getMethodStats(): Promise<{
+  methodNumber: number;
+  methodName: string;
+  methodCategory: string;
+  triggerCount: number;
+  deletionCount: number;
+  verifiedCount: number;
+  pendingCount: number;
+  successRate: number;
+  avgDeletionProbability: number;
+}[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const results = await dbInstance
+    .select({
+      methodNumber: methodTriggers.methodNumber,
+      methodName: methodTriggers.methodName,
+      methodCategory: methodTriggers.methodCategory,
+      triggerCount: sql<number>`COUNT(*)`,
+      deletionCount: sql<number>`SUM(CASE WHEN outcome = 'deleted' THEN 1 ELSE 0 END)`,
+      verifiedCount: sql<number>`SUM(CASE WHEN outcome = 'verified' THEN 1 ELSE 0 END)`,
+      pendingCount: sql<number>`SUM(CASE WHEN outcome = 'pending' THEN 1 ELSE 0 END)`,
+      avgDeletionProbability: sql<number>`AVG(deletionProbability)`,
+    })
+    .from(methodTriggers)
+    .groupBy(methodTriggers.methodNumber, methodTriggers.methodName, methodTriggers.methodCategory)
+    .orderBy(sql`COUNT(*) DESC`);
+
+  return results.map(r => ({
+    ...r,
+    successRate: r.triggerCount > 0 && (r.deletionCount + r.verifiedCount) > 0 
+      ? Math.round((r.deletionCount / (r.deletionCount + r.verifiedCount)) * 100) 
+      : 0
+  }));
+}
+
+/**
+ * Get method stats by category
+ */
+export async function getMethodStatsByCategory(): Promise<{
+  category: string;
+  triggerCount: number;
+  deletionCount: number;
+  successRate: number;
+}[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const results = await dbInstance
+    .select({
+      category: methodTriggers.methodCategory,
+      triggerCount: sql<number>`COUNT(*)`,
+      deletionCount: sql<number>`SUM(CASE WHEN outcome = 'deleted' THEN 1 ELSE 0 END)`,
+      verifiedCount: sql<number>`SUM(CASE WHEN outcome = 'verified' THEN 1 ELSE 0 END)`,
+    })
+    .from(methodTriggers)
+    .groupBy(methodTriggers.methodCategory)
+    .orderBy(sql`COUNT(*) DESC`);
+
+  return results.map(r => ({
+    category: r.category,
+    triggerCount: r.triggerCount,
+    deletionCount: r.deletionCount,
+    successRate: r.triggerCount > 0 && (r.deletionCount + r.verifiedCount) > 0 
+      ? Math.round((r.deletionCount / (r.deletionCount + r.verifiedCount)) * 100) 
+      : 0
+  }));
+}
+
+/**
+ * Get top N most triggered methods
+ */
+export async function getTopTriggeredMethods(limit: number = 10): Promise<{
+  methodNumber: number;
+  methodName: string;
+  triggerCount: number;
+  successRate: number;
+}[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const results = await dbInstance
+    .select({
+      methodNumber: methodTriggers.methodNumber,
+      methodName: methodTriggers.methodName,
+      triggerCount: sql<number>`COUNT(*)`,
+      deletionCount: sql<number>`SUM(CASE WHEN outcome = 'deleted' THEN 1 ELSE 0 END)`,
+      resolvedCount: sql<number>`SUM(CASE WHEN outcome IN ('deleted', 'verified') THEN 1 ELSE 0 END)`,
+    })
+    .from(methodTriggers)
+    .groupBy(methodTriggers.methodNumber, methodTriggers.methodName)
+    .orderBy(sql`COUNT(*) DESC`)
+    .limit(limit);
+
+  return results.map(r => ({
+    methodNumber: r.methodNumber,
+    methodName: r.methodName,
+    triggerCount: r.triggerCount,
+    successRate: r.resolvedCount > 0 
+      ? Math.round((r.deletionCount / r.resolvedCount) * 100) 
+      : 0
+  }));
+}
+
+/**
+ * Get method trigger trends over time (last 30 days)
+ */
+export async function getMethodTriggerTrends(days: number = 30): Promise<{
+  date: string;
+  triggerCount: number;
+  deletionCount: number;
+}[]> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return [];
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - days);
+
+  return dbInstance
+    .select({
+      date: sql<string>`DATE(triggeredAt)`,
+      triggerCount: sql<number>`COUNT(*)`,
+      deletionCount: sql<number>`SUM(CASE WHEN outcome = 'deleted' THEN 1 ELSE 0 END)`,
+    })
+    .from(methodTriggers)
+    .where(sql`triggeredAt >= ${startDate}`)
+    .groupBy(sql`DATE(triggeredAt)`)
+    .orderBy(sql`DATE(triggeredAt)`);
+}
+
+/**
+ * Get total method analytics summary
+ */
+export async function getMethodAnalyticsSummary(): Promise<{
+  totalTriggers: number;
+  totalDeletions: number;
+  totalVerified: number;
+  overallSuccessRate: number;
+  uniqueMethods: number;
+  avgTriggersPerLetter: number;
+}> {
+  const dbInstance = await getDb();
+  if (!dbInstance) return {
+    totalTriggers: 0,
+    totalDeletions: 0,
+    totalVerified: 0,
+    overallSuccessRate: 0,
+    uniqueMethods: 0,
+    avgTriggersPerLetter: 0
+  };
+
+  const [summary] = await dbInstance
+    .select({
+      totalTriggers: sql<number>`COUNT(*)`,
+      totalDeletions: sql<number>`SUM(CASE WHEN outcome = 'deleted' THEN 1 ELSE 0 END)`,
+      totalVerified: sql<number>`SUM(CASE WHEN outcome = 'verified' THEN 1 ELSE 0 END)`,
+      uniqueMethods: sql<number>`COUNT(DISTINCT methodNumber)`,
+      uniqueLetters: sql<number>`COUNT(DISTINCT letterId)`,
+    })
+    .from(methodTriggers);
+
+  const resolved = (summary.totalDeletions || 0) + (summary.totalVerified || 0);
+  
+  return {
+    totalTriggers: summary.totalTriggers || 0,
+    totalDeletions: summary.totalDeletions || 0,
+    totalVerified: summary.totalVerified || 0,
+    overallSuccessRate: resolved > 0 
+      ? Math.round((summary.totalDeletions / resolved) * 100) 
+      : 0,
+    uniqueMethods: summary.uniqueMethods || 0,
+    avgTriggersPerLetter: summary.uniqueLetters > 0 
+      ? Math.round((summary.totalTriggers / summary.uniqueLetters) * 10) / 10 
+      : 0
+  };
+}
