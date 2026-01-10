@@ -8,7 +8,29 @@
 import type { ParsedAccount } from './creditReportParser';
 
 export interface Conflict {
-  type: 'balance' | 'status' | 'date' | 're-aging' | 'impossible_timeline' | 'unverifiable_balance' | 'duplicate' | 'status_correction' | 'previously_disputed' | 'missing_documentation';
+  type: 
+    // Category 1: Date & Timeline (15)
+    | 'cross_bureau_date' | 'impossible_timeline' | 're-aging' | 'missing_dates' 
+    | 'last_activity_predates_opened' | 'beyond_7_year' | 'inconsistent_chargeoff_dates'
+    | 'opening_date_conflicts' | 'closed_account_activity' | 'future_dated'
+    | 'late_payments_after_payoff' | 'inadequate_reinvestigation' | 'statute_of_limitations'
+    | 'impossible_payment_patterns' | 'synchronized_late_payments'
+    // Category 2: Balance & Payment (8)
+    | 'unverifiable_balance' | 'balance' | 'balance_increase_post_chargeoff'
+    | 'payment_history_mismatch' | 'zero_balance_negative' | 'unverifiable_deficiency'
+    | 'collection_exceeds_original' | 'anomalous_utilization'
+    // Category 3: Creditor & Ownership (5)
+    | 'lack_of_standing' | 'original_creditor_not_reporting' | 'multiple_collectors'
+    | 'creditor_name_inconsistencies' | 'mixed_files'
+    // Category 4: Status & Classification (6)
+    | 'duplicate' | 'status_correction' | 'contradictory_status' | 'incorrect_account_type'
+    | 'disputed_status_not_reflected' | 'high_concentration_single_day'
+    // Category 5: Account Identification (2)
+    | 'account_number_conflicts' | 'same_number_different_debts'
+    // Category 6: Legal & Procedural (2)
+    | 'failure_to_provide_mov' | 'inquiry_without_purpose'
+    // Legacy types
+    | 'status' | 'date' | 'previously_disputed' | 'missing_documentation';
   severity: 'critical' | 'high' | 'medium';
   accountName: string;
   description: string;
