@@ -54,7 +54,7 @@ export function ExitIntentPopup() {
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>
-                <span>20% discount on any package</span>
+                <span>Expert FCRA dispute letter templates</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-green-500">✓</span>

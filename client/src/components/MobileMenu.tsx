@@ -87,6 +87,14 @@ export function MobileMenu() {
             >
               Money Back Guarantee
             </Link>
+            
+            <Link
+              href="/agency-pricing"
+              onClick={() => setIsOpen(false)}
+              className="block py-3 text-lg font-medium text-orange-600 hover:text-orange-700 transition-colors"
+            >
+              Become a Merchant
+            </Link>
 
             <div className="pt-4 border-t border-gray-200 space-y-3">
               {isAuthenticated ? (
@@ -108,11 +116,16 @@ export function MobileMenu() {
               ) : (
                 <>
                   <Button variant="outline" className="w-full" asChild>
-                    <a href={getLoginUrl()}>Login</a>
+                    <Link href="/login" onClick={() => setIsOpen(false)}>Login</Link>
                   </Button>
                   <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white" asChild>
+                    <Link href="/pricing" onClick={() => setIsOpen(false)}>
+                      Sign Up Now
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="w-full border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
                     <Link href="/quiz" onClick={() => setIsOpen(false)}>
-                      Get Started Free
+                      Free Analysis First
                     </Link>
                   </Button>
                 </>

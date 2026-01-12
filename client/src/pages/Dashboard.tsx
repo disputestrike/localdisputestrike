@@ -223,6 +223,19 @@ export default function Dashboard() {
     },
   });
 
+  // Combined upload mutation for 3-bureau reports
+  const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
+    onSuccess: () => {
+      toast.success("Combined report uploaded! AI is extracting accounts from all 3 bureaus...");
+      refetchReports();
+      setUploadingBureau(null);
+    },
+    onError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+      setUploadingBureau(null);
+    },
+  });
+
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent, bureau: string) => {
     e.preventDefault();
@@ -633,13 +646,40 @@ export default function Dashboard() {
                       accept=".pdf,image/*"
                       id="upload-combined"
                       className="hidden"
-                      onChange={(e) => {
+                      onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          // For combined upload, we'll upload to all 3 bureaus
-                          // The AI parser will split them automatically
-                          toast.info('Uploading combined report...');
-                          handleFileUpload('transunion', file);
+                          setUploadingBureau('combined');
+                          toast.info('Uploading combined 3-bureau report...');
+                          
+                          // Convert file to array buffer
+                          const fileKey = `credit-reports/${user?.id}/combined/${Date.now()}-${file.name}`;
+                          const reader = new FileReader();
+                          reader.onload = async (ev) => {
+                            const arrayBuffer = ev.target?.result as ArrayBuffer;
+                            const uint8Array = new Uint8Array(arrayBuffer);
+                            
+                            try {
+                              // Upload to S3 first
+                              const uploadResult = await uploadToS3.mutateAsync({
+                                fileKey,
+                                fileData: Array.from(uint8Array),
+                                contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
+                              });
+                              
+                              // Now use the combined upload endpoint
+                              await uploadCombinedReport.mutateAsync({
+                                fileName: file.name,
+                                fileUrl: uploadResult.url,
+                                fileKey: uploadResult.key,
+                              });
+                            } catch (error) {
+                              console.error('Combined upload failed:', error);
+                              toast.error('Failed to upload combined report');
+                              setUploadingBureau(null);
+                            }
+                          };
+                          reader.readAsArrayBuffer(file);
                         }
                       }}
                       disabled={uploadingBureau !== null}

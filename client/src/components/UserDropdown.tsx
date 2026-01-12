@@ -3,11 +3,12 @@ import { User, LogOut, Settings } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const logoutMutation = trpc.auth.logout.useMutation({
     onSuccess: () => {
       window.location.href = "/";
@@ -27,6 +28,24 @@ export function UserDropdown() {
   const handleLogout = () => {
     logoutMutation.mutate();
   };
+
+  // If not authenticated, show login/signup buttons
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="flex items-center gap-3">
+        <Link href="/login">
+          <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+            Login
+          </Button>
+        </Link>
+        <Link href="/register">
+          <Button className="bg-orange-600 hover:bg-orange-700 text-white">
+            Sign Up
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -54,7 +73,7 @@ export function UserDropdown() {
             </a>
           </Link>
           
-          <Link href="/dashboard">
+          <Link href="/dashboard/settings">
             <a className="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 transition-colors">
               <Settings className="h-4 w-4 text-gray-600" />
               <span className="text-sm text-gray-700">Settings</span>

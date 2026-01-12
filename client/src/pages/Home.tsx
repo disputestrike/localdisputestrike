@@ -23,18 +23,6 @@ export default function Home() {
       <LiveCounter />
       <ExitIntentEmailPopup />
       
-      {/* Blue Header CTA Banner */}
-      <div className="bg-blue-600 text-white py-3">
-        <div className="container flex items-center justify-between">
-          <p className="text-sm md:text-base font-medium">
-            🎉 Limited Time: Get 30% OFF Your First Package - Ends in <BannerCountdown />
-          </p>
-          <Button size="sm" className="bg-white text-blue-600 hover:bg-gray-100" asChild>
-            <Link href="/quiz">Claim Discount</Link>
-          </Button>
-        </div>
-      </div>
-      
       {/* Navigation */}
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
@@ -44,23 +32,23 @@ export default function Home() {
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+          <div className="hidden lg:flex items-center gap-5 ml-8 whitespace-nowrap">
+            <Link href="/features" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Features
             </Link>
-            <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+            <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               How It Works
             </Link>
-            <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+            <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Pricing
             </Link>
-            <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+            <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               FAQ
             </Link>
-            <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors">
+            <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Money Back Guarantee
             </Link>
-            <Link href="/agency-pricing" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors">
+            <Link href="/agency-pricing" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors text-sm">
               Become a Merchant
             </Link>
             {isAuthenticated ? (
@@ -70,8 +58,11 @@ export default function Home() {
                 <Button variant="ghost" className="text-gray-700" asChild>
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
+                <Button variant="outline" className="border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
+                  <Link href="/quiz">Free Analysis</Link>
+                </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Start Your Journey Free</Link>
+                  <Link href="/pricing">Sign Up</Link>
                 </Button>
               </>
             )}
@@ -121,12 +112,18 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
                 <Link href="/quiz">
-                  Start Your Journey <ArrowRight className="ml-2" />
+                  Free Analysis <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
+                <Link href="/pricing">
+                  Sign Up Now
                 </Link>
               </Button>
             </div>
+            <p className="text-sm text-gray-500 mt-2">Already know what you need? Skip the quiz and sign up directly.</p>
             
             <div className="flex items-center justify-center gap-2 text-yellow-500">
               {[...Array(5)].map((_, i) => (
@@ -161,9 +158,14 @@ export default function Home() {
               <p className="text-xl text-gray-300 mb-8">
                 Generate FCRA-compliant dispute letters, track your progress, and exercise your rights under federal law — all from one powerful platform.
               </p>
-              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-                <Link href="/quiz">Start Your Free Assessment <ArrowRight className="ml-2" /></Link>
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
+                  <Link href="/quiz">Free Assessment <ArrowRight className="ml-2" /></Link>
+                </Button>
+                <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6" asChild>
+                  <Link href="/pricing">Sign Up Now</Link>
+                </Button>
+              </div>
             </div>
             
             {/* Right side - Phone mockups */}
@@ -755,9 +757,9 @@ export default function Home() {
             <p className="text-xl text-gray-700">We're transparent about who we can help</p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="flex justify-center">
             {/* Who This IS For */}
-            <Card className="border-2 border-green-200 bg-green-50">
+            <Card className="border-2 border-green-200 bg-green-50 max-w-2xl w-full">
               <CardHeader>
                 <CardTitle className="text-green-800 flex items-center gap-2">
                   <CheckCircle2 className="h-6 w-6" />
@@ -787,38 +789,7 @@ export default function Home() {
                 </p>
               </CardContent>
             </Card>
-            
-            {/* Who This is NOT For */}
-            <Card className="border-2 border-red-200 bg-red-50">
-              <CardHeader>
-                <CardTitle className="text-red-800 flex items-center gap-2">
-                  <XCircle className="h-6 w-6" />
-                  DisputeStrike is NOT For You If...
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="flex items-start gap-2 text-gray-700">
-                  <span className="text-red-600 font-bold">✗</span>
-                  You want someone else to dispute on your behalf (we don't do that)
-                </p>
-                <p className="flex items-start gap-2 text-gray-700">
-                  <span className="text-red-600 font-bold">✗</span>
-                  You expect guaranteed removal of accurate information (that's illegal)
-                </p>
-                <p className="flex items-start gap-2 text-gray-700">
-                  <span className="text-red-600 font-bold">✗</span>
-                  You need legal advice (we're software, not attorneys)
-                </p>
-                <p className="flex items-start gap-2 text-gray-700">
-                  <span className="text-red-600 font-bold">✗</span>
-                  You want to dispute accurate debts you legitimately owe
-                </p>
-                <p className="flex items-start gap-2 text-gray-700">
-                  <span className="text-red-600 font-bold">✗</span>
-                  You expect specific credit score improvements (results vary)
-                </p>
-              </CardContent>
-            </Card>
+
           </div>
           
           <div className="mt-12 text-center">
@@ -1191,6 +1162,7 @@ export default function Home() {
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="/admin/login" className="text-gray-500 hover:text-gray-400 transition-colors text-xs">Admin</Link></li>
               </ul>
             </div>
             
@@ -1219,16 +1191,16 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-6 text-sm text-center md:text-left">
               <div>
                 <p className="text-white font-medium">DisputeStrike LLC</p>
-                <p className="text-gray-400">1712 Pioneer Ave, Suite 500, Cheyenne, WY 82001</p>
-                <p className="text-gray-400">[City, State ZIP]</p>
+                <p className="text-gray-400">30 N Gould St Ste R</p>
+                <p className="text-gray-400">Sheridan, WY 82801</p>
               </div>
               <div>
                 <p className="text-gray-400">Email: support@disputestrike.com</p>
-                <p className="text-gray-400">Phone: Contact us online</p>
+                <p className="text-gray-400">Phone: 202-858-9557</p>
+                <p className="text-gray-400"><Link href="/contact" className="text-orange-400 hover:text-orange-300">Contact Us →</Link></p>
               </div>
               <div>
                 <p className="text-gray-400">We are NOT affiliated with any credit bureau.</p>
-                <p className="text-gray-400">We are NOT a credit repair organization.</p>
               </div>
             </div>
           </div>

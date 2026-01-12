@@ -91,9 +91,9 @@ export default function Pricing() {
 
   const handleSelectPlan = (tier: "diy_quick" | "diy_complete" | "white_glove") => {
     if (!isAuthenticated) {
-      // Redirect to quiz to capture lead first
-      toast.info("Please complete our quick quiz to get started");
-      setLocation("/quiz");
+      // Redirect to login for direct sign-up
+      toast.info("Please sign in to complete your purchase");
+      window.location.href = getLoginUrl();
       return;
     }
     createPayment.mutate({ tier });

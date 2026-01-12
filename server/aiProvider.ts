@@ -1,7 +1,6 @@
 import OpenAI from "openai";
-import Anthropic from "@anthropic-ai/sdk";
 
-type AIProvider = "manus" | "openai" | "claude";
+type AIProvider = "openai" | "builtin";
 
 interface AIResponse {
   provider: AIProvider;
@@ -9,100 +8,33 @@ interface AIResponse {
 }
 
 class AIProviderService {
-  private openai: OpenAI | null = null;
-  private claude: Anthropic | null = null;
-  private manusApiUrl: string;
-  private manusApiKey: string;
+  private openai: OpenAI;
 
   constructor() {
-    this.manusApiUrl = process.env.BUILT_IN_FORGE_API_URL || "";
-    this.manusApiKey = process.env.BUILT_IN_FORGE_API_KEY || "";
-
-    // Initialize OpenAI if API key is provided
-    if (process.env.OPENAI_API_KEY) {
-      this.openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
-    }
-
-    // Initialize Claude if API key is provided
-    if (process.env.ANTHROPIC_API_KEY) {
-      this.claude = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-    }
+    // Use the user's OpenAI API key from .env
+    // Explicitly set baseURL to OpenAI's official API to override any proxy settings
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: "https://api.openai.com/v1",
+    });
+    
+    console.log('[AI Provider] Initialized with OpenAI API key:', process.env.OPENAI_API_KEY ? 'Present' : 'Missing');
+    console.log('[AI Provider] Using OpenAI base URL: https://api.openai.com/v1');
   }
 
   /**
-   * Generate text using Manus AI (primary provider)
+   * Generate text using OpenAI (primary provider)
    */
-  private async generateWithManus(prompt: string): Promise<string> {
+  private async generateWithOpenAI(prompt: string, systemPrompt?: string): Promise<string> {
     try {
-      // The Manus Forge API uses OpenAI-compatible format
-      // Make sure we're using the correct endpoint
-      const apiUrl = this.manusApiUrl.endsWith('/') 
-        ? this.manusApiUrl.slice(0, -1) 
-        : this.manusApiUrl;
+      console.log('[AI] Calling OpenAI API...');
       
-      // Try the v1/chat/completions endpoint first (OpenAI compatible)
-      const endpoint = apiUrl.includes('/v1') 
-        ? `${apiUrl}/chat/completions`
-        : `${apiUrl}/v1/chat/completions`;
-      
-      console.log(`[AI] Calling Manus API at: ${endpoint}`);
-      
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${this.manusApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4o",
-          messages: [
-            {
-              role: "system",
-              content: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies. Provide helpful, accurate, and actionable advice."
-            },
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 2000,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[AI] Manus API error response: ${errorText}`);
-        throw new Error(`Manus API error: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data.choices[0]?.message?.content || "";
-    } catch (error) {
-      console.error("Manus AI error:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Generate text using OpenAI (first fallback)
-   */
-  private async generateWithOpenAI(prompt: string): Promise<string> {
-    if (!this.openai) {
-      throw new Error("OpenAI API key not configured");
-    }
-
-    try {
       const response = await this.openai.chat.completions.create({
-        model: "gpt-4",
+        model: "gpt-4o-mini", // Use gpt-4o-mini for cost-effective responses
         messages: [
           {
             role: "system",
-            content: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies."
+            content: systemPrompt || "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies. Provide helpful, accurate, and actionable advice."
           },
           {
             role: "user",
@@ -110,87 +42,76 @@ class AIProviderService {
           },
         ],
         temperature: 0.7,
-        max_tokens: 2000,
+        max_tokens: 4000,
       });
 
-      return response.choices[0]?.message?.content || "";
+      const content = response.choices[0]?.message?.content || "";
+      console.log(`[AI] OpenAI response received (${content.length} chars)`);
+      return content;
     } catch (error) {
-      console.error("OpenAI error:", error);
+      console.error("[AI] OpenAI error:", error);
       throw error;
     }
   }
 
   /**
-   * Generate text using Claude (second fallback)
+   * Generate text with Vision AI for PDF/image analysis
    */
-  private async generateWithClaude(prompt: string): Promise<string> {
-    if (!this.claude) {
-      throw new Error("Claude API key not configured");
-    }
-
+  async generateWithVision(imageBase64: string, prompt: string): Promise<string> {
     try {
-      const response = await this.claude.messages.create({
-        model: "claude-3-5-sonnet-20241022",
-        max_tokens: 2000,
-        system: "You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies.",
+      console.log('[AI] Calling OpenAI Vision API...');
+      
+      const response = await this.openai.chat.completions.create({
+        model: "gpt-4o-mini", // gpt-4o-mini supports vision
         messages: [
           {
+            role: "system",
+            content: "You are an expert credit report analyzer. Extract all negative accounts, collections, charge-offs, late payments, and derogatory items from credit reports. Be thorough and accurate."
+          },
+          {
             role: "user",
-            content: prompt,
+            content: [
+              {
+                type: "text",
+                text: prompt,
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/png;base64,${imageBase64}`,
+                },
+              },
+            ],
           },
         ],
+        max_tokens: 4000,
       });
 
-      const textContent = response.content.find((block) => block.type === "text");
-      return textContent && textContent.type === "text" ? textContent.text : "";
+      return response.choices[0]?.message?.content || "";
     } catch (error) {
-      console.error("Claude error:", error);
+      console.error("[AI] Vision API error:", error);
       throw error;
     }
   }
 
   /**
    * Generate text with automatic fallback
-   * Tries: Manus → OpenAI → Claude
    */
-  async generate(prompt: string): Promise<AIResponse> {
-    const providers: AIProvider[] = ["manus", "openai", "claude"];
-    const errors: Record<AIProvider, string> = {
-      manus: "",
-      openai: "",
-      claude: "",
-    };
-
-    for (const provider of providers) {
-      try {
-        console.log(`[AI] Attempting ${provider}...`);
-
-        let content: string;
-        if (provider === "manus") {
-          content = await this.generateWithManus(prompt);
-        } else if (provider === "openai") {
-          content = await this.generateWithOpenAI(prompt);
-        } else {
-          content = await this.generateWithClaude(prompt);
-        }
-
-        if (content) {
-          console.log(`[AI] Success with ${provider}`);
-          return { provider, content };
-        }
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        errors[provider] = errorMsg;
-        console.warn(`[AI] ${provider} failed: ${errorMsg}`);
-        continue; // Try next provider
+  async generate(prompt: string, systemPrompt?: string): Promise<AIResponse> {
+    try {
+      console.log('[AI] Generating response...');
+      const content = await this.generateWithOpenAI(prompt, systemPrompt);
+      
+      if (content) {
+        return { provider: "openai", content };
       }
+      
+      throw new Error("Empty response from AI");
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error(`[AI] Generation failed: ${errorMsg}`);
+      throw new Error(`AI generation failed: ${errorMsg}`);
     }
-
-    // All providers failed
-    const errorSummary = Object.entries(errors)
-      .map(([provider, error]) => `${provider}: ${error}`)
-      .join(" | ");
-    throw new Error(`All AI providers failed: ${errorSummary}`);
   }
 
   /**
@@ -198,31 +119,10 @@ class AIProviderService {
    */
   getAvailableProviders(): AIProvider[] {
     const available: AIProvider[] = [];
-
-    if (this.manusApiUrl && this.manusApiKey) {
-      available.push("manus");
-    }
-
-    if (this.openai) {
+    if (process.env.OPENAI_API_KEY) {
       available.push("openai");
     }
-
-    if (this.claude) {
-      available.push("claude");
-    }
-
     return available;
-  }
-
-  /**
-   * Get provider status
-   */
-  getProviderStatus(): Record<AIProvider, boolean> {
-    return {
-      manus: !!(this.manusApiUrl && this.manusApiKey),
-      openai: !!this.openai,
-      claude: !!this.claude,
-    };
   }
 }
 

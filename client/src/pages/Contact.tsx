@@ -244,7 +244,8 @@ export default function Contact() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 DisputeStrike. All rights reserved.</p>
+            <p className="mb-2">30 N Gould St Ste R, Sheridan, WY 82801 | Phone: 202-858-9557</p>
+            <p>&copy; 2025 DisputeStrike LLC. All rights reserved.</p>
             <p className="mt-2 text-sm">Credit Should Be Affordable. For everyone. Always.</p>
           </div>
         </div>

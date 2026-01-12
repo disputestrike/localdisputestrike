@@ -5,22 +5,13 @@ import { COOKIE_NAME } from "@shared/const";
  */
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
 import { uploadRouter } from "./uploadRouter";
 
-// Admin-only procedure - requires user.role === 'admin'
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== 'admin') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Admin access required'
-    });
-  }
-  return next({ ctx });
-});
+// Admin procedures imported from _core/trpc with role hierarchy support
 
 // Agency-only procedure - requires user.accountType === 'agency'
 const agencyProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -53,7 +44,7 @@ const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   });
 });
 
-// System prompt for Manus AI letter generation - UPDATED with real-world success learnings
+// System prompt for AI letter generation - UPDATED with real-world success learnings
 const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate A+ (98/100) FCRA-compliant dispute letters that achieve 70-85% deletion rates.
 
 **CRITICAL FORMATTING RULES - MUST FOLLOW:**
@@ -162,7 +153,11 @@ I am prepared to file complaints with:
 
 You write in a professional, authoritative tone that demonstrates legal expertise. Your letters achieve 70-85% deletion rates because they are LEGALLY BULLETPROOF.`;
 
-// Build letter generation prompt
+// Import conflict detector for all 43 dispute methods
+import { detectConflicts, type Conflict, type ConflictAnalysis } from './conflictDetector';
+import type { ParsedAccount } from './creditReportParser';
+
+// Build letter generation prompt with full 43-method conflict detection
 function buildLetterPrompt(
   userName: string,
   bureau: 'transunion' | 'equifax' | 'experian',
@@ -186,21 +181,84 @@ function buildLetterPrompt(
   const today = new Date();
   const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   
-  // Detect impossible timelines and cross-bureau conflicts
+  // Convert accounts to ParsedAccount format for conflict detection
+  const parsedAccounts: ParsedAccount[] = accounts.map(acc => ({
+    accountName: acc.creditorName || acc.accountName,
+    accountNumber: acc.accountNumber || 'Unknown',
+    balance: parseFloat(acc.balance) || 0,
+    status: acc.status || 'Unknown',
+    dateOpened: acc.dateOpened ? new Date(acc.dateOpened) : null,
+    lastActivity: acc.lastActivity ? new Date(acc.lastActivity) : null,
+    accountType: acc.accountType || 'Unknown',
+    originalCreditor: acc.originalCreditor || null,
+    bureau: bureauNames[bureau] as 'TransUnion' | 'Equifax' | 'Experian',
+    rawData: JSON.stringify(acc),
+  }));
+  
+  // Run full 43-method conflict detection
+  const conflictAnalysis: ConflictAnalysis = detectConflicts(parsedAccounts);
+  
+  // Build account analysis with detected conflicts
   const accountsWithAnalysis = accounts.map((acc, i) => {
-    const dateOpened = acc.dateOpened ? new Date(acc.dateOpened) : null;
-    const lastActivity = acc.lastActivity ? new Date(acc.lastActivity) : null;
-    const hasImpossibleTimeline = dateOpened && lastActivity && lastActivity < dateOpened;
+    const accountName = acc.creditorName || acc.accountName;
+    
+    // Get conflicts for this specific account
+    const accountConflicts = conflictAnalysis.conflicts.filter(
+      c => c.accountName.toLowerCase().includes(accountName.toLowerCase()) ||
+           accountName.toLowerCase().includes(c.accountName.toLowerCase())
+    );
+    
+    // Format conflicts by severity
+    const criticalConflicts = accountConflicts.filter(c => c.severity === 'critical');
+    const highConflicts = accountConflicts.filter(c => c.severity === 'high');
+    const mediumConflicts = accountConflicts.filter(c => c.severity === 'medium');
+    
+    let conflictText = '';
+    
+    if (criticalConflicts.length > 0) {
+      conflictText += '\n   **CRITICAL VIOLATIONS (Automatic Deletion Required):**';
+      criticalConflicts.forEach(c => {
+        conflictText += `\n   - ${c.type.toUpperCase()}: ${c.description}`;
+        conflictText += `\n     FCRA Violation: ${c.fcraViolation}`;
+        conflictText += `\n     Deletion Probability: ${c.deletionProbability}%`;
+        if (c.argument) conflictText += `\n     Legal Argument: ${c.argument}`;
+      });
+    }
+    
+    if (highConflicts.length > 0) {
+      conflictText += '\n   **HIGH PRIORITY VIOLATIONS:**';
+      highConflicts.forEach(c => {
+        conflictText += `\n   - ${c.type.toUpperCase()}: ${c.description}`;
+        conflictText += `\n     FCRA Violation: ${c.fcraViolation}`;
+      });
+    }
+    
+    if (mediumConflicts.length > 0) {
+      conflictText += '\n   **ADDITIONAL VIOLATIONS:**';
+      mediumConflicts.forEach(c => {
+        conflictText += `\n   - ${c.type}: ${c.description}`;
+      });
+    }
     
     return `
-${i + 1}. ${acc.creditorName || acc.accountName}
+${i + 1}. ${accountName}
    - Account Number: ${acc.accountNumber}
    - Type: ${acc.accountType}
    - Status: ${acc.status}
    - Balance: $${acc.balance}
    - Date Opened: ${acc.dateOpened || 'Not reported'}
-   - Last Activity: ${acc.lastActivity || 'Unknown'}${hasImpossibleTimeline ? '\n   - **CRITICAL ERROR: IMPOSSIBLE TIMELINE DETECTED** - Last Activity is BEFORE Date Opened!' : ''}`;
+   - Last Activity: ${acc.lastActivity || 'Unknown'}${conflictText || '\n   - Request verification under FCRA § 1681i'}`;
   }).join('\n');
+  
+  // Add conflict summary to prompt
+  const conflictSummary = `
+**CONFLICT ANALYSIS SUMMARY (${conflictAnalysis.methodsUsed.length} of 43 detection methods triggered):**
+- Total Conflicts Found: ${conflictAnalysis.totalConflicts}
+- Critical Conflicts: ${conflictAnalysis.criticalConflicts}
+- High Priority Conflicts: ${conflictAnalysis.highPriorityConflicts}
+- Estimated Deletions: ${conflictAnalysis.estimatedDeletions}
+- Methods Used: ${conflictAnalysis.methodsUsed.join(', ')}
+`;
 
   return `Generate a FCRA-compliant dispute letter for ${bureauNames[bureau]}.
 
@@ -217,6 +275,8 @@ ${bureauAddresses[bureau]}
 
 Negative Accounts to Dispute (${accounts.length} total):
 ${accountsWithAnalysis}
+
+${conflictSummary}
 
 **REQUIRED LETTER STRUCTURE:**
 
@@ -501,6 +561,269 @@ export const appRouter = router({
         const { cleanupUserData } = await import('./cleanupUserData');
         return await cleanupUserData(input.userId);
       }),
+
+    // ============================================================================
+    // COMPREHENSIVE ADMIN PANEL ENDPOINTS
+    // ============================================================================
+
+    // Get full dashboard stats
+    getDashboardStats: adminProcedure.query(async ({ ctx }) => {
+      const { getAdminDashboardStats } = await import('./db');
+      return await getAdminDashboardStats();
+    }),
+
+    // Get users with filters and pagination
+    getUserList: adminProcedure
+      .input(z.object({
+        role: z.string().optional(),
+        status: z.string().optional(),
+        state: z.string().optional(),
+        city: z.string().optional(),
+        search: z.string().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        limit: z.number().optional().default(50),
+        offset: z.number().optional().default(0),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getAdminUserList } = await import('./db');
+        return await getAdminUserList({
+          ...input,
+          startDate: input.startDate ? new Date(input.startDate) : undefined,
+          endDate: input.endDate ? new Date(input.endDate) : undefined,
+        });
+      }),
+
+    // Get single user details
+    getUserDetails: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const { getAdminUserDetails } = await import('./db');
+        return await getAdminUserDetails(input.userId);
+      }),
+
+    // Update user role (with hierarchy check)
+    updateUserRole: superAdminProcedure
+      .input(z.object({
+        userId: z.number(),
+        newRole: z.enum(['user', 'admin', 'super_admin', 'master_admin']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Check hierarchy - can only promote to roles below your own
+        if (!canManageRole(ctx.user.role, input.newRole)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `Cannot assign role ${input.newRole} - insufficient permissions`,
+          });
+        }
+        
+        const { updateUserRole, getUserById } = await import('./db');
+        const targetUser = await getUserById(input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+        }
+        
+        // Can't modify users with same or higher role
+        if (!canManageRole(ctx.user.role, targetUser.role)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot modify user with same or higher role',
+          });
+        }
+        
+        await updateUserRole(input.userId, input.newRole, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Update user status (block/unblock)
+    updateUserStatus: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        status: z.enum(['active', 'blocked', 'suspended']),
+        reason: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateUserStatus, getUserById } = await import('./db');
+        const targetUser = await getUserById(input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+        }
+        
+        // Can't block users with same or higher role
+        if (ADMIN_ROLES.includes(targetUser.role) && !canManageRole(ctx.user.role, targetUser.role)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot modify admin with same or higher role',
+          });
+        }
+        
+        await updateUserStatus(input.userId, input.status, ctx.user.id, input.reason);
+        return { success: true };
+      }),
+
+    // Update user profile
+    updateUserProfile: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        name: z.string().optional(),
+        email: z.string().optional(),
+        fullName: z.string().optional(),
+        phone: z.string().optional(),
+        currentAddress: z.string().optional(),
+        currentCity: z.string().optional(),
+        currentState: z.string().optional(),
+        currentZip: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { adminUpdateUserProfile } = await import('./db');
+        const { userId, ...data } = input;
+        await adminUpdateUserProfile(userId, data, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Delete user (master admin only)
+    deleteUser: masterAdminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteUser, getUserById } = await import('./db');
+        const targetUser = await getUserById(input.userId);
+        
+        if (!targetUser) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+        }
+        
+        // Can't delete master admins
+        if (targetUser.role === 'master_admin') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cannot delete master admin',
+          });
+        }
+        
+        await deleteUser(input.userId, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Get all admins
+    getAdmins: adminProcedure.query(async ({ ctx }) => {
+      const { getAllAdmins } = await import('./db');
+      return await getAllAdmins();
+    }),
+
+    // Get letters with filters
+    getLetterList: adminProcedure
+      .input(z.object({
+        bureau: z.string().optional(),
+        status: z.string().optional(),
+        userId: z.number().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        limit: z.number().optional().default(50),
+        offset: z.number().optional().default(0),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getAdminLettersList } = await import('./db');
+        return await getAdminLettersList({
+          ...input,
+          startDate: input.startDate ? new Date(input.startDate) : undefined,
+          endDate: input.endDate ? new Date(input.endDate) : undefined,
+        });
+      }),
+
+    // Get payments with filters
+    getPaymentList: adminProcedure
+      .input(z.object({
+        status: z.string().optional(),
+        tier: z.string().optional(),
+        userId: z.number().optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        limit: z.number().optional().default(50),
+        offset: z.number().optional().default(0),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getAllPayments, getAllUsers } = await import('./db');
+        let payments = await getAllPayments();
+        const users = await getAllUsers();
+        
+        // Apply filters
+        if (input.status) {
+          payments = payments.filter(p => p.status === input.status);
+        }
+        if (input.tier) {
+          payments = payments.filter(p => p.tier === input.tier);
+        }
+        if (input.userId) {
+          payments = payments.filter(p => p.userId === input.userId);
+        }
+        if (input.startDate) {
+          const start = new Date(input.startDate);
+          payments = payments.filter(p => new Date(p.createdAt) >= start);
+        }
+        if (input.endDate) {
+          const end = new Date(input.endDate);
+          payments = payments.filter(p => new Date(p.createdAt) <= end);
+        }
+        
+        // Add user info to payments
+        const paymentsWithUsers = payments.map(p => {
+          const user = users.find(u => u.id === p.userId);
+          return {
+            ...p,
+            userName: user?.name || 'Unknown',
+            userEmail: user?.email || '',
+          };
+        });
+        
+        return {
+          payments: paymentsWithUsers.slice(input.offset, input.offset + input.limit),
+          total: paymentsWithUsers.length,
+        };
+      }),
+
+    // Export users to CSV
+    exportUsers: adminProcedure
+      .input(z.object({
+        role: z.string().optional(),
+        status: z.string().optional(),
+        state: z.string().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { exportUsersToCSV } = await import('./db');
+        return await exportUsersToCSV(input);
+      }),
+
+    // Export letters to CSV
+    exportLetters: adminProcedure
+      .input(z.object({
+        bureau: z.string().optional(),
+        status: z.string().optional(),
+        userId: z.number().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { exportLettersToCSV } = await import('./db');
+        return await exportLettersToCSV(input);
+      }),
+
+    // Get activity log
+    getActivityLog: adminProcedure
+      .input(z.object({ limit: z.number().optional().default(100) }))
+      .query(async ({ ctx, input }) => {
+        const { getAdminActivityLog } = await import('./db');
+        return await getAdminActivityLog(input.limit);
+      }),
+
+    // Get current admin info
+    getCurrentAdmin: adminProcedure.query(async ({ ctx }) => {
+      return {
+        id: ctx.user.id,
+        name: ctx.user.name,
+        email: ctx.user.email,
+        role: ctx.user.role,
+      };
+    }),
   }),
   ai: router({
     chat: protectedProcedure
@@ -536,6 +859,113 @@ export const appRouter = router({
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'AI service temporarily unavailable. Please try again later.',
+          });
+        }
+      }),
+
+    // Analyze document with Vision AI (for PDF/image analysis)
+    analyzeDocument: protectedProcedure
+      .input(z.object({
+        message: z.string(),
+        files: z.array(z.object({
+          name: z.string(),
+          type: z.string(),
+          base64: z.string(),
+        })),
+        conversationHistory: z.array(z.object({
+          role: z.enum(['user', 'assistant']),
+          content: z.string(),
+        })).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { aiProvider } = await import('./aiProvider');
+        
+        const systemPrompt = `You are an expert credit dispute AI assistant with deep knowledge of FCRA law, cross-bureau conflict detection, and dispute strategies.
+
+When analyzing credit reports, you should:
+1. Identify ALL negative accounts (collections, charge-offs, late payments, bankruptcies, judgments, liens)
+2. For each account, note: creditor name, account number (last 4 digits), balance, status, date opened, negative reason
+3. Identify potential FCRA violations (inaccurate dates, wrong balances, duplicate accounts, outdated info)
+4. Suggest specific dispute strategies based on the violations found
+5. Look for cross-bureau conflicts (accounts reporting differently across bureaus)
+
+Be thorough and specific in your analysis.`;
+        
+        try {
+          // For PDF files, we'll use Vision API to analyze the document
+          const fileDescriptions = input.files.map(f => {
+            const isPdf = f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf');
+            return `[${isPdf ? 'PDF' : 'Text'} Document: ${f.name}]`;
+          }).join('\n');
+          
+          // Check if any files are PDFs that need vision processing
+          const pdfFiles = input.files.filter(f => 
+            f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')
+          );
+          const textFiles = input.files.filter(f => 
+            f.type !== 'application/pdf' && !f.name.toLowerCase().endsWith('.pdf')
+          );
+          
+          let analysisResults: string[] = [];
+          
+          // Process text files directly
+          for (const file of textFiles) {
+            try {
+              const textContent = Buffer.from(file.base64, 'base64').toString('utf-8');
+              const truncatedContent = textContent.substring(0, 50000); // Limit size
+              analysisResults.push(`\n--- Content from ${file.name} ---\n${truncatedContent}`);
+            } catch (e) {
+              console.error(`Failed to decode text file ${file.name}:`, e);
+            }
+          }
+          
+          // For PDFs, we need to use Vision API or extract text
+          // Since Vision API works with images, we'll try to analyze the base64 directly
+          for (const file of pdfFiles) {
+            try {
+              // Try Vision API for PDF analysis
+              const visionPrompt = `Analyze this credit report document and extract:
+1. All negative accounts (collections, charge-offs, late payments)
+2. Account details: creditor name, account number, balance, status, dates
+3. Any FCRA violations or inaccuracies
+4. Personal information section (name, address, SSN last 4)
+
+Be thorough and list every negative item found.`;
+              
+              const visionResult = await aiProvider.generateWithVision(
+                file.base64,
+                visionPrompt
+              );
+              analysisResults.push(`\n--- Analysis of ${file.name} ---\n${visionResult}`);
+            } catch (e) {
+              console.error(`Vision analysis failed for ${file.name}:`, e);
+              analysisResults.push(`\n--- ${file.name} ---\n[PDF document attached - unable to extract content directly. Please describe what you see in the document or paste the text content.]`);
+            }
+          }
+          
+          // Build the full prompt with context
+          const fullPrompt = [
+            systemPrompt,
+            `\nUser uploaded the following documents:\n${fileDescriptions}`,
+            analysisResults.join('\n'),
+            `\nUser's question: ${input.message}`,
+            `\nConversation history:`,
+            ...(input.conversationHistory || []).map((msg: any) => `${msg.role}: ${msg.content}`),
+          ].join('\n\n');
+          
+          const result = await aiProvider.generate(fullPrompt);
+          console.log(`[AI Document Analysis] Used provider: ${result.provider}`);
+          
+          return {
+            response: result.content,
+            provider: result.provider,
+          };
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          console.error(`[AI Document Analysis] Failed: ${errorMsg}`);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Document analysis failed: ${errorMsg}`,
           });
         }
       }),
@@ -587,6 +1017,38 @@ export const appRouter = router({
           reportId: report.id,
           success: true,
           message: 'Report uploaded successfully. AI is extracting accounts...',
+        };
+      }),
+
+    /**
+     * Upload combined 3-bureau credit report - parses and extracts accounts for all bureaus
+     */
+    uploadCombined: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileUrl: z.string(),
+        fileKey: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        
+        console.log(`[uploadCombined] Starting combined upload for user ${userId}`);
+        
+        // Use the new combined parser that creates reports and distributes accounts
+        const { parseAndSaveCombinedReport } = await import('./creditReportParser');
+        
+        // Start parsing in background (don't await - let it run async)
+        parseAndSaveCombinedReport(input.fileUrl, userId)
+          .then((result) => {
+            console.log(`[uploadCombined] Parsing complete: ${result.totalAccounts} accounts extracted`);
+          })
+          .catch((err: Error) => {
+            console.error('[uploadCombined] Failed to parse combined credit report:', err);
+          });
+
+        return {
+          success: true,
+          message: 'Combined report uploaded. AI is extracting accounts from all 3 bureaus (30-60 seconds)...',
         };
       }),
 
@@ -943,17 +1405,17 @@ export const appRouter = router({
           accounts = accounts.filter(a => input.accountIds!.includes(a.id));
         }
         
-        // Import Manus AI letter generator
+        // Import AI letter generator
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
-        // Generate AI-powered letters using Manus LLM
+        // Generate AI-powered letters
         const letters = [];
         
         for (const bureau of input.bureaus) {
-          // Build prompt for Manus AI
+          // Build prompt for AI
           const prompt = buildLetterPrompt(userName, bureau, input.currentAddress, input.previousAddress, accounts);
           
-          // Generate letter using Manus AI
+          // Generate letter using AI
           const response = await invokeLLM({
             messages: [
               {
@@ -1160,7 +1622,7 @@ ${profile?.dateOfBirth && profile?.ssnLast4 ? '✅ All required information is c
         
         const bureau = originalLetter.bureau;
         
-        // Import Manus AI
+        // Import AI
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         // Build Round 2 escalation prompt
@@ -1340,7 +1802,7 @@ Tone: Professional but FIRM. Make it clear you know the law and will pursue lega
           experian: 'P.O. Box 4500, Allen, TX 75013',
         };
         
-        // Import Manus AI
+        // Import AI
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         // Build CFPB complaint prompt
@@ -1517,7 +1979,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           isCollectionAgency
         );
         
-        // Generate letter using Manus AI
+        // Generate letter using AI
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
         
         const response = await invokeLLM({
@@ -2134,6 +2596,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         bureaus: z.array(z.string()),
         email: z.string().email(),
         zipCode: z.string(),
+        marketingConsent: z.boolean().optional().default(true),
       }))
       .mutation(async ({ input }) => {
         // Store lead in database
@@ -2143,7 +2606,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           creditScoreRange: input.creditScoreRange,
           negativeItemsCount: input.negativeItemsCount,
           bureaus: input.bureaus.join(','),
-          source: 'quiz_funnel',
+          source: input.marketingConsent ? 'quiz_funnel_marketing' : 'quiz_funnel',
         });
 
         // Send email with analysis results

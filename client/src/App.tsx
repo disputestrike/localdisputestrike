@@ -4,12 +4,16 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
 import AIAssistant from "@/pages/AIAssistant";
 import LetterView from "@/pages/LetterView";
 import AdminEnhanced from "@/pages/AdminEnhanced";
+import AdminPanel from "@/pages/AdminPanel";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminUserDetails from "@/pages/AdminUserDetails";
 import MailingInstructions from "@/pages/MailingInstructions";
 import Pricing from "./pages/Pricing";
 import Features from "./pages/Features";
@@ -46,6 +50,11 @@ import CertificateView from "./pages/CertificateView";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import AgencyClientDetail from "./pages/AgencyClientDetail";
 import AgencyPricing from "./pages/AgencyPricing";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -89,7 +98,10 @@ function Router() {
       <Route path="/dashboard/tracking" component={DisputeTracking} />
       <Route path="/dashboard/score-simulator" component={ScoreSimulator} />
       <Route path="/ai-assistant" component={AIAssistant} />
-      <Route path="/admin" component={AdminEnhanced} />
+      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin/user/:id" component={AdminUserDetails} />
+      <Route path="/admin/legacy" component={AdminEnhanced} />
       <Route path="/admin/parser" component={HybridParserAdmin} />
       <Route path="/mailing-instructions" component={MailingInstructions} />
       <Route path="/letter/:letterId" component={LetterView} />
@@ -97,6 +109,11 @@ function Router() {
       <Route path="/agency" component={AgencyDashboard} />
       <Route path="/agency/client/:clientId" component={AgencyClientDetail} />
       <Route path="/agency-pricing" component={AgencyPricing} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/reset-password" component={ResetPassword} />
+      <Route path="/verify-email" component={VerifyEmail} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -118,6 +135,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <ScrollToTop />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

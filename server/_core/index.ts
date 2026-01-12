@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import cookieParser from "cookie-parser";
 import { createServer } from "http";
 import net from "net";
 import helmet from "helmet";
@@ -151,6 +152,7 @@ async function startServer() {
   // Configure body parser with size limits
   app.use(express.json({ limit: "50mb" })); // For file uploads
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use(cookieParser()); // For admin session cookies
   
   // 5. SECURITY LOGGING
   app.use((req, res, next) => {
@@ -178,6 +180,23 @@ async function startServer() {
   // ============================================
   // APPLICATION ROUTES
   // ============================================
+  
+  // Health check endpoint for load balancers and monitoring
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+  
+  // Admin authentication routes (separate from user OAuth)
+  const adminAuthRouter = (await import('../adminAuthRouter')).default;
+  app.use('/api/admin', adminAuthRouter);
+  
+  // Custom email/password authentication routes (for self-hosting)
+  const customAuthRouter = (await import('../customAuthRouter')).default;
+  app.use('/api/auth', customAuthRouter);
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

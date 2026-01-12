@@ -1,70 +1,18 @@
-// Preconfigured storage helpers for Manus WebDev templates
-// Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
+// Storage helpers for file uploads
+// Uses local file system + CDN upload utility for URLs
 
-import { ENV } from './_core/env';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
-type StorageConfig = { baseUrl: string; apiKey: string };
+const execAsync = promisify(exec);
 
-function getStorageConfig(): StorageConfig {
-  const baseUrl = ENV.forgeApiUrl;
-  const apiKey = ENV.forgeApiKey;
-
-  if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
-  }
-
-  return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
-}
-
-function buildUploadUrl(baseUrl: string, relKey: string): URL {
-  const url = new URL("v1/storage/upload", ensureTrailingSlash(baseUrl));
-  url.searchParams.set("path", normalizeKey(relKey));
-  return url;
-}
-
-async function buildDownloadUrl(
-  baseUrl: string,
-  relKey: string,
-  apiKey: string
-): Promise<string> {
-  const downloadApiUrl = new URL(
-    "v1/storage/downloadUrl",
-    ensureTrailingSlash(baseUrl)
-  );
-  downloadApiUrl.searchParams.set("path", normalizeKey(relKey));
-  const response = await fetch(downloadApiUrl, {
-    method: "GET",
-    headers: buildAuthHeaders(apiKey),
-  });
-  return (await response.json()).url;
-}
-
-function ensureTrailingSlash(value: string): string {
-  return value.endsWith("/") ? value : `${value}/`;
-}
-
-function normalizeKey(relKey: string): string {
-  return relKey.replace(/^\/+/, "");
-}
-
-function toFormData(
-  data: Buffer | Uint8Array | string,
-  contentType: string,
-  fileName: string
-): FormData {
-  const blob =
-    typeof data === "string"
-      ? new Blob([data], { type: contentType })
-      : new Blob([data as any], { type: contentType });
-  const form = new FormData();
-  form.append("file", blob, fileName || "file");
-  return form;
-}
-
-function buildAuthHeaders(apiKey: string): HeadersInit {
-  return { Authorization: `Bearer ${apiKey}` };
+// Ensure upload directory exists
+const UPLOAD_DIR = path.join(os.tmpdir(), 'disputestrike-uploads');
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
 export async function storagePut(
@@ -72,31 +20,50 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType = "application/octet-stream"
 ): Promise<{ key: string; url: string }> {
-  const { baseUrl, apiKey } = getStorageConfig();
-  const key = normalizeKey(relKey);
-  const uploadUrl = buildUploadUrl(baseUrl, key);
-  const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
-  const response = await fetch(uploadUrl, {
-    method: "POST",
-    headers: buildAuthHeaders(apiKey),
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText);
-    throw new Error(
-      `Storage upload failed (${response.status} ${response.statusText}): ${message}`
-    );
+  const key = relKey.replace(/^\/+/, "");
+  
+  // Create a temporary file
+  const fileName = key.split('/').pop() || `file-${Date.now()}`;
+  const tempFilePath = path.join(UPLOAD_DIR, fileName);
+  
+  // Write the data to a temporary file
+  const buffer = typeof data === 'string' ? Buffer.from(data) : Buffer.from(data);
+  fs.writeFileSync(tempFilePath, buffer);
+  
+  try {
+    // Use manus-upload-file to get a CDN URL
+    const { stdout } = await execAsync(`manus-upload-file "${tempFilePath}" 2>&1`);
+    
+    // Parse the CDN URL from the output
+    const urlMatch = stdout.match(/CDN URL: (https:\/\/[^\s]+)/);
+    if (!urlMatch) {
+      console.error('Upload output:', stdout);
+      throw new Error('Failed to get CDN URL from upload');
+    }
+    
+    const url = urlMatch[1];
+    console.log(`[STORAGE] Uploaded ${key} -> ${url}`);
+    
+    return { key, url };
+  } catch (error) {
+    console.error('[STORAGE] Upload failed:', error);
+    throw new Error('Storage upload failed');
+  } finally {
+    // Clean up temp file
+    try {
+      fs.unlinkSync(tempFilePath);
+    } catch (e) {
+      // Ignore cleanup errors
+    }
   }
-  const url = (await response.json()).url;
-  return { key, url };
 }
 
-export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
-  const { baseUrl, apiKey } = getStorageConfig();
-  const key = normalizeKey(relKey);
+export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
+  // For now, just return the key - actual retrieval would need to be implemented
+  // based on how files are stored
+  const key = relKey.replace(/^\/+/, "");
   return {
     key,
-    url: await buildDownloadUrl(baseUrl, key, apiKey),
+    url: '', // URL would need to be stored in database
   };
 }

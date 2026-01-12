@@ -25,9 +25,10 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, Link } from "wouter";
-import { UserDropdown } from "@/components/UserDropdown";
+import { MerchantNavigation } from "@/components/MerchantNavigation";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 const plans = [
   {
@@ -106,8 +107,8 @@ export default function AgencyPricing() {
 
   const handleSelectPlan = (plan: typeof plans[0]) => {
     if (!user) {
-      // Redirect to login
-      window.location.href = "/api/auth/google";
+      // Redirect to custom login page
+      window.location.href = "/login";
       return;
     }
     setSelectedPlan(plan);
@@ -136,7 +137,7 @@ export default function AgencyPricing() {
               <Link href="/features" className="text-gray-700 hover:text-orange-600 font-medium">Features</Link>
               <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
               <Link href="/agency-pricing" className="text-orange-600 font-medium">Agency Plans</Link>
-              <UserDropdown />
+              <MerchantNavigation />
             </nav>
             <div className="md:hidden">
               <MobileMenu />

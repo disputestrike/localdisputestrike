@@ -1,29 +1,19 @@
 /**
  * Email Delivery Service
- * Sends dispute letters and notifications to users
+ * Uses SendGrid for reliable email delivery
  */
 
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
-// Email configuration (use environment variables in production)
-const EMAIL_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER || '',
-    pass: process.env.SMTP_PASS || '',
-  },
-};
+// Initialize SendGrid
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || '';
+const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@disputestrike.com';
 
-// Create reusable transporter
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    transporter = nodemailer.createTransport(EMAIL_CONFIG);
-  }
-  return transporter;
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('[Email] SendGrid initialized');
+} else {
+  console.log('[Email] SendGrid API key not configured - emails will be logged to console');
 }
 
 export interface EmailOptions {
@@ -39,13 +29,13 @@ export interface EmailOptions {
 }
 
 /**
- * Send email
+ * Send email via SendGrid
  */
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   try {
-    // Fallback: Log email to console if SMTP not configured
-    if (!process.env.SMTP_USER) {
-      console.log('[Email] SMTP not configured, logging email to console:');
+    // Fallback: Log email to console if SendGrid not configured
+    if (!SENDGRID_API_KEY) {
+      console.log('[Email] SendGrid not configured, logging email to console:');
       console.log('[Email] TO:', options.to);
       console.log('[Email] SUBJECT:', options.subject);
       console.log('[Email] HTML:', options.html.substring(0, 200) + '...');
@@ -53,23 +43,165 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
       return true;
     }
 
-    const transport = getTransporter();
-    
-    await transport.sendMail({
-      from: `"DisputeStrike" <${process.env.SMTP_USER}>`,
+    const msg: sgMail.MailDataRequired = {
       to: options.to,
+      from: {
+        email: FROM_EMAIL,
+        name: 'DisputeStrike'
+      },
       subject: options.subject,
-      text: options.text,
+      text: options.text || options.html.replace(/<[^>]*>/g, ''),
       html: options.html,
-      attachments: options.attachments,
-    });
+    };
 
+    // Add attachments if present
+    if (options.attachments && options.attachments.length > 0) {
+      msg.attachments = options.attachments.map(att => ({
+        filename: att.filename,
+        content: typeof att.content === 'string' ? att.content : att.content.toString('base64'),
+        type: att.contentType || 'application/octet-stream',
+        disposition: 'attachment' as const,
+      }));
+    }
+
+    await sgMail.send(msg);
     console.log('[Email] Sent successfully to:', options.to);
     return true;
-  } catch (error) {
-    console.error('[Email] Failed to send:', error);
+  } catch (error: any) {
+    console.error('[Email] Failed to send:', error?.response?.body || error);
     return false;
   }
+}
+
+/**
+ * Send email verification email
+ */
+export async function sendVerificationEmail(
+  userEmail: string,
+  userName: string,
+  verificationToken: string,
+  baseUrl: string
+): Promise<boolean> {
+  const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}`;
+  
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; padding: 14px 40px; background: #f97316; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Verify Your Email</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${userName},</p>
+      
+      <p>Thank you for signing up for DisputeStrike! Please verify your email address by clicking the button below:</p>
+      
+      <p style="text-align: center;">
+        <a href="${verificationLink}" class="button">Verify Email Address</a>
+      </p>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${verificationLink}</p>
+      
+      <p>This link will expire in 24 hours.</p>
+      
+      <p>If you didn't create an account with DisputeStrike, you can safely ignore this email.</p>
+      
+      <p>Best regards,<br>The DisputeStrike Team</p>
+    </div>
+    <div class="footer">
+      <p>DisputeStrike - Professional Credit Dispute Software</p>
+      <p>30 N Gould St Ste R, Sheridan, WY 82801</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: userEmail,
+    subject: 'Verify Your Email - DisputeStrike',
+    html,
+    text: `Hi ${userName}, Please verify your email by visiting: ${verificationLink}. This link expires in 24 hours.`,
+  });
+}
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(
+  userEmail: string,
+  userName: string,
+  resetToken: string,
+  baseUrl: string
+): Promise<boolean> {
+  const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
+  
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; padding: 14px 40px; background: #f97316; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
+    .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Reset Your Password</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${userName},</p>
+      
+      <p>We received a request to reset your password. Click the button below to create a new password:</p>
+      
+      <p style="text-align: center;">
+        <a href="${resetLink}" class="button">Reset Password</a>
+      </p>
+      
+      <p>Or copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #666;">${resetLink}</p>
+      
+      <div class="warning">
+        <strong>⚠️ This link will expire in 1 hour.</strong>
+      </div>
+      
+      <p>If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+      
+      <p>Best regards,<br>The DisputeStrike Team</p>
+    </div>
+    <div class="footer">
+      <p>DisputeStrike - Professional Credit Dispute Software</p>
+      <p>30 N Gould St Ste R, Sheridan, WY 82801</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: userEmail,
+    subject: 'Reset Your Password - DisputeStrike',
+    html,
+    text: `Hi ${userName}, Reset your password by visiting: ${resetLink}. This link expires in 1 hour. If you didn't request this, ignore this email.`,
+  });
 }
 
 /**
@@ -86,49 +218,13 @@ export async function sendDisputeLetterEmail(
 <html>
 <head>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      background: #f9f9f9;
-      padding: 30px;
-      border-radius: 0 0 8px 8px;
-    }
-    .button {
-      display: inline-block;
-      padding: 12px 30px;
-      background: #667eea;
-      color: white;
-      text-decoration: none;
-      border-radius: 5px;
-      margin: 20px 0;
-    }
-    .checklist {
-      background: white;
-      padding: 20px;
-      border-left: 4px solid #667eea;
-      margin: 20px 0;
-    }
-    .footer {
-      text-align: center;
-      color: #666;
-      font-size: 12px;
-      margin-top: 30px;
-    }
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .button { display: inline-block; padding: 12px 30px; background: #f97316; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+    .checklist { background: white; padding: 20px; border-left: 4px solid #f97316; margin: 20px 0; }
+    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
   </style>
 </head>
 <body>
@@ -139,7 +235,7 @@ export async function sendDisputeLetterEmail(
     <div class="content">
       <p>Hi ${userName},</p>
       
-      <p>Great news! Your litigation-grade dispute letter for <strong>${bureau}</strong> has been generated and is attached to this email as a PDF.</p>
+      <p>Great news! Your dispute letter for <strong>${bureau}</strong> has been generated and is attached to this email as a PDF.</p>
       
       <div class="checklist">
         <h3>📋 Next Steps:</h3>
@@ -159,17 +255,13 @@ export async function sendDisputeLetterEmail(
       
       <p><strong>Important:</strong> The credit bureau has 30 days from receipt to investigate and respond under FCRA § 1681i(a)(1).</p>
       
-      <p>Need help? View our complete mailing guide:</p>
-      <a href="https://disputestrike.com/mailing-instructions" class="button">View Mailing Guide</a>
-      
       <p>Good luck! We're rooting for you! 💪</p>
       
-      <p>Best regards,<br>
-      The DisputeStrike Team</p>
+      <p>Best regards,<br>The DisputeStrike Team</p>
     </div>
     <div class="footer">
-      <p>DisputeStrike - Litigation-Grade Credit Dispute Software</p>
-      <p>This is an automated message. Please do not reply to this email.</p>
+      <p>DisputeStrike - Professional Credit Dispute Software</p>
+      <p>30 N Gould St Ste R, Sheridan, WY 82801</p>
     </div>
   </div>
 </body>
@@ -200,28 +292,11 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
 <html>
 <head>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      background: #f9f9f9;
-      padding: 30px;
-      border-radius: 0 0 8px 8px;
-    }
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
   </style>
 </head>
 <body>
@@ -232,20 +307,23 @@ export async function sendWelcomeEmail(userEmail: string, userName: string): Pro
     <div class="content">
       <p>Hi ${userName},</p>
       
-      <p>Welcome to the most advanced litigation-grade credit dispute platform ever created!</p>
+      <p>Welcome to DisputeStrike - your professional credit dispute platform!</p>
       
       <p>Here's what you can do:</p>
       <ul>
         <li>Upload your credit reports from all 3 bureaus</li>
-        <li>Get AI-powered dispute letters (same quality as $2,500 attorneys)</li>
+        <li>Get AI-powered dispute letters</li>
         <li>Track your disputes and deadlines</li>
         <li>Chat with our AI credit expert anytime</li>
       </ul>
       
       <p>Ready to get started? Log in to your dashboard and upload your first credit report!</p>
       
-      <p>Best regards,<br>
-      The DisputeStrike Team</p>
+      <p>Best regards,<br>The DisputeStrike Team</p>
+    </div>
+    <div class="footer">
+      <p>DisputeStrike - Professional Credit Dispute Software</p>
+      <p>30 N Gould St Ste R, Sheridan, WY 82801</p>
     </div>
   </div>
 </body>
@@ -274,35 +352,12 @@ export async function sendPaymentConfirmationEmail(
 <html>
 <head>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      color: #333;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 30px;
-      text-align: center;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      background: #f9f9f9;
-      padding: 30px;
-      border-radius: 0 0 8px 8px;
-    }
-    .receipt {
-      background: white;
-      padding: 20px;
-      border: 2px solid #667eea;
-      border-radius: 8px;
-      margin: 20px 0;
-    }
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
+    .receipt { background: white; padding: 20px; border: 2px solid #f97316; border-radius: 8px; margin: 20px 0; }
+    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
   </style>
 </head>
 <body>
@@ -324,8 +379,11 @@ export async function sendPaymentConfirmationEmail(
       
       <p>You now have full access to all features. Start generating your dispute letters!</p>
       
-      <p>Best regards,<br>
-      The DisputeStrike Team</p>
+      <p>Best regards,<br>The DisputeStrike Team</p>
+    </div>
+    <div class="footer">
+      <p>DisputeStrike - Professional Credit Dispute Software</p>
+      <p>30 N Gould St Ste R, Sheridan, WY 82801</p>
     </div>
   </div>
 </body>

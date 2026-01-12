@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray, sql } from "drizzle-orm";
+import { eq, and, or, desc, inArray, sql, like, gte, lte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -81,7 +81,15 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      // TiDB Cloud requires SSL - parse URL and add SSL config
+      const dbUrl = process.env.DATABASE_URL;
+      // Remove any existing ssl parameter from URL
+      const cleanUrl = dbUrl.replace(/[?&]ssl=[^&]*/g, '');
+      // Add proper SSL configuration
+      const sslUrl = cleanUrl.includes('?') 
+        ? `${cleanUrl}&ssl={"rejectUnauthorized":false}` 
+        : `${cleanUrl}?ssl={"rejectUnauthorized":false}`;
+      _db = drizzle(sslUrl);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -246,6 +254,25 @@ export async function updateCreditReportParsedData(
     .where(eq(creditReports.id, reportId));
 }
 
+export async function updateCreditReportStatus(
+  reportId: number, 
+  status: 'pending' | 'parsing' | 'parsed' | 'failed'
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = { 
+    isParsed: status === 'parsed',
+    parsedData: status === 'parsed' ? 'parsed' : (status === 'failed' ? 'failed' : null)
+  };
+
+  await db.update(creditReports)
+    .set(updateData)
+    .where(eq(creditReports.id, reportId));
+  
+  console.log(`[DB] Updated report ${reportId} status to: ${status}`);
+}
+
 // ============================================================================
 // NEGATIVE ACCOUNT OPERATIONS
 // ============================================================================
@@ -261,6 +288,64 @@ export async function createNegativeAccount(account: InsertNegativeAccount): Pro
   if (!inserted[0]) throw new Error("Failed to retrieve inserted negative account");
   
   return inserted[0];
+}
+
+/**
+ * Create negative account only if it doesn't already exist (prevents duplicates)
+ * Checks for existing account by userId + accountName + accountNumber combination
+ */
+export async function createNegativeAccountIfNotExists(account: InsertNegativeAccount): Promise<{ account: NegativeAccount; isNew: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Check if account already exists for this user with same name and number
+  const existing = await db.select().from(negativeAccounts)
+    .where(
+      and(
+        eq(negativeAccounts.userId, account.userId),
+        eq(negativeAccounts.accountName, account.accountName),
+        // Account number might be partial, so also check if it's similar
+        or(
+          eq(negativeAccounts.accountNumber, account.accountNumber || ''),
+          // If new account number contains existing or vice versa
+          sql`${negativeAccounts.accountNumber} LIKE CONCAT('%', ${account.accountNumber || ''}, '%')`,
+          sql`${account.accountNumber || ''} LIKE CONCAT('%', ${negativeAccounts.accountNumber}, '%')`
+        )
+      )
+    )
+    .limit(1);
+
+  if (existing[0]) {
+    console.log(`[DB] Account already exists: ${account.accountName} (${account.accountNumber}) - skipping duplicate`);
+    return { account: existing[0], isNew: false };
+  }
+
+  // Also check by account name AND bureau (for combined reports, same account can appear on multiple bureaus)
+  const existingByNameAndBureau = await db.select().from(negativeAccounts)
+    .where(
+      and(
+        eq(negativeAccounts.userId, account.userId),
+        eq(negativeAccounts.accountName, account.accountName),
+        eq(negativeAccounts.bureau, account.bureau || '')
+      )
+    )
+    .limit(1);
+
+  if (existingByNameAndBureau[0]) {
+    // Same account on same bureau - skip duplicate
+    console.log(`[DB] Account already exists on ${account.bureau}: ${account.accountName} - skipping duplicate`);
+    return { account: existingByNameAndBureau[0], isNew: false };
+  }
+
+  // Create new account
+  const result = await db.insert(negativeAccounts).values(account);
+  const insertedId = Number(result[0].insertId);
+  
+  const inserted = await db.select().from(negativeAccounts).where(eq(negativeAccounts.id, insertedId)).limit(1);
+  if (!inserted[0]) throw new Error("Failed to retrieve inserted negative account");
+  
+  console.log(`[DB] Created NEW account: ${account.accountName} (${account.accountNumber})`);
+  return { account: inserted[0], isNew: true };
 }
 
 export async function getNegativeAccountsByUserId(userId: number): Promise<NegativeAccount[]> {
@@ -2653,4 +2738,527 @@ export async function getMethodAnalyticsSummary(): Promise<{
       ? Math.round((summary.totalTriggers / summary.uniqueLetters) * 10) / 10 
       : 0
   };
+}
+
+
+// ============================================================================
+// ADMIN MANAGEMENT OPERATIONS
+// ============================================================================
+
+/**
+ * Get all users with full details for admin panel
+ */
+export async function getAdminUserList(filters?: {
+  role?: string;
+  status?: string;
+  state?: string;
+  city?: string;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { users: [], total: 0 };
+
+  let query = db
+    .select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      role: users.role,
+      status: users.status,
+      accountType: users.accountType,
+      agencyName: users.agencyName,
+      createdAt: users.createdAt,
+      lastSignedIn: users.lastSignedIn,
+      blockedAt: users.blockedAt,
+      blockedReason: users.blockedReason,
+    })
+    .from(users);
+
+  const conditions: any[] = [];
+
+  if (filters?.role) {
+    conditions.push(eq(users.role, filters.role as any));
+  }
+  if (filters?.status) {
+    conditions.push(eq(users.status, filters.status as any));
+  }
+  if (filters?.search) {
+    conditions.push(
+      or(
+        like(users.name, `%${filters.search}%`),
+        like(users.email, `%${filters.search}%`)
+      )
+    );
+  }
+  if (filters?.startDate) {
+    conditions.push(gte(users.createdAt, filters.startDate));
+  }
+  if (filters?.endDate) {
+    conditions.push(lte(users.createdAt, filters.endDate));
+  }
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as any;
+  }
+
+  // Get total count
+  const countResult = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(users);
+  const total = countResult[0]?.count || 0;
+
+  // Apply pagination
+  query = query.orderBy(desc(users.createdAt)) as any;
+  if (filters?.limit) {
+    query = query.limit(filters.limit) as any;
+  }
+  if (filters?.offset) {
+    query = query.offset(filters.offset) as any;
+  }
+
+  const userList = await query;
+
+  // Get additional data for each user
+  const enrichedUsers = await Promise.all(
+    userList.map(async (user) => {
+      const profile = await getUserProfile(user.id);
+      const letters = await getDisputeLettersByUserId(user.id);
+      const accounts = await getNegativeAccountsByUserId(user.id);
+      const latestPayment = await getUserLatestPayment(user.id);
+
+      return {
+        ...user,
+        profile: profile || null,
+        letterCount: letters.length,
+        accountCount: accounts.length,
+        hasActiveSubscription: !!latestPayment && latestPayment.status === 'completed',
+        city: profile?.currentCity || null,
+        state: profile?.currentState || null,
+      };
+    })
+  );
+
+  return { users: enrichedUsers, total };
+}
+
+/**
+ * Get user by ID with full details for admin
+ */
+export async function getAdminUserDetails(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) return null;
+
+  const profile = await getUserProfile(userId);
+  const letters = await getDisputeLettersByUserId(userId);
+  const accounts = await getNegativeAccountsByUserId(userId);
+  const reports = await getCreditReportsByUserId(userId);
+  const paymentHistory = await getPaymentsByUserId(userId);
+  const activity = await getUserRecentActivity(userId, 50);
+  const notifications = await getUserNotifications(userId, { limit: 20 });
+
+  return {
+    ...user,
+    profile,
+    letters,
+    accounts,
+    reports,
+    paymentHistory,
+    activity,
+    notifications,
+  };
+}
+
+/**
+ * Update user role (with hierarchy check)
+ */
+export async function updateUserRole(
+  userId: number,
+  newRole: 'user' | 'admin' | 'super_admin' | 'master_admin',
+  updatedBy: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db
+    .update(users)
+    .set({ role: newRole, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+
+  // Log the action
+  await logAdminActivity(updatedBy, 'role_change', `Changed user ${userId} role to ${newRole}`);
+}
+
+/**
+ * Update user status (block/unblock)
+ */
+export async function updateUserStatus(
+  userId: number,
+  status: 'active' | 'blocked' | 'suspended',
+  blockedBy?: number,
+  reason?: string
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const updateData: any = {
+    status,
+    updatedAt: new Date(),
+  };
+
+  if (status === 'blocked' || status === 'suspended') {
+    updateData.blockedAt = new Date();
+    updateData.blockedBy = blockedBy;
+    updateData.blockedReason = reason;
+  } else {
+    updateData.blockedAt = null;
+    updateData.blockedBy = null;
+    updateData.blockedReason = null;
+  }
+
+  await db.update(users).set(updateData).where(eq(users.id, userId));
+
+  if (blockedBy) {
+    await logAdminActivity(blockedBy, 'user_status_change', `Changed user ${userId} status to ${status}${reason ? `: ${reason}` : ''}`);
+  }
+}
+
+/**
+ * Delete user and all associated data
+ */
+export async function deleteUser(userId: number, deletedBy: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Delete in order of dependencies
+  await db.delete(userNotifications).where(eq(userNotifications.userId, userId));
+  await db.delete(disputeLetters).where(eq(disputeLetters.userId, userId));
+  await db.delete(negativeAccounts).where(eq(negativeAccounts.userId, userId));
+  await db.delete(creditReports).where(eq(creditReports.userId, userId));
+  await db.delete(userProfiles).where(eq(userProfiles.userId, userId));
+  await db.delete(payments).where(eq(payments.userId, userId));
+  await db.delete(users).where(eq(users.id, userId));
+
+  await logAdminActivity(deletedBy, 'user_deleted', `Deleted user ${userId} and all associated data`);
+}
+
+/**
+ * Update user profile from admin
+ */
+export async function adminUpdateUserProfile(
+  userId: number,
+  data: Partial<{
+    name: string;
+    email: string;
+    fullName: string;
+    phone: string;
+    currentAddress: string;
+    currentCity: string;
+    currentState: string;
+    currentZip: string;
+  }>,
+  updatedBy: number
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  // Update user table fields
+  if (data.name || data.email) {
+    await db
+      .update(users)
+      .set({
+        ...(data.name && { name: data.name }),
+        ...(data.email && { email: data.email }),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  // Update profile fields
+  const profileData: any = {};
+  if (data.fullName) profileData.fullName = data.fullName;
+  if (data.phone) profileData.phone = data.phone;
+  if (data.currentAddress) profileData.currentAddress = data.currentAddress;
+  if (data.currentCity) profileData.currentCity = data.currentCity;
+  if (data.currentState) profileData.currentState = data.currentState;
+  if (data.currentZip) profileData.currentZip = data.currentZip;
+
+  if (Object.keys(profileData).length > 0) {
+    await upsertUserProfile(userId, profileData);
+  }
+
+  await logAdminActivity(updatedBy, 'user_profile_updated', `Admin updated profile for user ${userId}`);
+}
+
+/**
+ * Get all admins
+ */
+export async function getAllAdmins() {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.role, 'admin'),
+        eq(users.role, 'super_admin'),
+        eq(users.role, 'master_admin')
+      )
+    )
+    .orderBy(desc(users.role), desc(users.createdAt));
+}
+
+/**
+ * Get admin activity log
+ */
+export async function getAdminActivityLog(limit: number = 100) {
+  const db = await getDb();
+  if (!db) return [];
+
+  return db
+    .select()
+    .from(activityLog)
+    .orderBy(desc(activityLog.createdAt))
+    .limit(limit);
+}
+
+/**
+ * Get all letters with user info for admin
+ */
+export async function getAdminLettersList(filters?: {
+  bureau?: string;
+  status?: string;
+  userId?: number;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { letters: [], total: 0 };
+
+  let query = db.select().from(disputeLetters);
+  const conditions: any[] = [];
+
+  if (filters?.bureau) {
+    conditions.push(eq(disputeLetters.bureau, filters.bureau as any));
+  }
+  if (filters?.status) {
+    conditions.push(eq(disputeLetters.status, filters.status as any));
+  }
+  if (filters?.userId) {
+    conditions.push(eq(disputeLetters.userId, filters.userId));
+  }
+  if (filters?.startDate) {
+    conditions.push(gte(disputeLetters.createdAt, filters.startDate));
+  }
+  if (filters?.endDate) {
+    conditions.push(lte(disputeLetters.createdAt, filters.endDate));
+  }
+
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions)) as any;
+  }
+
+  const countResult = await db
+    .select({ count: sql<number>`COUNT(*)` })
+    .from(disputeLetters);
+  const total = countResult[0]?.count || 0;
+
+  query = query.orderBy(desc(disputeLetters.createdAt)) as any;
+  if (filters?.limit) {
+    query = query.limit(filters.limit) as any;
+  }
+  if (filters?.offset) {
+    query = query.offset(filters.offset) as any;
+  }
+
+  const letters = await query;
+
+  // Enrich with user info
+  const allUsers = await getAllUsers();
+  const enrichedLetters = letters.map((letter) => {
+    const user = allUsers.find((u) => u.id === letter.userId);
+    return {
+      ...letter,
+      userName: user?.name || 'Unknown',
+      userEmail: user?.email || 'Unknown',
+    };
+  });
+
+  return { letters: enrichedLetters, total };
+}
+
+/**
+ * Get dashboard stats for admin
+ */
+export async function getAdminDashboardStats() {
+  const db = await getDb();
+  if (!db) return null;
+
+  const allUsers = await getAllUsers();
+  const allLetters = await getAllDisputeLetters();
+  const allPayments = await getAllPayments();
+  const allAdmins = await getAllAdmins();
+
+  const now = new Date();
+  const thisMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const thisWeekStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  return {
+    users: {
+      total: allUsers.length,
+      active: allUsers.filter((u) => u.status === 'active').length,
+      blocked: allUsers.filter((u) => u.status === 'blocked').length,
+      newThisMonth: allUsers.filter((u) => u.createdAt >= thisMonthStart).length,
+      newThisWeek: allUsers.filter((u) => u.createdAt >= thisWeekStart).length,
+    },
+    admins: {
+      total: allAdmins.length,
+      masterAdmins: allAdmins.filter((a) => a.role === 'master_admin').length,
+      superAdmins: allAdmins.filter((a) => a.role === 'super_admin').length,
+      admins: allAdmins.filter((a) => a.role === 'admin').length,
+    },
+    letters: {
+      total: allLetters.length,
+      generated: allLetters.filter((l) => l.status === 'generated').length,
+      mailed: allLetters.filter((l) => l.status === 'mailed').length,
+      resolved: allLetters.filter((l) => l.status === 'resolved').length,
+      thisMonth: allLetters.filter((l) => l.createdAt >= thisMonthStart).length,
+      byBureau: {
+        transunion: allLetters.filter((l) => l.bureau === 'transunion').length,
+        equifax: allLetters.filter((l) => l.bureau === 'equifax').length,
+        experian: allLetters.filter((l) => l.bureau === 'experian').length,
+      },
+    },
+    revenue: {
+      total: allPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+      thisMonth: allPayments
+        .filter((p) => p.createdAt >= thisMonthStart)
+        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+      lastMonth: allPayments
+        .filter((p) => p.createdAt >= lastMonthStart && p.createdAt < thisMonthStart)
+        .reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+      transactions: allPayments.length,
+    },
+  };
+}
+
+/**
+ * Export users to CSV format
+ */
+export async function exportUsersToCSV(filters?: {
+  role?: string;
+  status?: string;
+  state?: string;
+}) {
+  const { users: userList } = await getAdminUserList({ ...filters, limit: 10000 });
+
+  const headers = [
+    'ID',
+    'Name',
+    'Email',
+    'Role',
+    'Status',
+    'Account Type',
+    'City',
+    'State',
+    'Letters',
+    'Accounts',
+    'Subscription',
+    'Created At',
+    'Last Sign In',
+  ];
+
+  const rows = userList.map((u) => [
+    u.id,
+    u.name || '',
+    u.email || '',
+    u.role,
+    u.status,
+    u.accountType,
+    u.city || '',
+    u.state || '',
+    u.letterCount,
+    u.accountCount,
+    u.hasActiveSubscription ? 'Active' : 'None',
+    u.createdAt?.toISOString() || '',
+    u.lastSignedIn?.toISOString() || '',
+  ]);
+
+  return {
+    headers,
+    rows,
+    csv: [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n'),
+  };
+}
+
+/**
+ * Export letters to CSV format
+ */
+export async function exportLettersToCSV(filters?: {
+  bureau?: string;
+  status?: string;
+  userId?: number;
+}) {
+  const { letters } = await getAdminLettersList({ ...filters, limit: 10000 });
+
+  const headers = [
+    'ID',
+    'User Name',
+    'User Email',
+    'Bureau',
+    'Letter Type',
+    'Round',
+    'Status',
+    'Created At',
+    'Mailed At',
+    'Tracking Number',
+  ];
+
+  const rows = letters.map((l) => [
+    l.id,
+    l.userName || '',
+    l.userEmail || '',
+    l.bureau,
+    l.letterType,
+    l.round,
+    l.status,
+    l.createdAt?.toISOString() || '',
+    l.mailedAt?.toISOString() || '',
+    l.trackingNumber || '',
+  ]);
+
+  return {
+    headers,
+    rows,
+    csv: [headers.join(','), ...rows.map((r) => r.map((c) => `"${c}"`).join(','))].join('\n'),
+  };
+}
+
+// Helper to log admin activity
+async function logAdminActivity(userId: number, action: string, details: string) {
+  const db = await getDb();
+  if (!db) return;
+
+  try {
+    await db.insert(activityLog).values({
+      userId,
+      action,
+      details,
+      createdAt: new Date(),
+    });
+  } catch (e) {
+    console.error('Failed to log activity:', e);
+  }
 }

@@ -11,6 +11,14 @@ export const users = mysqlTable("users", {
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   
+  // Custom Auth Fields (for self-hosting without Manus OAuth)
+  passwordHash: varchar("passwordHash", { length: 255 }), // bcrypt hash
+  emailVerified: boolean("emailVerified").default(false),
+  emailVerificationToken: varchar("emailVerificationToken", { length: 255 }),
+  emailVerificationExpires: timestamp("emailVerificationExpires"),
+  passwordResetToken: varchar("passwordResetToken", { length: 255 }),
+  passwordResetExpires: timestamp("passwordResetExpires"),
+  
   // Agency/Merchant Account Fields
   accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
   agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies
@@ -106,6 +114,7 @@ export type InsertCreditScoreHistory = typeof creditScoreHistory.$inferInsert;
 export const negativeAccounts = mysqlTable("negative_accounts", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  creditReportId: int("creditReportId"), // Link to the credit report this account came from
   accountName: text("accountName").notNull(),
   accountNumber: varchar("accountNumber", { length: 255 }),
   accountType: varchar("accountType", { length: 100 }), // Collection, Charge-off, Late Payment, etc.
@@ -114,6 +123,9 @@ export const negativeAccounts = mysqlTable("negative_accounts", {
   dateOpened: varchar("dateOpened", { length: 50 }),
   lastActivity: varchar("lastActivity", { length: 50 }),
   status: text("status"),
+  bureau: varchar("bureau", { length: 50 }), // transunion, equifax, experian
+  rawData: text("rawData"), // JSON - raw extracted data from AI
+  negativeReason: text("negativeReason"), // Why this account is negative
   
   // Bureau-specific data
   transunionData: text("transunionData"), // JSON
@@ -871,3 +883,47 @@ export const methodAnalytics = mysqlTable("method_analytics", {
 
 export type MethodAnalytic = typeof methodAnalytics.$inferSelect;
 export type InsertMethodAnalytic = typeof methodAnalytics.$inferInsert;
+
+
+/**
+ * Admin accounts - separate from regular users
+ * Admins login with email/password, not OAuth
+ */
+export const adminAccounts = mysqlTable("admin_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  passwordHash: varchar("passwordHash", { length: 255 }).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  role: mysqlEnum("role", ["admin", "super_admin", "master_admin"]).default("admin").notNull(),
+  status: mysqlEnum("status", ["active", "blocked", "suspended"]).default("active").notNull(),
+  
+  // Security
+  lastLogin: timestamp("lastLogin"),
+  loginAttempts: int("loginAttempts").default(0),
+  lockedUntil: timestamp("lockedUntil"),
+  
+  // Audit
+  createdBy: int("createdBy"), // ID of admin who created this account
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AdminAccount = typeof adminAccounts.$inferSelect;
+export type InsertAdminAccount = typeof adminAccounts.$inferInsert;
+
+/**
+ * Admin activity log for audit trail
+ */
+export const adminActivityLog = mysqlTable("admin_activity_log", {
+  id: int("id").autoincrement().primaryKey(),
+  adminId: int("adminId").notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  targetType: varchar("targetType", { length: 50 }), // 'user', 'admin', 'letter', etc.
+  targetId: int("targetId"),
+  details: text("details"),
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
+export type InsertAdminActivityLog = typeof adminActivityLog.$inferInsert;
