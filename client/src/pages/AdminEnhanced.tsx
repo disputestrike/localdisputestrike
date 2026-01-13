@@ -79,7 +79,7 @@ export default function AdminEnhanced() {
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
             <span className="font-bold text-xl">DisputeStrike AI - Admin Dashboard</span>
           </div>
           <div className="flex items-center gap-4">

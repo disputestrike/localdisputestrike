@@ -130,7 +130,7 @@ export default function AgencyPricing() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
               <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </Link>
             <nav className="hidden md:flex items-center gap-8">
@@ -346,7 +346,7 @@ export default function AgencyPricing() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <img src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
                 <span className="text-xl font-bold">DisputeStrike</span>
               </div>
               <p className="text-gray-400 text-sm">

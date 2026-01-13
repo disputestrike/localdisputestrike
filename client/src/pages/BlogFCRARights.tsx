@@ -26,7 +26,7 @@ export default function BlogFCRARights() {
             </p>
             
             <img 
-              src="/blog-thumb-fcra-rights.png" 
+              src="/blog-thumb-fcra-rights.webp" 
               alt="FCRA § 611 Rights" 
               className="w-full rounded-lg shadow-xl mb-8"
             />

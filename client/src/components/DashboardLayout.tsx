@@ -391,7 +391,7 @@ function DashboardLayoutContent({
               {!isCollapsed && (
                 <Link href="/">
                   <a className="flex items-center gap-2">
-                    <img src="/logo.png" alt="DisputeStrike" className="w-8 h-8" />
+                    <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="w-8 h-8" />
                     <span className="font-bold text-gray-900">DisputeStrike</span>
                   </a>
                 </Link>

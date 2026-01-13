@@ -137,7 +137,7 @@ export default function MonitorYourCredit() {
                 {/* Photo-realistic image */}
                 <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-black/50 border border-white/10">
                   <img 
-                    src="/credit-monitoring-hero.png" 
+                    src="/credit-monitoring-hero.webp" 
                     alt="Professional monitoring credit score on premium device" 
                     className="w-full h-auto object-cover"
                   />

@@ -50,7 +50,7 @@ export default function Login() {
         <div className="text-center mb-8">
           <Link href="/">
             <div className="flex items-center justify-center gap-3 cursor-pointer">
-              <img src="/logo.png" alt="DisputeStrike" className="h-12 w-12" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-12 w-12" />
               <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </div>
           </Link>

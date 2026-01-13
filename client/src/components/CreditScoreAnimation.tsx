@@ -8,10 +8,10 @@ export function CreditScoreAnimation({ className = '' }: CreditScoreAnimationPro
   const [currentFrame, setCurrentFrame] = useState(0);
   
   const frames = [
-    '/anim-frame-1-worried.png',
-    '/anim-frame-2-transition.png',
-    '/anim-frame-3-improving.png',
-    '/anim-frame-4-celebrating.png',
+    '/anim-frame-1-worried.webp',
+    '/anim-frame-2-transition.webp',
+    '/anim-frame-3-improving.webp',
+    '/anim-frame-4-celebrating.webp',
   ];
 
   useEffect(() => {

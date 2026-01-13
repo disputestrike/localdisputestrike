@@ -13,7 +13,7 @@ export default function MoneyBackGuarantee() {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
               <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
             </Link>
             

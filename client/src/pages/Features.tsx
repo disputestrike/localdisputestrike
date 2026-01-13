@@ -17,7 +17,7 @@ export default function Features() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
               <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
@@ -79,7 +79,7 @@ export default function Features() {
             {/* Credit Score Gauge Visual */}
             <div className="max-w-md mx-auto mt-12">
               <img 
-                src="/credit-score-gauge.png" 
+                src="/credit-score-gauge.webp" 
                 alt="Excellent credit score of 750" 
                 className="w-full"
               />
@@ -96,7 +96,7 @@ export default function Features() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-shield-check.png" alt="Cross-bureau conflict detection" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/icon-shield-check.webp" alt="Cross-bureau conflict detection" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Cross-Bureau Conflict Detection</CardTitle>
               </CardHeader>
@@ -129,7 +129,7 @@ export default function Features() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-document-legal.png" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/icon-document-legal.webp" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">FCRA-Aligned Legal Arguments</CardTitle>
               </CardHeader>
@@ -162,7 +162,7 @@ export default function Features() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/ai-credit-analysis.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/ai-credit-analysis.webp" alt="AI letter generation" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Undetectable AI Letters</CardTitle>
               </CardHeader>
@@ -335,7 +335,7 @@ export default function Features() {
             <div className="max-w-4xl mx-auto">
               <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">FCRA-Compliant Dispute Letter</h3>
               <img 
-                src="/dispute-letter-example.png" 
+                src="/dispute-letter-example.webp" 
                 alt="Example Dispute letter with FCRA citations highlighted" 
                 className="w-full rounded-xl shadow-2xl"
               />
@@ -346,7 +346,7 @@ export default function Features() {
             <div className="max-w-6xl mx-auto">
               <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Cross-Bureau Conflict Detection</h3>
               <img 
-                src="/triple-bureau-comparison.png" 
+                src="/triple-bureau-comparison.webp" 
                 alt="Three credit bureaus showing conflicting information" 
                 className="w-full rounded-xl shadow-2xl"
               />
@@ -357,7 +357,7 @@ export default function Features() {
             <div className="max-w-4xl mx-auto">
               <h3 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">Legal Weapons We Use</h3>
               <img 
-                src="/fcra-citations-graphic.png" 
+                src="/fcra-citations-graphic.webp" 
                 alt="Key FCRA legal citations infographic" 
                 className="w-full"
               />

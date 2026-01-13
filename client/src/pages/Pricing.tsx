@@ -106,7 +106,7 @@ export default function Pricing() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
               <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>

@@ -582,7 +582,7 @@ export default function AdminPanel() {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
                 <span className="font-bold text-xl">DisputeStrike</span>
               </Link>
               <Badge variant="destructive">Admin Panel</Badge>

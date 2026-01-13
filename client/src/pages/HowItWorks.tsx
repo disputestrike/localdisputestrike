@@ -17,7 +17,7 @@ export default function HowItWorks() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
-              <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
               <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
@@ -79,7 +79,7 @@ export default function HowItWorks() {
             {/* Step 1 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-upload-real.png" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
+                <img loading="lazy" src="/step-upload-real.webp" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 1</Badge>
@@ -146,14 +146,14 @@ export default function HowItWorks() {
                 </div>
               </div>
               <div className="order-1 md:order-2">
-                <img src="/step-analyze-real.png" alt="AI analyzes and creates letters" className="w-full rounded-xl shadow-xl" />
+                <img loading="lazy" src="/step-analyze-real.webp" alt="AI analyzes and creates letters" className="w-full rounded-xl shadow-xl" />
               </div>
             </div>
 
             {/* Step 3 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-send-real.png" alt="Send and track" className="w-full rounded-xl shadow-xl" />
+                <img loading="lazy" src="/step-send-real.webp" alt="Send and track" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Step 3</Badge>

@@ -26,7 +26,7 @@ export default function BlogCreditReport() {
             </p>
             
             <img 
-              src="/blog-thumb-credit-report.png" 
+              src="/blog-thumb-credit-report.webp" 
               alt="How to Read Your Credit Report" 
               className="w-full rounded-lg shadow-xl mb-8"
             />

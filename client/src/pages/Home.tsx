@@ -27,7 +27,7 @@ export default function Home() {
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
             <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
           </Link>
           
@@ -105,7 +105,7 @@ export default function Home() {
             {/* Phone Mockup showing app */}
             <div className="relative max-w-md mx-auto mt-12">
               <img 
-                src="/phone-credit-report.png" 
+                src="/phone-credit-report.webp" 
                 alt="DisputeStrike app showing deleted negative items" 
                 className="w-full"
               />
@@ -150,7 +150,7 @@ export default function Home() {
             {/* Left side - Text content */}
             <div className="text-left">
               <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-600 rounded-full mb-8">
-                <img src="/logo.png" alt="DisputeStrike" className="w-10 h-10" />
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="w-10 h-10" />
               </div>
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-6 leading-tight">
                 AI that helps you take control of your <span className="text-orange-500">Credit</span> & financial future
@@ -271,42 +271,42 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-score-drop.png" alt="Score Drop" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-score-drop.webp" alt="Score Drop" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"My score dropped 50 points overnight and I don't know why..."</p>
               </CardContent>
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-interest.png" alt="High Interest" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-interest.webp" alt="High Interest" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"I'm paying 24% interest because of old mistakes..."</p>
               </CardContent>
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-limit.png" alt="Low Limit" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-limit.webp" alt="Low Limit" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"My credit limit is so low I can't even book a hotel..."</p>
               </CardContent>
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-home.png" alt="Home Denial" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-home.webp" alt="Home Denial" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"I got denied for a mortgage because of errors on my report..."</p>
               </CardContent>
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-debt.png" alt="Debt Burden" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-debt.webp" alt="Debt Burden" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"I feel trapped by debt I didn't even know I had..."</p>
               </CardContent>
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8 text-center">
-                <img src="/icon-pain-negative.png" alt="Negative Accounts" className="w-20 h-20 mx-auto mb-4" />
+                <img loading="lazy" src="/icon-pain-negative.webp" alt="Negative Accounts" className="w-20 h-20 mx-auto mb-4" />
                 <p className="text-lg text-gray-700 italic">"Negative accounts appeared out of nowhere on my credit..."</p>
               </CardContent>
             </Card>
@@ -336,7 +336,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="relative">
-                <img src="/icon-step1-quiz.png" alt="Take Quiz" className="w-32 h-32 mx-auto mb-6" />
+                <img loading="lazy" src="/icon-step1-quiz.webp" alt="Take Quiz" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">1</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Take the Quiz</h3>
@@ -345,7 +345,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="relative">
-                <img src="/icon-step2-upload.png" alt="Upload Reports" className="w-32 h-32 mx-auto mb-6" />
+                <img loading="lazy" src="/icon-step2-upload.webp" alt="Upload Reports" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">2</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Upload Reports</h3>
@@ -354,7 +354,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="relative">
-                <img src="/icon-step3-dispute.png" alt="Submit Disputes" className="w-32 h-32 mx-auto mb-6" />
+                <img loading="lazy" src="/icon-step3-dispute.webp" alt="Submit Disputes" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">3</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Submit Disputes</h3>
@@ -363,7 +363,7 @@ export default function Home() {
             
             <div className="text-center">
               <div className="relative">
-                <img src="/icon-step4-track.png" alt="Track Progress" className="w-32 h-32 mx-auto mb-6" />
+                <img loading="lazy" src="/icon-step4-track.webp" alt="Track Progress" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">4</div>
               </div>
               <h3 className="text-2xl font-bold text-gray-900 mb-3">Track Progress</h3>
@@ -384,25 +384,25 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
-              <img src="/icon-trust-ssl.png" alt="256-Bit SSL" className="w-20 h-20 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-trust-ssl.webp" alt="256-Bit SSL" className="w-20 h-20 mx-auto mb-4" />
               <h4 className="font-bold text-gray-900 mb-2">256-Bit SSL</h4>
               <p className="text-sm text-gray-600">Bank-level encryption</p>
             </div>
             
             <div className="text-center">
-              <img src="/icon-trust-fcra.png" alt="FCRA Compliant" className="w-20 h-20 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-trust-fcra.webp" alt="FCRA Compliant" className="w-20 h-20 mx-auto mb-4" />
               <h4 className="font-bold text-gray-900 mb-2">FCRA Compliant</h4>
               <p className="text-sm text-gray-600">Federal law protection</p>
             </div>
             
             <div className="text-center">
-              <img src="/icon-trust-control.png" alt="You're In Control" className="w-20 h-20 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-trust-control.webp" alt="You're In Control" className="w-20 h-20 mx-auto mb-4" />
               <h4 className="font-bold text-gray-900 mb-2">You're In Control</h4>
               <p className="text-sm text-gray-600">You mail your letters</p>
             </div>
             
             <div className="text-center">
-              <img src="/icon-trust-access.png" alt="24/7 Access" className="w-20 h-20 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-trust-access.webp" alt="24/7 Access" className="w-20 h-20 mx-auto mb-4" />
               <h4 className="font-bold text-gray-900 mb-2">24/7 Dashboard</h4>
               <p className="text-sm text-gray-600">Access anytime, anywhere</p>
             </div>
@@ -423,7 +423,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-ai-letters.png" alt="AI Letters" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-ai-letters.webp" alt="AI Letters" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">AI-Powered Dispute Letters</h3>
                 <p className="text-gray-700">Documentation-driven letters with FCRA citations generated instantly</p>
               </CardContent>
@@ -431,7 +431,7 @@ export default function Home() {
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-3-bureau.png" alt="3 Bureaus" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-3-bureau.webp" alt="3 Bureaus" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">3-Bureau Disputes</h3>
                 <p className="text-gray-700">Challenge items across Equifax, Experian, and TransUnion simultaneously</p>
               </CardContent>
@@ -439,7 +439,7 @@ export default function Home() {
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-rounds.png" alt="Rounds" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-rounds.webp" alt="Rounds" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Round 1-2-3 Escalation</h3>
                 <p className="text-gray-700">Automated escalation strategy from initial claim to legal-grade pressure</p>
               </CardContent>
@@ -447,7 +447,7 @@ export default function Home() {
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-mailing.png" alt="Mailing" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-mailing.webp" alt="Mailing" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Mailing Instructions</h3>
                 <p className="text-gray-700">Pre-formatted labels and certified mail instructions included</p>
               </CardContent>
@@ -455,7 +455,7 @@ export default function Home() {
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-tracking.png" alt="Tracking" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-tracking.webp" alt="Tracking" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Progress Tracking</h3>
                 <p className="text-gray-700">Real-time dashboard shows exactly where each dispute stands</p>
               </CardContent>
@@ -463,7 +463,7 @@ export default function Home() {
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all">
               <CardContent className="pt-8">
-                <img src="/icon-feature-unlimited.png" alt="Unlimited" className="w-16 h-16 mb-4" />
+                <img loading="lazy" src="/icon-feature-unlimited.webp" alt="Unlimited" className="w-16 h-16 mb-4" />
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Unlimited Letters</h3>
                 <p className="text-gray-700">Generate as many Dispute letters as you need, no limits</p>
               </CardContent>
@@ -477,19 +477,19 @@ export default function Home() {
         <div className="container">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-center">
             <div>
-              <img src="/icon-stat-users.png" alt="Users" className="w-24 h-24 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-stat-users.webp" alt="Users" className="w-24 h-24 mx-auto mb-4" />
               <div className="text-5xl font-extrabold mb-2">1,247+</div>
               <p className="text-xl text-gray-300">Users monitoring their credit journey</p>
             </div>
             
             <div>
-              <img src="/icon-stat-letters.png" alt="Letters" className="w-24 h-24 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-stat-letters.webp" alt="Letters" className="w-24 h-24 mx-auto mb-4" />
               <div className="text-5xl font-extrabold mb-2">3,891+</div>
               <p className="text-xl text-gray-300">Dispute letters generated by users using our tools</p>
             </div>
             
             <div>
-              <img src="/icon-stat-guarantee.png" alt="Guarantee" className="w-24 h-24 mx-auto mb-4" />
+              <img loading="lazy" src="/icon-stat-guarantee.webp" alt="Guarantee" className="w-24 h-24 mx-auto mb-4" />
               <div className="text-5xl font-extrabold mb-2">110%</div>
               <p className="text-xl text-gray-300">Money-back guarantee if not satisfied</p>
             </div>
@@ -509,7 +509,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
-              <img src="/blog-thumb-credit-report.png" alt="How to Read Your Credit Report" className="w-full h-48 object-cover" />
+              <img loading="lazy" src="/blog-thumb-credit-report.webp" alt="How to Read Your Credit Report" className="w-full h-48 object-cover" />
               <CardContent className="pt-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">How to Read Your Credit Report</h3>
                 <p className="text-gray-700 mb-4">Learn to identify errors, late payments, and collection accounts that are dragging down your score.</p>
@@ -520,7 +520,7 @@ export default function Home() {
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
-              <img src="/blog-thumb-3-round-strategy.png" alt="3-Round Dispute Strategy" className="w-full h-48 object-cover" />
+              <img loading="lazy" src="/blog-thumb-3-round-strategy.webp" alt="3-Round Dispute Strategy" className="w-full h-48 object-cover" />
               <CardContent className="pt-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">3-Round Dispute Strategy Explained</h3>
                 <p className="text-gray-700 mb-4">Understand how Round 1, 2, and 3 escalation works to maximize your dispute effectiveness.</p>
@@ -531,7 +531,7 @@ export default function Home() {
             </Card>
             
             <Card className="border-2 border-gray-200 hover:border-orange-500 transition-all overflow-hidden">
-              <img src="/blog-thumb-fcra-rights.png" alt="Your FCRA Rights" className="w-full h-48 object-cover" />
+              <img loading="lazy" src="/blog-thumb-fcra-rights.webp" alt="Your FCRA Rights" className="w-full h-48 object-cover" />
               <CardContent className="pt-6">
                 <h3 className="text-2xl font-bold text-gray-900 mb-3">Your FCRA § 611 Rights</h3>
                 <p className="text-gray-700 mb-4">Federal law gives you powerful rights to challenge inaccurate information on your credit report.</p>
@@ -579,7 +579,7 @@ export default function Home() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-shield-check.png" alt="Cross-bureau conflict detection" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/icon-shield-check.webp" alt="Cross-bureau conflict detection" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Cross-Bureau Conflict Detection</CardTitle>
               </CardHeader>
@@ -594,7 +594,7 @@ export default function Home() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/icon-document-legal.png" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/icon-document-legal.webp" alt="FCRA legal citations" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">FCRA-Aligned Legal Arguments</CardTitle>
               </CardHeader>
@@ -609,7 +609,7 @@ export default function Home() {
             <Card className="border-2 border-gray-200 hover:border-orange-600 hover:shadow-2xl transition-all">
               <CardHeader className="text-center">
                 <div className="mb-6">
-                  <img src="/ai-credit-analysis.png" alt="AI letter generation" className="w-20 h-20 mx-auto" />
+                  <img loading="lazy" src="/ai-credit-analysis.webp" alt="AI letter generation" className="w-20 h-20 mx-auto" />
                 </div>
                 <CardTitle className="text-2xl font-bold">Undetectable AI Letters</CardTitle>
               </CardHeader>
@@ -630,7 +630,7 @@ export default function Home() {
               <div className="flex flex-col bg-white rounded-xl shadow-lg p-6">
                 <div className="h-80 overflow-hidden rounded-lg mb-4">
                   <img 
-                    src="/deleted-items-proof.png" 
+                    src="/deleted-items-proof.webp" 
                     alt="Credit report showing deleted negative accounts with red stamps" 
                     className="w-full h-full object-cover"
                   />
@@ -645,7 +645,7 @@ export default function Home() {
               <div className="flex flex-col bg-white rounded-xl shadow-lg p-6">
                 <div className="h-80 overflow-hidden rounded-lg mb-4 flex items-center justify-center bg-gray-50">
                   <img 
-                    src="/phone-deletion-success.png" 
+                    src="/phone-deletion-success.webp" 
                     alt="App showing 8 items deleted successfully" 
                     className="h-full object-contain"
                   />
@@ -660,7 +660,7 @@ export default function Home() {
               <div className="flex flex-col bg-white rounded-xl shadow-lg p-6">
                 <div className="h-80 overflow-hidden rounded-lg mb-4">
                   <img 
-                    src="/happy-family-credit-success.png" 
+                    src="/happy-family-credit-success.webp" 
                     alt="Happy family celebrating credit score improvement and loan approval" 
                     className="w-full h-full object-cover"
                   />
@@ -687,7 +687,7 @@ export default function Home() {
             {/* Step 1 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/step-upload-real.png" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
+                <img loading="lazy" src="/step-upload-real.webp" alt="Upload credit reports" className="w-full rounded-xl shadow-xl" />
               </div>
               <div>
                 <Badge className="bg-orange-600 text-white text-lg px-4 py-2 mb-4">Round 1: Setup</Badge>
@@ -708,14 +708,14 @@ export default function Home() {
                 </p>
               </div>
               <div className="order-1 md:order-2">
-                <img src="/phone-dashboard-mockup.png" alt="Before and after credit score comparison" className="w-full" />
+                <img loading="lazy" src="/phone-dashboard-mockup.webp" alt="Before and after credit score comparison" className="w-full" />
               </div>
             </div>
 
             {/* Step 3 */}
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
-                <img src="/score-improvement-chart.png" alt="Credit score improvement over 6 months" className="w-full rounded-xl shadow-xl" />
+                <img loading="lazy" src="/score-improvement-chart.webp" alt="Credit score improvement over 6 months" className="w-full rounded-xl shadow-xl" />
                 <p className="text-xs text-gray-500 text-center mt-2 italic">Illustrative example. Not typical. No score improvement guaranteed.</p>
               </div>
               <div>
@@ -732,7 +732,7 @@ export default function Home() {
           <div className="mt-20 max-w-6xl mx-auto">
             <h3 className="text-3xl md:text-4xl font-extrabold text-center text-gray-900 mb-8">Track Your Dispute Progress</h3>
             <img 
-              src="/before-after-bureau-report.png" 
+              src="/before-after-bureau-report.webp" 
               alt="Example of dispute tracking dashboard" 
               className="w-full rounded-xl shadow-2xl"
             />
@@ -865,7 +865,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/testimonial-sarah-real.png" alt="Sarah Martinez" className="w-16 h-16 rounded-full object-cover" />
+                  <img loading="lazy" src="/testimonial-sarah-real.webp" alt="Sarah Martinez" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">Sarah Martinez</div>
                     <div className="text-gray-600">Miami, FL</div>
@@ -888,7 +888,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/testimonial-james-real.png" alt="James Chen" className="w-16 h-16 rounded-full object-cover" />
+                  <img loading="lazy" src="/testimonial-james-real.webp" alt="James Chen" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">James Chen</div>
                     <div className="text-gray-600">San Francisco, CA</div>
@@ -911,7 +911,7 @@ export default function Home() {
             <Card className="border-2">
               <CardHeader>
                 <div className="flex items-center gap-4 mb-4">
-                  <img src="/testimonial-maria-real.png" alt="Maria Rodriguez" className="w-16 h-16 rounded-full object-cover" />
+                  <img loading="lazy" src="/testimonial-maria-real.webp" alt="Maria Rodriguez" className="w-16 h-16 rounded-full object-cover" />
                   <div>
                     <div className="font-bold text-lg">Maria Rodriguez</div>
                     <div className="text-gray-600">Houston, TX</div>

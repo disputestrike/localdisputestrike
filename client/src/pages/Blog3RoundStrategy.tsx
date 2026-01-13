@@ -26,7 +26,7 @@ export default function Blog3RoundStrategy() {
             </p>
             
             <img 
-              src="/blog-thumb-3-round-strategy.png" 
+              src="/blog-thumb-3-round-strategy.webp" 
               alt="3-Round Dispute Strategy" 
               className="w-full rounded-lg shadow-xl mb-8"
             />

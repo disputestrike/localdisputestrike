@@ -135,7 +135,7 @@ export default function AgencyDashboard() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/logo.png" alt="DisputeStrike" className="h-10 w-10" />
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
                 <span className="font-bold text-xl text-gray-900">DisputeStrike</span>
               </Link>
               <Button asChild className="bg-orange-500 hover:bg-orange-600">
@@ -173,7 +173,7 @@ export default function AgencyDashboard() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2">
-                <img src="/logo.png" alt="DisputeStrike" className="h-8 w-8" />
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
                 <span className="font-bold text-lg">DisputeStrike</span>
               </Link>
               <Badge className="bg-orange-500 text-white">

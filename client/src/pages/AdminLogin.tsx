@@ -62,7 +62,7 @@ export default function AdminLogin() {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.png" alt="DisputeStrike" className="h-12 w-12" />
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-12 w-12" />
             <span className="font-bold text-2xl text-white">DisputeStrike</span>
           </Link>
         </div>
