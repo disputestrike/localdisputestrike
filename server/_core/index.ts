@@ -84,20 +84,39 @@ async function startServer() {
     "https://js.stripe.com",
   ];
   
+  // Allowed domain patterns for deployment platforms
+  const allowedDomainPatterns = [
+    "manus.computer",
+    "localhost",
+    "railway.app",
+    "up.railway.app",
+    "ondigitalocean.app",
+    "vercel.app",
+    "render.com",
+    "disputestrike.com",
+  ];
+  
   app.use(cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (mobile apps, curl, etc.)
       if (!origin) return callback(null, true);
-      // Allow manus.computer domains and localhost
-      if (allowedOrigins.some(allowed => origin.startsWith(allowed)) || 
-          origin.includes("manus.computer") ||
-          origin.includes("localhost")) {
+      
+      // Check if origin matches allowed origins list
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
         return callback(null, true);
       }
+      
+      // Check if origin matches any allowed domain pattern
+      if (allowedDomainPatterns.some(pattern => origin.includes(pattern))) {
+        return callback(null, true);
+      }
+      
       // In development, allow all origins
       if (process.env.NODE_ENV === 'development') {
         return callback(null, true);
       }
+      
+      console.warn(`[CORS] Blocked origin: ${origin}`);
       callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
