@@ -7,7 +7,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
 import { Shield, Lock, CreditCard, CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
@@ -57,8 +57,8 @@ const US_STATES = [
 ];
 
 export default function TrialCheckout() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [location, setLocation] = useLocation();
+  const navigate = setLocation;
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [showPassword, setShowPassword] = useState(false);
   const [showSSN, setShowSSN] = useState(false);
@@ -66,7 +66,8 @@ export default function TrialCheckout() {
   const [step, setStep] = useState<'form' | 'processing' | 'success'>('form');
 
   // Get quiz results from navigation state (if coming from quiz)
-  const quizResults = location.state?.quizResults;
+  // Quiz results would come from URL params or session storage
+  const quizResults = null;
 
   const createTrialMutation = useMutation({
     mutationFn: async (data: FormData) => {

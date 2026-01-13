@@ -7,7 +7,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
 import {
@@ -50,7 +50,8 @@ const BUREAUS = [
 ] as const;
 
 export default function ResponseUpload() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = setLocation;
   const { roundId } = useParams();
   
   const [responses, setResponses] = useState<Record<string, UploadedResponse>>({

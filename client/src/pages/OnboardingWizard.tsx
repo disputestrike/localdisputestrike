@@ -10,7 +10,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
 import { 
@@ -99,7 +99,8 @@ const STEPS = [
 ];
 
 export default function OnboardingWizard() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = setLocation;
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});

@@ -9,7 +9,7 @@
  */
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   Shield,
@@ -79,7 +79,8 @@ interface DashboardData {
 }
 
 export default function DashboardHomeV2() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = setLocation;
   const [showAllItems, setShowAllItems] = useState(false);
 
   // Fetch dashboard data

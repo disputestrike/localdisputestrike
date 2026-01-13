@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Shield, 
@@ -58,7 +58,8 @@ interface AnalysisData {
 }
 
 export default function CreditAnalysis() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = setLocation;
   const [selectedTier, setSelectedTier] = useState<'starter' | 'professional' | 'complete'>('professional');
 
   const { data: analysis, isLoading, error } = useQuery<AnalysisData>({
