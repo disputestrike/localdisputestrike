@@ -5,7 +5,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { getLoginUrl } from "@/const";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, Shield, Zap, Star, TrendingUp, CreditCard, Mail, Clock, Sparkles } from "lucide-react";
+import { Check, X, Shield, Zap, Star, TrendingUp, CreditCard, Mail, Clock, Sparkles, ArrowRight } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { CountdownTimer } from "@/components/CountdownTimer";
 
@@ -17,71 +17,8 @@ export default function Pricing() {
     setLocation("/trial-checkout");
   };
 
-  const tiers = [
-    {
-      name: "Starter",
-      price: "$49",
-      period: "/month",
-      description: "Perfect for getting started with credit repair",
-      icon: Zap,
-      popular: false,
-      features: [
-        "Real credit data from all 3 bureaus",
-        "AI-powered dispute recommendations",
-        "2 dispute rounds included",
-        "Cross-bureau conflict detection",
-        "Professional dispute letters",
-        "Mailing instructions & tracking",
-        "Email support",
-      ],
-      cta: "Start with $1 Trial",
-      value: "Best for beginners",
-      rounds: "2 Rounds",
-    },
-    {
-      name: "Professional",
-      price: "$69.95",
-      period: "/month",
-      description: "Most popular choice for serious credit repair",
-      icon: Star,
-      popular: true,
-      features: [
-        "Everything in Starter, plus:",
-        "3 dispute rounds included",
-        "Ongoing credit monitoring",
-        "Response analysis & escalation",
-        "Furnisher dispute letters",
-        "Priority email support",
-        "Round unlock notifications",
-      ],
-      cta: "Start with $1 Trial",
-      value: "Most Popular",
-      rounds: "3 Rounds",
-    },
-    {
-      name: "Complete",
-      price: "$99.95",
-      period: "/month",
-      description: "Ultimate credit repair with full service",
-      icon: Shield,
-      popular: false,
-      features: [
-        "Everything in Professional, plus:",
-        "Unlimited dispute rounds",
-        "We print & mail for you",
-        "CFPB complaint generator",
-        "1-on-1 credit coaching calls",
-        "Dedicated support line",
-        "Fastest results possible",
-      ],
-      cta: "Start with $1 Trial",
-      value: "Best Results",
-      rounds: "Unlimited",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+    <div className="min-h-screen bg-white">
       {/* Navigation */}
       <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
         <div className="container flex h-16 items-center justify-between">
@@ -106,9 +43,6 @@ export default function Pricing() {
             <Link href="/faq">
               <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">FAQ</a>
             </Link>
-            <Link href="/money-back-guarantee">
-              <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Money Back Guarantee</a>
-            </Link>
             {isAuthenticated ? (
               <UserDropdown />
             ) : (
@@ -128,223 +62,331 @@ export default function Pricing() {
         </div>
       </nav>
 
-      {/* Hero Section - $1 Trial CTA */}
-      <section className="container py-12 text-center">
-        <Badge className="mb-4 bg-green-100 text-green-800 border-green-300">
-          <Sparkles className="mr-1 h-3 w-3" />
-          Limited Time Offer
-        </Badge>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          See Your <span className="text-primary">Real Credit Data</span> for Just $1
-        </h1>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-          Get instant access to your 3-bureau credit report + AI recommendations. 
-          Then choose your plan to start disputing.
-        </p>
-        
-        {/* $1 Trial Box */}
-        <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-8 max-w-xl mx-auto mb-8 text-white shadow-xl">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <CreditCard className="h-8 w-8" />
-            <span className="text-5xl font-bold">$1</span>
-            <span className="text-xl">for 7 days</span>
-          </div>
-          <p className="text-emerald-100 mb-6">
-            See your real credit scores, negative items, and AI-recommended disputes. 
-            Cancel anytime before day 7 - no commitment.
+      {/* Hero Section */}
+      <section className="bg-gradient-to-b from-orange-50 to-white py-16">
+        <div className="container text-center px-4">
+          <Badge className="mb-4 bg-orange-100 text-orange-700 border-orange-200">
+            <Sparkles className="mr-1 h-3 w-3" />
+            Start with $1 for 7 days - See your real credit data
+          </Badge>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            Choose Your Plan
+          </h1>
+          <p className="text-xl text-gray-600 mb-2">
+            Both plans include <span className="font-semibold text-gray-900">unlimited dispute rounds</span>
           </p>
-          <Button 
-            size="lg" 
-            className="bg-white text-emerald-600 hover:bg-emerald-50 font-bold text-lg px-8 py-6"
-            onClick={handleStartTrial}
-          >
-            Get My Credit Analysis - $1
-          </Button>
-          <p className="text-emerald-200 text-sm mt-4">
-            Then $69.95/mo for Professional plan. Upgrade or downgrade anytime.
+          <p className="text-gray-500">
+            30-day intervals between rounds for maximum effectiveness
           </p>
-        </div>
-
-        <div className="flex justify-center mb-8">
-          <CountdownTimer initialMinutes={15} />
-        </div>
-        
-        {/* What you get with $1 trial */}
-        <div className="grid md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-12">
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
-            <CreditCard className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="font-semibold">Real Credit Scores</p>
-            <p className="text-sm text-muted-foreground">From all 3 bureaus</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
-            <TrendingUp className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="font-semibold">Negative Items</p>
-            <p className="text-sm text-muted-foreground">Full account details</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
-            <Sparkles className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="font-semibold">AI Recommendations</p>
-            <p className="text-sm text-muted-foreground">Win probability scores</p>
-          </div>
-          <div className="bg-white rounded-lg p-4 shadow-sm border">
-            <Clock className="h-6 w-6 text-primary mx-auto mb-2" />
-            <p className="font-semibold">7-Day Access</p>
-            <p className="text-sm text-muted-foreground">Cancel anytime</p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-500" />
-            <span>FCRA Compliant</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-500" />
-            <span>Cancel Anytime</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Check className="h-4 w-4 text-green-500" />
-            <span>Secure & Encrypted</span>
+          <div className="flex justify-center mt-8">
+            <CountdownTimer initialMinutes={15} />
           </div>
         </div>
       </section>
-
-      {/* Divider */}
-      <div className="container">
-        <div className="border-t border-gray-200 my-8"></div>
-        <p className="text-center text-muted-foreground mb-8">
-          After your $1 trial, choose the plan that fits your needs:
-        </p>
-      </div>
 
       {/* Pricing Cards */}
-      <section className="container pb-16">
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {tiers.map((tierData) => {
-            const Icon = tierData.icon;
-            return (
-              <Card
-                key={tierData.name}
-                className={`relative ${
-                  tierData.popular ? "border-primary shadow-lg scale-105" : ""
-                }`}
-              >
-                {tierData.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">Most Popular</Badge>
+      <section className="container py-12 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
+            
+            {/* Complete Plan - Featured */}
+            <div className="relative order-1 md:order-2">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                <Badge className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1 border-none">
+                  <Star className="w-4 h-4" /> MOST POPULAR
+                </Badge>
+              </div>
+              <Card className="border-2 border-orange-500 shadow-xl overflow-hidden h-full">
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-2xl font-bold text-gray-900">Complete</CardTitle>
+                  <CardDescription className="text-gray-500">Zero hassle - we handle everything</CardDescription>
+                  <div className="mt-4 flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-bold text-gray-900">$79</span>
+                    <span className="text-2xl font-bold text-gray-900">.99</span>
+                    <span className="text-gray-500">/month</span>
                   </div>
-                )}
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Icon className="h-8 w-8 text-primary" />
-                    <Badge variant="outline">{tierData.value}</Badge>
-                  </div>
-                  <CardTitle className="text-2xl">{tierData.name}</CardTitle>
-                  <CardDescription>{tierData.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{tierData.price}</span>
-                    <span className="text-muted-foreground ml-1">{tierData.period}</span>
-                  </div>
-                  <Badge variant="secondary" className="mt-2 w-fit">
-                    {tierData.rounds}
-                  </Badge>
+                  <p className="text-sm text-gray-500 mt-2">After $1 trial</p>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {tierData.features.map((feature) => (
-                      <li key={feature} className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+
+                <CardContent className="space-y-4 pt-6">
+                  <p className="font-medium text-gray-700 text-xs uppercase tracking-wider">Everything in DIY, plus:</p>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">We mail everything via certified mail</span>
+                      <p className="text-xs text-gray-500">Save 3+ hours per round</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">One-click "Send Disputes"</span>
+                      <p className="text-xs text-gray-500">No printing, no post office</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Real-time delivery tracking</span>
+                      <p className="text-xs text-gray-500">USPS tracking in your dashboard</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">CFPB complaint generator</span>
+                      <p className="text-xs text-gray-500">For stubborn items after 3 rounds</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Furnisher dispute letters</span>
+                      <p className="text-xs text-gray-500">Dispute directly with creditors</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-orange-600" />
+                    </div>
+                    <div>
+                      <span className="font-medium text-gray-900">Priority support</span>
+                      <p className="text-xs text-gray-500">Email + chat support</p>
+                    </div>
+                  </div>
                 </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant={tierData.popular ? "default" : "outline"}
-                    size="lg"
+
+                <CardFooter className="flex flex-col gap-4 pb-8">
+                  <Button 
+                    className="w-full bg-orange-500 text-white py-6 rounded-xl font-semibold text-lg hover:bg-orange-600 transition flex items-center justify-center gap-2"
                     onClick={handleStartTrial}
                   >
-                    {tierData.cta}
+                    Start Complete - $1 Trial
+                    <ArrowRight className="w-5 h-5" />
                   </Button>
+                  <p className="text-xs text-center text-gray-500">
+                    <span className="font-medium text-green-600">Save $50/mo</span> vs. Lexington Law
+                  </p>
                 </CardFooter>
               </Card>
-            );
-          })}
+            </div>
+
+            {/* DIY Plan */}
+            <div className="order-2 md:order-1">
+              <Card className="border border-gray-200 rounded-2xl overflow-hidden h-full">
+                <CardHeader className="text-center pb-2">
+                  <CardTitle className="text-2xl font-bold text-gray-900">DIY</CardTitle>
+                  <CardDescription className="text-gray-500">You handle the mailing</CardDescription>
+                  <div className="mt-4 flex items-baseline justify-center gap-1">
+                    <span className="text-5xl font-bold text-gray-900">$49</span>
+                    <span className="text-2xl font-bold text-gray-900">.99</span>
+                    <span className="text-gray-500">/month</span>
+                  </div>
+                  <p className="text-sm text-gray-500 mt-2">After $1 trial</p>
+                </CardHeader>
+
+                <CardContent className="space-y-4 pt-6">
+                  <p className="font-medium text-gray-700 text-xs uppercase tracking-wider">What's included:</p>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">Unlimited dispute rounds (30-day intervals)</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">3-bureau credit monitoring (daily updates)</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">AI analyzes & selects best items to dispute</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">FCRA-compliant dispute letters</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">Round 1-2-3 escalation strategy</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-yellow-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Mail className="w-3 h-3 text-yellow-600" />
+                    </div>
+                    <span className="text-sm text-gray-700">You print & mail yourself (~$30/round at USPS)</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <X className="w-3 h-3 text-gray-400" />
+                    </div>
+                    <span className="text-sm text-gray-400">No CFPB complaints</span>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <div className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <X className="w-3 h-3 text-gray-400" />
+                    </div>
+                    <span className="text-sm text-gray-400">No furnisher disputes</span>
+                  </div>
+                </CardContent>
+
+                <CardFooter className="flex flex-col gap-4 pb-8">
+                  <Button 
+                    variant="outline"
+                    className="w-full py-6 rounded-xl font-semibold text-lg hover:bg-gray-50 transition"
+                    onClick={handleStartTrial}
+                  >
+                    Start DIY - $1 Trial
+                  </Button>
+                  <p className="text-xs text-center text-gray-500">
+                    Upgrade to Complete anytime
+                  </p>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* How It Works */}
-      <section className="container py-16 bg-muted/50 rounded-lg">
-        <h2 className="text-3xl font-bold text-center mb-8">
-          How the $1 Trial Works
-        </h2>
+      {/* Comparison Table */}
+      <section className="container py-16 px-4 bg-gray-50 rounded-3xl my-12">
         <div className="max-w-4xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
-              <h3 className="font-semibold mb-2">Pay $1</h3>
-              <p className="text-sm text-muted-foreground">Enter your info and pay $1 to start your trial</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
-              <h3 className="font-semibold mb-2">See Your Data</h3>
-              <p className="text-sm text-muted-foreground">We pull your real credit data from all 3 bureaus</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
-              <h3 className="font-semibold mb-2">Get AI Recommendations</h3>
-              <p className="text-sm text-muted-foreground">See which items to dispute with win probability</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">4</div>
-              <h3 className="font-semibold mb-2">Upgrade to Dispute</h3>
-              <p className="text-sm text-muted-foreground">Choose a plan to generate letters and start Round 1</p>
-            </div>
+          <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
+            Compare Plans
+          </h2>
+          
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-200">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-4 px-6 font-medium text-gray-500">Feature</th>
+                  <th className="text-center py-4 px-6 font-medium text-gray-900">DIY<br/><span className="text-xs font-normal text-gray-500">$49.99/mo</span></th>
+                  <th className="text-center py-4 px-6 font-medium text-orange-600 bg-orange-50">Complete<br/><span className="text-xs font-normal">$79.99/mo</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">Unlimited Rounds</td>
+                  <td className="py-4 px-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">30-Day Strategy</td>
+                  <td className="py-4 px-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">3-Bureau Monitoring</td>
+                  <td className="py-4 px-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">AI Letter Generation</td>
+                  <td className="py-4 px-6 text-center"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-gray-100 bg-yellow-50/30">
+                  <td className="py-4 px-6 text-sm text-gray-700 font-medium">Mailing</td>
+                  <td className="py-4 px-6 text-center text-xs text-gray-500">You do it</td>
+                  <td className="py-4 px-6 text-center bg-orange-50 font-medium text-orange-600 text-sm">We do it ✓</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">Certified Mail</td>
+                  <td className="py-4 px-6 text-center text-xs text-gray-500">You pay USPS</td>
+                  <td className="py-4 px-6 text-center bg-orange-50 font-medium text-orange-600 text-sm">Included ✓</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">Delivery Tracking</td>
+                  <td className="py-4 px-6 text-center text-xs text-gray-500">Manual</td>
+                  <td className="py-4 px-6 text-center bg-orange-50 font-medium text-orange-600 text-sm">Auto ✓</td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">CFPB Complaints</td>
+                  <td className="py-4 px-6 text-center"><X className="w-5 h-5 text-gray-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr className="border-b border-gray-100">
+                  <td className="py-4 px-6 text-sm text-gray-700">Furnisher Disputes</td>
+                  <td className="py-4 px-6 text-center"><X className="w-5 h-5 text-gray-300 mx-auto" /></td>
+                  <td className="py-4 px-6 text-center bg-orange-50"><Check className="w-5 h-5 text-green-500 mx-auto" /></td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 text-sm text-gray-700">Money-Back Guarantee</td>
+                  <td className="py-4 px-6 text-center text-xs text-gray-500">7 days</td>
+                  <td className="py-4 px-6 text-center bg-orange-50 font-medium text-orange-600 text-sm">30 days ✓</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
       <section className="container py-16">
-        <h2 className="text-3xl font-bold text-center mb-8">
+        <h2 className="text-3xl font-bold text-center mb-12">
           Frequently Asked Questions
         </h2>
         <div className="max-w-3xl mx-auto space-y-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h3 className="font-semibold mb-2">What happens after the $1 trial?</h3>
-            <p className="text-muted-foreground">After 7 days, you'll be charged $69.95/mo for the Professional plan unless you cancel or choose a different tier. You can upgrade immediately to start disputing - no need to wait.</p>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-gray-900 mb-2">Both plans have unlimited rounds?</h3>
+            <p className="text-gray-600 text-sm">Yes! Both DIY and Complete include unlimited dispute rounds. The difference is WHO mails the letters and whether you get advanced features (CFPB, furnisher disputes).</p>
           </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h3 className="font-semibold mb-2">Can I cancel during the trial?</h3>
-            <p className="text-muted-foreground">Yes! Cancel anytime within 7 days and you won't be charged anything beyond the $1. You keep access to view your credit data until the trial ends.</p>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-gray-900 mb-2">Why 30-day intervals between rounds?</h3>
+            <p className="text-gray-600 text-sm">Credit bureaus legally have 30-45 days to investigate disputes. Our 30-day intervals ensure compliance and maximize effectiveness. Disputing too frequently gets flagged as frivolous.</p>
           </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h3 className="font-semibold mb-2">What's the difference between the plans?</h3>
-            <p className="text-muted-foreground">
-              <strong>Starter ($49/mo):</strong> 2 dispute rounds, DIY mailing<br/>
-              <strong>Professional ($69.95/mo):</strong> 3 rounds, ongoing monitoring, response analysis<br/>
-              <strong>Complete ($99.95/mo):</strong> Unlimited rounds, we mail for you, CFPB complaints, coaching
-            </p>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-gray-900 mb-2">Can I switch from DIY to Complete later?</h3>
+            <p className="text-gray-600 text-sm">Absolutely! Upgrade anytime. Your progress carries over, and you'll immediately get white-glove mailing for your next round.</p>
           </div>
-          <div className="bg-white rounded-lg p-6 shadow-sm border">
-            <h3 className="font-semibold mb-2">What is a "round"?</h3>
-            <p className="text-muted-foreground">A round is one cycle of dispute letters to all 3 bureaus. After mailing, you wait 30 days for responses before starting the next round. Each round escalates the pressure on bureaus to delete items.</p>
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-gray-900 mb-2">What's included in "furnisher disputes"?</h3>
+            <p className="text-gray-600 text-sm">After rounds with bureaus, sometimes you need to dispute directly with the creditor (the furnisher). Complete plan includes these letters.</p>
           </div>
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="container py-16">
-        <div className="bg-gradient-to-r from-primary to-orange-600 rounded-2xl p-12 text-center text-white">
+        <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-12 text-center text-white shadow-xl">
           <h2 className="text-3xl font-bold mb-4">Ready to See Your Real Credit Data?</h2>
           <p className="text-xl mb-8 text-orange-100">
             Start your $1 trial now and get AI-powered recommendations in minutes.
           </p>
           <Button 
             size="lg" 
-            className="bg-white text-primary hover:bg-orange-50 font-bold text-lg px-8 py-6"
+            className="bg-white text-orange-600 hover:bg-orange-50 font-bold text-lg px-8 py-6 rounded-xl"
             onClick={handleStartTrial}
           >
             Get My Credit Analysis - $1
@@ -353,17 +395,18 @@ export default function Pricing() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-white py-8">
+      <footer className="border-t bg-white py-12">
         <div className="container text-center text-sm text-muted-foreground">
-          <p className="mb-2">
+          <div className="flex justify-center gap-6 mb-6">
+            <Link href="/terms"><a className="hover:text-orange-600 transition-colors">Terms of Service</a></Link>
+            <Link href="/privacy"><a className="hover:text-orange-600 transition-colors">Privacy Policy</a></Link>
+            <Link href="/disclaimer"><a className="hover:text-orange-600 transition-colors">Disclaimer</a></Link>
+          </div>
+          <p className="max-w-2xl mx-auto mb-4">
             DisputeStrike is dispute automation software, not a credit repair service. 
             You generate and mail your own dispute letters. Results vary and are not guaranteed.
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/terms"><a className="hover:text-primary">Terms of Service</a></Link>
-            <Link href="/privacy"><a className="hover:text-primary">Privacy Policy</a></Link>
-            <Link href="/croa-disclosure"><a className="hover:text-primary">CROA Disclosure</a></Link>
-          </div>
+          <p>© 2026 DisputeStrike. All rights reserved.</p>
         </div>
       </footer>
     </div>

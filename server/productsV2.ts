@@ -1,11 +1,10 @@
 /**
  * DisputeStrike V2 - Product and Pricing Configuration
  * 
- * NEW PRICING STRUCTURE:
+ * FINAL PRICING STRUCTURE:
  * - $1 Trial (7 days) - See real credit data + AI recommendations
- * - Starter ($49/mo) - 2 rounds + monitoring
- * - Professional ($69.95/mo) - 3 rounds + monitoring  
- * - Complete ($99.95/mo) - Unlimited rounds + we mail + CFPB
+ * - DIY ($49.99/mo) - Unlimited rounds + monitoring (User mails)
+ * - Complete ($79.99/mo) - Unlimited rounds + we mail + CFPB + Furnisher
  */
 
 export interface SubscriptionTier {
@@ -19,80 +18,59 @@ export interface SubscriptionTier {
   includesMonitoring: boolean;
   includesWhiteGloveMailing: boolean;
   includesCFPB: boolean;
-  includesCoaching: boolean;
+  includesFurnisher: boolean;
   popular?: boolean;
 }
 
 export const TRIAL_PRICE = 100;  // $1.00 in cents
 
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    description: '2 rounds of disputes + credit monitoring',
-    monthlyPrice: 4900,  // $49.00
+  diy: {
+    id: 'diy',
+    name: 'DIY',
+    description: 'Unlimited rounds + credit monitoring (You mail)',
+    monthlyPrice: 4999,  // $49.99
     features: [
-      '2 dispute rounds',
-      '3-bureau credit monitoring',
-      'AI selects top 3-5 items per round',
-      'Auto-pull credit reports',
-      'DIY print & mail',
-      '30-day round tracking',
-      'Email support',
+      'Unlimited dispute rounds (30-day intervals)',
+      '3-bureau credit monitoring (daily updates)',
+      'AI analyzes & selects best items to dispute',
+      'FCRA-compliant dispute letters',
+      'Round 1-2-3 escalation strategy',
+      'Dashboard tracking',
+      'You print & mail yourself',
     ],
-    roundsIncluded: 2,
+    roundsIncluded: -1,
     includesMonitoring: true,
     includesWhiteGloveMailing: false,
     includesCFPB: false,
-    includesCoaching: false,
-  },
-  
-  professional: {
-    id: 'professional',
-    name: 'Professional',
-    description: '3 rounds of disputes + advanced features',
-    monthlyPrice: 6995,  // $69.95
-    features: [
-      '3 dispute rounds',
-      '3-bureau credit monitoring',
-      'AI selects top 3-5 items per round',
-      'Auto-pull credit reports',
-      'Response upload + AI analysis',
-      'Escalation letter templates',
-      'DIY print & mail',
-      'Priority email support',
-    ],
-    roundsIncluded: 3,
-    includesMonitoring: true,
-    includesWhiteGloveMailing: false,
-    includesCFPB: false,
-    includesCoaching: false,
-    popular: true,
+    includesFurnisher: false,
   },
   
   complete: {
     id: 'complete',
     name: 'Complete',
-    description: 'Unlimited rounds + white-glove service',
-    monthlyPrice: 9995,  // $99.95
+    description: 'Unlimited rounds + we mail + CFPB + Furnisher',
+    monthlyPrice: 7999,  // $79.99
     features: [
-      'Unlimited dispute rounds',
-      '3-bureau credit monitoring',
-      'AI selects top 3-5 items per round',
-      'Auto-pull credit reports',
-      'Response upload + AI analysis',
-      'Escalation letter templates',
-      'We print & mail for you',
+      'Unlimited dispute rounds (30-day intervals)',
+      '3-bureau credit monitoring (daily updates)',
+      'AI analyzes & selects best items to dispute',
+      'FCRA-compliant dispute letters',
+      'Round 1-2-3 escalation strategy',
+      'Dashboard tracking',
+      'We mail everything via certified mail',
+      'One-click "Send Disputes"',
+      'Real-time delivery tracking',
       'CFPB complaint generator',
       'Furnisher dispute letters',
-      '30-min coaching call/month',
-      'Priority phone & email support',
+      'Priority support',
     ],
     roundsIncluded: -1,  // Unlimited
     includesMonitoring: true,
     includesWhiteGloveMailing: true,
     includesCFPB: true,
-    includesCoaching: true,
+    includesFurnisher: true,
+    popular: true,
   },
 };
 
@@ -115,7 +93,7 @@ export function getAllTiers(): SubscriptionTier[] {
  */
 export function formatPrice(cents: number): string {
   const dollars = cents / 100;
-  return dollars % 1 === 0 ? `$${dollars}` : `$${dollars.toFixed(2)}`;
+  return `$${dollars.toFixed(2)}`;
 }
 
 /**
@@ -144,7 +122,7 @@ export function getMaxRounds(tier: string): number {
 /**
  * Check if tier includes a feature
  */
-export function tierHasFeature(tier: string, feature: 'monitoring' | 'whiteGlove' | 'cfpb' | 'coaching'): boolean {
+export function tierHasFeature(tier: string, feature: 'monitoring' | 'whiteGlove' | 'cfpb' | 'furnisher'): boolean {
   const tierConfig = SUBSCRIPTION_TIERS[tier];
   if (!tierConfig) return false;
   
@@ -152,7 +130,7 @@ export function tierHasFeature(tier: string, feature: 'monitoring' | 'whiteGlove
     case 'monitoring': return tierConfig.includesMonitoring;
     case 'whiteGlove': return tierConfig.includesWhiteGloveMailing;
     case 'cfpb': return tierConfig.includesCFPB;
-    case 'coaching': return tierConfig.includesCoaching;
+    case 'furnisher': return tierConfig.includesFurnisher;
     default: return false;
   }
 }

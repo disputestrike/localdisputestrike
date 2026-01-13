@@ -1,553 +1,369 @@
-/**
- * Dashboard Home V2
- * 
- * New dashboard with tier-based flow:
- * - Trial users: See data, prompted to upgrade
- * - Paid users: Round status, AI recommendations, generate letters
- * - Round locking with countdown
- * - Response upload prompts
- */
-
-import { useState } from 'react';
-import { useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import {
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  TrendingUp, 
+  AlertCircle, 
+  CheckCircle2, 
+  Clock, 
+  Mail, 
+  Download, 
+  ArrowRight,
   Shield,
-  TrendingUp,
-  AlertTriangle,
-  Clock,
-  FileText,
-  Upload,
-  ChevronRight,
-  Lock,
-  Unlock,
-  Target,
   Zap,
-  CheckCircle,
-  ArrowUp,
-  CreditCard,
-  Download,
-  Mail
-} from 'lucide-react';
-import RoundStatus from '../components/RoundStatus';
-
-interface DashboardData {
-  user: {
-    name: string;
-    email: string;
-    tier: 'trial' | 'starter' | 'professional' | 'complete';
-    subscriptionStatus: string;
-    trialEndsAt?: string;
-  };
-  scores: {
-    transunion: number;
-    equifax: number;
-    experian: number;
-    change?: number;
-  };
-  negativeItems: {
-    total: number;
-    disputed: number;
-    deleted: number;
-    pending: number;
-  };
-  roundStatus: {
-    currentRound: number;
-    maxRounds: number;
-    isLocked: boolean;
-    lockedUntil: string | null;
-    daysRemaining: number;
-    canStartNextRound: boolean;
-    roundHistory: any[];
-  };
-  recommendations: {
-    accountId: number;
-    accountName: string;
-    accountType: string;
-    balance: number;
-    bureau: string;
-    winProbability: number;
-    recommendationReason: string;
-    isRecommended: boolean;
-  }[];
-  currentRoundLetters?: {
-    id: number;
-    bureau: string;
-    status: string;
-    generatedAt: string;
-  }[];
-}
+  FileText,
+  ExternalLink,
+  Lock
+} from "lucide-react";
+import RoundStatus from "@/components/RoundStatus";
+import { useLocation } from "wouter";
+import { useState } from "react";
 
 export default function DashboardHomeV2() {
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const navigate = setLocation;
-  const [showAllItems, setShowAllItems] = useState(false);
+  const [isMailing, setIsMailing] = useState(false);
 
   // Mock data for demo
-  const mockDashboardData: DashboardData = {
+  const dashboardData = {
     user: {
-      name: 'John Smith',
-      email: 'john@example.com',
-      tier: 'professional',
-      subscriptionStatus: 'active',
+      fullName: user?.fullName || "John Doe",
+      tier: "complete", // or "diy"
     },
-    scores: {
-      transunion: 642,
-      equifax: 638,
-      experian: 651,
-      change: 12,
-    },
-    negativeItems: {
-      total: 8,
-      disputed: 3,
+    scores: [
+      { bureau: "TransUnion", score: 642, change: 12 },
+      { bureau: "Equifax", score: 638, change: 12 },
+      { bureau: "Experian", score: 651, change: 12 },
+    ],
+    stats: {
+      negativeItems: 8,
+      inProgress: 3,
       deleted: 2,
       pending: 1,
     },
     roundStatus: {
       currentRound: 1,
-      maxRounds: 3,
-      status: 'in_progress',
-      startedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      unlocksAt: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
-      lettersSent: 3,
-      responsesReceived: 1,
-      isLocked: true,
-      lockedUntil: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(),
-      daysRemaining: 25,
-      canStartNextRound: false,
-      roundHistory: [
-        {
-          roundNumber: 1,
-          status: 'in_progress',
-          itemsDisputed: 3,
-          itemsDeleted: 0,
-          itemsVerified: 0,
-          responsesUploaded: false,
-        },
-      ],
+      status: "letters_generated",
+      mailedAt: null,
+      lockedUntil: null,
+      daysRemaining: 0,
+      roundId: 1,
     },
+    roundHistory: [
+      { id: 1, roundNumber: 1, status: "letters_generated", itemsCount: 3, startedAt: new Date().toISOString() }
+    ],
     recommendations: [
-      {
-        id: 1,
-        accountName: 'PORTFOLIO RECOVERY',
-        accountType: 'Collection',
-        balance: 2847,
-        bureau: 'All 3',
-        isRecommended: true,
-        winProbability: 89,
-        reason: 'Balance conflicts across bureaus',
-      },
-      {
-        id: 2,
-        accountName: 'CAPITAL ONE',
-        accountType: 'Credit Card',
-        balance: 1200,
-        bureau: 'TransUnion, Equifax',
-        isRecommended: true,
-        winProbability: 76,
-        reason: 'Date reporting error detected',
-      },
-      {
-        id: 3,
-        accountName: 'MIDLAND CREDIT',
-        accountType: 'Collection',
-        balance: 1203,
-        bureau: 'Experian',
-        isRecommended: true,
-        winProbability: 82,
-        reason: 'Original creditor info missing',
-      },
+      { id: 1, accountName: "PORTFOLIO RECOVERY", balance: 2847, winProbability: 89, reason: "Balance conflicts across bureaus" },
+      { id: 2, accountName: "CAPITAL ONE", balance: 1200, winProbability: 76, reason: "Date reporting error detected" },
+      { id: 3, accountName: "MIDLAND CREDIT", balance: 1203, winProbability: 82, reason: "Original creditor info missing" },
     ],
-    currentRoundLetters: [
-      { id: 1, bureau: 'TransUnion', status: 'mailed', mailedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 2, bureau: 'Equifax', status: 'mailed', mailedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-      { id: 3, bureau: 'Experian', status: 'mailed', mailedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString() },
-    ],
+    mailings: [
+      { id: 1, bureau: "TransUnion", status: "processing", trackingNumber: "9400111899567890123456", sentAt: new Date().toISOString() }
+    ]
   };
 
-  // Fetch dashboard data - use mock data as fallback
-  const { data: apiData, isLoading, error, refetch } = useQuery<DashboardData>({
-    queryKey: ['dashboardV2'],
-    queryFn: async () => {
-      const response = await fetch('/api/dashboard/v2');
-      if (!response.ok) throw new Error('Failed to load dashboard');
-      return response.json();
-    },
-    retry: false,
-  });
+  const isCompleteTier = dashboardData.user.tier === "complete";
 
-  // Use mock data if API fails
-  const data = apiData || mockDashboardData;
-
-  // Start round mutation
-  const startRoundMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/rounds/start', {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message);
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
-  // Generate letters mutation
-  const generateLettersMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/letters/generate', {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to generate letters');
-      return response.json();
-    },
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
-  // Mark as mailed mutation
-  const markMailedMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/rounds/mark-mailed', {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to mark as mailed');
-      return response.json();
-    },
-    onSuccess: () => {
-      refetch();
-    },
-  });
-
-  // Show loading only briefly, then show mock data
-  if (isLoading && !data) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const { user, scores, negativeItems, roundStatus, recommendations, currentRoundLetters } = data;
-  const isTrial = user.tier === 'trial';
-  const isPaid = ['starter', 'professional', 'complete'].includes(user.tier);
-  const recommendedItems = recommendations.filter(r => r.isRecommended);
-
-  // Calculate trial days remaining
-  const getTrialDaysRemaining = () => {
-    if (!user.trialEndsAt) return 0;
-    const endDate = new Date(user.trialEndsAt);
-    const now = new Date();
-    return Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  };
-
-  // Get score color
-  const getScoreColor = (score: number) => {
-    if (score >= 740) return 'text-orange-500';
-    if (score >= 670) return 'text-yellow-400';
-    if (score >= 580) return 'text-orange-400';
-    return 'text-red-400';
-  };
-
-  // Get tier display name
-  const getTierName = (tier: string) => {
-    switch (tier) {
-      case 'trial': return 'Trial';
-      case 'starter': return 'Starter';
-      case 'professional': return 'Professional';
-      case 'complete': return 'Complete';
-      default: return tier;
-    }
+  const handleMailDisputes = async () => {
+    setIsMailing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setIsMailing(false);
+      alert("Letters sent to mailing queue! You'll see tracking numbers shortly.");
+    }, 2000);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Trial Banner */}
-      {isTrial && (
-        <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Clock className="w-6 h-6 text-amber-400" />
-            <div>
-              <p className="text-gray-900 font-semibold">Trial ends in {getTrialDaysRemaining()} days</p>
-              <p className="text-gray-600 text-sm">Upgrade to start fixing your credit</p>
-            </div>
+    <div className="min-h-screen bg-gray-50 pb-12">
+      {/* Header */}
+      <header className="bg-white border-b sticky top-0 z-10">
+        <div className="container py-4 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-bold text-gray-900">Welcome back, {dashboardData.user.fullName}!</h1>
+            <Badge className={isCompleteTier ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-blue-100 text-blue-700 border-blue-200"}>
+              {isCompleteTier ? "Complete Plan" : "DIY Plan"}
+            </Badge>
           </div>
-          <button 
-            onClick={() => navigate('/pricing')}
-            className="bg-amber-500 hover:bg-amber-600 text-gray-900 px-6 py-2 rounded-lg font-semibold flex items-center gap-2"
-          >
-            Upgrade Now <ArrowUp className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-gray-500">Round {dashboardData.roundStatus.currentRound}</Badge>
+          </div>
         </div>
-      )}
+      </header>
 
-      {/* Welcome Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user.name?.split(' ')[0] || 'there'}!</h1>
-          <p className="text-gray-600">
-            {isTrial 
-              ? "Here's your credit analysis. Upgrade to start disputing."
-              : `${getTierName(user.tier)} Plan • Round ${roundStatus.currentRound || 1}`
-            }
-          </p>
+      <main className="container py-8 space-y-8">
+        {/* Credit Scores */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {dashboardData.scores.map((s) => (
+            <Card key={s.bureau} className="border-none shadow-sm overflow-hidden">
+              <div className="h-1 bg-orange-500" />
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">{s.bureau}</span>
+                  <Badge className="bg-green-50 text-green-700 border-green-100">+{s.change} pts</Badge>
+                </div>
+                <div className="text-4xl font-bold text-gray-900">{s.score}</div>
+                <div className="mt-4 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(s.score / 850) * 100}%` }} />
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-        <div className="flex items-center gap-2">
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            isTrial 
-              ? 'bg-amber-500/20 text-amber-400'
-              : 'bg-orange-600/20 text-orange-500'
-          }`}>
-            {getTierName(user.tier)}
-          </span>
-        </div>
-      </div>
 
-      {/* Credit Scores */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {[
-          { bureau: 'TransUnion', score: scores.transunion },
-          { bureau: 'Equifax', score: scores.equifax },
-          { bureau: 'Experian', score: scores.experian },
-        ].map(({ bureau, score }) => (
-          <div key={bureau} className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 text-center">
-            <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">{bureau}</p>
-            <p className={`text-4xl font-bold ${getScoreColor(score)}`}>{score}</p>
-            {scores.change && (
-              <p className={`text-sm mt-1 ${scores.change > 0 ? 'text-orange-500' : 'text-gray-600'}`}>
-                {scores.change > 0 ? '+' : ''}{scores.change} pts
-              </p>
-            )}
-          </div>
-        ))}
-      </div>
+        {/* Stats Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{dashboardData.stats.negativeItems}</div>
+                <div className="text-xs text-gray-500">Negative Items</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-blue-500" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{dashboardData.stats.inProgress}</div>
+                <div className="text-xs text-gray-500">In Progress</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-green-500" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{dashboardData.stats.deleted}</div>
+                <div className="text-xs text-gray-500">Deleted</div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-none shadow-sm">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-yellow-500" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold">{dashboardData.stats.pending}</div>
+                <div className="text-xs text-gray-500">Pending</div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* Stats Row */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-5 h-5 text-red-400" />
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Negative Items</p>
-              <p className="text-gray-900 text-xl font-bold">{negativeItems.total}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
-              <Clock className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">In Progress</p>
-              <p className="text-gray-900 text-xl font-bold">{negativeItems.disputed}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-orange-500" />
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Deleted</p>
-              <p className="text-gray-900 text-xl font-bold">{negativeItems.deleted}</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-              <Target className="w-5 h-5 text-blue-400" />
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Pending</p>
-              <p className="text-gray-900 text-xl font-bold">{negativeItems.pending}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Round Status (for paid users) */}
-        {isPaid && (
-          <div className="lg:col-span-1">
-            <RoundStatus
-              currentRound={roundStatus.currentRound}
-              maxRounds={roundStatus.maxRounds}
-              isLocked={roundStatus.isLocked}
-              lockedUntil={roundStatus.lockedUntil}
-              daysRemaining={roundStatus.daysRemaining}
-              canStartNextRound={roundStatus.canStartNextRound}
-              subscriptionTier={user.tier}
-              roundHistory={roundStatus.roundHistory}
-              onStartRound={() => startRoundMutation.mutate()}
-              onUploadResponses={() => navigate(`/responses/${roundStatus.currentRound}`)}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Round Status & Letters */}
+          <div className="lg:col-span-2 space-y-8">
+            <RoundStatus 
+              currentRound={dashboardData.roundStatus.currentRound}
+              maxRounds={-1}
+              isLocked={false}
+              lockedUntil={null}
+              daysRemaining={0}
+              canStartNextRound={true}
+              subscriptionTier={dashboardData.user.tier}
+              roundHistory={dashboardData.roundHistory}
+              onStartRound={() => {}}
+              onUploadResponses={() => setLocation(`/responses/${dashboardData.roundStatus.currentRound}`)}
             />
-          </div>
-        )}
 
-        {/* Right Column - AI Recommendations & Actions */}
-        <div className={isPaid ? 'lg:col-span-2' : 'lg:col-span-3'}>
-          {/* AI Recommendations */}
-          <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-orange-500" />
+            {/* Mailing Section */}
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-white border-b">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Mail className="w-5 h-5 text-orange-500" />
+                    {isCompleteTier ? "Mailing Service" : "Mailing Instructions"}
+                  </CardTitle>
+                  {isCompleteTier && (
+                    <Badge className="bg-green-100 text-green-700 border-green-200">Certified Mail Included</Badge>
+                  )}
                 </div>
-                <div>
-                  <h2 className="text-gray-900 text-lg font-semibold">
-                    {isTrial ? 'AI Recommended Items' : `Round ${roundStatus.currentRound + 1} Recommendations`}
-                  </h2>
-                  <p className="text-gray-600 text-sm">Highest probability of deletion</p>
-                </div>
-              </div>
-              <span className="bg-orange-600/20 text-orange-500 px-3 py-1 rounded-full text-sm">
-                {recommendedItems.length} items
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              {recommendedItems.slice(0, showAllItems ? undefined : 3).map((item, index) => (
-                <div 
-                  key={item.accountId}
-                  className="bg-white/50 border border-gray-300 rounded-lg p-4"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center text-gray-900 text-sm font-semibold">
-                        {index + 1}
-                      </span>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isCompleteTier ? (
+                  <div className="space-y-6">
+                    <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 flex gap-4">
+                      <Zap className="w-6 h-6 text-orange-500 flex-shrink-0" />
                       <div>
-                        <h3 className="text-gray-900 font-medium">{item.accountName}</h3>
-                        <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
+                        <h4 className="font-semibold text-orange-900">One-Click Mailing Ready</h4>
+                        <p className="text-sm text-orange-700">Your Round 1 letters are ready. We'll print and mail them via USPS Certified Mail with tracking.</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-gray-900 font-semibold">${item.balance?.toLocaleString()}</p>
-                      <p className="text-orange-500 text-sm">{item.winProbability}% win rate</p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {['TransUnion', 'Equifax', 'Experian'].map(bureau => (
+                        <div key={bureau} className="border rounded-lg p-3 flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-sm">{bureau}</span>
+                            <FileText className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <Button variant="ghost" size="sm" className="text-xs h-8">Preview Letter</Button>
+                        </div>
+                      ))}
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-2 bg-orange-600/10 rounded-lg p-2 mt-2">
-                    <Zap className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-emerald-300 text-sm">{item.recommendationReason}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
 
-            {recommendedItems.length > 3 && (
-              <button
-                onClick={() => setShowAllItems(!showAllItems)}
-                className="w-full mt-4 text-orange-500 hover:text-emerald-300 text-sm"
-              >
-                {showAllItems ? 'Show less' : `Show ${recommendedItems.length - 3} more items`}
-              </button>
-            )}
-
-            {/* Action Buttons */}
-            {isTrial ? (
-              <div className="mt-6 bg-white/50 border border-gray-300 rounded-lg p-4 text-center">
-                <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
-                <p className="text-gray-900 font-semibold mb-1">Ready to dispute these items?</p>
-                <p className="text-gray-600 text-sm mb-4">Upgrade to generate dispute letters</p>
-                <button
-                  onClick={() => navigate('/pricing')}
-                  className="bg-orange-600 hover:bg-orange-700 text-gray-900 px-6 py-2 rounded-lg font-semibold"
-                >
-                  Upgrade to Start
-                </button>
-              </div>
-            ) : roundStatus.canStartNextRound && !currentRoundLetters?.length ? (
-              <button
-                onClick={() => generateLettersMutation.mutate()}
-                disabled={generateLettersMutation.isPending}
-                className="w-full mt-6 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-              >
-                <FileText className="w-5 h-5" />
-                Generate Dispute Letters
-              </button>
-            ) : null}
-          </div>
-
-          {/* Generated Letters (if any) */}
-          {currentRoundLetters && currentRoundLetters.length > 0 && (
-            <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6">
-              <h2 className="text-gray-900 text-lg font-semibold mb-4">Your Dispute Letters</h2>
-              
-              <div className="space-y-3 mb-6">
-                {currentRoundLetters.map(letter => (
-                  <div 
-                    key={letter.id}
-                    className="flex items-center justify-between bg-white/50 rounded-lg p-4"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-gray-600" />
-                      <div>
-                        <p className="text-gray-900 font-medium">{letter.bureau} Dispute Letter</p>
-                        <p className="text-gray-600 text-sm">
-                          Generated {new Date(letter.generatedAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => navigate(`/letters/${letter.id}`)}
-                      className="bg-gray-100 hover:bg-slate-600 text-gray-900 px-4 py-2 rounded-lg flex items-center gap-2"
+                    <Button 
+                      className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-bold shadow-lg shadow-orange-200"
+                      onClick={handleMailDisputes}
+                      disabled={isMailing}
                     >
-                      <Download className="w-4 h-4" />
-                      Download
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      {isMailing ? "Processing..." : "Send My Disputes Now"}
+                    </Button>
 
-              {/* Mailing Instructions */}
-              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4 mb-4">
-                <div className="flex items-start gap-3">
-                  <Mail className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-gray-900 font-semibold">Mail Your Letters</p>
-                    <p className="text-gray-700 text-sm">
-                      Print and mail each letter via certified mail with return receipt. 
-                      Keep your tracking numbers for proof of delivery.
-                    </p>
+                    {dashboardData.mailings.length > 0 && (
+                      <div className="mt-6 border-t pt-6">
+                        <h4 className="font-semibold mb-4">Recent Mailings</h4>
+                        <div className="space-y-3">
+                          {dashboardData.mailings.map(m => (
+                            <div key={m.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                  <Mail className="w-4 h-4 text-blue-600" />
+                                </div>
+                                <div>
+                                  <div className="text-sm font-medium">{m.bureau} Dispute</div>
+                                  <div className="text-xs text-gray-500">Tracking: {m.trackingNumber}</div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50 capitalize">{m.status}</Badge>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <ExternalLink className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-4">
+                      <Download className="w-6 h-6 text-blue-500 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-semibold text-blue-900">Download & Mail Your Letters</h4>
+                        <p className="text-sm text-blue-700">On the DIY plan, you must print and mail these letters yourself via USPS Certified Mail.</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {['TransUnion', 'Equifax', 'Experian'].map(bureau => (
+                        <div key={bureau} className="flex justify-between items-center p-4 border rounded-xl hover:border-orange-200 transition-colors group">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-orange-50 transition-colors">
+                              <FileText className="w-5 h-5 text-gray-400 group-hover:text-orange-500" />
+                            </div>
+                            <div>
+                              <div className="font-medium">{bureau} Dispute Letter</div>
+                              <div className="text-xs text-gray-500">Round 1 • PDF Format</div>
+                            </div>
+                          </div>
+                          <Button variant="outline" size="sm" className="gap-2">
+                            <Download className="w-4 h-4" /> Download
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="bg-gray-50 rounded-xl p-6 border border-dashed border-gray-300 text-center">
+                      <h4 className="font-semibold mb-2">Tired of the Post Office?</h4>
+                      <p className="text-sm text-gray-500 mb-4">Upgrade to Complete and we'll mail everything for you via Certified Mail.</p>
+                      <Button variant="outline" className="border-orange-500 text-orange-600 hover:bg-orange-50" onClick={() => setLocation('/pricing')}>
+                        Upgrade to Complete
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: AI Recommendations & Advanced Features */}
+          <div className="space-y-8">
+            {/* AI Recommendations */}
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-white border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-orange-500" />
+                  AI Recommendations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {dashboardData.recommendations.map((rec) => (
+                    <div key={rec.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-gray-900 text-sm">{rec.accountName}</span>
+                        <Badge className="bg-green-100 text-green-700 border-green-200">{rec.winProbability}% Win</Badge>
+                      </div>
+                      <div className="text-xs text-gray-500 mb-2">Balance: ${rec.balance.toLocaleString()}</div>
+                      <p className="text-xs text-gray-600 italic">"{rec.reason}"</p>
+                    </div>
+                  ))}
                 </div>
-              </div>
+                <div className="p-4 bg-gray-50 border-t">
+                  <Button variant="ghost" className="w-full text-xs text-orange-600 hover:text-orange-700 font-semibold">
+                    View All Analysis <ArrowRight className="ml-1 w-3 h-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-              <div className="flex gap-3">
-                <button
-                  onClick={() => navigate('/mailing-instructions')}
-                  className="flex-1 bg-gray-100 hover:bg-slate-600 text-gray-900 py-3 rounded-lg font-semibold"
-                >
-                  View Mailing Instructions
-                </button>
-                <button
-                  onClick={() => markMailedMutation.mutate()}
-                  disabled={markMailedMutation.isPending}
-                  className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  I've Mailed My Letters
-                </button>
-              </div>
-            </div>
-          )}
+            {/* Advanced Features (Complete Only) */}
+            <Card className="border-none shadow-sm overflow-hidden">
+              <CardHeader className="bg-white border-b">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-orange-500" />
+                  Advanced Tools
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                <div className={isCompleteTier ? "opacity-100" : "opacity-50 grayscale pointer-events-none"}>
+                  <Button variant="outline" className="w-full justify-start gap-3 py-6 border-gray-200 hover:border-orange-200 hover:bg-orange-50 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                      <AlertCircle className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">CFPB Complaint</div>
+                      <div className="text-xs text-gray-500">Escalate to federal regulators</div>
+                    </div>
+                  </Button>
+                </div>
+
+                <div className={isCompleteTier ? "opacity-100" : "opacity-50 grayscale pointer-events-none"}>
+                  <Button variant="outline" className="w-full justify-start gap-3 py-6 border-gray-200 hover:border-orange-200 hover:bg-orange-50 transition-all">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-left">
+                      <div className="font-semibold text-sm">Furnisher Dispute</div>
+                      <div className="text-xs text-gray-500">Dispute directly with creditors</div>
+                    </div>
+                  </Button>
+                </div>
+
+                {!isCompleteTier && (
+                  <div className="text-center pt-2">
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">Complete Plan Only</p>
+                    <Button variant="link" className="text-orange-600 text-xs h-auto p-0" onClick={() => setLocation('/pricing')}>Upgrade to Unlock</Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
