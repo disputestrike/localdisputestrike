@@ -219,19 +219,19 @@ export default function ResponseUpload() {
 
     const getStatusColor = () => {
       switch (response.status) {
-        case 'complete': return 'border-emerald-500 bg-emerald-500/10';
+        case 'complete': return 'border-orange-600 bg-orange-600/10';
         case 'error': return 'border-red-500 bg-red-500/10';
         case 'analyzing': return 'border-amber-500 bg-amber-500/10';
-        default: return isDragActive ? 'border-emerald-500 bg-emerald-500/10' : 'border-slate-600 hover:border-slate-500';
+        default: return isDragActive ? 'border-orange-600 bg-orange-600/10' : 'border-gray-300 hover:border-slate-500';
       }
     };
 
     return (
-      <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+      <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-white font-semibold">{bureau.name}</h3>
+          <h3 className="text-gray-900 font-semibold">{bureau.name}</h3>
           {response.status === 'complete' && (
-            <span className="bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded text-xs">
+            <span className="bg-orange-600/20 text-orange-500 px-2 py-1 rounded text-xs">
               Analyzed
             </span>
           )}
@@ -243,26 +243,26 @@ export default function ResponseUpload() {
             className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${getStatusColor()}`}
           >
             <input {...getInputProps()} />
-            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragActive ? 'text-emerald-400' : 'text-slate-400'}`} />
-            <p className="text-slate-300 text-sm">
+            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragActive ? 'text-orange-500' : 'text-gray-600'}`} />
+            <p className="text-gray-700 text-sm">
               {isDragActive ? 'Drop file here' : 'Upload response letter'}
             </p>
-            <p className="text-slate-500 text-xs mt-1">PDF or image</p>
+            <p className="text-gray-500 text-xs mt-1">PDF or image</p>
           </div>
         ) : (
           <div className={`border rounded-lg p-4 ${getStatusColor()}`}>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <FileText className="w-6 h-6 text-slate-400" />
+                <FileText className="w-6 h-6 text-gray-600" />
                 <div>
-                  <p className="text-white text-sm truncate max-w-[150px]">{response.file.name}</p>
-                  <p className="text-slate-500 text-xs">{(response.file.size / 1024).toFixed(1)} KB</p>
+                  <p className="text-gray-900 text-sm truncate max-w-[150px]">{response.file.name}</p>
+                  <p className="text-gray-500 text-xs">{(response.file.size / 1024).toFixed(1)} KB</p>
                 </div>
               </div>
               {response.status === 'pending' && (
                 <button
                   onClick={() => handleRemoveFile(bureau.id)}
-                  className="text-slate-400 hover:text-red-400"
+                  className="text-gray-600 hover:text-red-400"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -271,29 +271,29 @@ export default function ResponseUpload() {
                 <Loader2 className="w-5 h-5 text-amber-400 animate-spin" />
               )}
               {response.status === 'complete' && (
-                <CheckCircle className="w-5 h-5 text-emerald-400" />
+                <CheckCircle className="w-5 h-5 text-orange-500" />
               )}
             </div>
 
             {/* Results */}
             {response.results && (
-              <div className="space-y-2 pt-3 border-t border-slate-700">
+              <div className="space-y-2 pt-3 border-t border-gray-200">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-slate-300">{response.results.itemsDeleted} deleted</span>
+                    <TrendingUp className="w-4 h-4 text-orange-500" />
+                    <span className="text-gray-700">{response.results.itemsDeleted} deleted</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <TrendingDown className="w-4 h-4 text-red-400" />
-                    <span className="text-slate-300">{response.results.itemsVerified} verified</span>
+                    <span className="text-gray-700">{response.results.itemsVerified} verified</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Minus className="w-4 h-4 text-amber-400" />
-                    <span className="text-slate-300">{response.results.itemsUpdated} updated</span>
+                    <span className="text-gray-700">{response.results.itemsUpdated} updated</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-slate-400" />
-                    <span className="text-slate-300">{response.results.itemsNoResponse} no response</span>
+                    <AlertCircle className="w-4 h-4 text-gray-600" />
+                    <span className="text-gray-700">{response.results.itemsNoResponse} no response</span>
                   </div>
                 </div>
               </div>
@@ -313,18 +313,18 @@ export default function ResponseUpload() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Upload Bureau Responses</h1>
-          <p className="text-slate-400">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Upload Bureau Responses</h1>
+          <p className="text-gray-600">
             Upload the response letters you received from the credit bureaus
           </p>
         </div>
 
         {/* Info Banner */}
-        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-8 flex items-start gap-3">
-          <Unlock className="w-6 h-6 text-emerald-400 flex-shrink-0" />
+        <div className="bg-orange-600/10 border border-orange-600/30 rounded-xl p-4 mb-8 flex items-start gap-3">
+          <Unlock className="w-6 h-6 text-orange-500 flex-shrink-0" />
           <div>
-            <p className="text-white font-semibold">Unlock Your Next Round Early</p>
-            <p className="text-slate-300 text-sm">
+            <p className="text-gray-900 font-semibold">Unlock Your Next Round Early</p>
+            <p className="text-gray-700 text-sm">
               Uploading your response letters will unlock Round {(roundInfo?.roundNumber || 0) + 1} immediately, 
               instead of waiting the full 30 days.
             </p>
@@ -344,7 +344,7 @@ export default function ResponseUpload() {
             <button
               onClick={handleAnalyzeAll}
               disabled={isAnalyzing}
-              className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto"
+              className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 px-8 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto"
             >
               {isAnalyzing ? (
                 <>
@@ -363,35 +363,35 @@ export default function ResponseUpload() {
 
         {/* Results Summary */}
         {hasAnyResults && analysisComplete && (
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8">
-            <h2 className="text-white text-xl font-semibold mb-4">Results Summary</h2>
+          <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 mb-8">
+            <h2 className="text-gray-900 text-xl font-semibold mb-4">Results Summary</h2>
             
             <div className="grid grid-cols-4 gap-4 mb-6">
-              <div className="bg-emerald-500/10 rounded-lg p-4 text-center">
-                <p className="text-3xl font-bold text-emerald-400">{totals.deleted}</p>
-                <p className="text-slate-400 text-sm">Deleted</p>
+              <div className="bg-orange-600/10 rounded-lg p-4 text-center">
+                <p className="text-3xl font-bold text-orange-500">{totals.deleted}</p>
+                <p className="text-gray-600 text-sm">Deleted</p>
               </div>
               <div className="bg-red-500/10 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-red-400">{totals.verified}</p>
-                <p className="text-slate-400 text-sm">Verified</p>
+                <p className="text-gray-600 text-sm">Verified</p>
               </div>
               <div className="bg-amber-500/10 rounded-lg p-4 text-center">
                 <p className="text-3xl font-bold text-amber-400">{totals.updated}</p>
-                <p className="text-slate-400 text-sm">Updated</p>
+                <p className="text-gray-600 text-sm">Updated</p>
               </div>
               <div className="bg-slate-500/10 rounded-lg p-4 text-center">
-                <p className="text-3xl font-bold text-slate-400">{totals.noResponse}</p>
-                <p className="text-slate-400 text-sm">No Response</p>
+                <p className="text-3xl font-bold text-gray-600">{totals.noResponse}</p>
+                <p className="text-gray-600 text-sm">No Response</p>
               </div>
             </div>
 
             {/* What's Next */}
-            <div className="bg-slate-900/50 rounded-lg p-4">
-              <h3 className="text-white font-semibold mb-2">What's Next?</h3>
-              <ul className="space-y-2 text-slate-300 text-sm">
+            <div className="bg-white/50 rounded-lg p-4">
+              <h3 className="text-gray-900 font-semibold mb-2">What's Next?</h3>
+              <ul className="space-y-2 text-gray-700 text-sm">
                 {totals.deleted > 0 && (
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
+                    <CheckCircle className="w-4 h-4 text-orange-500" />
                     {totals.deleted} items were deleted from your credit report!
                   </li>
                 )}
@@ -418,7 +418,7 @@ export default function ResponseUpload() {
             <button
               onClick={() => completeUploadMutation.mutate()}
               disabled={completeUploadMutation.isPending}
-              className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white px-8 py-4 rounded-xl font-semibold flex items-center gap-2 mx-auto"
+              className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 px-8 py-4 rounded-xl font-semibold flex items-center gap-2 mx-auto"
             >
               {completeUploadMutation.isPending ? (
                 <>
@@ -432,7 +432,7 @@ export default function ResponseUpload() {
                 </>
               )}
             </button>
-            <p className="text-slate-500 text-sm mt-3">
+            <p className="text-gray-500 text-sm mt-3">
               Round {(roundInfo?.roundNumber || 0) + 1} will be unlocked
             </p>
           </div>
@@ -443,7 +443,7 @@ export default function ResponseUpload() {
           <div className="text-center mt-8">
             <button
               onClick={() => navigate('/dashboard')}
-              className="text-slate-400 hover:text-white text-sm"
+              className="text-gray-600 hover:text-gray-900 text-sm"
             >
               Skip for now - I'll upload later
             </button>

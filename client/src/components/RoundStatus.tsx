@@ -103,12 +103,12 @@ export default function RoundStatus({
   };
 
   return (
-    <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+    <div className="bg-gray-50/50 border border-gray-200 rounded-xl overflow-hidden">
       {/* Header */}
-      <div className="p-6 border-b border-slate-700">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-white text-xl font-semibold">Dispute Rounds</h2>
-          <span className="bg-slate-700 text-slate-300 px-3 py-1 rounded-full text-sm">
+          <h2 className="text-gray-900 text-xl font-semibold">Dispute Rounds</h2>
+          <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm">
             {getTierName(subscriptionTier)} Plan
           </span>
         </div>
@@ -126,12 +126,12 @@ export default function RoundStatus({
                 <div className={`flex flex-col items-center ${!isAvailable ? 'opacity-40' : ''}`}>
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     isComplete 
-                      ? 'bg-emerald-500 text-white'
+                      ? 'bg-orange-600 text-gray-900'
                       : isActive
-                        ? 'bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400'
+                        ? 'bg-orange-600/20 border-2 border-orange-600 text-orange-500'
                         : isFuture && isAvailable
-                          ? 'bg-slate-700 text-slate-400'
-                          : 'bg-slate-800 text-slate-600'
+                          ? 'bg-gray-100 text-gray-600'
+                          : 'bg-gray-50 text-slate-600'
                   }`}>
                     {isComplete ? (
                       <CheckCircle className="w-5 h-5" />
@@ -142,14 +142,14 @@ export default function RoundStatus({
                     )}
                   </div>
                   <span className={`text-xs mt-1 ${
-                    isComplete ? 'text-emerald-400' : isActive ? 'text-white' : 'text-slate-500'
+                    isComplete ? 'text-orange-500' : isActive ? 'text-gray-900' : 'text-gray-500'
                   }`}>
                     Round {round}
                   </span>
                 </div>
                 {round < 3 && (
                   <div className={`w-8 h-0.5 mx-1 ${
-                    round < currentRound ? 'bg-emerald-500' : 'bg-slate-700'
+                    round < currentRound ? 'bg-orange-600' : 'bg-gray-100'
                   }`} />
                 )}
               </div>
@@ -159,12 +159,12 @@ export default function RoundStatus({
           {/* CFPB indicator for Complete tier */}
           {subscriptionTier === 'complete' && (
             <>
-              <div className="w-8 h-0.5 mx-1 bg-slate-700" />
+              <div className="w-8 h-0.5 mx-1 bg-gray-100" />
               <div className="flex flex-col items-center">
-                <div className="w-10 h-10 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center">
                   <span className="text-xs font-semibold">CFPB</span>
                 </div>
-                <span className="text-xs mt-1 text-slate-500">Escalate</span>
+                <span className="text-xs mt-1 text-gray-500">Escalate</span>
               </div>
             </>
           )}
@@ -182,46 +182,46 @@ export default function RoundStatus({
             </div>
 
             {/* Countdown Timer */}
-            <div className="bg-slate-900/50 rounded-xl p-6 text-center mb-4">
-              <p className="text-slate-400 text-sm mb-3">Unlocks in</p>
+            <div className="bg-white/50 rounded-xl p-6 text-center mb-4">
+              <p className="text-gray-600 text-sm mb-3">Unlocks in</p>
               <div className="flex items-center justify-center gap-4">
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-white">{countdown.days}</div>
-                  <div className="text-slate-500 text-xs">DAYS</div>
+                  <div className="text-4xl font-bold text-gray-900">{countdown.days}</div>
+                  <div className="text-gray-500 text-xs">DAYS</div>
                 </div>
                 <div className="text-2xl text-slate-600">:</div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-white">{countdown.hours.toString().padStart(2, '0')}</div>
-                  <div className="text-slate-500 text-xs">HOURS</div>
+                  <div className="text-4xl font-bold text-gray-900">{countdown.hours.toString().padStart(2, '0')}</div>
+                  <div className="text-gray-500 text-xs">HOURS</div>
                 </div>
                 <div className="text-2xl text-slate-600">:</div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-white">{countdown.minutes.toString().padStart(2, '0')}</div>
-                  <div className="text-slate-500 text-xs">MINS</div>
+                  <div className="text-4xl font-bold text-gray-900">{countdown.minutes.toString().padStart(2, '0')}</div>
+                  <div className="text-gray-500 text-xs">MINS</div>
                 </div>
                 <div className="text-2xl text-slate-600">:</div>
                 <div className="text-center">
-                  <div className="text-4xl font-bold text-white">{countdown.seconds.toString().padStart(2, '0')}</div>
-                  <div className="text-slate-500 text-xs">SECS</div>
+                  <div className="text-4xl font-bold text-gray-900">{countdown.seconds.toString().padStart(2, '0')}</div>
+                  <div className="text-gray-500 text-xs">SECS</div>
                 </div>
               </div>
-              <p className="text-slate-500 text-sm mt-4">
+              <p className="text-gray-500 text-sm mt-4">
                 Check your mail around {new Date(lockedUntil!).toLocaleDateString()}
               </p>
             </div>
 
             {/* Early Unlock Option */}
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
+            <div className="bg-orange-600/10 border border-orange-600/30 rounded-lg p-4">
               <div className="flex items-start gap-3">
-                <Upload className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                <Upload className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-white font-semibold mb-1">Unlock Early</p>
-                  <p className="text-slate-400 text-sm mb-3">
+                  <p className="text-gray-900 font-semibold mb-1">Unlock Early</p>
+                  <p className="text-gray-600 text-sm mb-3">
                     Upload your bureau response letters to unlock Round {nextRound} immediately and get AI-powered recommendations.
                   </p>
                   <button
                     onClick={onUploadResponses}
-                    className="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
+                    className="bg-orange-600 hover:bg-orange-700 text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
                   >
                     <Upload className="w-4 h-4" />
                     Upload Responses
@@ -236,17 +236,17 @@ export default function RoundStatus({
         {!isLocked && canStartNextRound && !needsUpgrade && (
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-4">
-              <Unlock className="w-5 h-5 text-emerald-400" />
-              <span className="text-emerald-400 font-semibold">Round {nextRound} Ready</span>
+              <Unlock className="w-5 h-5 text-orange-500" />
+              <span className="text-orange-500 font-semibold">Round {nextRound} Ready</span>
             </div>
 
-            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
-              <p className="text-white mb-3">
+            <div className="bg-orange-600/10 border border-orange-600/30 rounded-lg p-4">
+              <p className="text-gray-900 mb-3">
                 You're ready to start Round {nextRound}. AI will select the best items to dispute based on your previous results.
               </p>
               <button
                 onClick={onStartRound}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
+                className="bg-orange-600 hover:bg-orange-700 text-gray-900 px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
               >
                 Start Round {nextRound}
                 <ChevronRight className="w-5 h-5" />
@@ -264,13 +264,13 @@ export default function RoundStatus({
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-              <p className="text-white mb-3">
+              <p className="text-gray-900 mb-3">
                 You've completed all {maxRounds} rounds included in your {getTierName(subscriptionTier)} plan. 
                 Upgrade to {getTierName(getUpgradeTier()!)} for {getUpgradeTier() === 'complete' ? 'unlimited' : '3'} rounds.
               </p>
               <button
                 onClick={() => navigate('/pricing')}
-                className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
+                className="bg-amber-500 hover:bg-amber-600 text-gray-900 px-6 py-3 rounded-lg font-semibold flex items-center gap-2"
               >
                 <ArrowUp className="w-5 h-5" />
                 Upgrade to {getTierName(getUpgradeTier()!)}
@@ -282,18 +282,18 @@ export default function RoundStatus({
         {/* Round History */}
         {roundHistory.length > 0 && (
           <div>
-            <h3 className="text-white font-semibold mb-3">Round History</h3>
+            <h3 className="text-gray-900 font-semibold mb-3">Round History</h3>
             <div className="space-y-3">
               {roundHistory.map((round) => (
                 <div 
                   key={round.roundNumber}
-                  className="bg-slate-900/50 rounded-lg p-4 flex items-center justify-between"
+                  className="bg-white/50 rounded-lg p-4 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                       round.status === 'complete' 
-                        ? 'bg-emerald-500/20 text-emerald-400'
-                        : 'bg-slate-700 text-slate-400'
+                        ? 'bg-orange-600/20 text-orange-500'
+                        : 'bg-gray-100 text-gray-600'
                     }`}>
                       {round.status === 'complete' ? (
                         <CheckCircle className="w-4 h-4" />
@@ -302,8 +302,8 @@ export default function RoundStatus({
                       )}
                     </div>
                     <div>
-                      <p className="text-white font-medium">Round {round.roundNumber}</p>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-gray-900 font-medium">Round {round.roundNumber}</p>
+                      <p className="text-gray-600 text-sm">
                         {round.itemsDisputed} items disputed
                       </p>
                     </div>
@@ -311,10 +311,10 @@ export default function RoundStatus({
                   
                   {round.status === 'complete' && (
                     <div className="text-right">
-                      <p className="text-emerald-400 font-semibold">
+                      <p className="text-orange-500 font-semibold">
                         {round.itemsDeleted} deleted
                       </p>
-                      <p className="text-slate-400 text-sm">
+                      <p className="text-gray-600 text-sm">
                         {round.itemsVerified} verified
                       </p>
                     </div>

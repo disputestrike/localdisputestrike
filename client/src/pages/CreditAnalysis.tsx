@@ -5,8 +5,8 @@
  * Users can see their problems but can't generate letters until they upgrade
  */
 
-import { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useState } from 'react';
+import { useLocation, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Shield, 
@@ -19,8 +19,7 @@ import {
   Zap,
   Target,
   DollarSign,
-  FileText,
-  ArrowRight
+  Star
 } from 'lucide-react';
 
 interface CreditScore {
@@ -57,21 +56,93 @@ interface AnalysisData {
   };
 }
 
+// Mock data for demo
+const mockAnalysis: AnalysisData = {
+  scores: [
+    { bureau: 'TransUnion', score: 642, change: -12 },
+    { bureau: 'Equifax', score: 638, change: -8 },
+    { bureau: 'Experian', score: 651, change: -5 },
+  ],
+  negativeItems: [
+    {
+      id: 1,
+      accountName: 'PORTFOLIO RECOVERY',
+      accountType: 'Collection',
+      balance: 2847,
+      bureau: 'All 3',
+      status: 'Collection',
+      isRecommended: true,
+      winProbability: 89,
+      recommendationReason: 'Balance conflicts across bureaus - strong case for deletion',
+      hasConflicts: true,
+    },
+    {
+      id: 2,
+      accountName: 'CAPITAL ONE',
+      accountType: 'Credit Card',
+      balance: 1200,
+      bureau: 'TransUnion, Equifax',
+      status: '90 Day Late',
+      isRecommended: true,
+      winProbability: 76,
+      recommendationReason: 'Date reporting error detected between bureaus',
+      hasConflicts: true,
+    },
+    {
+      id: 3,
+      accountName: 'MIDLAND CREDIT',
+      accountType: 'Collection',
+      balance: 1203,
+      bureau: 'Experian',
+      status: 'Collection',
+      isRecommended: true,
+      winProbability: 82,
+      recommendationReason: 'Original creditor info missing - potential FCRA violation',
+      hasConflicts: false,
+    },
+    {
+      id: 4,
+      accountName: 'SYNCHRONY BANK',
+      accountType: 'Credit Card',
+      balance: 890,
+      bureau: 'All 3',
+      status: 'Charge-off',
+      isRecommended: false,
+      winProbability: 45,
+      recommendationReason: 'Consistent reporting across bureaus',
+      hasConflicts: false,
+    },
+    {
+      id: 5,
+      accountName: 'MEDICAL COLLECTION',
+      accountType: 'Medical',
+      balance: 450,
+      bureau: 'Equifax',
+      status: 'Collection',
+      isRecommended: true,
+      winProbability: 72,
+      recommendationReason: 'Medical collections have weak documentation requirements',
+      hasConflicts: false,
+    },
+  ],
+  totalNegativeItems: 8,
+  estimatedScoreIncrease: 87,
+  estimatedInterestSavings: 4200,
+  trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  subscription: {
+    status: 'trial',
+    tier: 'none',
+  },
+};
+
 export default function CreditAnalysis() {
   const [, setLocation] = useLocation();
-  const navigate = setLocation;
   const [selectedTier, setSelectedTier] = useState<'starter' | 'professional' | 'complete'>('professional');
 
-  const { data: analysis, isLoading, error } = useQuery<AnalysisData>({
-    queryKey: ['creditAnalysis'],
-    queryFn: async () => {
-      const response = await fetch('/api/credit/analysis');
-      if (!response.ok) throw new Error('Failed to load analysis');
-      return response.json();
-    },
-  });
+  // Use mock data for demo, replace with real API call
+  const analysis = mockAnalysis;
+  const isLoading = false;
 
-  // Calculate days remaining in trial
   const getDaysRemaining = () => {
     if (!analysis?.trialEndsAt) return 7;
     const endDate = new Date(analysis.trialEndsAt);
@@ -82,14 +153,12 @@ export default function CreditAnalysis() {
 
   const daysRemaining = getDaysRemaining();
   const isTrialActive = analysis?.subscription?.status === 'trial';
-  const isPaid = analysis?.subscription?.status === 'active';
 
-  // Score color based on value
   const getScoreColor = (score: number) => {
-    if (score >= 740) return 'text-emerald-400';
-    if (score >= 670) return 'text-yellow-400';
-    if (score >= 580) return 'text-orange-400';
-    return 'text-red-400';
+    if (score >= 740) return 'text-green-600';
+    if (score >= 670) return 'text-yellow-600';
+    if (score >= 580) return 'text-orange-600';
+    return 'text-red-600';
   };
 
   const getScoreLabel = (score: number) => {
@@ -99,405 +168,287 @@ export default function CreditAnalysis() {
     return 'Poor';
   };
 
+  const getScoreBgColor = (score: number) => {
+    if (score >= 740) return 'bg-green-100';
+    if (score >= 670) return 'bg-yellow-100';
+    if (score >= 580) return 'bg-orange-100';
+    return 'bg-red-100';
+  };
+
+  const tiers = [
+    {
+      id: 'starter' as const,
+      name: 'Starter',
+      price: '$49',
+      period: '/month',
+      rounds: '2 Rounds',
+      features: ['2 dispute rounds', 'AI recommendations', 'DIY mailing'],
+    },
+    {
+      id: 'professional' as const,
+      name: 'Professional',
+      price: '$69.95',
+      period: '/month',
+      rounds: '3 Rounds',
+      popular: true,
+      features: ['3 dispute rounds', 'Ongoing monitoring', 'Response analysis'],
+    },
+    {
+      id: 'complete' as const,
+      name: 'Complete',
+      price: '$99.95',
+      period: '/month',
+      rounds: 'Unlimited',
+      features: ['Unlimited rounds', 'We mail for you', 'CFPB complaints'],
+    },
+  ];
+
+  const handleUpgrade = () => {
+    // Redirect to Stripe checkout with selected tier
+    setLocation(`/checkout?tier=${selectedTier}`);
+  };
+
+  const recommendedItems = analysis?.negativeItems.filter(item => item.isRecommended) || [];
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-slate-400">Loading your credit analysis...</p>
+          <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your credit analysis...</p>
         </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-          <h2 className="text-white text-xl font-semibold mb-2">Unable to load analysis</h2>
-          <p className="text-slate-400 mb-4">Please try again or contact support.</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const recommendedItems = analysis?.negativeItems?.filter(item => item.isRecommended) || [];
-  const otherItems = analysis?.negativeItems?.filter(item => !item.isRecommended) || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 py-8 px-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+      {/* Navigation */}
+      <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <Link href="/">
+            <a className="flex items-center gap-2">
+              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
+            </a>
+          </Link>
+          <div className="flex items-center gap-4">
+            {isTrialActive && (
+              <div className="flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm">
+                <Clock className="w-4 h-4" />
+                <span>{daysRemaining} days left in trial</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto py-8 px-4">
         {/* Trial Banner */}
         {isTrialActive && (
-          <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-4 mb-8 flex items-center justify-between">
+          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-amber-400" />
+              <Clock className="w-6 h-6 text-orange-600" />
               <div>
-                <p className="text-white font-semibold">Trial ends in {daysRemaining} days</p>
-                <p className="text-slate-400 text-sm">Upgrade now to start fixing your credit</p>
+                <p className="font-semibold text-gray-900">Your trial ends in {daysRemaining} days</p>
+                <p className="text-gray-600 text-sm">Upgrade now to start disputing and improve your credit</p>
               </div>
             </div>
             <button 
-              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2"
+              onClick={() => document.getElementById('upgrade-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              Upgrade Now <ArrowRight className="w-4 h-4" />
+              Upgrade Now
             </button>
           </div>
         )}
 
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Your Credit Analysis</h1>
-          <p className="text-slate-400">Here's what's hurting your score and how to fix it</p>
-        </div>
-
         {/* Credit Scores */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          {analysis?.scores?.map((score) => (
-            <div key={score.bureau} className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-center">
-              <p className="text-slate-400 text-sm uppercase tracking-wide mb-2">{score.bureau}</p>
-              <p className={`text-5xl font-bold ${getScoreColor(score.score)} mb-1`}>
-                {score.score}
-              </p>
-              <p className={`text-sm ${getScoreColor(score.score)}`}>
-                {getScoreLabel(score.score)}
-              </p>
-              {score.change && (
-                <p className={`text-sm mt-2 ${score.change > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {score.change > 0 ? '+' : ''}{score.change} pts this month
-                </p>
-              )}
-            </div>
-          ))}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <Shield className="w-6 h-6 text-orange-600" />
+            Your Credit Scores
+          </h2>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {analysis?.scores.map((score) => (
+              <div key={score.bureau} className={`${getScoreBgColor(score.score)} rounded-xl p-6 text-center`}>
+                <p className="text-gray-600 font-medium mb-2">{score.bureau}</p>
+                <p className={`text-5xl font-bold ${getScoreColor(score.score)}`}>{score.score}</p>
+                <p className={`text-sm mt-2 ${getScoreColor(score.score)}`}>{getScoreLabel(score.score)}</p>
+                {score.change && (
+                  <p className={`text-sm mt-1 ${score.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {score.change > 0 ? '+' : ''}{score.change} pts
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Impact Summary */}
-        <div className="grid md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Negative Items</p>
-                <p className="text-white text-2xl font-bold">{analysis?.totalNegativeItems || 0}</p>
-              </div>
+              <AlertTriangle className="w-6 h-6 text-red-500" />
+              <span className="text-gray-600">Negative Items</span>
             </div>
-            <p className="text-slate-500 text-sm">Items hurting your score</p>
+            <p className="text-3xl font-bold text-gray-900">{analysis?.totalNegativeItems}</p>
+            <p className="text-gray-500 text-sm">hurting your score</p>
           </div>
-
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Potential Increase</p>
-                <p className="text-white text-2xl font-bold">+{analysis?.estimatedScoreIncrease || 0} pts</p>
-              </div>
+              <TrendingUp className="w-6 h-6 text-green-500" />
+              <span className="text-gray-600">Potential Increase</span>
             </div>
-            <p className="text-slate-500 text-sm">If disputed items removed</p>
+            <p className="text-3xl font-bold text-green-600">+{analysis?.estimatedScoreIncrease}</p>
+            <p className="text-gray-500 text-sm">estimated points</p>
           </div>
-
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+          
+          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-slate-400 text-sm">Interest Savings</p>
-                <p className="text-white text-2xl font-bold">${analysis?.estimatedInterestSavings?.toLocaleString() || 0}/yr</p>
-              </div>
+              <DollarSign className="w-6 h-6 text-orange-500" />
+              <span className="text-gray-600">Interest Savings</span>
             </div>
-            <p className="text-slate-500 text-sm">With improved credit</p>
+            <p className="text-3xl font-bold text-orange-600">${analysis?.estimatedInterestSavings?.toLocaleString()}</p>
+            <p className="text-gray-500 text-sm">per year potential</p>
           </div>
         </div>
 
-        {/* AI Recommended Items */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8">
+        {/* AI Recommendations */}
+        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                <Target className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div>
-                <h2 className="text-white text-xl font-semibold">AI Recommended for Round 1</h2>
-                <p className="text-slate-400 text-sm">Highest probability of deletion</p>
-              </div>
-            </div>
-            <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-sm">
+            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              <Target className="w-6 h-6 text-orange-600" />
+              AI-Recommended Items to Dispute
+            </h2>
+            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm">
               {recommendedItems.length} items selected
             </span>
           </div>
 
           <div className="space-y-4">
             {recommendedItems.map((item, index) => (
-              <div 
-                key={item.id}
-                className="bg-slate-900/50 border border-slate-600 rounded-xl p-4"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
+              <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4">
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
                       {index + 1}
-                    </span>
+                    </div>
                     <div>
-                      <h3 className="text-white font-semibold">{item.accountName}</h3>
-                      <p className="text-slate-400 text-sm">{item.accountType} • {item.bureau}</p>
+                      <h3 className="font-semibold text-gray-900">{item.accountName}</h3>
+                      <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
+                      <p className="text-gray-500 text-sm mt-1">${item.balance.toLocaleString()} • {item.status}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-white font-semibold">${item.balance?.toLocaleString()}</p>
-                    <p className="text-slate-400 text-sm">{item.status}</p>
+                    <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                      item.winProbability >= 70 ? 'bg-green-100 text-green-700' :
+                      item.winProbability >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-red-100 text-red-700'
+                    }`}>
+                      <Zap className="w-4 h-4" />
+                      {item.winProbability}% win probability
+                    </div>
                   </div>
                 </div>
-
-                {/* Win probability bar */}
-                <div className="mb-3">
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="text-slate-400">Win Probability</span>
-                    <span className="text-emerald-400 font-semibold">{item.winProbability}%</span>
-                  </div>
-                  <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
-                      style={{ width: `${item.winProbability}%` }}
-                    />
-                  </div>
+                <div className="mt-3 ml-12 bg-gray-50 rounded-lg p-3">
+                  <p className="text-gray-700 text-sm">
+                    <span className="font-medium">AI Analysis:</span> {item.recommendationReason}
+                  </p>
                 </div>
+              </div>
+            ))}
+          </div>
 
-                {/* AI Reason */}
-                <div className="flex items-start gap-2 bg-emerald-500/10 rounded-lg p-3">
-                  <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-emerald-300 text-sm">{item.recommendationReason}</p>
+          {/* Locked CTA */}
+          <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+            <Lock className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+            <h3 className="font-semibold text-gray-900 mb-2">Upgrade to Generate Dispute Letters</h3>
+            <p className="text-gray-600 text-sm mb-4">
+              Choose a plan below to start disputing these items and improve your credit score
+            </p>
+          </div>
+        </div>
+
+        {/* Upgrade Section */}
+        <div id="upgrade-section" className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-gray-900 mb-6 text-center">
+            Choose Your Plan to Start Disputing
+          </h2>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-6">
+            {tiers.map((tier) => (
+              <div
+                key={tier.id}
+                onClick={() => setSelectedTier(tier.id)}
+                className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                  selectedTier === tier.id
+                    ? 'border-orange-600 bg-orange-50'
+                    : 'border-gray-200 hover:border-orange-300'
+                } ${tier.popular ? 'ring-2 ring-orange-600' : ''}`}
+              >
+                {tier.popular && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span className="bg-orange-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                      <Star className="w-3 h-3" /> Most Popular
+                    </span>
+                  </div>
+                )}
+                
+                <div className="text-center">
+                  <h3 className="font-semibold text-gray-900 mb-2">{tier.name}</h3>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {tier.price}
+                    <span className="text-gray-500 text-base font-normal">{tier.period}</span>
+                  </p>
+                  <span className="inline-block bg-gray-100 text-gray-700 text-sm px-2 py-1 rounded mt-2">
+                    {tier.rounds}
+                  </span>
                 </div>
+                
+                <ul className="mt-4 space-y-2">
+                  {tier.features.map((feature) => (
+                    <li key={feature} className="flex items-center gap-2 text-sm text-gray-600">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
 
-                {item.hasConflicts && (
-                  <div className="flex items-center gap-2 mt-2 text-amber-400 text-sm">
-                    <AlertTriangle className="w-4 h-4" />
-                    Cross-bureau conflicts detected - strong case for deletion
+                {selectedTier === tier.id && (
+                  <div className="absolute top-4 right-4">
+                    <CheckCircle className="w-6 h-6 text-orange-600" />
                   </div>
                 )}
               </div>
             ))}
           </div>
 
-          {/* Locked CTA for trial users */}
-          {isTrialActive && (
-            <div className="mt-6 bg-slate-900/50 border border-slate-600 rounded-xl p-6 text-center">
-              <Lock className="w-12 h-12 text-slate-500 mx-auto mb-3" />
-              <h3 className="text-white font-semibold mb-2">Ready to dispute these items?</h3>
-              <p className="text-slate-400 text-sm mb-4">
-                Upgrade to generate dispute letters and start improving your credit
-              </p>
-              <button 
-                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2 mx-auto"
-              >
-                <FileText className="w-5 h-5" />
-                Upgrade to Generate Letters
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Other Negative Items */}
-        {otherItems.length > 0 && (
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-8">
-            <h2 className="text-white text-xl font-semibold mb-4">
-              Other Negative Items ({otherItems.length})
-            </h2>
-            <p className="text-slate-400 text-sm mb-4">
-              These items will be addressed in future rounds after the recommended items are resolved.
-            </p>
-            
-            <div className="space-y-3">
-              {otherItems.slice(0, 5).map((item) => (
-                <div 
-                  key={item.id}
-                  className="flex items-center justify-between bg-slate-900/30 rounded-lg p-3"
-                >
-                  <div>
-                    <p className="text-white">{item.accountName}</p>
-                    <p className="text-slate-400 text-sm">{item.accountType} • {item.bureau}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white">${item.balance?.toLocaleString()}</p>
-                    <p className="text-slate-500 text-sm">{item.winProbability}% win rate</p>
-                  </div>
-                </div>
-              ))}
-              
-              {otherItems.length > 5 && (
-                <p className="text-slate-500 text-sm text-center pt-2">
-                  +{otherItems.length - 5} more items
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Pricing Section */}
-        <div id="pricing" className="scroll-mt-8">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Choose Your Plan</h2>
-            <p className="text-slate-400">Start fixing your credit today</p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Starter */}
-            <div 
-              className={`bg-slate-800/50 border rounded-xl p-6 cursor-pointer transition-all ${
-                selectedTier === 'starter' 
-                  ? 'border-emerald-500 ring-2 ring-emerald-500/20' 
-                  : 'border-slate-700 hover:border-slate-600'
-              }`}
-              onClick={() => setSelectedTier('starter')}
-            >
-              <h3 className="text-white text-xl font-semibold mb-1">Starter</h3>
-              <p className="text-slate-400 text-sm mb-4">2 rounds of disputes</p>
-              <p className="text-3xl font-bold text-white mb-4">
-                $49<span className="text-slate-400 text-base font-normal">/mo</span>
-              </p>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  '2 dispute rounds',
-                  '3-bureau monitoring',
-                  'AI item selection',
-                  'DIY print & mail',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
-                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  selectedTier === 'starter'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-              >
-                {selectedTier === 'starter' ? 'Selected' : 'Select'}
-              </button>
-            </div>
-
-            {/* Professional */}
-            <div 
-              className={`bg-slate-800/50 border rounded-xl p-6 cursor-pointer transition-all relative ${
-                selectedTier === 'professional' 
-                  ? 'border-emerald-500 ring-2 ring-emerald-500/20' 
-                  : 'border-slate-700 hover:border-slate-600'
-              }`}
-              onClick={() => setSelectedTier('professional')}
-            >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
-                MOST POPULAR
-              </div>
-              
-              <h3 className="text-white text-xl font-semibold mb-1">Professional</h3>
-              <p className="text-slate-400 text-sm mb-4">3 rounds of disputes</p>
-              <p className="text-3xl font-bold text-white mb-4">
-                $69.95<span className="text-slate-400 text-base font-normal">/mo</span>
-              </p>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  '3 dispute rounds',
-                  '3-bureau monitoring',
-                  'AI item selection',
-                  'Response analysis',
-                  'Escalation templates',
-                  'DIY print & mail',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
-                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  selectedTier === 'professional'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-              >
-                {selectedTier === 'professional' ? 'Selected' : 'Select'}
-              </button>
-            </div>
-
-            {/* Complete */}
-            <div 
-              className={`bg-slate-800/50 border rounded-xl p-6 cursor-pointer transition-all ${
-                selectedTier === 'complete' 
-                  ? 'border-emerald-500 ring-2 ring-emerald-500/20' 
-                  : 'border-slate-700 hover:border-slate-600'
-              }`}
-              onClick={() => setSelectedTier('complete')}
-            >
-              <h3 className="text-white text-xl font-semibold mb-1">Complete</h3>
-              <p className="text-slate-400 text-sm mb-4">Unlimited + white-glove</p>
-              <p className="text-3xl font-bold text-white mb-4">
-                $99.95<span className="text-slate-400 text-base font-normal">/mo</span>
-              </p>
-              
-              <ul className="space-y-3 mb-6">
-                {[
-                  'Unlimited rounds',
-                  '3-bureau monitoring',
-                  'AI item selection',
-                  'Response analysis',
-                  'We print & mail for you',
-                  'CFPB complaints',
-                  'Monthly coaching call',
-                ].map((feature, i) => (
-                  <li key={i} className="flex items-center gap-2 text-slate-300 text-sm">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              
-              <button 
-                className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                  selectedTier === 'complete'
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                }`}
-              >
-                {selectedTier === 'complete' ? 'Selected' : 'Select'}
-              </button>
-            </div>
-          </div>
-
-          {/* Upgrade Button */}
-          <div className="mt-8 text-center">
-            <button 
-              onClick={() => navigate(`/checkout?tier=${selectedTier}`)}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white px-12 py-4 rounded-xl font-semibold text-lg flex items-center gap-2 mx-auto"
-            >
-              Continue with {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)}
-              <ChevronRight className="w-5 h-5" />
-            </button>
-            <p className="text-slate-500 text-sm mt-3">
-              Cancel anytime. No long-term contracts.
-            </p>
-          </div>
+          <button
+            onClick={handleUpgrade}
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            Upgrade to {tiers.find(t => t.id === selectedTier)?.name} - {tiers.find(t => t.id === selectedTier)?.price}/mo
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
       </div>
+
+      {/* Footer */}
+      <footer className="border-t bg-white py-8 mt-12">
+        <div className="container mx-auto text-center text-sm text-gray-500 px-4">
+          <p className="mb-2">
+            DisputeStrike is dispute automation software, not a credit repair service. 
+            Results vary and are not guaranteed.
+          </p>
+          <div className="flex justify-center gap-4">
+            <Link href="/terms"><a className="hover:text-orange-600">Terms of Service</a></Link>
+            <Link href="/privacy"><a className="hover:text-orange-600">Privacy Policy</a></Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

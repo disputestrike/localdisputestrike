@@ -280,17 +280,17 @@ export default function OnboardingWizard() {
 
     return (
       <div>
-        <label className="block text-slate-300 text-sm mb-2">{label}</label>
+        <label className="block text-gray-700 text-sm mb-2">{label}</label>
         {file ? (
-          <div className="flex items-center justify-between bg-slate-900 border border-emerald-500/50 rounded-lg p-4">
+          <div className="flex items-center justify-between bg-white border border-orange-600/50 rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <FileText className="w-8 h-8 text-emerald-400" />
+              <FileText className="w-8 h-8 text-orange-500" />
               <div>
-                <p className="text-white text-sm">{file.name}</p>
-                <p className="text-slate-400 text-xs">{(file.size / 1024).toFixed(1)} KB</p>
+                <p className="text-gray-900 text-sm">{file.name}</p>
+                <p className="text-gray-600 text-xs">{(file.size / 1024).toFixed(1)} KB</p>
               </div>
             </div>
-            <button onClick={onRemove} className="text-slate-400 hover:text-red-400">
+            <button onClick={onRemove} className="text-gray-600 hover:text-red-400">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -299,18 +299,18 @@ export default function OnboardingWizard() {
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
               isDragActive 
-                ? 'border-emerald-500 bg-emerald-500/10' 
+                ? 'border-orange-600 bg-orange-600/10' 
                 : error 
                   ? 'border-red-500 bg-red-500/10'
-                  : 'border-slate-600 hover:border-slate-500'
+                  : 'border-gray-300 hover:border-slate-500'
             }`}
           >
             <input {...getInputProps()} />
-            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragActive ? 'text-emerald-400' : 'text-slate-400'}`} />
-            <p className="text-slate-300 text-sm">
+            <Upload className={`w-8 h-8 mx-auto mb-2 ${isDragActive ? 'text-orange-500' : 'text-gray-600'}`} />
+            <p className="text-gray-700 text-sm">
               {isDragActive ? 'Drop file here' : 'Drag & drop or click to upload'}
             </p>
-            <p className="text-slate-500 text-xs mt-1">PDF, JPG, or PNG</p>
+            <p className="text-gray-500 text-xs mt-1">PDF, JPG, or PNG</p>
           </div>
         )}
         {error && <p className="text-red-400 text-sm mt-1">{error}</p>}
@@ -323,8 +323,8 @@ export default function OnboardingWizard() {
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Complete Your Setup</h1>
-          <p className="text-slate-400">Just a few more steps before we can start your credit repair</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Setup</h1>
+          <p className="text-gray-600">Just a few more steps before we can start your credit repair</p>
         </div>
 
         {/* Progress Steps */}
@@ -339,20 +339,20 @@ export default function OnboardingWizard() {
                 <div className="flex flex-col items-center">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                     isComplete 
-                      ? 'bg-emerald-500 text-white'
+                      ? 'bg-orange-600 text-gray-900'
                       : isActive
-                        ? 'bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400'
-                        : 'bg-slate-700 text-slate-400'
+                        ? 'bg-orange-600/20 border-2 border-orange-600 text-orange-500'
+                        : 'bg-gray-100 text-gray-600'
                   }`}>
                     {isComplete ? <CheckCircle className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                   </div>
-                  <span className={`text-xs mt-2 ${isActive ? 'text-emerald-400' : 'text-slate-500'}`}>
+                  <span className={`text-xs mt-2 ${isActive ? 'text-orange-500' : 'text-gray-500'}`}>
                     {step.title}
                   </span>
                 </div>
                 {index < STEPS.length - 1 && (
                   <div className={`w-12 md:w-24 h-0.5 mx-2 ${
-                    currentStep > step.id ? 'bg-emerald-500' : 'bg-slate-700'
+                    currentStep > step.id ? 'bg-orange-600' : 'bg-gray-100'
                   }`} />
                 )}
               </div>
@@ -361,24 +361,24 @@ export default function OnboardingWizard() {
         </div>
 
         {/* Step Content */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-6">
+        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 mb-6">
           {/* Step 1: Personal Info */}
           {currentStep === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-white text-xl font-semibold mb-1">Personal Information</h2>
-                <p className="text-slate-400 text-sm">This information is required to pull your credit reports and generate dispute letters.</p>
+                <h2 className="text-gray-900 text-xl font-semibold mb-1">Personal Information</h2>
+                <p className="text-gray-600 text-sm">This information is required to pull your credit reports and generate dispute letters.</p>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-slate-300 text-sm mb-1">Full Legal Name</label>
+                  <label className="block text-gray-700 text-sm mb-1">Full Legal Name</label>
                   <input
                     type="text"
                     name="fullName"
                     value={data.fullName}
                     onChange={handleInputChange}
-                    className={`w-full bg-slate-900 border ${errors.fullName ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                    className={`w-full bg-white border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     placeholder="John Michael Smith"
                   />
                   {errors.fullName && <p className="text-red-400 text-sm mt-1">{errors.fullName}</p>}
@@ -386,32 +386,32 @@ export default function OnboardingWizard() {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-slate-300 text-sm mb-1">Date of Birth</label>
+                    <label className="block text-gray-700 text-sm mb-1">Date of Birth</label>
                     <input
                       type="date"
                       name="dateOfBirth"
                       value={data.dateOfBirth}
                       onChange={handleInputChange}
-                      className={`w-full bg-slate-900 border ${errors.dateOfBirth ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                      className={`w-full bg-white border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     />
                     {errors.dateOfBirth && <p className="text-red-400 text-sm mt-1">{errors.dateOfBirth}</p>}
                   </div>
                   
                   <div>
-                    <label className="block text-slate-300 text-sm mb-1">Phone Number</label>
+                    <label className="block text-gray-700 text-sm mb-1">Phone Number</label>
                     <input
                       type="tel"
                       name="phone"
                       value={data.phone}
                       onChange={handleInputChange}
-                      className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600"
                       placeholder="(555) 123-4567"
                     />
                   </div>
                 </div>
                 
                 <div>
-                  <label className="block text-slate-300 text-sm mb-1">Social Security Number</label>
+                  <label className="block text-gray-700 text-sm mb-1">Social Security Number</label>
                   <div className="relative">
                     <input
                       type={showSSN ? 'text' : 'password'}
@@ -419,13 +419,13 @@ export default function OnboardingWizard() {
                       value={data.ssn}
                       onChange={handleSSNChange}
                       maxLength={11}
-                      className={`w-full bg-slate-900 border ${errors.ssn ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500 pr-10`}
+                      className={`w-full bg-white border ${errors.ssn ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600 pr-10`}
                       placeholder="XXX-XX-XXXX"
                     />
                     <button
                       type="button"
                       onClick={() => setShowSSN(!showSSN)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
                     >
                       {showSSN ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -433,9 +433,9 @@ export default function OnboardingWizard() {
                   {errors.ssn && <p className="text-red-400 text-sm mt-1">{errors.ssn}</p>}
                 </div>
                 
-                <div className="flex items-start gap-2 bg-slate-900/50 rounded-lg p-3">
-                  <Lock className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-slate-400 text-sm">
+                <div className="flex items-start gap-2 bg-white/50 rounded-lg p-3">
+                  <Lock className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-gray-600 text-sm">
                     Your SSN is encrypted with AES-256 and only used to verify your identity with credit bureaus.
                   </p>
                 </div>
@@ -447,21 +447,21 @@ export default function OnboardingWizard() {
           {currentStep === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-white text-xl font-semibold mb-1">Address Information</h2>
-                <p className="text-slate-400 text-sm">Bureaus use your address to verify your identity. Include previous addresses if you've moved in the last 2 years.</p>
+                <h2 className="text-gray-900 text-xl font-semibold mb-1">Address Information</h2>
+                <p className="text-gray-600 text-sm">Bureaus use your address to verify your identity. Include previous addresses if you've moved in the last 2 years.</p>
               </div>
               
               <div className="space-y-4">
-                <h3 className="text-white font-medium">Current Address</h3>
+                <h3 className="text-gray-900 font-medium">Current Address</h3>
                 
                 <div>
-                  <label className="block text-slate-300 text-sm mb-1">Street Address</label>
+                  <label className="block text-gray-700 text-sm mb-1">Street Address</label>
                   <input
                     type="text"
                     name="currentAddress"
                     value={data.currentAddress}
                     onChange={handleInputChange}
-                    className={`w-full bg-slate-900 border ${errors.currentAddress ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                    className={`w-full bg-white border ${errors.currentAddress ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     placeholder="123 Main Street, Apt 4B"
                   />
                   {errors.currentAddress && <p className="text-red-400 text-sm mt-1">{errors.currentAddress}</p>}
@@ -469,22 +469,22 @@ export default function OnboardingWizard() {
                 
                 <div className="grid grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-slate-300 text-sm mb-1">City</label>
+                    <label className="block text-gray-700 text-sm mb-1">City</label>
                     <input
                       type="text"
                       name="currentCity"
                       value={data.currentCity}
                       onChange={handleInputChange}
-                      className={`w-full bg-slate-900 border ${errors.currentCity ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                      className={`w-full bg-white border ${errors.currentCity ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     />
                   </div>
                   <div>
-                    <label className="block text-slate-300 text-sm mb-1">State</label>
+                    <label className="block text-gray-700 text-sm mb-1">State</label>
                     <select
                       name="currentState"
                       value={data.currentState}
                       onChange={handleInputChange}
-                      className={`w-full bg-slate-900 border ${errors.currentState ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                      className={`w-full bg-white border ${errors.currentState ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     >
                       <option value="">Select</option>
                       {US_STATES.map(state => (
@@ -493,14 +493,14 @@ export default function OnboardingWizard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-slate-300 text-sm mb-1">ZIP</label>
+                    <label className="block text-gray-700 text-sm mb-1">ZIP</label>
                     <input
                       type="text"
                       name="currentZip"
                       value={data.currentZip}
                       onChange={handleInputChange}
                       maxLength={10}
-                      className={`w-full bg-slate-900 border ${errors.currentZip ? 'border-red-500' : 'border-slate-600'} rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500`}
+                      className={`w-full bg-white border ${errors.currentZip ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600`}
                     />
                   </div>
                 </div>
@@ -511,44 +511,44 @@ export default function OnboardingWizard() {
                     name="hasPreviousAddress"
                     checked={data.hasPreviousAddress}
                     onChange={handleInputChange}
-                    className="w-5 h-5 rounded border-slate-600 bg-slate-900 text-emerald-500"
+                    className="w-5 h-5 rounded border-gray-300 bg-white text-orange-600"
                   />
-                  <span className="text-slate-300">I have a previous address (moved in last 2 years)</span>
+                  <span className="text-gray-700">I have a previous address (moved in last 2 years)</span>
                 </label>
                 
                 {data.hasPreviousAddress && (
-                  <div className="space-y-4 pt-4 border-t border-slate-700">
-                    <h3 className="text-white font-medium">Previous Address</h3>
+                  <div className="space-y-4 pt-4 border-t border-gray-200">
+                    <h3 className="text-gray-900 font-medium">Previous Address</h3>
                     
                     <div>
-                      <label className="block text-slate-300 text-sm mb-1">Street Address</label>
+                      <label className="block text-gray-700 text-sm mb-1">Street Address</label>
                       <input
                         type="text"
                         name="previousAddress"
                         value={data.previousAddress}
                         onChange={handleInputChange}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600"
                       />
                     </div>
                     
                     <div className="grid grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-slate-300 text-sm mb-1">City</label>
+                        <label className="block text-gray-700 text-sm mb-1">City</label>
                         <input
                           type="text"
                           name="previousCity"
                           value={data.previousCity}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600"
                         />
                       </div>
                       <div>
-                        <label className="block text-slate-300 text-sm mb-1">State</label>
+                        <label className="block text-gray-700 text-sm mb-1">State</label>
                         <select
                           name="previousState"
                           value={data.previousState}
                           onChange={handleInputChange}
-                          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600"
                         >
                           <option value="">Select</option>
                           {US_STATES.map(state => (
@@ -557,14 +557,14 @@ export default function OnboardingWizard() {
                         </select>
                       </div>
                       <div>
-                        <label className="block text-slate-300 text-sm mb-1">ZIP</label>
+                        <label className="block text-gray-700 text-sm mb-1">ZIP</label>
                         <input
                           type="text"
                           name="previousZip"
                           value={data.previousZip}
                           onChange={handleInputChange}
                           maxLength={10}
-                          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
+                          className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-600"
                         />
                       </div>
                     </div>
@@ -578,8 +578,8 @@ export default function OnboardingWizard() {
           {currentStep === 3 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-white text-xl font-semibold mb-1">Identity Documents</h2>
-                <p className="text-slate-400 text-sm">These documents will be attached to your dispute letters to verify your identity with the bureaus.</p>
+                <h2 className="text-gray-900 text-xl font-semibold mb-1">Identity Documents</h2>
+                <p className="text-gray-600 text-sm">These documents will be attached to your dispute letters to verify your identity with the bureaus.</p>
               </div>
               
               <div className="grid md:grid-cols-2 gap-6">
@@ -602,9 +602,9 @@ export default function OnboardingWizard() {
                 />
               </div>
               
-              <div className="flex items-start gap-2 bg-slate-900/50 rounded-lg p-3">
-                <Shield className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
-                <p className="text-slate-400 text-sm">
+              <div className="flex items-start gap-2 bg-white/50 rounded-lg p-3">
+                <Shield className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                <p className="text-gray-600 text-sm">
                   Your documents are encrypted and stored securely. They are only used for dispute letter verification.
                 </p>
               </div>
@@ -615,8 +615,8 @@ export default function OnboardingWizard() {
           {currentStep === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-white text-xl font-semibold mb-1">Credit Reports</h2>
-                <p className="text-slate-400 text-sm">We need your credit reports to analyze negative items and generate dispute letters.</p>
+                <h2 className="text-gray-900 text-xl font-semibold mb-1">Credit Reports</h2>
+                <p className="text-gray-600 text-sm">We need your credit reports to analyze negative items and generate dispute letters.</p>
               </div>
               
               <div className="space-y-4">
@@ -626,21 +626,21 @@ export default function OnboardingWizard() {
                     onClick={() => setData(prev => ({ ...prev, creditReportMethod: 'auto' }))}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       data.creditReportMethod === 'auto'
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-slate-600 hover:border-slate-500'
+                        ? 'border-orange-600 bg-orange-600/10'
+                        : 'border-gray-300 hover:border-slate-500'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        data.creditReportMethod === 'auto' ? 'border-emerald-500' : 'border-slate-500'
+                        data.creditReportMethod === 'auto' ? 'border-orange-600' : 'border-slate-500'
                       }`}>
                         {data.creditReportMethod === 'auto' && (
-                          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                          <div className="w-3 h-3 rounded-full bg-orange-600" />
                         )}
                       </div>
-                      <span className="text-white font-semibold">Auto-Pull (Recommended)</span>
+                      <span className="text-gray-900 font-semibold">Auto-Pull (Recommended)</span>
                     </div>
-                    <p className="text-slate-400 text-sm pl-8">
+                    <p className="text-gray-600 text-sm pl-8">
                       We'll automatically pull your reports from all 3 bureaus using your monitoring service.
                     </p>
                   </button>
@@ -650,21 +650,21 @@ export default function OnboardingWizard() {
                     onClick={() => setData(prev => ({ ...prev, creditReportMethod: 'manual' }))}
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       data.creditReportMethod === 'manual'
-                        ? 'border-emerald-500 bg-emerald-500/10'
-                        : 'border-slate-600 hover:border-slate-500'
+                        ? 'border-orange-600 bg-orange-600/10'
+                        : 'border-gray-300 hover:border-slate-500'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        data.creditReportMethod === 'manual' ? 'border-emerald-500' : 'border-slate-500'
+                        data.creditReportMethod === 'manual' ? 'border-orange-600' : 'border-slate-500'
                       }`}>
                         {data.creditReportMethod === 'manual' && (
-                          <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                          <div className="w-3 h-3 rounded-full bg-orange-600" />
                         )}
                       </div>
-                      <span className="text-white font-semibold">Manual Upload</span>
+                      <span className="text-gray-900 font-semibold">Manual Upload</span>
                     </div>
-                    <p className="text-slate-400 text-sm pl-8">
+                    <p className="text-gray-600 text-sm pl-8">
                       Upload credit reports you've downloaded from AnnualCreditReport.com or other sources.
                     </p>
                   </button>
@@ -709,39 +709,39 @@ export default function OnboardingWizard() {
           {currentStep === 5 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-white text-xl font-semibold mb-1">Review & Start</h2>
-                <p className="text-slate-400 text-sm">Please review your information before we start analyzing your credit.</p>
+                <h2 className="text-gray-900 text-xl font-semibold mb-1">Review & Start</h2>
+                <p className="text-gray-600 text-sm">Please review your information before we start analyzing your credit.</p>
               </div>
               
               <div className="space-y-4">
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <h3 className="text-slate-400 text-sm mb-2">Personal Information</h3>
-                  <p className="text-white">{data.fullName}</p>
-                  <p className="text-slate-300 text-sm">DOB: {data.dateOfBirth}</p>
-                  <p className="text-slate-300 text-sm">SSN: ***-**-{data.ssn.slice(-4)}</p>
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h3 className="text-gray-600 text-sm mb-2">Personal Information</h3>
+                  <p className="text-gray-900">{data.fullName}</p>
+                  <p className="text-gray-700 text-sm">DOB: {data.dateOfBirth}</p>
+                  <p className="text-gray-700 text-sm">SSN: ***-**-{data.ssn.slice(-4)}</p>
                 </div>
                 
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <h3 className="text-slate-400 text-sm mb-2">Address</h3>
-                  <p className="text-white">{data.currentAddress}</p>
-                  <p className="text-slate-300 text-sm">{data.currentCity}, {data.currentState} {data.currentZip}</p>
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h3 className="text-gray-600 text-sm mb-2">Address</h3>
+                  <p className="text-gray-900">{data.currentAddress}</p>
+                  <p className="text-gray-700 text-sm">{data.currentCity}, {data.currentState} {data.currentZip}</p>
                 </div>
                 
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <h3 className="text-slate-400 text-sm mb-2">Documents</h3>
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h3 className="text-gray-600 text-sm mb-2">Documents</h3>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white text-sm">ID Document: {data.idDocument?.name}</span>
+                    <CheckCircle className="w-4 h-4 text-orange-500" />
+                    <span className="text-gray-900 text-sm">ID Document: {data.idDocument?.name}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-400" />
-                    <span className="text-white text-sm">Utility Bill: {data.utilityBill?.name}</span>
+                    <CheckCircle className="w-4 h-4 text-orange-500" />
+                    <span className="text-gray-900 text-sm">Utility Bill: {data.utilityBill?.name}</span>
                   </div>
                 </div>
                 
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <h3 className="text-slate-400 text-sm mb-2">Credit Reports</h3>
-                  <p className="text-white">
+                <div className="bg-white/50 rounded-lg p-4">
+                  <h3 className="text-gray-600 text-sm mb-2">Credit Reports</h3>
+                  <p className="text-gray-900">
                     {data.creditReportMethod === 'auto' 
                       ? 'Auto-pull from monitoring service'
                       : `Manual upload (${[data.transunionReport, data.equifaxReport, data.experianReport].filter(Boolean).length} reports)`
@@ -750,11 +750,11 @@ export default function OnboardingWizard() {
                 </div>
               </div>
               
-              <div className="flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/30 rounded-lg p-4">
-                <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 bg-orange-600/10 border border-orange-600/30 rounded-lg p-4">
+                <CheckCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-white font-semibold">Ready to Start Round 1</p>
-                  <p className="text-slate-300 text-sm">
+                  <p className="text-gray-900 font-semibold">Ready to Start Round 1</p>
+                  <p className="text-gray-700 text-sm">
                     After you click "Start Credit Repair", we'll analyze your credit reports and generate your first round of dispute letters.
                   </p>
                 </div>
@@ -768,7 +768,7 @@ export default function OnboardingWizard() {
           <button
             onClick={handleBack}
             disabled={currentStep === 1}
-            className="flex items-center gap-2 text-slate-400 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <ChevronLeft className="w-5 h-5" />
             Back
@@ -777,7 +777,7 @@ export default function OnboardingWizard() {
           <button
             onClick={handleNext}
             disabled={saveProgressMutation.isPending || completeOnboardingMutation.isPending}
-            className="bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white px-8 py-3 rounded-xl font-semibold flex items-center gap-2"
+            className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 px-8 py-3 rounded-xl font-semibold flex items-center gap-2"
           >
             {(saveProgressMutation.isPending || completeOnboardingMutation.isPending) && (
               <Loader2 className="w-5 h-5 animate-spin" />

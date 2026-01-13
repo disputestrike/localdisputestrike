@@ -141,7 +141,7 @@ export default function DashboardHomeV2() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -150,8 +150,8 @@ export default function DashboardHomeV2() {
     return (
       <div className="text-center py-12">
         <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-        <p className="text-white">Failed to load dashboard</p>
-        <button onClick={() => refetch()} className="text-emerald-400 mt-2">
+        <p className="text-gray-900">Failed to load dashboard</p>
+        <button onClick={() => refetch()} className="text-orange-500 mt-2">
           Try again
         </button>
       </div>
@@ -173,7 +173,7 @@ export default function DashboardHomeV2() {
 
   // Get score color
   const getScoreColor = (score: number) => {
-    if (score >= 740) return 'text-emerald-400';
+    if (score >= 740) return 'text-orange-500';
     if (score >= 670) return 'text-yellow-400';
     if (score >= 580) return 'text-orange-400';
     return 'text-red-400';
@@ -198,13 +198,13 @@ export default function DashboardHomeV2() {
           <div className="flex items-center gap-3">
             <Clock className="w-6 h-6 text-amber-400" />
             <div>
-              <p className="text-white font-semibold">Trial ends in {getTrialDaysRemaining()} days</p>
-              <p className="text-slate-400 text-sm">Upgrade to start fixing your credit</p>
+              <p className="text-gray-900 font-semibold">Trial ends in {getTrialDaysRemaining()} days</p>
+              <p className="text-gray-600 text-sm">Upgrade to start fixing your credit</p>
             </div>
           </div>
           <button 
             onClick={() => navigate('/pricing')}
-            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg font-semibold flex items-center gap-2"
+            className="bg-amber-500 hover:bg-amber-600 text-gray-900 px-6 py-2 rounded-lg font-semibold flex items-center gap-2"
           >
             Upgrade Now <ArrowUp className="w-4 h-4" />
           </button>
@@ -214,8 +214,8 @@ export default function DashboardHomeV2() {
       {/* Welcome Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Welcome back, {user.name?.split(' ')[0] || 'there'}!</h1>
-          <p className="text-slate-400">
+          <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user.name?.split(' ')[0] || 'there'}!</h1>
+          <p className="text-gray-600">
             {isTrial 
               ? "Here's your credit analysis. Upgrade to start disputing."
               : `${getTierName(user.tier)} Plan • Round ${roundStatus.currentRound || 1}`
@@ -226,7 +226,7 @@ export default function DashboardHomeV2() {
           <span className={`px-3 py-1 rounded-full text-sm ${
             isTrial 
               ? 'bg-amber-500/20 text-amber-400'
-              : 'bg-emerald-500/20 text-emerald-400'
+              : 'bg-orange-600/20 text-orange-500'
           }`}>
             {getTierName(user.tier)}
           </span>
@@ -240,11 +240,11 @@ export default function DashboardHomeV2() {
           { bureau: 'Equifax', score: scores.equifax },
           { bureau: 'Experian', score: scores.experian },
         ].map(({ bureau, score }) => (
-          <div key={bureau} className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 text-center">
-            <p className="text-slate-400 text-sm uppercase tracking-wide mb-2">{bureau}</p>
+          <div key={bureau} className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 text-center">
+            <p className="text-gray-600 text-sm uppercase tracking-wide mb-2">{bureau}</p>
             <p className={`text-4xl font-bold ${getScoreColor(score)}`}>{score}</p>
             {scores.change && (
-              <p className={`text-sm mt-1 ${scores.change > 0 ? 'text-emerald-400' : 'text-slate-400'}`}>
+              <p className={`text-sm mt-1 ${scores.change > 0 ? 'text-orange-500' : 'text-gray-600'}`}>
                 {scores.change > 0 ? '+' : ''}{scores.change} pts
               </p>
             )}
@@ -254,50 +254,50 @@ export default function DashboardHomeV2() {
 
       {/* Stats Row */}
       <div className="grid md:grid-cols-4 gap-4">
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center">
               <AlertTriangle className="w-5 h-5 text-red-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm">Negative Items</p>
-              <p className="text-white text-xl font-bold">{negativeItems.total}</p>
+              <p className="text-gray-600 text-sm">Negative Items</p>
+              <p className="text-gray-900 text-xl font-bold">{negativeItems.total}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center">
               <Clock className="w-5 h-5 text-amber-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm">In Progress</p>
-              <p className="text-white text-xl font-bold">{negativeItems.disputed}</p>
+              <p className="text-gray-600 text-sm">In Progress</p>
+              <p className="text-gray-900 text-xl font-bold">{negativeItems.disputed}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-              <CheckCircle className="w-5 h-5 text-emerald-400" />
+            <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
+              <CheckCircle className="w-5 h-5 text-orange-500" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm">Deleted</p>
-              <p className="text-white text-xl font-bold">{negativeItems.deleted}</p>
+              <p className="text-gray-600 text-sm">Deleted</p>
+              <p className="text-gray-900 text-xl font-bold">{negativeItems.deleted}</p>
             </div>
           </div>
         </div>
         
-        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+        <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-slate-400 text-sm">Pending</p>
-              <p className="text-white text-xl font-bold">{negativeItems.pending}</p>
+              <p className="text-gray-600 text-sm">Pending</p>
+              <p className="text-gray-900 text-xl font-bold">{negativeItems.pending}</p>
             </div>
           </div>
         </div>
@@ -326,20 +326,20 @@ export default function DashboardHomeV2() {
         {/* Right Column - AI Recommendations & Actions */}
         <div className={isPaid ? 'lg:col-span-2' : 'lg:col-span-3'}>
           {/* AI Recommendations */}
-          <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 mb-6">
+          <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
-                  <Target className="w-5 h-5 text-emerald-400" />
+                <div className="w-10 h-10 bg-orange-600/20 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
-                  <h2 className="text-white text-lg font-semibold">
+                  <h2 className="text-gray-900 text-lg font-semibold">
                     {isTrial ? 'AI Recommended Items' : `Round ${roundStatus.currentRound + 1} Recommendations`}
                   </h2>
-                  <p className="text-slate-400 text-sm">Highest probability of deletion</p>
+                  <p className="text-gray-600 text-sm">Highest probability of deletion</p>
                 </div>
               </div>
-              <span className="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-sm">
+              <span className="bg-orange-600/20 text-orange-500 px-3 py-1 rounded-full text-sm">
                 {recommendedItems.length} items
               </span>
             </div>
@@ -348,26 +348,26 @@ export default function DashboardHomeV2() {
               {recommendedItems.slice(0, showAllItems ? undefined : 3).map((item, index) => (
                 <div 
                   key={item.accountId}
-                  className="bg-slate-900/50 border border-slate-600 rounded-lg p-4"
+                  className="bg-white/50 border border-gray-300 rounded-lg p-4"
                 >
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      <span className="w-6 h-6 bg-orange-600 rounded-full flex items-center justify-center text-gray-900 text-sm font-semibold">
                         {index + 1}
                       </span>
                       <div>
-                        <h3 className="text-white font-medium">{item.accountName}</h3>
-                        <p className="text-slate-400 text-sm">{item.accountType} • {item.bureau}</p>
+                        <h3 className="text-gray-900 font-medium">{item.accountName}</h3>
+                        <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-white font-semibold">${item.balance?.toLocaleString()}</p>
-                      <p className="text-emerald-400 text-sm">{item.winProbability}% win rate</p>
+                      <p className="text-gray-900 font-semibold">${item.balance?.toLocaleString()}</p>
+                      <p className="text-orange-500 text-sm">{item.winProbability}% win rate</p>
                     </div>
                   </div>
                   
-                  <div className="flex items-start gap-2 bg-emerald-500/10 rounded-lg p-2 mt-2">
-                    <Zap className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2 bg-orange-600/10 rounded-lg p-2 mt-2">
+                    <Zap className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
                     <p className="text-emerald-300 text-sm">{item.recommendationReason}</p>
                   </div>
                 </div>
@@ -377,7 +377,7 @@ export default function DashboardHomeV2() {
             {recommendedItems.length > 3 && (
               <button
                 onClick={() => setShowAllItems(!showAllItems)}
-                className="w-full mt-4 text-emerald-400 hover:text-emerald-300 text-sm"
+                className="w-full mt-4 text-orange-500 hover:text-emerald-300 text-sm"
               >
                 {showAllItems ? 'Show less' : `Show ${recommendedItems.length - 3} more items`}
               </button>
@@ -385,13 +385,13 @@ export default function DashboardHomeV2() {
 
             {/* Action Buttons */}
             {isTrial ? (
-              <div className="mt-6 bg-slate-900/50 border border-slate-600 rounded-lg p-4 text-center">
-                <Lock className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                <p className="text-white font-semibold mb-1">Ready to dispute these items?</p>
-                <p className="text-slate-400 text-sm mb-4">Upgrade to generate dispute letters</p>
+              <div className="mt-6 bg-white/50 border border-gray-300 rounded-lg p-4 text-center">
+                <Lock className="w-8 h-8 text-gray-500 mx-auto mb-2" />
+                <p className="text-gray-900 font-semibold mb-1">Ready to dispute these items?</p>
+                <p className="text-gray-600 text-sm mb-4">Upgrade to generate dispute letters</p>
                 <button
                   onClick={() => navigate('/pricing')}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-semibold"
+                  className="bg-orange-600 hover:bg-orange-700 text-gray-900 px-6 py-2 rounded-lg font-semibold"
                 >
                   Upgrade to Start
                 </button>
@@ -400,7 +400,7 @@ export default function DashboardHomeV2() {
               <button
                 onClick={() => generateLettersMutation.mutate()}
                 disabled={generateLettersMutation.isPending}
-                className="w-full mt-6 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                className="w-full mt-6 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
               >
                 <FileText className="w-5 h-5" />
                 Generate Dispute Letters
@@ -410,27 +410,27 @@ export default function DashboardHomeV2() {
 
           {/* Generated Letters (if any) */}
           {currentRoundLetters && currentRoundLetters.length > 0 && (
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-              <h2 className="text-white text-lg font-semibold mb-4">Your Dispute Letters</h2>
+            <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6">
+              <h2 className="text-gray-900 text-lg font-semibold mb-4">Your Dispute Letters</h2>
               
               <div className="space-y-3 mb-6">
                 {currentRoundLetters.map(letter => (
                   <div 
                     key={letter.id}
-                    className="flex items-center justify-between bg-slate-900/50 rounded-lg p-4"
+                    className="flex items-center justify-between bg-white/50 rounded-lg p-4"
                   >
                     <div className="flex items-center gap-3">
-                      <FileText className="w-6 h-6 text-slate-400" />
+                      <FileText className="w-6 h-6 text-gray-600" />
                       <div>
-                        <p className="text-white font-medium">{letter.bureau} Dispute Letter</p>
-                        <p className="text-slate-400 text-sm">
+                        <p className="text-gray-900 font-medium">{letter.bureau} Dispute Letter</p>
+                        <p className="text-gray-600 text-sm">
                           Generated {new Date(letter.generatedAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={() => navigate(`/letters/${letter.id}`)}
-                      className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg flex items-center gap-2"
+                      className="bg-gray-100 hover:bg-slate-600 text-gray-900 px-4 py-2 rounded-lg flex items-center gap-2"
                     >
                       <Download className="w-4 h-4" />
                       Download
@@ -444,8 +444,8 @@ export default function DashboardHomeV2() {
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-white font-semibold">Mail Your Letters</p>
-                    <p className="text-slate-300 text-sm">
+                    <p className="text-gray-900 font-semibold">Mail Your Letters</p>
+                    <p className="text-gray-700 text-sm">
                       Print and mail each letter via certified mail with return receipt. 
                       Keep your tracking numbers for proof of delivery.
                     </p>
@@ -456,14 +456,14 @@ export default function DashboardHomeV2() {
               <div className="flex gap-3">
                 <button
                   onClick={() => navigate('/mailing-instructions')}
-                  className="flex-1 bg-slate-700 hover:bg-slate-600 text-white py-3 rounded-lg font-semibold"
+                  className="flex-1 bg-gray-100 hover:bg-slate-600 text-gray-900 py-3 rounded-lg font-semibold"
                 >
                   View Mailing Instructions
                 </button>
                 <button
                   onClick={() => markMailedMutation.mutate()}
                   disabled={markMailedMutation.isPending}
-                  className="flex-1 bg-emerald-500 hover:bg-emerald-600 disabled:bg-emerald-500/50 text-white py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
+                  className="flex-1 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-600/50 text-gray-900 py-3 rounded-lg font-semibold flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-5 h-5" />
                   I've Mailed My Letters
