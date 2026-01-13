@@ -302,7 +302,7 @@ export default function OnboardingWizard() {
                 ? 'border-orange-600 bg-orange-600/10' 
                 : error 
                   ? 'border-red-500 bg-red-500/10'
-                  : 'border-gray-300 hover:border-slate-500'
+                  : 'border-gray-300 hover:border-orange-300'
             }`}
           >
             <input {...getInputProps()} />
@@ -319,7 +319,7 @@ export default function OnboardingWizard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -627,12 +627,12 @@ export default function OnboardingWizard() {
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       data.creditReportMethod === 'auto'
                         ? 'border-orange-600 bg-orange-600/10'
-                        : 'border-gray-300 hover:border-slate-500'
+                        : 'border-gray-300 hover:border-orange-300'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        data.creditReportMethod === 'auto' ? 'border-orange-600' : 'border-slate-500'
+                        data.creditReportMethod === 'auto' ? 'border-orange-600' : 'border-gray-300'
                       }`}>
                         {data.creditReportMethod === 'auto' && (
                           <div className="w-3 h-3 rounded-full bg-orange-600" />
@@ -651,12 +651,12 @@ export default function OnboardingWizard() {
                     className={`p-4 rounded-xl border-2 text-left transition-all ${
                       data.creditReportMethod === 'manual'
                         ? 'border-orange-600 bg-orange-600/10'
-                        : 'border-gray-300 hover:border-slate-500'
+                        : 'border-gray-300 hover:border-orange-300'
                     }`}
                   >
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        data.creditReportMethod === 'manual' ? 'border-orange-600' : 'border-slate-500'
+                        data.creditReportMethod === 'manual' ? 'border-orange-600' : 'border-gray-300'
                       }`}>
                         {data.creditReportMethod === 'manual' && (
                           <div className="w-3 h-3 rounded-full bg-orange-600" />
