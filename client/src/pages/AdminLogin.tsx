@@ -21,7 +21,8 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/admin/login", {
+      // Use the custom auth login endpoint which handles both users and admins
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,14 +32,22 @@ export default function AdminLogin() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        setError(data.error || "Login failed");
+      if (!response.ok || !data.success) {
+        setError(data.message || "Login failed. Please check your credentials.");
         return;
       }
 
-      // Store admin session
-      localStorage.setItem("admin-session", JSON.stringify(data.admin));
-      toast.success("Login successful");
+      // Check if the user has admin role
+      if (data.user.role !== 'admin') {
+        setError("Access denied. You do not have administrator privileges.");
+        // Clear the auth cookie since they aren't an admin
+        await fetch("/api/auth/logout", { method: "POST" });
+        return;
+      }
+
+      // Store admin session for the frontend
+      localStorage.setItem("admin-session", JSON.stringify(data.user));
+      toast.success("Admin login successful");
       setLocation("/admin");
     } catch (err) {
       setError("An error occurred. Please try again.");

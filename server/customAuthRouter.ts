@@ -218,4 +218,150 @@ router.get('/me', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/auth/export-data
+ * Export all user data (GDPR/CCPA compliance)
+ */
+router.get('/export-data', async (req, res) => {
+  try {
+    const token = req.cookies['auth-token'] || req.cookies['manus-session'];
+    
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+    
+    const user = await getUserFromToken(token);
+    
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    }
+    
+    // Import database to get user data
+    const { db } = await import('./db');
+    const { users, creditReports, disputeLetters, disputes, userProfiles, auditLogs } = await import('../drizzle/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    // Gather all user data
+    const [userData] = await db.select().from(users).where(eq(users.id, user.id));
+    const userProfileData = await db.select().from(userProfiles).where(eq(userProfiles.userId, user.id));
+    const creditReportsData = await db.select().from(creditReports).where(eq(creditReports.userId, user.id));
+    const disputeLettersData = await db.select().from(disputeLetters).where(eq(disputeLetters.userId, user.id));
+    const disputesData = await db.select().from(disputes).where(eq(disputes.userId, user.id));
+    
+    // Try to get audit logs if table exists
+    let auditLogsData: any[] = [];
+    try {
+      auditLogsData = await db.select().from(auditLogs).where(eq(auditLogs.userId, user.id));
+    } catch (e) {
+      // Audit logs table may not exist yet
+    }
+    
+    // Prepare export data (remove sensitive fields)
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      exportedBy: 'DisputeStrike Data Export',
+      user: {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        accountType: userData.accountType,
+        createdAt: userData.createdAt,
+        emailVerified: userData.emailVerified,
+      },
+      profile: userProfileData[0] || null,
+      creditReports: creditReportsData.map(r => ({
+        id: r.id,
+        bureau: r.bureau,
+        uploadedAt: r.uploadedAt,
+        // Exclude raw file data for size
+      })),
+      disputeLetters: disputeLettersData.map(l => ({
+        id: l.id,
+        bureau: l.bureau,
+        round: l.round,
+        status: l.status,
+        createdAt: l.createdAt,
+        content: l.content,
+      })),
+      disputes: disputesData.map(d => ({
+        id: d.id,
+        accountName: d.accountName,
+        bureau: d.bureau,
+        status: d.status,
+        createdAt: d.createdAt,
+      })),
+      activityLogs: auditLogsData.map(a => ({
+        action: a.action,
+        details: a.details,
+        timestamp: a.timestamp,
+      })),
+    };
+    
+    // Log the export action
+    console.log(`[GDPR] User ${user.id} exported their data`);
+    
+    // Send as downloadable JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', 'attachment; filename=disputestrike-my-data.json');
+    res.send(JSON.stringify(exportData, null, 2));
+    
+  } catch (error) {
+    console.error('[Auth Router] Export data error:', error);
+    res.status(500).json({ success: false, message: 'Failed to export data' });
+  }
+});
+
+/**
+ * DELETE /api/auth/delete-account
+ * Permanently delete user account and all data (GDPR/CCPA compliance)
+ */
+router.delete('/delete-account', async (req, res) => {
+  try {
+    const token = req.cookies['auth-token'] || req.cookies['manus-session'];
+    
+    if (!token) {
+      return res.status(401).json({ success: false, message: 'Not authenticated' });
+    }
+    
+    const user = await getUserFromToken(token);
+    
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'Invalid or expired token' });
+    }
+    
+    // Import database
+    const { db } = await import('./db');
+    const { users, creditReports, disputeLetters, disputes, userProfiles, auditLogs } = await import('../drizzle/schema');
+    const { eq } = await import('drizzle-orm');
+    
+    console.log(`[GDPR] User ${user.id} (${user.email}) requested account deletion`);
+    
+    // Delete all user data in order (foreign key constraints)
+    try {
+      await db.delete(auditLogs).where(eq(auditLogs.userId, user.id));
+    } catch (e) {
+      // Audit logs table may not exist
+    }
+    
+    await db.delete(disputeLetters).where(eq(disputeLetters.userId, user.id));
+    await db.delete(disputes).where(eq(disputes.userId, user.id));
+    await db.delete(creditReports).where(eq(creditReports.userId, user.id));
+    await db.delete(userProfiles).where(eq(userProfiles.userId, user.id));
+    await db.delete(users).where(eq(users.id, user.id));
+    
+    console.log(`[GDPR] User ${user.id} account and all data permanently deleted`);
+    
+    // Clear cookies
+    res.clearCookie('auth-token');
+    res.clearCookie('manus-session');
+    
+    res.json({ success: true, message: 'Account and all data permanently deleted' });
+    
+  } catch (error) {
+    console.error('[Auth Router] Delete account error:', error);
+    res.status(500).json({ success: false, message: 'Failed to delete account' });
+  }
+});
+
 export default router;

@@ -23,6 +23,8 @@ import {
   Download,
   Trash2,
   MapPin,
+  FileDown,
+  AlertTriangle,
   Calendar,
   Lock,
   Phone,
@@ -156,6 +158,10 @@ export default function DashboardSettings() {
             <TabsTrigger value="security" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-600">
               <Shield className="h-4 w-4 mr-2" />
               Security
+            </TabsTrigger>
+            <TabsTrigger value="privacy" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-600">
+              <Lock className="h-4 w-4 mr-2" />
+              Privacy
             </TabsTrigger>
           </TabsList>
 
@@ -594,18 +600,151 @@ export default function DashboardSettings() {
               </CardContent>
             </Card>
 
+          </TabsContent>
+
+          {/* Privacy Tab - GDPR/CCPA Compliance */}
+          <TabsContent value="privacy" className="space-y-6">
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <FileDown className="h-5 w-5 text-orange-500" />
+                  Download Your Data
+                </CardTitle>
+                <CardDescription className="text-gray-500">
+                  GDPR & CCPA Compliance - Export all your personal data
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  You have the right to request a copy of all personal data we hold about you. 
+                  This includes your profile information, credit reports, dispute letters, and activity history.
+                </p>
+                <div className="flex items-center gap-4">
+                  <Button 
+                    onClick={async () => {
+                      try {
+                        const response = await fetch('/api/auth/export-data', {
+                          method: 'GET',
+                          credentials: 'include',
+                        });
+                        if (response.ok) {
+                          const blob = await response.blob();
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement('a');
+                          a.href = url;
+                          a.download = 'disputestrike-my-data.json';
+                          document.body.appendChild(a);
+                          a.click();
+                          window.URL.revokeObjectURL(url);
+                          a.remove();
+                          toast.success('Your data has been downloaded!');
+                        } else {
+                          toast.error('Failed to export data. Please try again.');
+                        }
+                      } catch (error) {
+                        toast.error('Failed to export data. Please try again.');
+                      }
+                    }}
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Download My Data
+                  </Button>
+                  <span className="text-sm text-gray-500">JSON format</span>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-sm text-blue-800">
+                    <strong>What's included:</strong> Profile information, uploaded credit reports, 
+                    generated dispute letters, dispute tracking history, and account activity logs.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white border-gray-200">
+              <CardHeader>
+                <CardTitle className="text-gray-900 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-green-500" />
+                  Your Privacy Rights
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">GDPR Rights (EU)</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✓ Right to access your data</li>
+                      <li>✓ Right to rectification</li>
+                      <li>✓ Right to erasure</li>
+                      <li>✓ Right to data portability</li>
+                    </ul>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-2">CCPA Rights (California)</h4>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>✓ Right to know what data is collected</li>
+                      <li>✓ Right to delete your data</li>
+                      <li>✓ Right to opt-out of data sale</li>
+                      <li>✓ Right to non-discrimination</li>
+                    </ul>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card className="bg-red-50 border-red-200">
               <CardHeader>
                 <CardTitle className="text-red-600 flex items-center gap-2">
                   <Trash2 className="h-5 w-5" />
-                  Delete Account
+                  Delete My Account
                 </CardTitle>
+                <CardDescription className="text-red-500">
+                  Permanently delete your account and all associated data
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-500 mb-4">
-                  Once you delete your account, there is no going back. All your data will be permanently removed.
-                </p>
-                <Button variant="outline" className="border-red-300 text-red-600 hover:bg-red-100">
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-red-100 rounded-lg border border-red-200">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+                    <div>
+                      <p className="text-sm text-red-800 font-medium">Warning: This action cannot be undone</p>
+                      <p className="text-sm text-red-700 mt-1">
+                        Deleting your account will permanently remove:
+                      </p>
+                      <ul className="text-sm text-red-700 mt-2 space-y-1">
+                        <li>• All personal information</li>
+                        <li>• Uploaded credit reports</li>
+                        <li>• Generated dispute letters</li>
+                        <li>• Dispute tracking history</li>
+                        <li>• Subscription and billing history</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-red-300 text-red-600 hover:bg-red-100"
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                      if (window.confirm('This will permanently delete ALL your data including credit reports and dispute letters. Type DELETE to confirm.')) {
+                        fetch('/api/auth/delete-account', {
+                          method: 'DELETE',
+                          credentials: 'include',
+                        }).then(response => {
+                          if (response.ok) {
+                            toast.success('Your account has been deleted.');
+                            window.location.href = '/';
+                          } else {
+                            toast.error('Failed to delete account. Please contact support.');
+                          }
+                        }).catch(() => {
+                          toast.error('Failed to delete account. Please contact support.');
+                        });
+                      }
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
                   Delete My Account
                 </Button>
               </CardContent>

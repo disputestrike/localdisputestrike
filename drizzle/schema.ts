@@ -927,3 +927,23 @@ export const adminActivityLog = mysqlTable("admin_activity_log", {
 
 export type AdminActivityLog = typeof adminActivityLog.$inferSelect;
 export type InsertAdminActivityLog = typeof adminActivityLog.$inferInsert;
+
+
+/**
+ * User audit logs for SOC 2 compliance
+ * Tracks all user actions for security and compliance
+ */
+export const auditLogs = mysqlTable("audit_logs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  action: varchar("action", { length: 100 }).notNull(), // 'login', 'logout', 'export_data', 'delete_account', 'upload_report', etc.
+  category: varchar("category", { length: 50 }).notNull(), // 'auth', 'data', 'dispute', 'settings'
+  details: text("details"), // JSON string with additional context
+  ipAddress: varchar("ipAddress", { length: 45 }),
+  userAgent: varchar("userAgent", { length: 500 }),
+  status: mysqlEnum("status", ["success", "failure", "pending"]).default("success").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = typeof auditLogs.$inferInsert;
