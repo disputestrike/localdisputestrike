@@ -217,6 +217,10 @@ async function startServer() {
   const customAuthRouter = (await import('../customAuthRouter')).default;
   app.use('/api/auth', customAuthRouter);
   
+  // V2 - Trial, subscription, and round management routes
+  const routesV2 = (await import('../routesV2')).default;
+  app.use('/api', routesV2);
+  
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   

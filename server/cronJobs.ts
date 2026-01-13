@@ -1,10 +1,17 @@
 /**
  * Cron Job Scheduler
- * Handles scheduled tasks like deadline notifications
+ * Handles scheduled tasks like deadline notifications and trial management
  */
 
 import { runDeadlineNotificationJob } from './deadlineNotificationService';
 import { processDeadlineSMSNotifications, isSMSEnabled } from './smsService';
+import { 
+  processTrialEmails, 
+  expireTrials, 
+  sendWinbackEmails, 
+  checkRoundUnlocks 
+} from './trialCronJobs';
+import * as db from './db';
 
 // Track if cron jobs are already running
 let cronJobsStarted = false;
@@ -12,6 +19,10 @@ let cronJobsStarted = false;
 // Store interval IDs for cleanup
 let deadlineNotificationInterval: NodeJS.Timeout | null = null;
 let smsNotificationInterval: NodeJS.Timeout | null = null;
+let trialEmailInterval: NodeJS.Timeout | null = null;
+let trialExpirationInterval: NodeJS.Timeout | null = null;
+let winbackEmailInterval: NodeJS.Timeout | null = null;
+let roundUnlockInterval: NodeJS.Timeout | null = null;
 
 /**
  * Calculate milliseconds until next 9am
@@ -29,6 +40,22 @@ function getMillisecondsUntilNext9AM(): number {
   }
   
   return next9AM.getTime() - now.getTime();
+}
+
+/**
+ * Calculate milliseconds until next 10am
+ */
+function getMillisecondsUntilNext10AM(): number {
+  const now = new Date();
+  const next10AM = new Date(now);
+  
+  next10AM.setHours(10, 0, 0, 0);
+  
+  if (now >= next10AM) {
+    next10AM.setDate(next10AM.getDate() + 1);
+  }
+  
+  return next10AM.getTime() - now.getTime();
 }
 
 /**
@@ -100,6 +127,129 @@ export function startSMSNotificationCron(): void {
   console.log('[Cron] SMS notification cron job scheduled successfully');
 }
 
+// ============================================
+// V2 - TRIAL MANAGEMENT CRON JOBS
+// ============================================
+
+/**
+ * Start the trial email cron job
+ * Runs every hour to send trial nurture emails
+ */
+export function startTrialEmailCron(): void {
+  if (trialEmailInterval) {
+    console.log('[Cron] Trial email job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting trial email cron job (every hour)');
+
+  // Run immediately on startup
+  processTrialEmails(db).catch(err => {
+    console.error('[Cron] Trial email job failed:', err);
+  });
+
+  // Then run every hour
+  trialEmailInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled trial email job');
+    processTrialEmails(db).catch(err => {
+      console.error('[Cron] Trial email job failed:', err);
+    });
+  }, 60 * 60 * 1000); // 1 hour
+
+  console.log('[Cron] Trial email cron job scheduled successfully');
+}
+
+/**
+ * Start the trial expiration cron job
+ * Runs every hour to expire trials past 7 days
+ */
+export function startTrialExpirationCron(): void {
+  if (trialExpirationInterval) {
+    console.log('[Cron] Trial expiration job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting trial expiration cron job (every hour)');
+
+  // Run immediately on startup
+  expireTrials(db).catch(err => {
+    console.error('[Cron] Trial expiration job failed:', err);
+  });
+
+  // Then run every hour
+  trialExpirationInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled trial expiration job');
+    expireTrials(db).catch(err => {
+      console.error('[Cron] Trial expiration job failed:', err);
+    });
+  }, 60 * 60 * 1000); // 1 hour
+
+  console.log('[Cron] Trial expiration cron job scheduled successfully');
+}
+
+/**
+ * Start the winback email cron job
+ * Runs daily at 10am to send winback emails to churned trials
+ */
+export function startWinbackEmailCron(): void {
+  if (winbackEmailInterval) {
+    console.log('[Cron] Winback email job already scheduled');
+    return;
+  }
+
+  const msUntil10AM = getMillisecondsUntilNext10AM();
+  const hoursUntil = Math.round(msUntil10AM / (1000 * 60 * 60) * 10) / 10;
+  
+  console.log(`[Cron] Scheduling winback emails - first run in ${hoursUntil} hours (at 10:00 AM)`);
+
+  // Schedule first run at 10am
+  setTimeout(() => {
+    console.log('[Cron] Running scheduled winback email job (10:00 AM)');
+    sendWinbackEmails(db).catch(err => {
+      console.error('[Cron] Winback email job failed:', err);
+    });
+
+    // Then run every 24 hours
+    winbackEmailInterval = setInterval(() => {
+      console.log('[Cron] Running scheduled winback email job (daily)');
+      sendWinbackEmails(db).catch(err => {
+        console.error('[Cron] Winback email job failed:', err);
+      });
+    }, 24 * 60 * 60 * 1000); // 24 hours
+    
+  }, msUntil10AM);
+
+  console.log('[Cron] Winback email cron job scheduled successfully');
+}
+
+/**
+ * Start the round unlock cron job
+ * Runs every hour to check for rounds that should be unlocked
+ */
+export function startRoundUnlockCron(): void {
+  if (roundUnlockInterval) {
+    console.log('[Cron] Round unlock job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting round unlock cron job (every hour)');
+
+  // Run immediately on startup
+  checkRoundUnlocks(db).catch(err => {
+    console.error('[Cron] Round unlock job failed:', err);
+  });
+
+  // Then run every hour
+  roundUnlockInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled round unlock job');
+    checkRoundUnlocks(db).catch(err => {
+      console.error('[Cron] Round unlock job failed:', err);
+    });
+  }, 60 * 60 * 1000); // 1 hour
+
+  console.log('[Cron] Round unlock cron job scheduled successfully');
+}
+
 /**
  * Stop all cron jobs
  */
@@ -113,6 +263,26 @@ export function stopCronJobs(): void {
     clearInterval(smsNotificationInterval);
     smsNotificationInterval = null;
     console.log('[Cron] SMS notification cron job stopped');
+  }
+  if (trialEmailInterval) {
+    clearInterval(trialEmailInterval);
+    trialEmailInterval = null;
+    console.log('[Cron] Trial email cron job stopped');
+  }
+  if (trialExpirationInterval) {
+    clearInterval(trialExpirationInterval);
+    trialExpirationInterval = null;
+    console.log('[Cron] Trial expiration cron job stopped');
+  }
+  if (winbackEmailInterval) {
+    clearInterval(winbackEmailInterval);
+    winbackEmailInterval = null;
+    console.log('[Cron] Winback email cron job stopped');
+  }
+  if (roundUnlockInterval) {
+    clearInterval(roundUnlockInterval);
+    roundUnlockInterval = null;
+    console.log('[Cron] Round unlock cron job stopped');
   }
 }
 
@@ -134,6 +304,12 @@ export function startAllCronJobs(): void {
   // Start SMS notification cron
   startSMSNotificationCron();
   
+  // V2 - Start trial management cron jobs
+  startTrialEmailCron();
+  startTrialExpirationCron();
+  startWinbackEmailCron();
+  startRoundUnlockCron();
+  
   cronJobsStarted = true;
   console.log('[Cron] All cron jobs started successfully');
 }
@@ -146,6 +322,19 @@ export function getCronJobStatus(): {
     active: boolean;
     nextRun: Date | null;
   };
+  trialEmails: {
+    active: boolean;
+  };
+  trialExpiration: {
+    active: boolean;
+  };
+  winbackEmails: {
+    active: boolean;
+    nextRun: Date | null;
+  };
+  roundUnlocks: {
+    active: boolean;
+  };
 } {
   const now = new Date();
   const next9AM = new Date(now);
@@ -154,10 +343,29 @@ export function getCronJobStatus(): {
     next9AM.setDate(next9AM.getDate() + 1);
   }
 
+  const next10AM = new Date(now);
+  next10AM.setHours(10, 0, 0, 0);
+  if (now >= next10AM) {
+    next10AM.setDate(next10AM.getDate() + 1);
+  }
+
   return {
     deadlineNotifications: {
       active: deadlineNotificationInterval !== null || cronJobsStarted,
       nextRun: cronJobsStarted ? next9AM : null,
+    },
+    trialEmails: {
+      active: trialEmailInterval !== null,
+    },
+    trialExpiration: {
+      active: trialExpirationInterval !== null,
+    },
+    winbackEmails: {
+      active: winbackEmailInterval !== null,
+      nextRun: cronJobsStarted ? next10AM : null,
+    },
+    roundUnlocks: {
+      active: roundUnlockInterval !== null,
     },
   };
 }

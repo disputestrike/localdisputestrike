@@ -947,3 +947,272 @@ export const auditLogs = mysqlTable("audit_logs", {
 
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = typeof auditLogs.$inferInsert;
+
+// ============================================
+// DISPUTESTRIKE V2 - NEW TABLES
+// ============================================
+
+/**
+ * V2 Subscriptions with trial support
+ * Tiers: trial, starter ($49/mo), professional ($69.95/mo), complete ($99.95/mo)
+ */
+export const subscriptionsV2 = mysqlTable("subscriptions_v2", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  
+  // Stripe integration
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  
+  // Subscription tier
+  tier: mysqlEnum("tier", ["trial", "starter", "professional", "complete"]).notNull(),
+  
+  // Status
+  status: mysqlEnum("status", [
+    "trial",
+    "trial_expired",
+    "active",
+    "past_due",
+    "canceled",
+    "paused"
+  ]).default("trial").notNull(),
+  
+  // Trial tracking
+  trialStartedAt: timestamp("trialStartedAt"),
+  trialEndsAt: timestamp("trialEndsAt"),
+  trialConvertedAt: timestamp("trialConvertedAt"),
+  
+  // Billing cycle
+  currentPeriodStart: timestamp("currentPeriodStart"),
+  currentPeriodEnd: timestamp("currentPeriodEnd"),
+  
+  // Cancellation
+  canceledAt: timestamp("canceledAt"),
+  cancelReason: text("cancelReason"),
+  
+  // Monitoring partner
+  monitoringPartnerId: varchar("monitoringPartnerId", { length: 255 }),
+  monitoringStatus: mysqlEnum("monitoringStatus", ["pending", "active", "suspended", "canceled"]).default("pending"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type SubscriptionV2 = typeof subscriptionsV2.$inferSelect;
+export type InsertSubscriptionV2 = typeof subscriptionsV2.$inferInsert;
+
+/**
+ * Dispute rounds tracking with locking
+ */
+export const disputeRounds = mysqlTable("dispute_rounds", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  roundNumber: int("roundNumber").notNull(),
+  
+  status: mysqlEnum("status", [
+    "pending",
+    "active",
+    "letters_generated",
+    "mailed",
+    "awaiting_response",
+    "responses_uploaded",
+    "complete"
+  ]).default("pending").notNull(),
+  
+  // Timing
+  startedAt: timestamp("startedAt"),
+  lettersGeneratedAt: timestamp("lettersGeneratedAt"),
+  mailedAt: timestamp("mailedAt"),
+  
+  // Round locking
+  lockedUntil: timestamp("lockedUntil"),
+  unlockedEarly: boolean("unlockedEarly").default(false),
+  
+  // Items
+  itemsDisputed: int("itemsDisputed").default(0),
+  disputedItemIds: text("disputedItemIds"), // JSON array
+  
+  // Results
+  itemsDeleted: int("itemsDeleted").default(0),
+  itemsVerified: int("itemsVerified").default(0),
+  itemsUpdated: int("itemsUpdated").default(0),
+  itemsNoResponse: int("itemsNoResponse").default(0),
+  
+  completedAt: timestamp("completedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type DisputeRound = typeof disputeRounds.$inferSelect;
+export type InsertDisputeRound = typeof disputeRounds.$inferInsert;
+
+/**
+ * AI recommendations for dispute items
+ */
+export const aiRecommendations = mysqlTable("ai_recommendations", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  negativeAccountId: int("negativeAccountId").notNull(),
+  roundId: int("roundId"),
+  
+  isRecommended: boolean("isRecommended").default(false).notNull(),
+  priority: int("priority"),
+  winProbability: int("winProbability"),
+  recommendationReason: text("recommendationReason"),
+  factors: text("factors"), // JSON array
+  methodsTriggered: text("methodsTriggered"), // JSON array
+  
+  wasDisputed: boolean("wasDisputed").default(false),
+  outcome: mysqlEnum("outcome", ["pending", "deleted", "verified", "updated", "no_response"]),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AIRecommendation = typeof aiRecommendations.$inferSelect;
+export type InsertAIRecommendation = typeof aiRecommendations.$inferInsert;
+
+/**
+ * Bureau response uploads
+ */
+export const bureauResponses = mysqlTable("bureau_responses", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  roundId: int("roundId").notNull(),
+  
+  bureau: mysqlEnum("bureau", ["transunion", "equifax", "experian"]).notNull(),
+  
+  fileUrl: text("fileUrl").notNull(),
+  fileKey: text("fileKey").notNull(),
+  fileName: text("fileName"),
+  
+  responseDate: timestamp("responseDate"),
+  receivedDate: timestamp("receivedDate"),
+  
+  isParsed: boolean("isParsed").default(false),
+  parsedData: text("parsedData"), // JSON
+  
+  itemsDeleted: int("itemsDeleted").default(0),
+  itemsVerified: int("itemsVerified").default(0),
+  itemsUpdated: int("itemsUpdated").default(0),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type BureauResponse = typeof bureauResponses.$inferSelect;
+export type InsertBureauResponse = typeof bureauResponses.$inferInsert;
+
+/**
+ * Onboarding wizard progress
+ */
+export const onboardingProgress = mysqlTable("onboarding_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  
+  step1_personalInfo: boolean("step1_personalInfo").default(false),
+  step2_address: boolean("step2_address").default(false),
+  step3_identityDocs: boolean("step3_identityDocs").default(false),
+  step4_creditReports: boolean("step4_creditReports").default(false),
+  step5_planSelection: boolean("step5_planSelection").default(false),
+  
+  currentStep: int("currentStep").default(1),
+  isComplete: boolean("isComplete").default(false),
+  completedAt: timestamp("completedAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type OnboardingProgress = typeof onboardingProgress.$inferSelect;
+export type InsertOnboardingProgress = typeof onboardingProgress.$inferInsert;
+
+/**
+ * Identity documents for verification
+ */
+export const identityDocuments = mysqlTable("identity_documents", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  documentType: mysqlEnum("documentType", [
+    "drivers_license",
+    "passport",
+    "state_id",
+    "utility_bill",
+    "bank_statement",
+    "ssn_card"
+  ]).notNull(),
+  
+  fileUrl: text("fileUrl").notNull(),
+  fileKey: text("fileKey").notNull(),
+  fileName: text("fileName"),
+  
+  isVerified: boolean("isVerified").default(false),
+  verifiedAt: timestamp("verifiedAt"),
+  verifiedBy: int("verifiedBy"),
+  
+  expirationDate: varchar("expirationDate", { length: 20 }),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type IdentityDocument = typeof identityDocuments.$inferSelect;
+export type InsertIdentityDocument = typeof identityDocuments.$inferInsert;
+
+/**
+ * Trial conversion tracking
+ */
+export const trialConversions = mysqlTable("trial_conversions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  
+  trialStartedAt: timestamp("trialStartedAt").notNull(),
+  trialEndsAt: timestamp("trialEndsAt").notNull(),
+  
+  converted: boolean("converted").default(false),
+  convertedAt: timestamp("convertedAt"),
+  convertedToTier: mysqlEnum("convertedToTier", ["starter", "professional", "complete"]),
+  
+  expiredAt: timestamp("expiredAt"),
+  
+  // Email tracking
+  day1EmailSent: boolean("day1EmailSent").default(false),
+  day3EmailSent: boolean("day3EmailSent").default(false),
+  day5EmailSent: boolean("day5EmailSent").default(false),
+  day6EmailSent: boolean("day6EmailSent").default(false),
+  day7EmailSent: boolean("day7EmailSent").default(false),
+  
+  // Engagement
+  creditReportsPulled: boolean("creditReportsPulled").default(false),
+  negativeItemsViewed: boolean("negativeItemsViewed").default(false),
+  aiRecommendationsViewed: boolean("aiRecommendationsViewed").default(false),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type TrialConversion = typeof trialConversions.$inferSelect;
+export type InsertTrialConversion = typeof trialConversions.$inferInsert;
+
+/**
+ * Monitoring accounts (IdentityIQ integration)
+ */
+export const monitoringAccounts = mysqlTable("monitoring_accounts", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  
+  partner: mysqlEnum("partner", ["identityiq", "smartcredit", "myscoreiq"]).default("identityiq"),
+  partnerUserId: varchar("partnerUserId", { length: 255 }),
+  
+  status: mysqlEnum("status", ["pending", "active", "suspended", "canceled"]).default("pending"),
+  
+  lastCreditPullAt: timestamp("lastCreditPullAt"),
+  nextScheduledPull: timestamp("nextScheduledPull"),
+  
+  transunionScore: int("transunionScore"),
+  equifaxScore: int("equifaxScore"),
+  experianScore: int("experianScore"),
+  scoresUpdatedAt: timestamp("scoresUpdatedAt"),
+  
+  alertsEnabled: boolean("alertsEnabled").default(true),
+  lastAlertAt: timestamp("lastAlertAt"),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type MonitoringAccount = typeof monitoringAccounts.$inferSelect;
+export type InsertMonitoringAccount = typeof monitoringAccounts.$inferInsert;
