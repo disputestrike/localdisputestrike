@@ -39,7 +39,7 @@ export default function Home() {
             <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               How It Works
             </Link>
-            <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
+            <Link href="/trial-checkout" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Pricing
             </Link>
             <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
@@ -59,10 +59,10 @@ export default function Home() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button variant="outline" className="border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
-                  <Link href="/quiz">Free Analysis</Link>
+                  <Link href="/trial-checkout">Start $1 Trial</Link>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/pricing">Sign Up</Link>
+                  <Link href="/trial-checkout">Sign Up</Link>
                 </Button>
               </>
             )}
@@ -113,13 +113,13 @@ export default function Home() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
-                <Link href="/quiz">
-                  Free Analysis <ArrowRight className="ml-2" />
+                <Link href="/trial-checkout">
+                  Start $1 Trial <ArrowRight className="ml-2" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
-                <Link href="/pricing">
-                  Sign Up Now
+                <Link href="/trial-checkout">
+                  Get Started - $1
                 </Link>
               </Button>
             </div>
@@ -160,10 +160,10 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-                  <Link href="/quiz">Free Assessment <ArrowRight className="ml-2" /></Link>
+                  <Link href="/trial-checkout">Start $1 Trial <ArrowRight className="ml-2" /></Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6" asChild>
-                  <Link href="/pricing">Sign Up Now</Link>
+                  <Link href="/trial-checkout">Get Started - $1</Link>
                 </Button>
               </div>
             </div>
@@ -314,7 +314,7 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/quiz">Take Control of Your Credit <ArrowRight className="ml-2" /></Link>
+              <Link href="/trial-checkout">Take Control of Your Credit <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
         </div>
@@ -373,7 +373,7 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/quiz">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
+              <Link href="/trial-checkout">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
         </div>
@@ -967,7 +967,7 @@ export default function Home() {
                   <span className="text-gray-400">Cross-bureau conflict detection</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Start Your Journey</Link>
+                  <Link href="/trial-checkout">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -1004,7 +1004,7 @@ export default function Home() {
                   <span className="text-gray-700 font-semibold">Priority support</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Start Your Journey</Link>
+                  <Link href="/trial-checkout">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -1038,7 +1038,7 @@ export default function Home() {
                   <span className="text-gray-700">1-on-1 educational coaching (not legal advice)</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/quiz">Start Your Journey</Link>
+                  <Link href="/trial-checkout">Start Your Journey</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -1102,8 +1102,8 @@ export default function Home() {
             Join 16,628 registered users monitoring their credit and challenging inaccuracies
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/quiz">
-              Start Free Analysis <ArrowRight className="ml-2" />
+            <Link href="/trial-checkout">
+              Start $1 Trial <ArrowRight className="ml-2" />
             </Link>
           </Button>
         </div>

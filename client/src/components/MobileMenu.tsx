@@ -65,7 +65,7 @@ export function MobileMenu() {
             </Link>
             
             <Link
-              href="/pricing"
+              href="/trial-checkout"
               onClick={() => setIsOpen(false)}
               className="block py-3 text-lg font-medium text-gray-700 hover:text-orange-600 transition-colors"
             >
@@ -119,13 +119,13 @@ export function MobileMenu() {
                     <Link href="/login" onClick={() => setIsOpen(false)}>Login</Link>
                   </Button>
                   <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                    <Link href="/pricing" onClick={() => setIsOpen(false)}>
+                    <Link href="/trial-checkout" onClick={() => setIsOpen(false)}>
                       Sign Up Now
                     </Link>
                   </Button>
                   <Button variant="outline" className="w-full border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
-                    <Link href="/quiz" onClick={() => setIsOpen(false)}>
-                      Free Analysis First
+                    <Link href="/trial-checkout" onClick={() => setIsOpen(false)}>
+                      Start $1 Trial First
                     </Link>
                   </Button>
                 </>

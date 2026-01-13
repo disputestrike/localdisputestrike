@@ -29,7 +29,7 @@ export default function Guarantee() {
             <Link href="/how-it-works">
               <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">How It Works</a>
             </Link>
-            <Link href="/pricing">
+            <Link href="/trial-checkout">
               <a className="text-gray-700 hover:text-orange-600 font-medium transition-colors">Pricing</a>
             </Link>
             <Link href="/faq">
@@ -190,7 +190,7 @@ export default function Guarantee() {
             Join thousands of users who are taking control of their credit with our monitoring and dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/quiz">Start Free Analysis</Link>
+            <Link href="/trial-checkout">Start Start $1 Trial</Link>
           </Button>
         </div>
       </section>
@@ -203,7 +203,7 @@ export default function Guarantee() {
               <h3 className="font-bold text-white text-lg mb-4">Product</h3>
               <ul className="space-y-2">
                 <li><Link href="/features"><a className="hover:text-white transition-colors">Features</a></Link></li>
-                <li><Link href="/pricing"><a className="hover:text-white transition-colors">Pricing</a></Link></li>
+                <li><Link href="/trial-checkout"><a className="hover:text-white transition-colors">Pricing</a></Link></li>
                 <li><Link href="/how-it-works"><a className="hover:text-white transition-colors">How It Works</a></Link></li>
               </ul>
             </div>

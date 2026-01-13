@@ -65,7 +65,7 @@ export function ExitIntentPopup() {
 
           <div className="space-y-2">
             <Button size="lg" className="w-full" asChild>
-              <Link href="/quiz">
+              <Link href="/trial-checkout">
                 Claim My Free Analysis <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>

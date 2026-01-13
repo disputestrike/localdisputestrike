@@ -20,7 +20,7 @@ export default function About() {
             <nav className="hidden md:flex items-center gap-8">
               <Link href="/features" className="text-gray-700 hover:text-orange-600 font-medium">Features</Link>
               <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium">How It Works</Link>
-              <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
+              <Link href="/trial-checkout" className="text-gray-700 hover:text-orange-600 font-medium">Pricing</Link>
               <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium">FAQ</Link>
               <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium">Money Back Guarantee</Link>
               <UserDropdown />
@@ -179,7 +179,7 @@ export default function About() {
               Join thousands of users who've successfully deleted negative items and raised their credit scores.
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-              <Link href="/quiz">Start Free Analysis</Link>
+              <Link href="/trial-checkout">Start Start $1 Trial</Link>
             </Button>
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function About() {
               <h3 className="font-bold text-lg mb-4">Product</h3>
               <ul className="space-y-2">
                 <li><Link href="/features" className="text-gray-400 hover:text-white">Features</Link></li>
-                <li><Link href="/pricing" className="text-gray-400 hover:text-white">Pricing</Link></li>
+                <li><Link href="/trial-checkout" className="text-gray-400 hover:text-white">Pricing</Link></li>
                 <li><Link href="/how-it-works" className="text-gray-400 hover:text-white">How It Works</Link></li>
               </ul>
             </div>
