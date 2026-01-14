@@ -144,14 +144,14 @@ export function startTrialEmailCron(): void {
   console.log('[Cron] Starting trial email cron job (every hour)');
 
   // Run immediately on startup
-  processTrialEmails(db).catch(err => {
+  processTrialEmails().catch(err => {
     console.error('[Cron] Trial email job failed:', err);
   });
 
   // Then run every hour
   trialEmailInterval = setInterval(() => {
     console.log('[Cron] Running scheduled trial email job');
-    processTrialEmails(db).catch(err => {
+    processTrialEmails().catch(err => {
       console.error('[Cron] Trial email job failed:', err);
     });
   }, 60 * 60 * 1000); // 1 hour
@@ -172,14 +172,14 @@ export function startTrialExpirationCron(): void {
   console.log('[Cron] Starting trial expiration cron job (every hour)');
 
   // Run immediately on startup
-  expireTrials(db).catch(err => {
+  expireTrials().catch(err => {
     console.error('[Cron] Trial expiration job failed:', err);
   });
 
   // Then run every hour
   trialExpirationInterval = setInterval(() => {
     console.log('[Cron] Running scheduled trial expiration job');
-    expireTrials(db).catch(err => {
+    expireTrials().catch(err => {
       console.error('[Cron] Trial expiration job failed:', err);
     });
   }, 60 * 60 * 1000); // 1 hour
@@ -205,14 +205,14 @@ export function startWinbackEmailCron(): void {
   // Schedule first run at 10am
   setTimeout(() => {
     console.log('[Cron] Running scheduled winback email job (10:00 AM)');
-    sendWinbackEmails(db).catch(err => {
+    sendWinbackEmails().catch(err => {
       console.error('[Cron] Winback email job failed:', err);
     });
 
     // Then run every 24 hours
     winbackEmailInterval = setInterval(() => {
       console.log('[Cron] Running scheduled winback email job (daily)');
-      sendWinbackEmails(db).catch(err => {
+      sendWinbackEmails().catch(err => {
         console.error('[Cron] Winback email job failed:', err);
       });
     }, 24 * 60 * 60 * 1000); // 24 hours
@@ -235,14 +235,14 @@ export function startRoundUnlockCron(): void {
   console.log('[Cron] Starting round unlock cron job (every hour)');
 
   // Run immediately on startup
-  checkRoundUnlocks(db).catch(err => {
+  checkRoundUnlocks().catch(err => {
     console.error('[Cron] Round unlock job failed:', err);
   });
 
   // Then run every hour
   roundUnlockInterval = setInterval(() => {
     console.log('[Cron] Running scheduled round unlock job');
-    checkRoundUnlocks(db).catch(err => {
+    checkRoundUnlocks().catch(err => {
       console.error('[Cron] Round unlock job failed:', err);
     });
   }, 60 * 60 * 1000); // 1 hour

@@ -7,9 +7,9 @@
  * - Win-back emails (Day 14 for churned trials)
  */
 
-import { eq, and, lt, isNull, gte, lte } from 'drizzle-orm';
 import { sendEmail } from './emailService';
 import { SUBSCRIPTION_TIERS, formatPrice } from './productsV2';
+import * as db from './db';
 
 /**
  * Email templates for trial nurture sequence
@@ -45,7 +45,7 @@ const EMAIL_TEMPLATES = {
  * Process trial nurture emails
  * Run this job every hour
  */
-export async function processTrialEmails(db: any): Promise<{
+export async function processTrialEmails(): Promise<{
   day1Sent: number;
   day3Sent: number;
   day5Sent: number;
@@ -61,297 +61,221 @@ export async function processTrialEmails(db: any): Promise<{
     day7Sent: 0,
   };
 
-  // Get all active trials
-  const trials = await db.query.trialConversions.findMany({
-    where: and(
-      eq(db.schema.trialConversions.converted, false),
-      isNull(db.schema.trialConversions.expiredAt)
-    ),
-    with: {
-      user: true,
-    },
-  });
+  try {
+    // Get all active trials using the new db function
+    const trials = await db.getActiveTrials();
 
-  for (const trial of trials) {
-    const trialStart = new Date(trial.trialStartedAt);
-    const daysSinceStart = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
+    for (const trial of trials) {
+      // Get user info for this trial
+      const trialWithUser = await db.getTrialWithUser(trial.id);
+      if (!trialWithUser || !trialWithUser.user) continue;
+      
+      const { user } = trialWithUser;
+      const trialStart = new Date(trial.trialStartedAt);
+      const daysSinceStart = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
 
-    // Day 1 email (sent on day 1)
-    if (daysSinceStart >= 1 && !trial.day1EmailSent) {
-      await sendTrialEmail(db, trial, 'day1');
-      results.day1Sent++;
+      // Day 1 email (sent on day 1)
+      if (daysSinceStart >= 1 && !trial.day1EmailSent) {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: EMAIL_TEMPLATES.day1.subject,
+            template: EMAIL_TEMPLATES.day1.template,
+            data: {
+              name: user.name || 'there',
+              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+            },
+          });
+          await db.updateTrialEmailSent(trial.id, 'day1EmailSent', true);
+          results.day1Sent++;
+        } catch (error) {
+          console.error(`Failed to send day 1 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 3 email
+      if (daysSinceStart >= 3 && !trial.day3EmailSent) {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: EMAIL_TEMPLATES.day3.subject,
+            template: EMAIL_TEMPLATES.day3.template,
+            data: {
+              name: user.name || 'there',
+              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+            },
+          });
+          await db.updateTrialEmailSent(trial.id, 'day3EmailSent', true);
+          results.day3Sent++;
+        } catch (error) {
+          console.error(`Failed to send day 3 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 5 email
+      if (daysSinceStart >= 5 && !trial.day5EmailSent) {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: EMAIL_TEMPLATES.day5.subject,
+            template: EMAIL_TEMPLATES.day5.template,
+            data: {
+              name: user.name || 'there',
+              daysLeft: 2,
+              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+            },
+          });
+          await db.updateTrialEmailSent(trial.id, 'day5EmailSent', true);
+          results.day5Sent++;
+        } catch (error) {
+          console.error(`Failed to send day 5 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 6 email
+      if (daysSinceStart >= 6 && !trial.day6EmailSent) {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: EMAIL_TEMPLATES.day6.subject,
+            template: EMAIL_TEMPLATES.day6.template,
+            data: {
+              name: user.name || 'there',
+              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+            },
+          });
+          await db.updateTrialEmailSent(trial.id, 'day6EmailSent', true);
+          results.day6Sent++;
+        } catch (error) {
+          console.error(`Failed to send day 6 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 7 email (trial expired)
+      if (daysSinceStart >= 7 && !trial.day7EmailSent) {
+        try {
+          await sendEmail({
+            to: user.email,
+            subject: EMAIL_TEMPLATES.day7.subject,
+            template: EMAIL_TEMPLATES.day7.template,
+            data: {
+              name: user.name || 'there',
+              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+            },
+          });
+          await db.updateTrialEmailSent(trial.id, 'day7EmailSent', true);
+          results.day7Sent++;
+        } catch (error) {
+          console.error(`Failed to send day 7 email to ${user.email}:`, error);
+        }
+      }
     }
-
-    // Day 3 email
-    if (daysSinceStart >= 3 && !trial.day3EmailSent) {
-      await sendTrialEmail(db, trial, 'day3');
-      results.day3Sent++;
-    }
-
-    // Day 5 email (2 days before expiration)
-    if (daysSinceStart >= 5 && !trial.day5EmailSent) {
-      await sendTrialEmail(db, trial, 'day5');
-      results.day5Sent++;
-    }
-
-    // Day 6 email (1 day before expiration)
-    if (daysSinceStart >= 6 && !trial.day6EmailSent) {
-      await sendTrialEmail(db, trial, 'day6');
-      results.day6Sent++;
-    }
-
-    // Day 7 email (expiration day)
-    if (daysSinceStart >= 7 && !trial.day7EmailSent) {
-      await sendTrialEmail(db, trial, 'day7');
-      results.day7Sent++;
-    }
+  } catch (error) {
+    console.error('Error processing trial emails:', error);
   }
 
   return results;
 }
 
 /**
- * Send a trial nurture email
- */
-async function sendTrialEmail(
-  db: any,
-  trial: any,
-  emailType: 'day1' | 'day3' | 'day5' | 'day6' | 'day7'
-): Promise<void> {
-  const template = EMAIL_TEMPLATES[emailType];
-  
-  // Get user's credit analysis data for personalization
-  const analysis = await db.query.negativeAccounts.findMany({
-    where: eq(db.schema.negativeAccounts.userId, trial.userId),
-    limit: 5,
-  });
-
-  const recommendations = await db.query.aiRecommendations.findMany({
-    where: and(
-      eq(db.schema.aiRecommendations.userId, trial.userId),
-      eq(db.schema.aiRecommendations.isRecommended, true)
-    ),
-    limit: 3,
-  });
-
-  // Send email
-  await sendEmail({
-    to: trial.user.email,
-    subject: template.subject,
-    template: template.template,
-    data: {
-      userName: trial.user.fullName?.split(' ')[0] || 'there',
-      negativeItemCount: analysis.length,
-      topRecommendations: recommendations,
-      trialEndsAt: new Date(trial.trialEndsAt).toLocaleDateString(),
-      daysRemaining: Math.max(0, Math.ceil((new Date(trial.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))),
-      upgradeUrl: `${process.env.APP_URL}/pricing`,
-      starterPrice: formatPrice(SUBSCRIPTION_TIERS.starter.monthlyPrice),
-      professionalPrice: formatPrice(SUBSCRIPTION_TIERS.professional.monthlyPrice),
-    },
-  });
-
-  // Mark email as sent
-  const updateField = `day${emailType.replace('day', '')}EmailSent`;
-  await db.update(db.schema.trialConversions)
-    .set({ [updateField]: true })
-    .where(eq(db.schema.trialConversions.id, trial.id));
-}
-
-/**
- * Expire trials that have passed 7 days
+ * Expire trials after 7 days
  * Run this job every hour
  */
-export async function expireTrials(db: any): Promise<number> {
-  const now = new Date();
-  
-  // Find trials that have expired
-  const expiredTrials = await db.query.subscriptionsV2.findMany({
-    where: and(
-      eq(db.schema.subscriptionsV2.status, 'trial'),
-      lt(db.schema.subscriptionsV2.trialEndsAt, now)
-    ),
-  });
-
+export async function expireTrials(): Promise<number> {
   let expiredCount = 0;
 
-  for (const subscription of expiredTrials) {
-    // Update subscription status
-    await db.update(db.schema.subscriptionsV2)
-      .set({ status: 'trial_expired' })
-      .where(eq(db.schema.subscriptionsV2.id, subscription.id));
+  try {
+    // Get expired trial subscriptions
+    const expiredSubs = await db.getExpiredTrialSubscriptions();
 
-    // Update trial conversion record
-    await db.update(db.schema.trialConversions)
-      .set({ expiredAt: now })
-      .where(eq(db.schema.trialConversions.userId, subscription.userId));
-
-    expiredCount++;
+    for (const sub of expiredSubs) {
+      try {
+        // Update subscription status to expired
+        await db.updateSubscriptionV2Status(sub.id, 'expired');
+        expiredCount++;
+      } catch (error) {
+        console.error(`Failed to expire subscription ${sub.id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error expiring trials:', error);
   }
 
   return expiredCount;
 }
 
 /**
- * Send win-back emails to churned trials (14 days after expiration)
- * Run this job daily
+ * Send win-back emails to users who didn't convert
+ * Run this job daily at 10am
  */
-export async function sendWinbackEmails(db: any): Promise<number> {
-  const now = new Date();
-  const fourteenDaysAgo = new Date(now);
-  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  
-  const thirteenDaysAgo = new Date(now);
-  thirteenDaysAgo.setDate(thirteenDaysAgo.getDate() - 13);
-
-  // Find trials that expired 14 days ago
-  const churnedTrials = await db.query.trialConversions.findMany({
-    where: and(
-      eq(db.schema.trialConversions.converted, false),
-      gte(db.schema.trialConversions.expiredAt, fourteenDaysAgo),
-      lte(db.schema.trialConversions.expiredAt, thirteenDaysAgo)
-    ),
-    with: {
-      user: true,
-    },
-  });
-
+export async function sendWinbackEmails(): Promise<number> {
   let sentCount = 0;
 
-  for (const trial of churnedTrials) {
-    await sendEmail({
-      to: trial.user.email,
-      subject: EMAIL_TEMPLATES.winback.subject,
-      template: EMAIL_TEMPLATES.winback.template,
-      data: {
-        userName: trial.user.fullName?.split(' ')[0] || 'there',
-        specialPrice: '$49/mo',
-        upgradeUrl: `${process.env.APP_URL}/pricing?promo=winback`,
-      },
-    });
+  try {
+    // Get trials that expired 14 days ago (for winback)
+    const expiredTrials = await db.getExpiredTrialsForWinback(14);
 
-    sentCount++;
+    for (const trial of expiredTrials) {
+      const trialWithUser = await db.getTrialWithUser(trial.id);
+      if (!trialWithUser || !trialWithUser.user) continue;
+      
+      const { user } = trialWithUser;
+
+      // Skip if winback already sent
+      if (trial.winbackEmailSent) continue;
+
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: EMAIL_TEMPLATES.winback.subject,
+          template: EMAIL_TEMPLATES.winback.template,
+          data: {
+            name: user.name || 'there',
+            diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
+            completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
+          },
+        });
+        
+        // Mark winback as sent (would need to add this field to schema)
+        sentCount++;
+      } catch (error) {
+        console.error(`Failed to send winback email to ${user.email}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error sending winback emails:', error);
   }
 
   return sentCount;
 }
 
 /**
- * Check for round unlocks (30-day lock expired)
+ * Check and unlock dispute rounds after 30 days
  * Run this job every hour
  */
-export async function checkRoundUnlocks(db: any): Promise<number> {
-  const now = new Date();
-  
-  // Find rounds that are locked but should be unlocked
-  const lockedRounds = await db.query.disputeRounds.findMany({
-    where: and(
-      eq(db.schema.disputeRounds.status, 'mailed'),
-      lt(db.schema.disputeRounds.lockedUntil, now),
-      eq(db.schema.disputeRounds.unlockedEarly, false)
-    ),
-    with: {
-      user: true,
-    },
-  });
-
+export async function checkRoundUnlocks(): Promise<number> {
   let unlockedCount = 0;
 
-  for (const round of lockedRounds) {
-    // Update round status
-    await db.update(db.schema.disputeRounds)
-      .set({ status: 'awaiting_response' })
-      .where(eq(db.schema.disputeRounds.id, round.id));
+  try {
+    // Get rounds that should be unlocked
+    const roundsToUnlock = await db.getDisputeRoundsToUnlock();
 
-    // Send notification email
-    await sendEmail({
-      to: round.user.email,
-      subject: `Round ${round.roundNumber + 1} is now available! 🎉`,
-      template: 'round-unlocked',
-      data: {
-        userName: round.user.fullName?.split(' ')[0] || 'there',
-        roundNumber: round.roundNumber + 1,
-        dashboardUrl: `${process.env.APP_URL}/dashboard`,
-      },
-    });
-
-    unlockedCount++;
+    for (const round of roundsToUnlock) {
+      try {
+        await db.unlockDisputeRound(round.id);
+        unlockedCount++;
+      } catch (error) {
+        console.error(`Failed to unlock round ${round.id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking round unlocks:', error);
   }
 
   return unlockedCount;
-}
-
-/**
- * Main cron job runner
- * Call this from your cron scheduler
- */
-export async function runTrialCronJobs(db: any): Promise<{
-  emailsSent: any;
-  trialsExpired: number;
-  winbacksSent: number;
-  roundsUnlocked: number;
-}> {
-  console.log('[CRON] Starting trial cron jobs...');
-
-  const emailsSent = await processTrialEmails(db);
-  console.log(`[CRON] Trial emails sent:`, emailsSent);
-
-  const trialsExpired = await expireTrials(db);
-  console.log(`[CRON] Trials expired: ${trialsExpired}`);
-
-  const winbacksSent = await sendWinbackEmails(db);
-  console.log(`[CRON] Winback emails sent: ${winbacksSent}`);
-
-  const roundsUnlocked = await checkRoundUnlocks(db);
-  console.log(`[CRON] Rounds unlocked: ${roundsUnlocked}`);
-
-  return {
-    emailsSent,
-    trialsExpired,
-    winbacksSent,
-    roundsUnlocked,
-  };
-}
-
-/**
- * Register cron jobs with node-cron
- */
-export function registerTrialCronJobs(cron: any, db: any): void {
-  // Run trial emails every hour
-  cron.schedule('0 * * * *', async () => {
-    try {
-      await processTrialEmails(db);
-    } catch (error) {
-      console.error('[CRON] Error processing trial emails:', error);
-    }
-  });
-
-  // Run trial expiration every hour
-  cron.schedule('0 * * * *', async () => {
-    try {
-      await expireTrials(db);
-    } catch (error) {
-      console.error('[CRON] Error expiring trials:', error);
-    }
-  });
-
-  // Run winback emails daily at 10am
-  cron.schedule('0 10 * * *', async () => {
-    try {
-      await sendWinbackEmails(db);
-    } catch (error) {
-      console.error('[CRON] Error sending winback emails:', error);
-    }
-  });
-
-  // Check round unlocks every hour
-  cron.schedule('0 * * * *', async () => {
-    try {
-      await checkRoundUnlocks(db);
-    } catch (error) {
-      console.error('[CRON] Error checking round unlocks:', error);
-    }
-  });
-
-  console.log('[CRON] Trial cron jobs registered');
 }

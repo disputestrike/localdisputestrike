@@ -17,7 +17,6 @@ class AIProviderService {
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
-        baseURL: "https://api.openai.com/v1",
       });
       console.log('[AI Provider] OpenAI initialized (Primary)');
     } else {
@@ -50,7 +49,7 @@ class AIProviderService {
     console.log('[AI] Calling OpenAI API (Primary)...');
     
     const response = await this.openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4.1-mini",
       messages: [
         {
           role: "system",
@@ -107,7 +106,7 @@ class AIProviderService {
         console.log('[AI] Calling OpenAI Vision API...');
         
         const response = await this.openai.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-4.1-mini",
           messages: [
             {
               role: "system",

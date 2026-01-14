@@ -83,12 +83,11 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">4. Payment Terms</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeStrike offers one-time payment packages with no recurring subscriptions:
+                DisputeStrike offers a $1 trial for 7 days followed by monthly subscription plans:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li><strong>Starter Package ($29):</strong> 3 Dispute letters, basic FCRA citations, PDF downloads</li>
-                <li><strong>Professional Package ($99):</strong> 15 Dispute letters, cross-bureau conflict detection, priority support</li>
-                <li><strong>Complete Package ($399):</strong> Unlimited letters, advanced FCRA documentation, 1-on-1 educational coaching (not legal advice)</li>
+                <li><strong>DIY Plan ($49.99/month):</strong> Unlimited dispute rounds with 30-day intervals, 3-bureau credit monitoring, AI letter generation, FCRA-compliant dispute letters. User is responsible for mailing letters.</li>
+                <li><strong>Complete Plan ($79.99/month):</strong> Everything in DIY, plus mailing service included, certified mail included, delivery tracking, CFPB complaint generator, and furnisher dispute letters.</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
                 All payments are processed securely through Stripe. By purchasing a package, you agree to pay the stated price and authorize us to charge your payment method.

@@ -177,29 +177,21 @@ export default function CreditAnalysis() {
 
   const tiers = [
     {
-      id: 'starter' as const,
-      name: 'Starter',
-      price: '$49',
+      id: 'diy' as const,
+      name: 'DIY',
+      price: '$49.99',
       period: '/month',
-      rounds: '2 Rounds',
-      features: ['2 dispute rounds', 'AI recommendations', 'DIY mailing'],
-    },
-    {
-      id: 'professional' as const,
-      name: 'Professional',
-      price: '$69.95',
-      period: '/month',
-      rounds: '3 Rounds',
-      popular: true,
-      features: ['3 dispute rounds', 'Ongoing monitoring', 'Response analysis'],
+      rounds: 'Unlimited',
+      features: ['Unlimited dispute rounds', '30-day intervals', 'AI letter generation', 'You mail letters'],
     },
     {
       id: 'complete' as const,
       name: 'Complete',
-      price: '$99.95',
+      price: '$79.99',
       period: '/month',
       rounds: 'Unlimited',
-      features: ['Unlimited rounds', 'We mail for you', 'CFPB complaints'],
+      popular: true,
+      features: ['Unlimited rounds', 'Mailing service included', 'Certified mail', 'CFPB complaints'],
     },
   ];
 

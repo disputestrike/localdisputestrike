@@ -483,8 +483,8 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$29</div>
-                            <div className="text-sm text-muted-foreground">one-time</div>
+                            <div className="text-3xl font-bold">$49.99</div>
+                            <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
                         <Button 
@@ -519,8 +519,8 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$79</div>
-                            <div className="text-sm text-muted-foreground">one-time</div>
+                            <div className="text-3xl font-bold">$49.99</div>
+                            <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
                         <Button 
@@ -556,7 +556,7 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$39.99</div>
+                            <div className="text-3xl font-bold">$79.99</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>

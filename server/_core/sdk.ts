@@ -257,8 +257,30 @@ class SDKServer {
   }
 
   async authenticateRequest(req: Request): Promise<User> {
-    // Regular authentication flow
     const cookies = this.parseCookies(req.headers.cookie);
+    
+    // First, try custom email/password auth token
+    const customAuthToken = cookies.get('auth-token') || cookies.get('manus-session');
+    if (customAuthToken) {
+      try {
+        const { verifyToken } = await import('../customAuth');
+        const decoded = verifyToken(customAuthToken);
+        if (decoded && decoded.userId) {
+          const user = await db.getUserById(decoded.userId);
+          if (user) {
+            await db.upsertUser({
+              openId: user.openId,
+              lastSignedIn: new Date(),
+            });
+            return user;
+          }
+        }
+      } catch (error) {
+        console.warn('[Auth] Custom auth token verification failed:', error);
+      }
+    }
+    
+    // Fall back to OAuth session cookie
     const sessionCookie = cookies.get(COOKIE_NAME);
     const session = await this.verifySession(sessionCookie);
 

@@ -15,7 +15,7 @@ export default function FAQ() {
   const faqs = [
     {
       q: "How is this different from other credit monitoring services?",
-      a: "We use AI to detect cross-bureau conflicts that support removal requests under FCRA law. Most services use generic templates with 30-40% success rates. Our documentation-driven letters get results vary by cases. Plus, we're a one-time payment - not a monthly subscription trap."
+      a: "We use AI to detect cross-bureau conflicts that support removal requests under FCRA law. Most services use generic templates with 30-40% success rates. Our documentation-driven letters get results vary by cases. Plus, our affordable monthly plans start at just $49.99/month with no long-term contracts - cancel anytime."
     },
     {
       q: "Is this legal?",
@@ -35,7 +35,7 @@ export default function FAQ() {
     },
     {
       q: "How much does traditional credit monitoring cost?",
-      a: "Traditional credit monitoring companies charge $99-$149/month with 6-12 month contracts. That's $1,200-$1,800 per year! Our one-time payment of $29-$399 gives you the same (or better) results without the subscription trap."
+      a: "Traditional credit repair companies charge $99-$149/month with 6-12 month contracts and limited results. Our plans start at just $49.99/month with unlimited dispute rounds, and you can cancel anytime. Plus, start with a $1 trial to see your real credit data before committing."
     },
     {
       q: "What documents do I need to mail with my letters?",

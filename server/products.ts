@@ -1,6 +1,14 @@
 /**
  * Product and Pricing Configuration
- * Centralized product definitions for Stripe integration
+ * LEGACY FILE - Use productsV2.ts for new development
+ * 
+ * This file is kept for backward compatibility with old checkout flow.
+ * The new pricing model uses productsV2.ts with subscription tiers.
+ * 
+ * SINGLE SOURCE OF TRUTH:
+ * - DIY: $49.99/month (after $1 trial)
+ * - Complete: $79.99/month (after $1 trial)
+ * - Agency: $497/$997/$1997 (separate pricing)
  */
 
 export interface Product {
@@ -10,75 +18,110 @@ export interface Product {
   price: number; // in cents
   features: string[];
   popular?: boolean;
+  isSubscription?: boolean;
 }
 
 export const PRODUCTS: Record<string, Product> = {
-  diy_quick: {
-    id: 'diy_quick',
-    name: 'DIY Quick Start',
-    description: 'Generate dispute letters for 1 bureau',
-    price: 2900, // $29.00
+  // NEW SUBSCRIPTION MODEL (aligned with productsV2.ts)
+  diy: {
+    id: 'diy',
+    name: 'DIY',
+    description: 'Unlimited rounds + credit monitoring (You mail)',
+    price: 4999, // $49.99/month
     features: [
-      'AI-generated dispute letters',
-      '1 credit bureau',
-      'Mailing instructions',
-      'Tracking dashboard',
+      'Unlimited dispute rounds (30-day intervals)',
+      '3-bureau credit monitoring (daily updates)',
+      'AI analyzes & selects best items to dispute',
+      'FCRA-compliant dispute letters',
+      'Round 1-2-3 escalation strategy',
+      'Dashboard tracking',
+      'You print & mail yourself',
     ],
+    isSubscription: true,
   },
-  diy_complete: {
-    id: 'diy_complete',
-    name: 'DIY Complete Package',
-    description: 'Full dispute package for all 3 bureaus',
-    price: 7900, // $79.00
+  complete: {
+    id: 'complete',
+    name: 'Complete',
+    description: 'Unlimited rounds + we mail + CFPB + Furnisher',
+    price: 7999, // $79.99/month
     features: [
-      'AI-generated dispute letters',
-      'All 3 credit bureaus',
-      'Credit report parser',
-      'AI chat assistant',
-      'Mailing instructions',
-      'Tracking dashboard',
-      'Email delivery',
+      'Unlimited dispute rounds (30-day intervals)',
+      '3-bureau credit monitoring (daily updates)',
+      'AI analyzes & selects best items to dispute',
+      'FCRA-compliant dispute letters',
+      'Round 1-2-3 escalation strategy',
+      'Dashboard tracking',
+      'We mail everything via certified mail',
+      'One-click "Send Disputes"',
+      'Real-time delivery tracking',
+      'CFPB complaint generator',
+      'Furnisher dispute letters',
+      'Priority support',
     ],
     popular: true,
+    isSubscription: true,
+  },
+  
+  // LEGACY PRODUCTS (kept for backward compatibility, mapped to new tiers)
+  diy_quick: {
+    id: 'diy',
+    name: 'DIY',
+    description: 'Unlimited rounds + credit monitoring (You mail)',
+    price: 4999, // $49.99/month - UPDATED from old $29
+    features: [
+      'Unlimited dispute rounds',
+      '3-bureau credit monitoring',
+      'AI dispute letter generation',
+      'Dashboard tracking',
+    ],
+    isSubscription: true,
+  },
+  diy_complete: {
+    id: 'complete',
+    name: 'Complete',
+    description: 'Full dispute package with white glove mailing',
+    price: 7999, // $79.99/month
+    features: [
+      'Everything in DIY',
+      'We mail everything via certified mail',
+      'CFPB complaint generator',
+      'Furnisher dispute letters',
+    ],
+    popular: true,
+    isSubscription: true,
   },
   white_glove: {
-    id: 'white_glove',
-    name: 'White Glove Service',
-    description: 'Premium service with expert review',
-    price: 19900, // $199.00
+    id: 'complete',
+    name: 'Complete',
+    description: 'Premium service - mapped to Complete tier',
+    price: 7999, // $79.99/month
     features: [
-      'Everything in Complete Package',
-      'Expert letter review',
+      'Everything in Complete',
       'Priority support',
-      'Custom strategy consultation',
-      'Response analysis',
     ],
+    isSubscription: true,
   },
   subscription_monthly: {
-    id: 'subscription_monthly',
-    name: 'Monthly Subscription',
-    description: 'Unlimited letters, monthly billing',
-    price: 3999, // $39.99/month
+    id: 'complete',
+    name: 'Complete Monthly',
+    description: 'Complete package, monthly billing',
+    price: 7999, // $79.99/month
     features: [
-      'Unlimited dispute letters',
-      'All 3 credit bureaus',
-      'Credit report parser',
-      'AI chat assistant',
-      'Priority support',
+      'Full Complete package',
       'Cancel anytime',
     ],
+    isSubscription: true,
   },
   subscription_annual: {
-    id: 'subscription_annual',
-    name: 'Annual Subscription',
-    description: 'Best value - save 17%',
-    price: 39900, // $399.00/year
+    id: 'complete',
+    name: 'Complete Annual',
+    description: 'Complete package, annual billing (save 17%)',
+    price: 79900, // $799.00/year (equivalent to ~$66.58/month)
     features: [
-      'Everything in Monthly',
-      'Save $80/year',
-      'Exclusive features',
-      'VIP support',
+      'Full Complete package',
+      'Save 17% vs monthly',
     ],
+    isSubscription: true,
   },
 };
 
@@ -100,5 +143,6 @@ export function getAllProducts(): Product[] {
  * Format price for display
  */
 export function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
+  const dollars = cents / 100;
+  return `$${dollars.toFixed(2)}`;
 }

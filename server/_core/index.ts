@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cookieParser from "cookie-parser";
+// import passport from "passport"; // Disabled - social login removed
 import { createServer } from "http";
 import net from "net";
 import helmet from "helmet";
@@ -216,6 +217,12 @@ async function startServer() {
   // Custom email/password authentication routes (for self-hosting)
   const customAuthRouter = (await import('../customAuthRouter')).default;
   app.use('/api/auth', customAuthRouter);
+  
+  // Social OAuth (Google, Facebook) authentication - DISABLED
+  // const { initializeSocialAuth, createSocialAuthRouter } = await import('../socialAuth');
+  // initializeSocialAuth();
+  // app.use(passport.initialize());
+  // app.use('/api/auth', createSocialAuthRouter());
   
   // V2 - Trial, subscription, and round management routes
   const routesV2 = (await import('../routesV2')).default;

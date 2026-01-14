@@ -925,7 +925,7 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "Best $29 I ever spent. The dispute tools are comprehensive and easy to use. The educational resources helped me understand my rights under FCRA. Great platform."
+                  "Best investment I ever made. The dispute tools are comprehensive and easy to use. The educational resources helped me understand my rights under FCRA. Great platform."
                 </p>
               </CardContent>
             </Card>
@@ -937,108 +937,89 @@ export default function Home() {
       <section id="pricing" className="py-20 bg-gray-50">
         <div className="container">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-700">No subscriptions. Pay once, use forever.</p>
+            <Badge className="mb-4 bg-orange-100 text-orange-700 border-orange-200 px-4 py-1">
+              Start with $1 for 7 days - See your real credit data
+            </Badge>
+            <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Choose Your Plan</h2>
+            <p className="text-xl text-gray-700">Both plans include <span className="font-semibold">unlimited dispute rounds</span> with 30-day intervals</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Starter */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* DIY Plan */}
             <Card className="border-2">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold mb-4">Starter</CardTitle>
-                <div className="text-5xl font-extrabold text-gray-900 mb-2">$29</div>
-                <div className="text-gray-600">One-time payment</div>
+                <CardTitle className="text-2xl font-bold mb-4">DIY</CardTitle>
+                <div className="text-5xl font-extrabold text-gray-900 mb-2">$49<span className="text-2xl font-normal text-gray-600">.99</span></div>
+                <div className="text-gray-600">/month after $1 trial</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">3 Dispute letters</span>
+                  <span className="text-gray-700">Unlimited dispute rounds (30-day intervals)</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Basic FCRA citations</span>
+                  <span className="text-gray-700">3-bureau credit monitoring</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">PDF downloads</span>
+                  <span className="text-gray-700">AI letter generation</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                  <span className="text-gray-700">FCRA-compliant dispute letters</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <X className="h-6 w-6 text-gray-400 flex-shrink-0 mt-1" />
-                  <span className="text-gray-400">Cross-bureau conflict detection</span>
+                  <span className="text-gray-400">Mailing service</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="h-6 w-6 text-gray-400 flex-shrink-0 mt-1" />
+                  <span className="text-gray-400">CFPB complaints</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/trial-checkout">Start Your Journey</Link>
+                  <Link href="/trial-checkout">Start $1 Trial</Link>
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Professional - Most Popular */}
-            <Card className="border-4 border-orange-600 relative shadow-2xl scale-105">
+            {/* Complete Plan - Most Popular */}
+            <Card className="border-4 border-orange-600 relative shadow-2xl">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <Badge className="bg-orange-600 text-white text-sm px-4 py-1">MOST POPULAR</Badge>
               </div>
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold mb-4">Professional</CardTitle>
-                <div className="text-5xl font-extrabold text-orange-600 mb-2">$99</div>
-                <div className="text-gray-600">One-time payment</div>
+                <CardTitle className="text-2xl font-bold mb-4">Complete</CardTitle>
+                <div className="text-5xl font-extrabold text-orange-600 mb-2">$79<span className="text-2xl font-normal text-gray-600">.99</span></div>
+                <div className="text-gray-600">/month after $1 trial</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">15 Dispute letters</span>
+                  <span className="text-gray-700 font-semibold">Everything in DIY, plus:</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Cross-bureau conflict detection</span>
+                  <span className="text-gray-700 font-semibold">Mailing service included</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Documentation-driven FCRA citations</span>
+                  <span className="text-gray-700 font-semibold">Certified mail included</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">AI-powered unique letters</span>
+                  <span className="text-gray-700 font-semibold">Delivery tracking included</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Priority support</span>
+                  <span className="text-gray-700 font-semibold">CFPB complaint generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                  <span className="text-gray-700 font-semibold">Furnisher dispute letters</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/trial-checkout">Start Your Journey</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Complete */}
-            <Card className="border-2">
-              <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold mb-4">Complete Package</CardTitle>
-                <div className="text-5xl font-extrabold text-gray-900 mb-2">$399</div>
-                <div className="text-gray-600">One-time payment</div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Unlimited Dispute letters</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Everything in Professional</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Advanced FCRA documentation</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">Round 2 & 3 escalation letters</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">1-on-1 educational coaching (not legal advice)</span>
-                </div>
-                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/trial-checkout">Start Your Journey</Link>
+                  <Link href="/trial-checkout">Start $1 Trial</Link>
                 </Button>
               </CardContent>
             </Card>

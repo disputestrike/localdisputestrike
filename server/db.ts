@@ -1,4 +1,4 @@
-import { eq, and, or, desc, inArray, sql, like, gte, lte } from "drizzle-orm";
+import { eq, and, or, desc, inArray, sql, like, gte, lte, isNull, lt } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { 
   InsertUser, 
@@ -71,7 +71,16 @@ import {
   UserNotification,
   userDocuments,
   InsertUserDocument,
-  UserDocument
+  UserDocument,
+  subscriptionsV2,
+  InsertSubscriptionV2,
+  SubscriptionV2,
+  disputeRounds,
+  InsertDisputeRound,
+  DisputeRound,
+  trialConversions,
+  InsertTrialConversion,
+  TrialConversion
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -3262,3 +3271,188 @@ async function logAdminActivity(userId: number, action: string, details: string)
     console.error('Failed to log activity:', e);
   }
 }
+
+
+// ============================================
+// TRIAL CONVERSION FUNCTIONS (for cron jobs)
+// ============================================
+
+/**
+ * Get active trials (not converted, not expired)
+ */
+export async function getActiveTrials(): Promise<TrialConversion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const trials = await db
+    .select()
+    .from(trialConversions)
+    .where(
+      and(
+        eq(trialConversions.converted, false),
+        isNull(trialConversions.expiredAt)
+      )
+    );
+  
+  return trials;
+}
+
+/**
+ * Get trial with user info
+ */
+export async function getTrialWithUser(trialId: number): Promise<{ trial: TrialConversion; user: any } | null> {
+  const db = await getDb();
+  if (!db) return null;
+  
+  const trial = await db
+    .select()
+    .from(trialConversions)
+    .where(eq(trialConversions.id, trialId))
+    .limit(1);
+  
+  if (!trial.length) return null;
+  
+  const user = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, trial[0].userId))
+    .limit(1);
+  
+  return { trial: trial[0], user: user[0] || null };
+}
+
+/**
+ * Update trial email sent status
+ */
+export async function updateTrialEmailSent(
+  trialId: number,
+  field: 'day1EmailSent' | 'day3EmailSent' | 'day5EmailSent' | 'day6EmailSent' | 'day7EmailSent',
+  value: boolean
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(trialConversions)
+    .set({ [field]: value })
+    .where(eq(trialConversions.id, trialId));
+}
+
+/**
+ * Mark trial as expired
+ */
+export async function expireTrialConversion(trialId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(trialConversions)
+    .set({ expiredAt: new Date() })
+    .where(eq(trialConversions.id, trialId));
+}
+
+/**
+ * Get expired trials for winback emails
+ */
+export async function getExpiredTrialsForWinback(daysAgo: number): Promise<TrialConversion[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+  
+  const trials = await db
+    .select()
+    .from(trialConversions)
+    .where(
+      and(
+        eq(trialConversions.converted, false),
+        gte(trialConversions.expiredAt, cutoffDate)
+      )
+    );
+  
+  return trials;
+}
+
+// ============================================
+// SUBSCRIPTION V2 FUNCTIONS (for cron jobs)
+// ============================================
+
+/**
+ * Get expired trial subscriptions
+ */
+export async function getExpiredTrialSubscriptions(): Promise<SubscriptionV2[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const now = new Date();
+  
+  const subs = await db
+    .select()
+    .from(subscriptionsV2)
+    .where(
+      and(
+        eq(subscriptionsV2.status, 'trial'),
+        lt(subscriptionsV2.trialEndsAt, now)
+      )
+    );
+  
+  return subs;
+}
+
+/**
+ * Update subscription status
+ */
+export async function updateSubscriptionV2Status(
+  subscriptionId: number,
+  status: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(subscriptionsV2)
+    .set({ status })
+    .where(eq(subscriptionsV2.id, subscriptionId));
+}
+
+// ============================================
+// DISPUTE ROUNDS FUNCTIONS (for cron jobs)
+// ============================================
+
+/**
+ * Get dispute rounds that should be unlocked
+ */
+export async function getDisputeRoundsToUnlock(): Promise<DisputeRound[]> {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  
+  const rounds = await db
+    .select()
+    .from(disputeRounds)
+    .where(
+      and(
+        eq(disputeRounds.status, 'mailed'),
+        lt(disputeRounds.mailedAt, thirtyDaysAgo)
+      )
+    );
+  
+  return rounds;
+}
+
+/**
+ * Unlock a dispute round
+ */
+export async function unlockDisputeRound(roundId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  
+  await db
+    .update(disputeRounds)
+    .set({ status: 'unlocked' })
+    .where(eq(disputeRounds.id, roundId));
+}
+
