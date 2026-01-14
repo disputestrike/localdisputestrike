@@ -4,7 +4,7 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { trpc } from "@/lib/trpc";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import {
   TrendingUp,
   TrendingDown,
@@ -21,13 +21,44 @@ import {
   Upload,
   Eye,
   Send,
+  Lock,
+  Unlock,
+  Sparkles,
+  Truck,
+  Calendar,
 } from "lucide-react";
+import RoundStatus from "@/components/RoundStatus";
 
 export default function DashboardHome() {
+  const [, setLocation] = useLocation();
+  
   // Fetch real dashboard stats from database
   const { data: stats } = trpc.dashboardStats.get.useQuery();
   const { data: activityData } = trpc.activityLog.list.useQuery({ limit: 5 });
   const { data: creditReports } = trpc.creditReports.list.useQuery();
+  const { data: negativeAccounts } = trpc.negativeAccounts.list.useQuery();
+  const { data: userProfile } = trpc.profile.get.useQuery();
+  
+  // V2: Round and subscription state (mock for now - will be replaced with real API)
+  const currentRound = 1;
+  const isRoundLocked = false;
+  const lockedUntil = null;
+  const daysRemaining = 0;
+  const subscriptionTier = userProfile?.subscriptionTier || 'diy';
+  const roundHistory: any[] = [];
+  
+  // V2: AI Recommendations (mock for now)
+  const aiRecommendations = negativeAccounts?.slice(0, 5).map((account, index) => ({
+    ...account,
+    winProbability: Math.floor(Math.random() * 30) + 65,
+    aiReason: [
+      'Balance conflicts across bureaus - strong case',
+      'Date reporting error detected',
+      'Original creditor info missing - FCRA violation',
+      'Account age exceeds 7-year limit',
+      'Duplicate entry found across bureaus'
+    ][index % 5]
+  })) || [];
   
   // Use real stats from database
   const totalAccounts = stats?.totalNegativeAccounts || 0;
@@ -324,6 +355,83 @@ export default function DashboardHome() {
           </div>
         </CardContent>
       </Card>
+
+      {/* V2: Round Status & AI Recommendations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Round Status */}
+        <RoundStatus
+          currentRound={currentRound}
+          maxRounds={999}
+          isLocked={isRoundLocked}
+          lockedUntil={lockedUntil}
+          daysRemaining={daysRemaining}
+          canStartNextRound={!isRoundLocked}
+          subscriptionTier={subscriptionTier}
+          roundHistory={roundHistory}
+          onStartRound={() => setLocation('/dashboard/disputes')}
+          onUploadResponses={() => setLocation(`/responses/${currentRound}`)}
+        />
+
+        {/* AI Recommendations */}
+        <Card className="bg-white border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-orange-500" />
+              AI Recommendations
+            </CardTitle>
+            <p className="text-sm text-gray-500">Top items to dispute this round</p>
+          </CardHeader>
+          <CardContent>
+            {aiRecommendations.length > 0 ? (
+              <div className="space-y-3">
+                {aiRecommendations.slice(0, 3).map((item, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-medium text-gray-900 text-sm">{item.creditorName}</span>
+                      <Badge className="bg-green-100 text-green-700 border-0 text-xs">
+                        {item.winProbability}% win rate
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-gray-500">${item.balance || '0'} • {item.accountType}</p>
+                    <p className="text-xs text-orange-600 mt-1">💡 {item.aiReason}</p>
+                  </div>
+                ))}
+                <Link href="/dashboard/disputes">
+                  <Button variant="outline" className="w-full mt-2 text-orange-600 border-orange-200 hover:bg-orange-50">
+                    View All Recommendations
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500">
+                <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm">Upload credit reports to see AI recommendations</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* V2: Mailing Status (for Complete tier) */}
+      {subscriptionTier === 'complete' && (
+        <Card className="bg-white border-gray-200">
+          <CardHeader>
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Truck className="h-5 w-5 text-orange-500" />
+              Mailing Service
+            </CardTitle>
+            <p className="text-sm text-gray-500">Your disputes are mailed automatically</p>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-4 text-gray-500">
+              <Mail className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No mailings in progress</p>
+              <p className="text-xs text-gray-400">Generate letters to start mailing</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* CTA Banner */}
       <Card className="bg-gradient-to-r from-cyan-500/20 to-blue-600/20 border-orange-300">

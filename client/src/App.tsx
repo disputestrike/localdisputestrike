@@ -96,10 +96,10 @@ function Router() {
       <Route path="/onboarding" component={OnboardingWizard} />
       <Route path="/responses/:roundId" component={ResponseUpload} />
       
-      {/* V2 - New Dashboard */}
-      <Route path="/dashboard" component={DashboardHomeV2} />
-      <Route path="/dashboard/home" component={DashboardHomeV2} />
-      <Route path="/dashboard/v1" component={DashboardHome} />
+      {/* Dashboard Routes */}
+      <Route path="/dashboard" component={DashboardHome} />
+      <Route path="/dashboard/home" component={DashboardHome} />
+      <Route path="/dashboard/v2" component={DashboardHomeV2} />
       
       {/* Legacy Dashboard Routes */}
       <Route path="/dashboard/reports" component={Dashboard} />
