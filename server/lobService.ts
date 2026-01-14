@@ -1,5 +1,5 @@
-import { db } from "./_core/db";
-import { mailings } from "../drizzle/schema";
+import { getDb } from "./db";
+// import { mailings } from "../drizzle/schema"; // TODO: Add mailings table to schema
 import { eq } from "drizzle-orm";
 
 // Mock Lob client for now - in production, use: import Lob from 'lob';
@@ -51,17 +51,18 @@ export async function sendCertifiedLetter(params: SendLetterParams) {
       price: 10.38
     };
 
-    // Save to database
-    await db.insert(mailings).values({
-      userId: params.userId,
-      roundId: params.roundId,
-      bureau: params.bureau,
-      lobLetterId: mockResponse.id,
-      trackingNumber: mockResponse.tracking_number,
-      status: 'processing',
-      sentAt: new Date(),
-      costCents: Math.round(mockResponse.price * 100)
-    });
+    // Save to database - TODO: Uncomment when mailings table is added
+    // const db = await getDb();
+    // await db.insert(mailings).values({
+    //   userId: params.userId,
+    //   roundId: params.roundId,
+    //   bureau: params.bureau,
+    //   lobLetterId: mockResponse.id,
+    //   trackingNumber: mockResponse.tracking_number,
+    //   status: 'processing',
+    //   sentAt: new Date(),
+    //   costCents: Math.round(mockResponse.price * 100)
+    // });
 
     return {
       success: true,

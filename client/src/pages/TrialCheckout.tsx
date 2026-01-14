@@ -1,95 +1,92 @@
-/**
- * $1 Trial Checkout Page
- * 
- * Combined sign-up + payment page for the $1 trial
- * Collects: Email, Password, Full Name, DOB, SSN, Address, Payment
- * After payment: Pulls credit data via IdentityIQ and shows analysis
- */
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useMutation } from '@tanstack/react-query';
-import { Shield, Lock, CreditCard, CheckCircle, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
-
-interface FormData {
-  // Account
-  email: string;
-  password: string;
-  confirmPassword: string;
-  
-  // Personal Info (required for credit pull)
-  fullName: string;
-  dateOfBirth: string;
-  ssn: string;
-  
-  // Address
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  
-  // Consent
-  agreeToTerms: boolean;
-  authorizeCreditPull: boolean;
-}
-
-const initialFormData: FormData = {
-  email: '',
-  password: '',
-  confirmPassword: '',
-  fullName: '',
-  dateOfBirth: '',
-  ssn: '',
-  address: '',
-  city: '',
-  state: '',
-  zipCode: '',
-  agreeToTerms: false,
-  authorizeCreditPull: false,
-};
+import { 
+  Shield, 
+  Check, 
+  X, 
+  Clock, 
+  Mail, 
+  Zap,
+  Star,
+  ArrowRight,
+  Lock,
+  CreditCard,
+  FileText,
+  Truck,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Loader2
+} from 'lucide-react';
 
 const US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
   'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
   'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
   'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
 ];
 
+interface FormData {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  fullName: string;
+  dateOfBirth: string;
+  ssn: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  agreeToTerms: boolean;
+  authorizeCreditPull: boolean;
+}
+
 export default function TrialCheckout() {
-  const [location, setLocation] = useLocation();
-  const navigate = setLocation;
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [, setLocation] = useLocation();
+  const [selectedPlan, setSelectedPlan] = useState<'diy' | 'complete' | null>(null);
+  const [step, setStep] = useState<'select' | 'form' | 'processing'>('select');
   const [showPassword, setShowPassword] = useState(false);
   const [showSSN, setShowSSN] = useState(false);
-  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
-  const [step, setStep] = useState<'form' | 'processing' | 'success'>('form');
-
-  const createTrialMutation = useMutation({
-    mutationFn: async (data: FormData) => {
-      const response = await fetch('/api/trial/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create trial');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      }
-    },
-    onError: (error: Error) => {
-      setErrors({ email: error.message });
-      setStep('form');
-    },
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    dateOfBirth: '',
+    ssn: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    agreeToTerms: false,
+    authorizeCreditPull: false,
   });
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
+  const [countdown, setCountdown] = useState({ minutes: 14, seconds: 59 });
+
+  // Countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown(prev => {
+        if (prev.seconds > 0) {
+          return { ...prev, seconds: prev.seconds - 1 };
+        } else if (prev.minutes > 0) {
+          return { minutes: prev.minutes - 1, seconds: 59 };
+        }
+        return prev;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const handlePlanSelect = (plan: 'diy' | 'complete') => {
+    setSelectedPlan(plan);
+    setStep('form');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -161,79 +158,368 @@ export default function TrialCheckout() {
     e.preventDefault();
     if (!validateForm()) return;
     setStep('processing');
-    createTrialMutation.mutate(formData);
+    // TODO: Submit to API
+    console.log('Submitting:', { plan: selectedPlan, ...formData });
+    setTimeout(() => {
+      setLocation('/credit-analysis');
+    }, 2000);
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Navigation */}
-      <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/">
-            <a className="flex items-center gap-2">
-              <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
-              <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
-            </a>
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/pricing">
-              <a className="text-gray-600 hover:text-orange-600 text-sm">View Pricing</a>
-            </Link>
-            <Link href="/">
-              <a className="text-gray-600 hover:text-orange-600 text-sm">Back to Home</a>
-            </Link>
-          </div>
-        </div>
-      </nav>
+  const planPrice = selectedPlan === 'complete' ? '$79.99' : '$49.99';
 
-      <div className="container mx-auto max-w-2xl py-12 px-4">
+  // Step 1: Plan Selection (Pricing Page Style)
+  if (step === 'select') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-orange-100 rounded-full mb-4">
-            <Shield className="w-8 h-8 text-orange-600" />
+        <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link href="/">
+              <a className="flex items-center gap-2">
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+                <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
+              </a>
+            </Link>
+            <div className="flex items-center gap-4">
+              <span className="hidden sm:flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-2 rounded-full text-sm font-medium">
+                <Clock className="w-4 h-4" />
+                {countdown.minutes}:{countdown.seconds.toString().padStart(2, '0')} left at this price
+              </span>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            See Your Real Credit Analysis
-          </h1>
-          <p className="text-gray-600 text-lg">
-            Get instant access to your 3-bureau credit data + AI recommendations
-          </p>
-          
-          {/* Price badge */}
-          <div className="mt-4 inline-flex items-center bg-orange-100 border border-orange-200 rounded-full px-6 py-2">
-            <span className="text-orange-600 font-bold text-2xl">$1</span>
-            <span className="text-gray-600 ml-2">for 7 days</span>
+        </nav>
+
+        <main className="container mx-auto max-w-6xl px-4 py-12">
+          {/* Hero */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Zap className="w-4 h-4 mr-2" />
+              Start with $1 for 7 days - See your real credit data
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Choose Your Plan
+            </h1>
+            <p className="text-xl text-gray-600 mb-2">
+              Both plans include <strong>unlimited dispute rounds</strong>
+            </p>
+            <p className="text-gray-500">
+              30-day intervals between rounds for maximum effectiveness
+            </p>
           </div>
-          <p className="text-gray-500 text-sm mt-2">
-            Then $69.95/mo if you continue. Cancel anytime.
-          </p>
-        </div>
 
-        {/* What you get */}
-        <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
-          <h3 className="text-gray-900 font-semibold mb-4">What you'll see:</h3>
-          <ul className="space-y-3">
-            {[
-              'Real credit scores from TransUnion, Equifax & Experian',
-              'All negative items hurting your score',
-              'AI-recommended items to dispute (with win probability)',
-              'Estimated score increase potential',
-            ].map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <span className="text-gray-700">{item}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+          {/* Pricing Cards */}
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+            {/* DIY Plan */}
+            <div 
+              className="bg-white border-2 border-gray-200 rounded-2xl p-8 hover:border-orange-300 hover:shadow-lg transition-all cursor-pointer"
+              onClick={() => handlePlanSelect('diy')}
+            >
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">DIY</h2>
+                <p className="text-gray-500">You handle the mailing</p>
+              </div>
+              
+              <div className="text-center mb-6">
+                <span className="text-5xl font-bold text-gray-900">$49</span>
+                <span className="text-2xl text-gray-900">.99</span>
+                <span className="text-gray-500">/month</span>
+                <p className="text-sm text-gray-400 mt-1">After $1 trial</p>
+              </div>
 
-        {/* Form */}
-        {step === 'form' && (
+              <div className="space-y-3 mb-8">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">What's included:</p>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Unlimited dispute rounds (30-day intervals)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">3-bureau credit monitoring (daily updates)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">AI analyzes & selects best items to dispute</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">FCRA-compliant dispute letters</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Round 1-2-3 escalation strategy</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">You print & mail yourself (~$30/round at USPS)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-400">No CFPB complaints</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-400">No furnisher disputes</span>
+                </div>
+              </div>
+
+              <button 
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                onClick={() => handlePlanSelect('diy')}
+              >
+                Start DIY - $1 Trial
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">Upgrade to Complete anytime</p>
+            </div>
+
+            {/* Complete Plan */}
+            <div 
+              className="bg-white border-2 border-orange-300 rounded-2xl p-8 relative hover:shadow-xl transition-all cursor-pointer shadow-lg"
+              onClick={() => handlePlanSelect('complete')}
+            >
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <span className="bg-orange-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                  <Star className="w-3 h-3" />
+                  MOST POPULAR
+                </span>
+              </div>
+              
+              <div className="text-center mb-6 pt-4">
+                <h2 className="text-2xl font-bold text-gray-900">Complete</h2>
+                <p className="text-gray-500">Zero hassle - we handle everything</p>
+              </div>
+              
+              <div className="text-center mb-6">
+                <span className="text-5xl font-bold text-orange-600">$79</span>
+                <span className="text-2xl text-orange-600">.99</span>
+                <span className="text-gray-500">/month</span>
+                <p className="text-sm text-gray-400 mt-1">After $1 trial</p>
+              </div>
+
+              <div className="space-y-3 mb-8">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Everything in DIY, plus:</p>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">We mail everything via certified mail</span>
+                    <p className="text-xs text-gray-400">Save 3+ hours per round</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">One-click "Send Disputes"</span>
+                    <p className="text-xs text-gray-400">No printing, no post office</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">Real-time delivery tracking</span>
+                    <p className="text-xs text-gray-400">USPS tracking in your dashboard</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">CFPB complaint generator</span>
+                    <p className="text-xs text-gray-400">For stubborn items after 3 rounds</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">Furnisher dispute letters</span>
+                    <p className="text-xs text-gray-400">Dispute directly with creditors</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <span className="text-gray-900 font-medium">Priority support</span>
+                    <p className="text-xs text-gray-400">Email + chat support</p>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 transition-colors"
+                onClick={() => handlePlanSelect('complete')}
+              >
+                Start Complete - $1 Trial
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <p className="text-xs text-gray-400 mt-3 text-center">Save $50/mo vs. Lexington Law</p>
+            </div>
+          </div>
+
+          {/* Comparison Table */}
+          <div className="max-w-4xl mx-auto mb-16">
+            <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">Compare Plans</h2>
+            <div className="overflow-x-auto bg-white rounded-xl border shadow-sm">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="border-b-2">
+                    <th className="text-left py-4 px-6 text-gray-700">Feature</th>
+                    <th className="text-center py-4 px-6 text-gray-700">DIY $49.99/mo</th>
+                    <th className="text-center py-4 px-6 bg-orange-50 text-gray-700">Complete $79.99/mo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    { feature: 'Unlimited Rounds', diy: true, complete: true },
+                    { feature: '30-Day Strategy', diy: true, complete: true },
+                    { feature: '3-Bureau Monitoring', diy: true, complete: true },
+                    { feature: 'AI Letter Generation', diy: true, complete: true },
+                    { feature: 'Mailing', diy: 'You do it', complete: 'We do it ✓' },
+                    { feature: 'Certified Mail', diy: 'You pay USPS', complete: 'Included ✓' },
+                    { feature: 'Delivery Tracking', diy: 'Manual', complete: 'Auto ✓' },
+                    { feature: 'CFPB Complaints', diy: false, complete: true },
+                    { feature: 'Furnisher Disputes', diy: false, complete: true },
+                    { feature: 'Money-Back Guarantee', diy: '7 days', complete: '30 days ✓' },
+                  ].map((row, i) => (
+                    <tr key={i} className="border-b">
+                      <td className="py-4 px-6 text-gray-700">{row.feature}</td>
+                      <td className="text-center py-4 px-6">
+                        {typeof row.diy === 'boolean' ? (
+                          row.diy ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-gray-300 mx-auto" />
+                        ) : (
+                          <span className="text-gray-500">{row.diy}</span>
+                        )}
+                      </td>
+                      <td className="text-center py-4 px-6 bg-orange-50">
+                        {typeof row.complete === 'boolean' ? (
+                          row.complete ? <Check className="w-5 h-5 text-green-500 mx-auto" /> : <X className="w-5 h-5 text-gray-300 mx-auto" />
+                        ) : (
+                          <span className="text-orange-600 font-medium">{row.complete}</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* FAQ */}
+          <div className="max-w-3xl mx-auto mb-16">
+            <h2 className="text-2xl font-bold text-center mb-8 text-gray-900">Frequently Asked Questions</h2>
+            <div className="space-y-4">
+              {[
+                {
+                  q: 'Both plans have unlimited rounds?',
+                  a: 'Yes! Both DIY and Complete include unlimited dispute rounds. The difference is WHO mails the letters and whether you get advanced features (CFPB, furnisher disputes).'
+                },
+                {
+                  q: 'Why 30-day intervals between rounds?',
+                  a: 'Credit bureaus legally have 30-45 days to investigate disputes. Our 30-day intervals ensure compliance and maximize effectiveness. Disputing too frequently gets flagged as frivolous.'
+                },
+                {
+                  q: 'Can I switch from DIY to Complete later?',
+                  a: 'Absolutely! Upgrade anytime. Your progress carries over, and you\'ll immediately get white-glove mailing for your next round.'
+                },
+                {
+                  q: 'What\'s included in "furnisher disputes"?',
+                  a: 'After rounds with bureaus, sometimes you need to dispute directly with the creditor (the furnisher). Complete plan includes these letters.'
+                },
+              ].map((faq, i) => (
+                <div key={i} className="bg-white rounded-xl p-6 shadow-sm border">
+                  <h3 className="font-bold text-lg mb-2 text-gray-900">{faq.q}</h3>
+                  <p className="text-gray-600">{faq.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Final CTA */}
+          <div className="text-center bg-orange-50 rounded-2xl p-8 max-w-2xl mx-auto border border-orange-100">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">Ready to See Your Real Credit Data?</h2>
+            <p className="text-gray-600 mb-6">Start your $1 trial now and get AI-powered recommendations in minutes.</p>
+            <button 
+              className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-4 rounded-xl text-lg font-semibold inline-flex items-center gap-2 transition-colors"
+              onClick={() => handlePlanSelect('complete')}
+            >
+              Get My Credit Analysis - $1
+              <ArrowRight className="w-5 h-5" />
+            </button>
+          </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-gray-50 border-t mt-16 py-8">
+          <div className="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>© 2026 DisputeStrike. All rights reserved.</p>
+            <div className="flex justify-center gap-4 mt-2">
+              <a href="/terms" className="hover:text-gray-700">Terms of Service</a>
+              <a href="/privacy" className="hover:text-gray-700">Privacy Policy</a>
+              <a href="/disclaimer" className="hover:text-gray-700">Disclaimer</a>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  // Step 2: Form (after plan selection)
+  if (step === 'form') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
+        {/* Header */}
+        <nav className="border-b bg-white sticky top-0 z-50 shadow-sm">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link href="/">
+              <a className="flex items-center gap-2">
+                <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+                <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
+              </a>
+            </Link>
+            <div className="flex items-center gap-4">
+              <span className={`px-4 py-2 rounded-full text-sm font-medium ${selectedPlan === 'complete' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}`}>
+                {selectedPlan === 'complete' ? 'Complete Plan' : 'DIY Plan'} - {planPrice}/mo
+              </span>
+              <button 
+                onClick={() => setStep('select')}
+                className="text-sm text-orange-600 hover:underline"
+              >
+                Change plan
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <div className="container mx-auto max-w-2xl py-12 px-4">
+          {/* Progress indicator */}
+          <div className="flex items-center justify-center gap-2 mb-8">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
+              <span className="text-sm font-medium text-gray-700">Plan Selected</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">2</div>
+              <span className="text-sm font-medium text-gray-700">Your Information</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
+              <span className="text-sm text-gray-500">Credit Analysis</span>
+            </div>
+          </div>
+
+          {/* Trial Badge */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center bg-orange-500 text-white px-6 py-2 rounded-full text-lg font-bold">
+              $1 for 7 days
+            </div>
+            <p className="text-gray-500 mt-2">Then {planPrice}/mo if you continue. Cancel anytime.</p>
+          </div>
+
+          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Account Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
               <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">1</span>
                 Create Account
               </h3>
               
@@ -293,7 +579,7 @@ export default function TrialCheckout() {
             {/* Personal Info Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
               <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">2</span>
                 Personal Information
                 <span className="text-gray-400 text-sm font-normal">(Required for credit pull)</span>
               </h3>
@@ -348,7 +634,7 @@ export default function TrialCheckout() {
                     {errors.ssn && <p className="text-red-500 text-sm mt-1">{errors.ssn}</p>}
                     <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
                       <Lock className="w-3 h-3" />
-                      Your SSN is encrypted and only used to pull your credit reports.
+                      256-bit encrypted. Only used to pull your credit reports.
                     </p>
                   </div>
                 </div>
@@ -358,7 +644,7 @@ export default function TrialCheckout() {
             {/* Address Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
               <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm">3</span>
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">3</span>
                 Current Address
               </h3>
               
@@ -423,91 +709,95 @@ export default function TrialCheckout() {
               </div>
             </div>
 
-            {/* Authorization Section */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-              <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
-                <span className="w-6 h-6 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm">4</span>
-                Authorization & Payment
-              </h3>
+            {/* Authorizations */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="agreeToTerms"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                  className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <label htmlFor="agreeToTerms" className="text-sm text-gray-600 cursor-pointer">
+                  I agree to the <a href="/terms" className="text-orange-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-orange-600 hover:underline">Privacy Policy</a>
+                </label>
+              </div>
+              {errors.agreeToTerms && <p className="text-red-500 text-xs ml-7">{errors.agreeToTerms}</p>}
               
-              <div className="space-y-4">
-                <label className={`flex items-start gap-3 p-3 rounded-lg border ${errors.authorizeCreditPull ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer`}>
-                  <input
-                    type="checkbox"
-                    name="authorizeCreditPull"
-                    checked={formData.authorizeCreditPull}
-                    onChange={handleInputChange}
-                    className="mt-1 w-4 h-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <span className="text-gray-700 text-sm">
-                    I authorize DisputeStrike to pull my credit reports from TransUnion, Equifax, and Experian for the purpose of credit analysis and dispute letter generation.
-                  </span>
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="authorizeCreditPull"
+                  name="authorizeCreditPull"
+                  checked={formData.authorizeCreditPull}
+                  onChange={handleInputChange}
+                  className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <label htmlFor="authorizeCreditPull" className="text-sm text-gray-600 cursor-pointer">
+                  I authorize DisputeStrike to access my credit reports from TransUnion, Equifax, and Experian for the purpose of credit monitoring and dispute assistance.
                 </label>
-                
-                <label className={`flex items-start gap-3 p-3 rounded-lg border ${errors.agreeToTerms ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-gray-50'} cursor-pointer`}>
-                  <input
-                    type="checkbox"
-                    name="agreeToTerms"
-                    checked={formData.agreeToTerms}
-                    onChange={handleInputChange}
-                    className="mt-1 w-4 h-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded"
-                  />
-                  <span className="text-gray-700 text-sm">
-                    I agree to the <Link href="/terms"><a className="text-orange-600 hover:underline">Terms of Service</a></Link> and <Link href="/privacy"><a className="text-orange-600 hover:underline">Privacy Policy</a></Link>. I understand this is a 7-day trial for $1, and I will be charged $69.95/month if I don't cancel.
-                  </span>
-                </label>
-                
-                <button
-                  type="submit"
-                  disabled={createTrialMutation.isPending}
-                  className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {createTrialMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-5 h-5" />
-                      Get My Analysis - $1
-                    </>
-                  )}
-                </button>
-                
-                <p className="text-center text-gray-400 text-sm flex items-center justify-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  Secure payment powered by Stripe
-                </p>
+              </div>
+              {errors.authorizeCreditPull && <p className="text-red-500 text-xs ml-7">{errors.authorizeCreditPull}</p>}
+            </div>
+
+            {/* Submit Button */}
+            <button 
+              type="submit"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-4 rounded-xl text-lg font-bold flex items-center justify-center gap-2 transition-colors"
+            >
+              <CreditCard className="w-5 h-5" />
+              Get My Credit Analysis - $1
+            </button>
+
+            {/* Trust badges */}
+            <div className="flex items-center justify-center gap-6 text-xs text-gray-400">
+              <div className="flex items-center gap-1">
+                <Lock className="w-4 h-4" />
+                256-bit SSL
+              </div>
+              <div className="flex items-center gap-1">
+                <Shield className="w-4 h-4" />
+                Bank-level security
+              </div>
+              <div className="flex items-center gap-1">
+                <FileText className="w-4 h-4" />
+                FCRA compliant
               </div>
             </div>
           </form>
-        )}
 
-        {/* Processing State */}
-        {step === 'processing' && (
-          <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
-            <Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Processing Your Request</h3>
-            <p className="text-gray-600">Please wait while we set up your trial...</p>
-          </div>
-        )}
-      </div>
-
-      {/* Footer */}
-      <footer className="border-t bg-white py-8 mt-12">
-        <div className="container mx-auto text-center text-sm text-gray-500 px-4">
-          <p className="mb-2">
-            DisputeStrike is dispute automation software, not a credit repair service. 
-            You generate and mail your own dispute letters. Results vary and are not guaranteed.
-          </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/terms"><a className="hover:text-orange-600">Terms of Service</a></Link>
-            <Link href="/privacy"><a className="hover:text-orange-600">Privacy Policy</a></Link>
-            <Link href="/croa-disclosure"><a className="hover:text-orange-600">CROA Disclosure</a></Link>
+          {/* What happens next */}
+          <div className="mt-8 bg-gray-50 rounded-xl p-6 border">
+            <h3 className="font-bold mb-4 text-gray-900">What happens after you pay $1:</h3>
+            <div className="space-y-3">
+              {[
+                'We pull your credit reports from all 3 bureaus (30-60 seconds)',
+                'AI analyzes your reports and identifies the best items to dispute',
+                'You see your scores, negative items, and AI recommendations',
+                `Choose to continue with ${selectedPlan === 'complete' ? 'Complete' : 'DIY'} (${planPrice}/mo) or cancel within 7 days`,
+              ].map((text, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
+                  <p className="text-sm text-gray-600">{text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </footer>
+      </div>
+    );
+  }
+
+  // Step 3: Processing
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <Loader2 className="w-16 h-16 text-orange-500 animate-spin mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Pulling Your Credit Reports...</h2>
+        <p className="text-gray-600">This usually takes 30-60 seconds</p>
+      </div>
     </div>
   );
 }
