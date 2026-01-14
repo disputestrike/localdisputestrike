@@ -208,17 +208,6 @@ export default function TrialCheckout() {
             </p>
           </div>
 
-          {/* You Control Notice */}
-          <div className="max-w-4xl mx-auto mb-8">
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-blue-800">
-                <strong>You Control Your Disputes:</strong> DisputeStrike provides software tools and convenience services. 
-                YOU generate, review, and approve all dispute letters. Our "Complete" plan includes a mailing service 
-                where we print and mail on your behalf—but you remain in control of your disputes.
-              </div>
-            </div>
-          </div>
 
           {/* Pricing Cards */}
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
