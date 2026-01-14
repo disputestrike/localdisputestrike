@@ -218,7 +218,6 @@ export default function TrialCheckout() {
             >
               <div className="text-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">DIY</h2>
-                <p className="text-gray-500">You handle the mailing</p>
               </div>
               
               <div className="text-center mb-6">
@@ -288,7 +287,6 @@ export default function TrialCheckout() {
               
               <div className="text-center mb-6 pt-4">
                 <h2 className="text-2xl font-bold text-gray-900">Complete</h2>
-                <p className="text-gray-500">Zero hassle - we handle everything</p>
               </div>
               
               <div className="text-center mb-6">
@@ -373,9 +371,9 @@ export default function TrialCheckout() {
                     { feature: '30-Day Strategy', diy: true, complete: true },
                     { feature: '3-Bureau Monitoring', diy: true, complete: true },
                     { feature: 'AI Letter Generation', diy: true, complete: true },
-                    { feature: 'Mailing', diy: 'You do it', complete: 'We do it' },
-                    { feature: 'Certified Mail', diy: 'You pay USPS', complete: 'Included' },
-                    { feature: 'Delivery Tracking', diy: 'Manual', complete: 'Auto' },
+                    { feature: 'Mailing Service', diy: false, complete: 'Included' },
+                    { feature: 'Certified Mail', diy: false, complete: 'Included' },
+                    { feature: 'Delivery Tracking', diy: false, complete: 'Included' },
                     { feature: 'CFPB Complaints', diy: false, complete: true },
                     { feature: 'Furnisher Disputes', diy: false, complete: true },
                     { feature: 'Money-Back Guarantee', diy: true, complete: true },
