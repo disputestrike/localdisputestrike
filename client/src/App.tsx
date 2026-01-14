@@ -63,6 +63,7 @@ import CreditAnalysis from "./pages/CreditAnalysis";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import ResponseUpload from "./pages/ResponseUpload";
 import DashboardHomeV2 from "./pages/DashboardHomeV2";
+import Checkout from "./pages/Checkout";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -91,6 +92,7 @@ function Router() {
       
       {/* V2 - Trial Flow Routes */}
       <Route path="/trial-checkout" component={TrialCheckout} />
+      <Route path="/checkout" component={Checkout} />
       <Route path="/trial-success" component={CreditAnalysis} />
       <Route path="/credit-analysis" component={CreditAnalysis} />
       <Route path="/onboarding" component={OnboardingWizard} />

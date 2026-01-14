@@ -5,7 +5,7 @@
  * Users can see their problems but can't generate letters until they upgrade
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -137,7 +137,9 @@ const mockAnalysis: AnalysisData = {
 
 export default function CreditAnalysis() {
   const [, setLocation] = useLocation();
-  const [selectedTier, setSelectedTier] = useState<'starter' | 'professional' | 'complete'>('professional');
+  const [selectedTier, setSelectedTier] = useState<'diy' | 'complete'>('complete');
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const MAX_ITEMS_PER_ROUND = 5;
 
   // Use mock data for demo, replace with real API call
   const analysis = mockAnalysis;
@@ -200,7 +202,29 @@ export default function CreditAnalysis() {
     setLocation(`/checkout?tier=${selectedTier}`);
   };
 
-  const recommendedItems = analysis?.negativeItems.filter(item => item.isRecommended) || [];
+  const allNegativeItems = analysis?.negativeItems || [];
+  const recommendedItems = allNegativeItems.filter(item => item.isRecommended);
+  const otherItems = allNegativeItems.filter(item => !item.isRecommended);
+
+  const toggleItemSelection = (itemId: number) => {
+    setSelectedItems(prev => {
+      if (prev.includes(itemId)) {
+        return prev.filter(id => id !== itemId);
+      }
+      if (prev.length >= MAX_ITEMS_PER_ROUND) {
+        return prev; // Don't add if already at max
+      }
+      return [...prev, itemId];
+    });
+  };
+
+  // Auto-select recommended items up to max on mount
+  useEffect(() => {
+    if (recommendedItems.length > 0 && selectedItems.length === 0) {
+      const autoSelected = recommendedItems.slice(0, MAX_ITEMS_PER_ROUND).map(item => item.id);
+      setSelectedItems(autoSelected);
+    }
+  }, [recommendedItems]);
 
   if (isLoading) {
     return (
@@ -308,51 +332,133 @@ export default function CreditAnalysis() {
           </div>
         </div>
 
-        {/* AI Recommendations */}
+        {/* All Negative Items */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
               <Target className="w-6 h-6 text-orange-600" />
-              AI-Recommended Items to Dispute
+              Your Negative Items
             </h2>
-            <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm">
-              {recommendedItems.length} items selected
-            </span>
+            <div className="flex items-center gap-3">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                selectedItems.length >= MAX_ITEMS_PER_ROUND 
+                  ? 'bg-orange-100 text-orange-700' 
+                  : 'bg-gray-100 text-gray-700'
+              }`}>
+                {selectedItems.length}/{MAX_ITEMS_PER_ROUND} selected for Round 1
+              </span>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {recommendedItems.map((item, index) => (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-4 hover:border-orange-300 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
-                      {index + 1}
+          {selectedItems.length >= MAX_ITEMS_PER_ROUND && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4 text-sm text-orange-700">
+              <strong>Maximum 5 items per round.</strong> You can dispute more items in subsequent rounds after 30 days.
+            </div>
+          )}
+
+          {/* Recommended Items Section */}
+          {recommendedItems.length > 0 && (
+            <div className="mb-6">
+              <h3 className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                AI Recommended (High Win Probability)
+              </h3>
+              <div className="space-y-3">
+                {recommendedItems.map((item) => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => toggleItemSelection(item.id)}
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedItems.includes(item.id)
+                        ? 'border-orange-600 bg-orange-50'
+                        : selectedItems.length >= MAX_ITEMS_PER_ROUND
+                          ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-orange-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                          selectedItems.includes(item.id)
+                            ? 'border-orange-600 bg-orange-600'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedItems.includes(item.id) && <CheckCircle className="w-4 h-4 text-white" />}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{item.accountName}</h3>
+                          <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
+                          <p className="text-gray-500 text-sm mt-1">${item.balance.toLocaleString()} • {item.status}</p>
+                        </div>
+                      </div>
+                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                        item.winProbability >= 70 ? 'bg-green-100 text-green-700' :
+                        item.winProbability >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        <Zap className="w-4 h-4" />
+                        {item.winProbability}% win probability
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{item.accountName}</h3>
-                      <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
-                      <p className="text-gray-500 text-sm mt-1">${item.balance.toLocaleString()} • {item.status}</p>
+                    <div className="mt-3 ml-10 bg-gray-50 rounded-lg p-3">
+                      <p className="text-gray-700 text-sm">
+                        <span className="font-medium">AI Analysis:</span> {item.recommendationReason}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
-                      item.winProbability >= 70 ? 'bg-green-100 text-green-700' :
-                      item.winProbability >= 50 ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      <Zap className="w-4 h-4" />
-                      {item.winProbability}% win probability
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 ml-12 bg-gray-50 rounded-lg p-3">
-                  <p className="text-gray-700 text-sm">
-                    <span className="font-medium">AI Analysis:</span> {item.recommendationReason}
-                  </p>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {/* Other Items Section */}
+          {otherItems.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                Other Negative Items
+              </h3>
+              <div className="space-y-3">
+                {otherItems.map((item) => (
+                  <div 
+                    key={item.id} 
+                    onClick={() => toggleItemSelection(item.id)}
+                    className={`border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedItems.includes(item.id)
+                        ? 'border-orange-600 bg-orange-50'
+                        : selectedItems.length >= MAX_ITEMS_PER_ROUND
+                          ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                          : 'border-gray-200 hover:border-orange-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                          selectedItems.includes(item.id)
+                            ? 'border-orange-600 bg-orange-600'
+                            : 'border-gray-300'
+                        }`}>
+                          {selectedItems.includes(item.id) && <CheckCircle className="w-4 h-4 text-white" />}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{item.accountName}</h3>
+                          <p className="text-gray-600 text-sm">{item.accountType} • {item.bureau}</p>
+                          <p className="text-gray-500 text-sm mt-1">${item.balance.toLocaleString()} • {item.status}</p>
+                        </div>
+                      </div>
+                      <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${
+                        item.winProbability >= 70 ? 'bg-green-100 text-green-700' :
+                        item.winProbability >= 50 ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        <Zap className="w-4 h-4" />
+                        {item.winProbability}% win probability
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Locked CTA */}
           <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
@@ -370,7 +476,7 @@ export default function CreditAnalysis() {
             Choose Your Plan to Start Disputing
           </h2>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-6">
+          <div className="grid md:grid-cols-2 gap-6 mb-6 max-w-2xl mx-auto">
             {tiers.map((tier) => (
               <div
                 key={tier.id}
