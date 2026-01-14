@@ -18,7 +18,8 @@ import {
   Eye,
   EyeOff,
   CheckCircle,
-  Loader2
+  Loader2,
+  Info
 } from 'lucide-react';
 
 const US_STATES = [
@@ -191,7 +192,7 @@ export default function TrialCheckout() {
 
         <main className="container mx-auto max-w-6xl px-4 py-12">
           {/* Hero */}
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <div className="inline-flex items-center bg-orange-500 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
               <Zap className="w-4 h-4 mr-2" />
               Start with $1 for 7 days - See your real credit data
@@ -200,11 +201,23 @@ export default function TrialCheckout() {
               Choose Your Plan
             </h1>
             <p className="text-xl text-gray-600 mb-2">
-              Both plans include <strong>unlimited dispute rounds</strong>
+              Both plans include <strong>monitoring + unlimited dispute tools</strong>
             </p>
             <p className="text-gray-500">
-              30-day intervals between rounds for maximum effectiveness
+              30-day intervals between rounds for maximum effectiveness &amp; FCRA compliance
             </p>
+          </div>
+
+          {/* You Control Notice */}
+          <div className="max-w-4xl mx-auto mb-8">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-blue-800">
+                <strong>You Control Your Disputes:</strong> DisputeStrike provides software tools and convenience services. 
+                YOU generate, review, and approve all dispute letters. Our "Complete" plan includes a mailing service 
+                where we print and mail on your behalf—but you remain in control of your disputes.
+              </div>
+            </div>
           </div>
 
           {/* Pricing Cards */}
@@ -238,7 +251,7 @@ export default function TrialCheckout() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">AI analyzes & selects best items to dispute</span>
+                  <span className="text-gray-700">AI analyzes &amp; selects best items to dispute</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
@@ -250,7 +263,7 @@ export default function TrialCheckout() {
                 </div>
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-gray-700">You print & mail yourself (~$30/round at USPS)</span>
+                  <span className="text-gray-700">You print &amp; mail yourself (~$30/round at USPS)</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
@@ -301,8 +314,8 @@ export default function TrialCheckout() {
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-gray-900 font-medium">We mail everything via certified mail</span>
-                    <p className="text-xs text-gray-400">Save 3+ hours per round</p>
+                    <span className="text-gray-900 font-medium">Printing &amp; mailing service included</span>
+                    <p className="text-xs text-gray-400">Certified mail - save 3+ hours per round</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -315,8 +328,8 @@ export default function TrialCheckout() {
                 <div className="flex items-start gap-3">
                   <Check className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="text-gray-900 font-medium">Real-time delivery tracking</span>
-                    <p className="text-xs text-gray-400">USPS tracking in your dashboard</p>
+                    <span className="text-gray-900 font-medium">Real-time USPS tracking</span>
+                    <p className="text-xs text-gray-400">Delivery tracking in your dashboard</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
@@ -367,16 +380,16 @@ export default function TrialCheckout() {
                 </thead>
                 <tbody>
                   {[
-                    { feature: 'Unlimited Rounds', diy: true, complete: true },
+                    { feature: 'Unlimited Rounds (30-day intervals)', diy: true, complete: true },
                     { feature: '30-Day Strategy', diy: true, complete: true },
                     { feature: '3-Bureau Monitoring', diy: true, complete: true },
                     { feature: 'AI Letter Generation', diy: true, complete: true },
-                    { feature: 'Mailing', diy: 'You do it', complete: 'We do it ✓' },
-                    { feature: 'Certified Mail', diy: 'You pay USPS', complete: 'Included ✓' },
-                    { feature: 'Delivery Tracking', diy: 'Manual', complete: 'Auto ✓' },
+                    { feature: 'Mailing', diy: 'You do it', complete: 'We do it' },
+                    { feature: 'Certified Mail', diy: 'You pay USPS', complete: 'Included' },
+                    { feature: 'Delivery Tracking', diy: 'Manual', complete: 'Auto' },
                     { feature: 'CFPB Complaints', diy: false, complete: true },
                     { feature: 'Furnisher Disputes', diy: false, complete: true },
-                    { feature: 'Money-Back Guarantee', diy: '7 days', complete: '30 days ✓' },
+                    { feature: 'Money-Back Guarantee', diy: true, complete: true },
                   ].map((row, i) => (
                     <tr key={i} className="border-b">
                       <td className="py-4 px-6 text-gray-700">{row.feature}</td>
@@ -408,19 +421,19 @@ export default function TrialCheckout() {
               {[
                 {
                   q: 'Both plans have unlimited rounds?',
-                  a: 'Yes! Both DIY and Complete include unlimited dispute rounds. The difference is WHO mails the letters and whether you get advanced features (CFPB, furnisher disputes).'
+                  a: 'Yes! Both DIY and Complete include unlimited dispute rounds with 30-day intervals. The difference is WHO handles the mailing and whether you get advanced features (CFPB, furnisher disputes).'
                 },
                 {
                   q: 'Why 30-day intervals between rounds?',
-                  a: 'Credit bureaus legally have 30-45 days to investigate disputes. Our 30-day intervals ensure compliance and maximize effectiveness. Disputing too frequently gets flagged as frivolous.'
+                  a: 'Credit bureaus legally have 30-45 days to investigate disputes. Our 30-day intervals ensure FCRA compliance and maximize effectiveness. Disputing too frequently gets flagged as frivolous.'
                 },
                 {
                   q: 'Can I switch from DIY to Complete later?',
-                  a: 'Absolutely! Upgrade anytime. Your progress carries over, and you\'ll immediately get white-glove mailing for your next round.'
+                  a: 'Absolutely! Upgrade anytime. Your progress carries over, and you\'ll immediately get the mailing service for your next round.'
                 },
                 {
                   q: 'What\'s included in "furnisher disputes"?',
-                  a: 'After rounds with bureaus, sometimes you need to dispute directly with the creditor (the furnisher). Complete plan includes these letters.'
+                  a: 'After rounds with bureaus, sometimes you need to dispute directly with the creditor (the furnisher). Complete plan includes these letter templates.'
                 },
               ].map((faq, i) => (
                 <div key={i} className="bg-white rounded-xl p-6 shadow-sm border">
@@ -432,7 +445,7 @@ export default function TrialCheckout() {
           </div>
 
           {/* Final CTA */}
-          <div className="text-center bg-orange-50 rounded-2xl p-8 max-w-2xl mx-auto border border-orange-100">
+          <div className="text-center bg-orange-50 rounded-2xl p-8 max-w-2xl mx-auto border border-orange-100 mb-12">
             <h2 className="text-2xl font-bold mb-4 text-gray-900">Ready to See Your Real Credit Data?</h2>
             <p className="text-gray-600 mb-6">Start your $1 trial now and get AI-powered recommendations in minutes.</p>
             <button 
@@ -442,6 +455,33 @@ export default function TrialCheckout() {
               Get My Credit Analysis - $1
               <ArrowRight className="w-5 h-5" />
             </button>
+          </div>
+
+          {/* Legal Disclaimer */}
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-xs text-gray-500 space-y-3">
+              <p className="font-semibold text-gray-700">IMPORTANT CONSUMER DISCLOSURE:</p>
+              <p>
+                DisputeStrike is dispute preparation software. We are NOT a credit repair organization as defined 
+                under the Credit Repair Organizations Act (CROA), 15 U.S.C. § 1679.
+              </p>
+              <p>
+                <strong>YOU are in control:</strong> You review and approve all dispute letters before they are sent. 
+                Our "Complete" plan includes a mailing convenience service where we print and mail letters on your 
+                behalf, but YOU remain responsible for all disputes.
+              </p>
+              <p>
+                You have the right to dispute inaccurate information directly with credit bureaus at no cost. 
+                Visit <a href="https://www.annualcreditreport.com" className="text-orange-600 hover:underline" target="_blank" rel="noopener noreferrer">AnnualCreditReport.com</a> for free credit reports.
+              </p>
+              <p>
+                We do not guarantee removal of any information or specific credit score improvements. 
+                Results vary based on individual circumstances.
+              </p>
+              <p>
+                <strong>Your Rights:</strong> You may cancel at any time. See our <a href="/terms" className="text-orange-600 hover:underline">Terms of Service</a> and <a href="/refund-policy" className="text-orange-600 hover:underline">Refund Policy</a> for details.
+              </p>
+            </div>
           </div>
         </main>
 
