@@ -19,8 +19,42 @@ import { getRoundStatus, startRound, markRoundMailed, unlockRoundEarly, complete
 import { selectItemsForRound, saveRecommendations, getRecommendations } from './aiSelectionService';
 import { SUBSCRIPTION_TIERS, TRIAL_CONFIG, getTrialEndDate } from './productsV2';
 import { sendCertifiedLetter, BUREAU_ADDRESSES } from './lobService';
+import { createPaymentIntent } from './stripeService';
 
 const router = Router();
+
+// ============================================
+// PAYMENT ROUTES
+// ============================================
+
+/**
+ * POST /api/v2/payment/create-intent
+ * Create a Stripe payment intent for $1 trial
+ */
+router.post('/payment/create-intent', async (req, res) => {
+  try {
+    const trialPriceCents = parseInt(process.env.TRIAL_PRICE_CENTS || '100');
+    
+    const { clientSecret, paymentIntentId } = await createPaymentIntent({
+      amount: trialPriceCents,
+      currency: 'usd',
+      metadata: {
+        type: 'trial',
+      },
+    });
+
+    res.json({ 
+      clientSecret,
+      paymentIntentId,
+      amount: trialPriceCents,
+    });
+  } catch (error: any) {
+    console.error('Error creating payment intent:', error);
+    res.status(500).json({ 
+      message: error.message || 'Failed to create payment intent',
+    });
+  }
+});
 
 // ============================================
 // TRIAL ROUTES
