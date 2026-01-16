@@ -1,12 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
+import { useMutation } from '@tanstack/react-query';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
   Shield, 
   Check, 
+  X, 
   Clock, 
+  Mail, 
   Zap,
+  Star,
   ArrowRight,
   Lock,
   CreditCard,
@@ -15,6 +19,7 @@ import {
   AlertCircle,
   Eye,
   EyeOff,
+  CheckCircle,
   Loader2,
   Info
 } from 'lucide-react';
@@ -22,14 +27,30 @@ import {
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
+const US_STATES = [
+  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
+  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', 'DC'
+];
+
 interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  fullName: string;
+  dateOfBirth: string;
+  ssn: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
   agreeToTerms: boolean;
+  authorizeCreditPull: boolean;
 }
 
-// Payment Form Component
+// Payment Form Component (Step 3)
 function PaymentForm({ 
   formData, 
   selectedPlan,
@@ -56,23 +77,17 @@ function PaymentForm({
     setError(null);
 
     try {
-      // Create subscription with trial
-      const response = await fetch('/api/v2/subscription/create-trial', {
+      // Get payment intent from backend
+      const response = await fetch('/api/v2/payment/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          plan: selectedPlan,
-        }),
       });
       
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || 'Failed to create subscription');
+        throw new Error('Failed to create payment intent');
       }
 
-      const { clientSecret, subscriptionId } = await response.json();
+      const { clientSecret } = await response.json();
 
       // Confirm payment
       const cardElement = elements.getElement(CardElement);
@@ -80,18 +95,41 @@ function PaymentForm({
         throw new Error('Card element not found');
       }
 
-      const { error: stripeError, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+      const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: cardElement,
           billing_details: {
+            name: formData.fullName,
             email: formData.email,
+            address: {
+              line1: formData.address,
+              city: formData.city,
+              state: formData.state,
+              postal_code: formData.zipCode,
+              country: 'US',
+            },
           },
         },
       });
 
       if (stripeError) {
         setError(stripeError.message || 'Payment failed. Please try again.');
-      } else if (setupIntent?.status === 'succeeded') {
+      } else if (paymentIntent?.status === 'succeeded') {
+        // Payment successful, now create the trial account
+        const trialResponse = await fetch('/api/v2/trial/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...formData,
+            plan: selectedPlan,
+            paymentIntentId: paymentIntent.id,
+          }),
+        });
+
+        if (!trialResponse.ok) {
+          throw new Error('Payment succeeded but account creation failed. Please contact support.');
+        }
+
         onSuccess();
       }
     } catch (err: any) {
@@ -162,12 +200,12 @@ function PaymentForm({
         {loading ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin" />
-            Processing...
+            Processing Payment...
           </>
         ) : (
           <>
             <Lock className="w-5 h-5" />
-            Start $1 Trial
+            Pay $1 & Get Credit Analysis
           </>
         )}
       </button>
@@ -205,11 +243,20 @@ export default function TrialCheckout() {
   const [selectedPlan, setSelectedPlan] = useState<'diy' | 'complete' | null>(null);
   const [step, setStep] = useState<'select' | 'form' | 'payment' | 'processing'>('select');
   const [showPassword, setShowPassword] = useState(false);
+  const [showSSN, setShowSSN] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
     confirmPassword: '',
+    fullName: '',
+    dateOfBirth: '',
+    ssn: '',
+    address: '',
+    city: '',
+    state: '',
+    zipCode: '',
     agreeToTerms: false,
+    authorizeCreditPull: false,
   });
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const [countdown, setCountdown] = useState({ minutes: 14, seconds: 59 });
@@ -235,7 +282,7 @@ export default function TrialCheckout() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
     
@@ -247,6 +294,18 @@ export default function TrialCheckout() {
     if (errors[name as keyof FormData]) {
       setErrors(prev => ({ ...prev, [name]: undefined }));
     }
+  };
+
+  const formatSSN = (value: string) => {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5, 9)}`;
+  };
+
+  const handleSSNChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatSSN(e.target.value);
+    setFormData(prev => ({ ...prev, ssn: formatted }));
   };
 
   const validateForm = (): boolean => {
@@ -268,7 +327,22 @@ export default function TrialCheckout() {
       newErrors.confirmPassword = 'Passwords do not match';
     }
     
+    if (!formData.fullName) newErrors.fullName = 'Full legal name is required';
+    if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+    
+    if (!formData.ssn) {
+      newErrors.ssn = 'SSN is required for credit pull';
+    } else if (formData.ssn.replace(/\D/g, '').length !== 9) {
+      newErrors.ssn = 'SSN must be 9 digits';
+    }
+    
+    if (!formData.address) newErrors.address = 'Address is required';
+    if (!formData.city) newErrors.city = 'City is required';
+    if (!formData.state) newErrors.state = 'State is required';
+    if (!formData.zipCode) newErrors.zipCode = 'ZIP code is required';
+    
     if (!formData.agreeToTerms) newErrors.agreeToTerms = 'You must agree to the terms';
+    if (!formData.authorizeCreditPull) newErrors.authorizeCreditPull = 'You must authorize the credit pull';
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -277,23 +351,26 @@ export default function TrialCheckout() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
+      // Scroll to first error
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
+    // Move to payment step
     setStep('payment');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePaymentSuccess = () => {
     setStep('processing');
+    // Simulate credit pull
     setTimeout(() => {
-      setLocation('/dashboard');
-    }, 2000);
+      setLocation('/credit-analysis');
+    }, 3000);
   };
 
   const planPrice = selectedPlan === 'complete' ? '$79.99' : '$49.99';
 
-  // Step 1: Plan Selection
+  // Step 1: Plan Selection (keeping existing code)
   if (step === 'select') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
@@ -370,8 +447,20 @@ export default function TrialCheckout() {
                   <span className="text-gray-700">FCRA-compliant dispute letters</span>
                 </div>
                 <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Round 1-2-3 escalation strategy</span>
+                </div>
+                <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <span className="text-gray-700">You print &amp; mail yourself (~$30/round at USPS)</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-400">No CFPB complaints</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <X className="w-5 h-5 text-gray-300 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-400">No furnisher disputes</span>
                 </div>
               </div>
 
@@ -421,6 +510,14 @@ export default function TrialCheckout() {
                   <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                   <span className="text-gray-700">Furnisher dispute letters</span>
                 </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Proof of delivery tracking</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <span className="text-gray-700">Priority support</span>
+                </div>
               </div>
 
               <button 
@@ -436,7 +533,7 @@ export default function TrialCheckout() {
     );
   }
 
-  // Step 2: Account Creation
+  // Step 2: Information Form
   if (step === 'form') {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -472,12 +569,17 @@ export default function TrialCheckout() {
             <div className="w-8 h-px bg-gray-300" />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">2</div>
-              <span className="text-sm font-medium text-gray-700">Account</span>
+              <span className="text-sm font-medium text-gray-700">Info</span>
             </div>
             <div className="w-8 h-px bg-gray-300" />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">3</div>
               <span className="text-sm text-gray-500">Payment</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">4</div>
+              <span className="text-sm text-gray-500">Analysis</span>
             </div>
           </div>
 
@@ -493,7 +595,10 @@ export default function TrialCheckout() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Account Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-              <h3 className="text-gray-900 font-semibold mb-4">Create Your Account</h3>
+              <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">1</span>
+                Create Account
+              </h3>
               
               <div className="space-y-4">
                 <div>
@@ -548,8 +653,141 @@ export default function TrialCheckout() {
               </div>
             </div>
 
-            {/* Terms */}
+            {/* Personal Info Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">2</span>
+                Personal Information
+                <span className="text-gray-400 text-sm font-normal">(Required for credit pull)</span>
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 text-sm mb-1">Full Legal Name</label>
+                  <input
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    className={`w-full bg-white border ${errors.fullName ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                    placeholder="John Michael Smith"
+                  />
+                  {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName}</p>}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">Date of Birth</label>
+                    <input
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      className={`w-full bg-white border ${errors.dateOfBirth ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                    />
+                    {errors.dateOfBirth && <p className="text-red-500 text-sm mt-1">{errors.dateOfBirth}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">Social Security Number</label>
+                    <div className="relative">
+                      <input
+                        type={showSSN ? 'text' : 'password'}
+                        name="ssn"
+                        value={formData.ssn}
+                        onChange={handleSSNChange}
+                        className={`w-full bg-white border ${errors.ssn ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 pr-10`}
+                        placeholder="XXX-XX-XXXX"
+                        maxLength={11}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSSN(!showSSN)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      >
+                        {showSSN ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    {errors.ssn && <p className="text-red-500 text-sm mt-1">{errors.ssn}</p>}
+                    <p className="text-gray-400 text-xs mt-1 flex items-center gap-1">
+                      <Lock className="w-3 h-3" />
+                      256-bit encrypted. Only used to pull your credit reports.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Address Section */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h3 className="text-gray-900 font-semibold mb-4 flex items-center gap-2">
+                <span className="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm">3</span>
+                Current Address
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 text-sm mb-1">Street Address</label>
+                  <input
+                    type="text"
+                    name="address"
+                    value={formData.address}
+                    onChange={handleInputChange}
+                    className={`w-full bg-white border ${errors.address ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                    placeholder="123 Main Street, Apt 4B"
+                  />
+                  {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">City</label>
+                    <input
+                      type="text"
+                      name="city"
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      className={`w-full bg-white border ${errors.city ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                      placeholder="New York"
+                    />
+                    {errors.city && <p className="text-red-500 text-sm mt-1">{errors.city}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">State</label>
+                    <select
+                      name="state"
+                      value={formData.state}
+                      onChange={handleInputChange}
+                      className={`w-full bg-white border ${errors.state ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                    >
+                      <option value="">Select</option>
+                      {US_STATES.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                    {errors.state && <p className="text-red-500 text-sm mt-1">{errors.state}</p>}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-gray-700 text-sm mb-1">ZIP Code</label>
+                    <input
+                      type="text"
+                      name="zipCode"
+                      value={formData.zipCode}
+                      onChange={handleInputChange}
+                      className={`w-full bg-white border ${errors.zipCode ? 'border-red-500' : 'border-gray-300'} rounded-lg px-4 py-3 text-gray-900 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500`}
+                      placeholder="10001"
+                      maxLength={5}
+                    />
+                    {errors.zipCode && <p className="text-red-500 text-sm mt-1">{errors.zipCode}</p>}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Authorizations */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
@@ -560,10 +798,25 @@ export default function TrialCheckout() {
                   className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
                 />
                 <label htmlFor="agreeToTerms" className="text-sm text-gray-600 cursor-pointer">
-                  I agree to the <a href="/terms" className="text-orange-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-orange-600 hover:underline">Privacy Policy</a>. I understand that after the 7-day trial, I will be charged {planPrice}/month unless I cancel.
+                  I agree to the <a href="/terms" className="text-orange-600 hover:underline">Terms of Service</a> and <a href="/privacy" className="text-orange-600 hover:underline">Privacy Policy</a>
                 </label>
               </div>
-              {errors.agreeToTerms && <p className="text-red-500 text-xs ml-7 mt-2">{errors.agreeToTerms}</p>}
+              {errors.agreeToTerms && <p className="text-red-500 text-xs ml-7">{errors.agreeToTerms}</p>}
+              
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="authorizeCreditPull"
+                  name="authorizeCreditPull"
+                  checked={formData.authorizeCreditPull}
+                  onChange={handleInputChange}
+                  className="mt-1 w-4 h-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <label htmlFor="authorizeCreditPull" className="text-sm text-gray-600 cursor-pointer">
+                  I authorize DisputeStrike to access my credit reports from TransUnion, Equifax, and Experian for the purpose of credit monitoring and dispute assistance.
+                </label>
+              </div>
+              {errors.authorizeCreditPull && <p className="text-red-500 text-xs ml-7">{errors.authorizeCreditPull}</p>}
             </div>
 
             {/* Submit Button */}
@@ -578,16 +831,19 @@ export default function TrialCheckout() {
 
           {/* What happens next */}
           <div className="mt-8 bg-gray-50 rounded-xl p-6 border">
-            <h3 className="font-bold mb-4 text-gray-900 flex items-center gap-2">
-              <Info className="w-5 h-5 text-orange-500" />
-              After you complete payment:
-            </h3>
-            <div className="space-y-2 text-sm text-gray-600">
-              <p>✓ Access to your 3-bureau credit reports</p>
-              <p>✓ AI analysis of all negative items</p>
-              <p>✓ Personalized dispute strategy</p>
-              <p>✓ 7 days to try risk-free</p>
-              <p>✓ Upgrade or cancel anytime</p>
+            <h3 className="font-bold mb-4 text-gray-900">What happens after you pay $1:</h3>
+            <div className="space-y-3">
+              {[
+                'We pull your credit reports from all 3 bureaus (30-60 seconds)',
+                'AI analyzes your reports and identifies the best items to dispute',
+                'You see your scores, negative items, and AI recommendations',
+                `Choose to continue with ${selectedPlan === 'complete' ? 'Complete' : 'DIY'} (${planPrice}/mo) or cancel within 7 days`,
+              ].map((text, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs font-bold flex-shrink-0">{i + 1}</div>
+                  <p className="text-sm text-gray-600">{text}</p>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -607,6 +863,11 @@ export default function TrialCheckout() {
                 <span className="font-bold text-2xl text-gray-900">DisputeStrike</span>
               </a>
             </Link>
+            <div className="flex items-center gap-4">
+              <span className={`px-4 py-2 rounded-full text-sm font-medium ${selectedPlan === 'complete' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'}`}>
+                {selectedPlan === 'complete' ? 'Complete Plan' : 'DIY Plan'} - {planPrice}/mo
+              </span>
+            </div>
           </div>
         </nav>
 
@@ -620,12 +881,17 @@ export default function TrialCheckout() {
             <div className="w-8 h-px bg-gray-300" />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-sm font-bold">✓</div>
-              <span className="text-sm font-medium text-gray-700">Account</span>
+              <span className="text-sm font-medium text-gray-700">Info</span>
             </div>
             <div className="w-8 h-px bg-gray-300" />
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-bold">3</div>
               <span className="text-sm font-medium text-gray-700">Payment</span>
+            </div>
+            <div className="w-8 h-px bg-gray-300" />
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center text-sm font-bold">4</div>
+              <span className="text-sm text-gray-500">Analysis</span>
             </div>
           </div>
 
@@ -634,7 +900,7 @@ export default function TrialCheckout() {
             <div className="inline-flex items-center bg-orange-500 text-white px-6 py-2 rounded-full text-lg font-bold">
               $1 for 7 days
             </div>
-            <p className="text-gray-500 mt-2">Then {planPrice}/mo. Cancel anytime.</p>
+            <p className="text-gray-500 mt-2">Then {planPrice}/mo if you continue. Cancel anytime.</p>
           </div>
 
           {/* Order Summary */}
@@ -667,6 +933,20 @@ export default function TrialCheckout() {
               onSuccess={handlePaymentSuccess}
             />
           </Elements>
+
+          {/* What happens next */}
+          <div className="mt-8 bg-gray-50 rounded-xl p-6 border">
+            <h3 className="font-bold mb-4 text-gray-900 flex items-center gap-2">
+              <Info className="w-5 h-5 text-orange-500" />
+              After payment:
+            </h3>
+            <div className="space-y-2 text-sm text-gray-600">
+              <p>✓ Instant access to your 3-bureau credit reports</p>
+              <p>✓ AI analysis of all negative items</p>
+              <p>✓ Personalized dispute strategy</p>
+              <p>✓ 7 days to try risk-free</p>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -677,8 +957,18 @@ export default function TrialCheckout() {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
       <div className="text-center">
         <Loader2 className="w-16 h-16 text-orange-500 animate-spin mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Setting Up Your Account...</h2>
-        <p className="text-gray-600">You'll be redirected to your dashboard in a moment</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">Pulling Your Credit Reports...</h2>
+        <p className="text-gray-600">This usually takes 30-60 seconds</p>
+        <div className="mt-8 max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <span>Payment confirmed</span>
+          </div>
+          <div className="flex items-center justify-center gap-4 text-sm text-gray-500 mt-2">
+            <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
+            <span>Accessing credit bureaus...</span>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -11,6 +11,11 @@ import {
   sendWinbackEmails, 
   checkRoundUnlocks 
 } from './trialCronJobs';
+import {
+  processIdentityIQMonthlyPayments,
+  retryFailedIdentityIQPayments,
+  syncCanceledSubscriptions
+} from './identityiqCronJobs';
 import * as db from './db';
 
 // Track if cron jobs are already running
@@ -23,6 +28,9 @@ let trialEmailInterval: NodeJS.Timeout | null = null;
 let trialExpirationInterval: NodeJS.Timeout | null = null;
 let winbackEmailInterval: NodeJS.Timeout | null = null;
 let roundUnlockInterval: NodeJS.Timeout | null = null;
+let identityiqPaymentInterval: NodeJS.Timeout | null = null;
+let identityiqRetryInterval: NodeJS.Timeout | null = null;
+let identityiqSyncInterval: NodeJS.Timeout | null = null;
 
 /**
  * Calculate milliseconds until next 9am
@@ -310,6 +318,11 @@ export function startAllCronJobs(): void {
   startWinbackEmailCron();
   startRoundUnlockCron();
   
+  // IdentityIQ payment cron jobs
+  startIdentityIQPaymentCron();
+  startIdentityIQRetryCron();
+  startIdentityIQSyncCron();
+  
   cronJobsStarted = true;
   console.log('[Cron] All cron jobs started successfully');
 }
@@ -368,4 +381,118 @@ export function getCronJobStatus(): {
       active: roundUnlockInterval !== null,
     },
   };
+}
+
+// ============================================
+// IDENTITYIQ PAYMENT CRON JOBS
+// ============================================
+
+/**
+ * Helper function to get milliseconds until a specific time
+ */
+function getMsUntilTime(hour: number, minute: number): number {
+  const now = new Date();
+  const target = new Date(now);
+  
+  target.setHours(hour, minute, 0, 0);
+  
+  if (now >= target) {
+    target.setDate(target.getDate() + 1);
+  }
+  
+  return target.getTime() - now.getTime();
+}
+
+/**
+ * Start the IdentityIQ monthly payment cron job
+ * Runs daily at 2:00 AM server time
+ */
+export function startIdentityIQPaymentCron(): void {
+  if (identityiqPaymentInterval) {
+    console.log('[Cron] IdentityIQ payment job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting IdentityIQ payment cron job (daily at 2am)');
+
+  const msUntil2AM = getMsUntilTime(2, 0);
+
+  // Schedule first run at 2am
+  setTimeout(() => {
+    console.log('[Cron] Running scheduled IdentityIQ payment job (2:00 AM)');
+    processIdentityIQMonthlyPayments().catch(err => {
+      console.error('[Cron] IdentityIQ payment job failed:', err);
+    });
+
+    // Then run every 24 hours
+    identityiqPaymentInterval = setInterval(() => {
+      console.log('[Cron] Running scheduled IdentityIQ payment job (daily)');
+      processIdentityIQMonthlyPayments().catch(err => {
+        console.error('[Cron] IdentityIQ payment job failed:', err);
+      });
+    }, 24 * 60 * 60 * 1000);
+  }, msUntil2AM);
+
+  console.log('[Cron] IdentityIQ payment cron job scheduled successfully');
+}
+
+/**
+ * Start the IdentityIQ retry cron job
+ * Runs daily at 11:00 AM server time
+ */
+export function startIdentityIQRetryCron(): void {
+  if (identityiqRetryInterval) {
+    console.log('[Cron] IdentityIQ retry job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting IdentityIQ retry cron job (daily at 11am)');
+
+  const msUntil11AM = getMsUntilTime(11, 0);
+
+  // Schedule first run at 11am
+  setTimeout(() => {
+    console.log('[Cron] Running scheduled IdentityIQ retry job (11:00 AM)');
+    retryFailedIdentityIQPayments().catch(err => {
+      console.error('[Cron] IdentityIQ retry job failed:', err);
+    });
+
+    // Then run every 24 hours
+    identityiqRetryInterval = setInterval(() => {
+      console.log('[Cron] Running scheduled IdentityIQ retry job (daily)');
+      retryFailedIdentityIQPayments().catch(err => {
+        console.error('[Cron] IdentityIQ retry job failed:', err);
+      });
+    }, 24 * 60 * 60 * 1000);
+  }, msUntil11AM);
+
+  console.log('[Cron] IdentityIQ retry cron job scheduled successfully');
+}
+
+/**
+ * Start the IdentityIQ sync cron job
+ * Runs every hour
+ */
+export function startIdentityIQSyncCron(): void {
+  if (identityiqSyncInterval) {
+    console.log('[Cron] IdentityIQ sync job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting IdentityIQ sync cron job (every hour)');
+
+  // Run immediately on startup
+  syncCanceledSubscriptions().catch(err => {
+    console.error('[Cron] IdentityIQ sync job failed:', err);
+  });
+
+  // Then run every hour
+  identityiqSyncInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled IdentityIQ sync job');
+    syncCanceledSubscriptions().catch(err => {
+      console.error('[Cron] IdentityIQ sync job failed:', err);
+    });
+  }, 60 * 60 * 1000); // 1 hour
+
+  console.log('[Cron] IdentityIQ sync cron job scheduled successfully');
 }
