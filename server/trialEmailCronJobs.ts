@@ -1,5 +1,5 @@
-import { db } from './db';
-import { users, subscriptions } from './db/schema';
+import * as db from './db';
+import { users, subscriptions } from '../drizzle/schema';
 import { eq, and, lte, gte, isNull, sql } from 'drizzle-orm';
 import { emailTemplateService } from './emailTemplateService';
 
