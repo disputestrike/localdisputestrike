@@ -6,11 +6,11 @@
 import { runDeadlineNotificationJob } from './deadlineNotificationService';
 import { processDeadlineSMSNotifications, isSMSEnabled } from './smsService';
 import { 
-  processTrialEmails, 
   expireTrials, 
   sendWinbackEmails, 
   checkRoundUnlocks 
 } from './trialCronJobs';
+import { processTrialEmails, sendPaymentReminders } from './trialEmailCronJobs';
 import {
   processIdentityIQMonthlyPayments,
   retryFailedIdentityIQPayments,
