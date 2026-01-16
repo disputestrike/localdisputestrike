@@ -19,6 +19,21 @@ export const users = mysqlTable("users", {
   passwordResetToken: varchar("passwordResetToken", { length: 255 }),
   passwordResetExpires: timestamp("passwordResetExpires"),
   
+  // Identity and Address Fields (for IdentityIQ integration)
+  firstName: varchar("firstName", { length: 255 }),
+  middleInitial: varchar("middleInitial", { length: 1 }),
+  lastName: varchar("lastName", { length: 255 }),
+  address: varchar("address", { length: 500 }),
+  city: varchar("city", { length: 255 }),
+  state: varchar("state", { length: 2 }),
+  zipCode: varchar("zipCode", { length: 10 }),
+  ssn: varchar("ssn", { length: 255 }), // Encrypted
+  dateOfBirth: varchar("dateOfBirth", { length: 10 }), // YYYY-MM-DD
+  phoneNumber: varchar("phoneNumber", { length: 20 }),
+  identityiqUserId: varchar("identityiqUserId", { length: 255 }),
+  identityiqEnrollmentDate: timestamp("identityiqEnrollmentDate"),
+  identityiqStatus: mysqlEnum("identityiqStatus", ["pending", "active", "cancelled", "failed"]).default("pending"),
+  
   // Agency/Merchant Account Fields
   accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
   agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies

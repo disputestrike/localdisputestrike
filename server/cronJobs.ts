@@ -16,6 +16,11 @@ import {
   retryFailedIdentityIQPayments,
   syncCanceledSubscriptions
 } from './identityiqCronJobs';
+import {
+  processPendingEnrollments,
+  retryFailedCreditPulls,
+  cancelExpiredTrialSubscriptions
+} from './identityiqEnrollmentCronJobs';
 import * as db from './db';
 
 // Track if cron jobs are already running
@@ -31,6 +36,9 @@ let roundUnlockInterval: NodeJS.Timeout | null = null;
 let identityiqPaymentInterval: NodeJS.Timeout | null = null;
 let identityiqRetryInterval: NodeJS.Timeout | null = null;
 let identityiqSyncInterval: NodeJS.Timeout | null = null;
+let identityiqEnrollmentInterval: NodeJS.Timeout | null = null;
+let identityiqCreditPullInterval: NodeJS.Timeout | null = null;
+let identityiqTrialCancellationInterval: NodeJS.Timeout | null = null;
 
 /**
  * Calculate milliseconds until next 9am
@@ -323,6 +331,11 @@ export function startAllCronJobs(): void {
   startIdentityIQRetryCron();
   startIdentityIQSyncCron();
   
+  // IdentityIQ enrollment and credit pull cron jobs
+  startIdentityIQEnrollmentCron();
+  startIdentityIQCreditPullCron();
+  startIdentityIQTrialCancellationCron();
+  
   cronJobsStarted = true;
   console.log('[Cron] All cron jobs started successfully');
 }
@@ -495,4 +508,102 @@ export function startIdentityIQSyncCron(): void {
   }, 60 * 60 * 1000); // 1 hour
 
   console.log('[Cron] IdentityIQ sync cron job scheduled successfully');
+}
+
+/**
+ * Start the IdentityIQ enrollment cron job
+ * Runs every 5 minutes to process pending enrollments
+ */
+export function startIdentityIQEnrollmentCron(): void {
+  if (identityiqEnrollmentInterval) {
+    console.log('[Cron] IdentityIQ enrollment job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting IdentityIQ enrollment cron job (every 5 minutes)');
+
+  // Run immediately on startup
+  processPendingEnrollments().catch(err => {
+    console.error('[Cron] IdentityIQ enrollment job failed:', err);
+  });
+
+  // Then run every 5 minutes
+  identityiqEnrollmentInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled IdentityIQ enrollment job');
+    processPendingEnrollments().catch(err => {
+      console.error('[Cron] IdentityIQ enrollment job failed:', err);
+    });
+  }, 5 * 60 * 1000); // 5 minutes
+
+  console.log('[Cron] IdentityIQ enrollment cron job scheduled successfully');
+}
+
+/**
+ * Start the IdentityIQ credit pull retry cron job
+ * Runs hourly to retry failed credit report pulls
+ */
+export function startIdentityIQCreditPullCron(): void {
+  if (identityiqCreditPullInterval) {
+    console.log('[Cron] IdentityIQ credit pull job already scheduled');
+    return;
+  }
+
+  console.log('[Cron] Starting IdentityIQ credit pull retry cron job (every hour)');
+
+  // Run immediately on startup
+  retryFailedCreditPulls().catch(err => {
+    console.error('[Cron] IdentityIQ credit pull job failed:', err);
+  });
+
+  // Then run every hour
+  identityiqCreditPullInterval = setInterval(() => {
+    console.log('[Cron] Running scheduled IdentityIQ credit pull retry job');
+    retryFailedCreditPulls().catch(err => {
+      console.error('[Cron] IdentityIQ credit pull job failed:', err);
+    });
+  }, 60 * 60 * 1000); // 1 hour
+
+  console.log('[Cron] IdentityIQ credit pull retry cron job scheduled successfully');
+}
+
+/**
+ * Start the IdentityIQ trial cancellation cron job
+ * Runs daily at 2am to cancel IdentityIQ for expired trials
+ */
+export function startIdentityIQTrialCancellationCron(): void {
+  if (identityiqTrialCancellationInterval) {
+    console.log('[Cron] IdentityIQ trial cancellation job already scheduled');
+    return;
+  }
+
+  // Calculate milliseconds until next 2am
+  const now = new Date();
+  const next2AM = new Date(now);
+  next2AM.setHours(2, 0, 0, 0);
+  if (now >= next2AM) {
+    next2AM.setDate(next2AM.getDate() + 1);
+  }
+  const msUntil2AM = next2AM.getTime() - now.getTime();
+  const hoursUntil = Math.round(msUntil2AM / (1000 * 60 * 60) * 10) / 10;
+  
+  console.log(`[Cron] Scheduling IdentityIQ trial cancellations - first run in ${hoursUntil} hours (at 2:00 AM)`);
+
+  // Schedule first run at 2am
+  setTimeout(() => {
+    console.log('[Cron] Running scheduled IdentityIQ trial cancellation job (2:00 AM)');
+    cancelExpiredTrialSubscriptions().catch(err => {
+      console.error('[Cron] IdentityIQ trial cancellation job failed:', err);
+    });
+
+    // Then run every 24 hours
+    identityiqTrialCancellationInterval = setInterval(() => {
+      console.log('[Cron] Running scheduled IdentityIQ trial cancellation job (daily)');
+      cancelExpiredTrialSubscriptions().catch(err => {
+        console.error('[Cron] IdentityIQ trial cancellation job failed:', err);
+      });
+    }, 24 * 60 * 60 * 1000); // 24 hours
+    
+  }, msUntil2AM);
+
+  console.log('[Cron] IdentityIQ trial cancellation cron job scheduled successfully');
 }
