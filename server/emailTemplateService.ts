@@ -1,6 +1,11 @@
-import { sendEmail } from './mailerooService';
+import { mailerooService } from './mailerooService';
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface EmailVariables {
   name?: string;
@@ -19,7 +24,11 @@ interface EmailVariables {
 }
 
 class EmailTemplateService {
-  private templatesDir = path.join(__dirname, 'email-templates');
+  private templatesDir: string;
+  
+  constructor() {
+    this.templatesDir = path.join(__dirname, 'email-templates');
+  }
   private defaultVariables: EmailVariables = {
     dashboard_url: process.env.FRONTEND_URL || 'https://www.disputestrike.com/dashboard',
     support_email: 'support@disputestrike.com',
