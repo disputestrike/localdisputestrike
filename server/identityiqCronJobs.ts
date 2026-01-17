@@ -9,7 +9,7 @@
 
 import * as db from './db';
 import { payIdentityIQMonthly, cancelIdentityIQSubscription } from './identityiqService';
-import { sendEmail } from './mailerooService';
+import { sendEmail } from './zeptomailService';
 
 /**
  * Process monthly IdentityIQ payments

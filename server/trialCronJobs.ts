@@ -7,7 +7,7 @@
  * - Win-back emails (Day 14 for churned trials)
  */
 
-import { sendEmail } from './mailerooService';
+import { sendEmail } from './zeptomailService';
 import { SUBSCRIPTION_TIERS, formatPrice } from './productsV2';
 import * as db from './db';
 

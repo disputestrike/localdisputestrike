@@ -1,4 +1,4 @@
-import { mailerooService } from './mailerooService';
+import { sendEmail } from './zeptomailService';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

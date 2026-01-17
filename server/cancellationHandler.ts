@@ -11,7 +11,7 @@
 import * as db from './db';
 import { cancelSubscription as cancelStripeSubscription } from './stripeSubscriptionService';
 import { cancelIdentityIQSubscription } from './identityiqService';
-import { sendEmail } from './mailerooService';
+import { sendEmail } from './zeptomailService';
 
 interface CancellationParams {
   userId: number;
