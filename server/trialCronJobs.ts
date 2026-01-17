@@ -7,7 +7,15 @@
  * - Win-back emails (Day 14 for churned trials)
  */
 
-import { sendEmail } from './zeptomailService';
+import {
+  sendCreditAnalysisReadyEmail,
+  sendGettingStartedEmail,
+  sendFeatureHighlightEmail,
+  sendObjectionHandlerEmail,
+  sendTrialExpiringEmail,
+  sendTrialExpiringTomorrowEmail,
+  sendTrialEndedEmail,
+} from './zeptomailService';
 import { SUBSCRIPTION_TIERS, formatPrice } from './productsV2';
 import * as db from './db';
 
@@ -74,19 +82,23 @@ export async function processTrialEmails(): Promise<{
       const trialStart = new Date(trial.trialStartedAt);
       const daysSinceStart = Math.floor((now.getTime() - trialStart.getTime()) / (1000 * 60 * 60 * 24));
 
-      // Day 1 email (sent on day 1)
+      // Day 1 email - Credit Analysis Ready
       if (daysSinceStart >= 1 && !trial.day1EmailSent) {
         try {
-          await sendEmail({
-            to: user.email,
-            subject: EMAIL_TEMPLATES.day1.subject,
-            template: EMAIL_TEMPLATES.day1.template,
-            data: {
-              name: user.name || 'there',
-              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
-              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
-            },
-          });
+          // Mock data - replace with actual credit analysis data
+          const negativeItemCount = 5; // TODO: Get from credit analysis
+          const topRecommendations = [
+            { accountName: 'Capital One Collection', winProbability: 85, reason: 'Missing documentation' },
+            { accountName: 'Medical Bill - $1,234', winProbability: 78, reason: 'Not verified by provider' },
+            { accountName: 'Late Payment - Discover', winProbability: 65, reason: 'Reporting error' },
+          ];
+          
+          await sendCreditAnalysisReadyEmail(
+            user.email,
+            user.name || 'there',
+            negativeItemCount,
+            topRecommendations
+          );
           await db.updateTrialEmailSent(trial.id, 'day1EmailSent', true);
           results.day1Sent++;
         } catch (error) {
@@ -94,19 +106,20 @@ export async function processTrialEmails(): Promise<{
         }
       }
 
-      // Day 3 email
+      // Day 2 email - Getting Started Guide
+      if (daysSinceStart >= 2 && !trial.day2EmailSent) {
+        try {
+          await sendGettingStartedEmail(user.email, user.name || 'there');
+          await db.updateTrialEmailSent(trial.id, 'day2EmailSent', true);
+        } catch (error) {
+          console.error(`Failed to send day 2 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 3 email - Feature Highlight
       if (daysSinceStart >= 3 && !trial.day3EmailSent) {
         try {
-          await sendEmail({
-            to: user.email,
-            subject: EMAIL_TEMPLATES.day3.subject,
-            template: EMAIL_TEMPLATES.day3.template,
-            data: {
-              name: user.name || 'there',
-              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
-              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
-            },
-          });
+          await sendFeatureHighlightEmail(user.email, user.name || 'there');
           await db.updateTrialEmailSent(trial.id, 'day3EmailSent', true);
           results.day3Sent++;
         } catch (error) {
@@ -114,20 +127,26 @@ export async function processTrialEmails(): Promise<{
         }
       }
 
-      // Day 5 email
+      // Day 4 email - Objection Handler
+      if (daysSinceStart >= 4 && !trial.day4EmailSent) {
+        try {
+          await sendObjectionHandlerEmail(user.email, user.name || 'there');
+          await db.updateTrialEmailSent(trial.id, 'day4EmailSent', true);
+        } catch (error) {
+          console.error(`Failed to send day 4 email to ${user.email}:`, error);
+        }
+      }
+
+      // Day 5 email - Trial Expiring (2 days left)
       if (daysSinceStart >= 5 && !trial.day5EmailSent) {
         try {
-          await sendEmail({
-            to: user.email,
-            subject: EMAIL_TEMPLATES.day5.subject,
-            template: EMAIL_TEMPLATES.day5.template,
-            data: {
-              name: user.name || 'there',
-              daysLeft: 2,
-              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
-              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
-            },
-          });
+          const trialEndDate = new Date(trialStart);
+          trialEndDate.setDate(trialEndDate.getDate() + 7);
+          await sendTrialExpiringEmail(
+            user.email,
+            user.name || 'there',
+            trialEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+          );
           await db.updateTrialEmailSent(trial.id, 'day5EmailSent', true);
           results.day5Sent++;
         } catch (error) {
@@ -135,19 +154,16 @@ export async function processTrialEmails(): Promise<{
         }
       }
 
-      // Day 6 email
+      // Day 6 email - Trial Expiring Tomorrow
       if (daysSinceStart >= 6 && !trial.day6EmailSent) {
         try {
-          await sendEmail({
-            to: user.email,
-            subject: EMAIL_TEMPLATES.day6.subject,
-            template: EMAIL_TEMPLATES.day6.template,
-            data: {
-              name: user.name || 'there',
-              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
-              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
-            },
-          });
+          const trialEndDate = new Date(trialStart);
+          trialEndDate.setDate(trialEndDate.getDate() + 7);
+          await sendTrialExpiringTomorrowEmail(
+            user.email,
+            user.name || 'there',
+            trialEndDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+          );
           await db.updateTrialEmailSent(trial.id, 'day6EmailSent', true);
           results.day6Sent++;
         } catch (error) {
@@ -155,19 +171,10 @@ export async function processTrialEmails(): Promise<{
         }
       }
 
-      // Day 7 email (trial expired)
+      // Day 7 email - Trial Ended
       if (daysSinceStart >= 7 && !trial.day7EmailSent) {
         try {
-          await sendEmail({
-            to: user.email,
-            subject: EMAIL_TEMPLATES.day7.subject,
-            template: EMAIL_TEMPLATES.day7.template,
-            data: {
-              name: user.name || 'there',
-              diyPrice: formatPrice(SUBSCRIPTION_TIERS.diy.monthlyPrice),
-              completePrice: formatPrice(SUBSCRIPTION_TIERS.complete.monthlyPrice),
-            },
-          });
+          await sendTrialEndedEmail(user.email, user.name || 'there');
           await db.updateTrialEmailSent(trial.id, 'day7EmailSent', true);
           results.day7Sent++;
         } catch (error) {

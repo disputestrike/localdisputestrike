@@ -5,6 +5,9 @@
  */
 
 import { config } from 'dotenv';
+import Handlebars from 'handlebars';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 // Load environment variables
 config();
@@ -35,9 +38,19 @@ interface ZeptoMailResponse {
 const ZEPTOMAIL_API_KEY = process.env.ZEPTOMAIL_API_KEY;
 const ZEPTOMAIL_FROM_EMAIL = process.env.ZEPTOMAIL_FROM_EMAIL || 'noreply@disputestrike.com';
 const ZEPTOMAIL_FROM_NAME = process.env.ZEPTOMAIL_FROM_NAME || 'DisputeStrike';
+const APP_URL = process.env.VITE_APP_URL || 'https://www.disputestrike.com';
 
 if (!ZEPTOMAIL_API_KEY) {
   console.warn('ZEPTOMAIL_API_KEY is not set in environment variables');
+}
+
+/**
+ * Load and compile email template
+ */
+function loadTemplate(templateName: string): HandlebarsTemplateDelegate {
+  const templatePath = join(__dirname, 'email-templates', `${templateName}.html`);
+  const templateSource = readFileSync(templatePath, 'utf-8');
+  return Handlebars.compile(templateSource);
 }
 
 /**
@@ -237,7 +250,7 @@ function generateEmailTemplate(params: {
           Want to change how you receive these emails?
         </p>
         <p style="margin: 0;">
-          <a href="${process.env.VITE_APP_URL || 'https://www.disputestrike.com'}/unsubscribe" style="color: #ffffff; text-decoration: underline; font-size: 12px;">You can unsubscribe from this list</a>
+          <a href="${APP_URL}/unsubscribe" style="color: #ffffff; text-decoration: underline; font-size: 12px;">You can unsubscribe from this list</a>
         </p>
       </td>
     </tr>
@@ -247,8 +260,12 @@ function generateEmailTemplate(params: {
 </html>`;
 }
 
+// ============================================================================
+// TRIAL NURTURE SEQUENCE (Days 0-7)
+// ============================================================================
+
 /**
- * Send a welcome email to a new trial user
+ * Day 0: Send welcome email to new trial user
  */
 export async function sendTrialWelcomeEmail(
   email: string,
@@ -284,7 +301,7 @@ export async function sendTrialWelcomeEmail(
     title: 'Welcome to DisputeStrike!',
     content,
     ctaText: 'View Your Credit Analysis',
-    ctaUrl: `${process.env.VITE_APP_URL || 'http://localhost:3000'}/credit-analysis`,
+    ctaUrl: `${APP_URL}/credit-analysis`,
   });
   
   const plain = `
@@ -302,7 +319,7 @@ What's Next?
 Trial Period: 7 days from today
 After Trial: Your selected plan will activate automatically unless you cancel
 
-View Your Credit Analysis: ${process.env.VITE_APP_URL || 'http://localhost:3000'}/credit-analysis
+View Your Credit Analysis: ${APP_URL}/credit-analysis
 
 Need Help?
 We're here to support you every step of the way. If you have any questions, just reply to this email.
@@ -322,10 +339,232 @@ www.disputestrike.com
     plain,
     tags: {
       type: 'trial_welcome',
-      user_email: email,
+      day: '0',
     },
   });
 }
+
+/**
+ * Day 1: Credit analysis ready email
+ */
+export async function sendCreditAnalysisReadyEmail(
+  email: string,
+  userName: string,
+  negativeItemCount: number,
+  topRecommendations: Array<{ accountName: string; winProbability: number; reason: string }>
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day1-credit-analysis-ready');
+    const html = template({
+      userName,
+      negativeItemCount,
+      topRecommendations,
+      dashboardUrl: `${APP_URL}/dashboard`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'Your Credit Analysis is Ready! 📊',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '1',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending credit analysis ready email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 2: Getting started guide email
+ */
+export async function sendGettingStartedEmail(
+  email: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day2-getting-started');
+    const html = template({
+      userName,
+      dashboardUrl: `${APP_URL}/dashboard`,
+      disputeGuideUrl: `${APP_URL}/guides/how-to-dispute`,
+      supportUrl: `${APP_URL}/support`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'How to Get the Most Out of DisputeStrike',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '2',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending getting started email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 3: Feature highlight - AI dispute letters
+ */
+export async function sendFeatureHighlightEmail(
+  email: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day3-feature-highlight');
+    const html = template({
+      userName,
+      dashboardUrl: `${APP_URL}/dashboard`,
+      sampleLetterUrl: `${APP_URL}/sample-dispute-letter`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'See How Our AI Writes Professional Dispute Letters',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '3',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending feature highlight email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 4: Objection handler - common questions
+ */
+export async function sendObjectionHandlerEmail(
+  email: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day4-objection-handler');
+    const html = template({
+      userName,
+      faqUrl: `${APP_URL}/faq`,
+      supportUrl: `${APP_URL}/support`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'Common Questions About Credit Disputes (Answered)',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '4',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending objection handler email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 5: Trial expiring in 2 days
+ */
+export async function sendTrialExpiringEmail(
+  email: string,
+  userName: string,
+  trialEndDate: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day5-trial-expiring');
+    const html = template({
+      userName,
+      trialEndDate,
+      upgradeUrl: `${APP_URL}/upgrade`,
+      cancelUrl: `${APP_URL}/cancel`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'Your Trial Ends in 2 Days',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '5',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending trial expiring email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 6: Trial expiring tomorrow
+ */
+export async function sendTrialExpiringTomorrowEmail(
+  email: string,
+  userName: string,
+  trialEndDate: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day6-trial-expiring-tomorrow');
+    const html = template({
+      userName,
+      trialEndDate,
+      upgradeUrl: `${APP_URL}/upgrade`,
+      cancelUrl: `${APP_URL}/cancel`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'Last Chance: Your Trial Ends Tomorrow',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '6',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending trial expiring tomorrow email:', error);
+    return false;
+  }
+}
+
+/**
+ * Day 7: Trial ended - last chance offer
+ */
+export async function sendTrialEndedEmail(
+  email: string,
+  userName: string
+): Promise<boolean> {
+  try {
+    const template = loadTemplate('day7-trial-ended');
+    const html = template({
+      userName,
+      reactivateUrl: `${APP_URL}/reactivate`,
+      supportUrl: `${APP_URL}/support`,
+    });
+
+    return sendEmail({
+      to: { address: email, display_name: userName },
+      subject: 'Your Trial Has Ended - Special Offer Inside',
+      html,
+      tags: {
+        type: 'trial_nurture',
+        day: '7',
+      },
+    });
+  } catch (error) {
+    console.error('Error sending trial ended email:', error);
+    return false;
+  }
+}
+
+// ============================================================================
+// TRANSACTIONAL EMAILS
+// ============================================================================
 
 /**
  * Send password reset email
@@ -334,7 +573,7 @@ export async function sendPasswordResetEmail(
   email: string,
   resetToken: string
 ): Promise<boolean> {
-  const resetUrl = `${process.env.VITE_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+  const resetUrl = `${APP_URL}/reset-password?token=${resetToken}`;
   
   const content = `
     <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">You requested to reset your password for your DisputeStrike account.</p>
@@ -395,6 +634,15 @@ www.disputestrike.com
 
 export default {
   sendEmail,
+  // Trial nurture sequence
   sendTrialWelcomeEmail,
+  sendCreditAnalysisReadyEmail,
+  sendGettingStartedEmail,
+  sendFeatureHighlightEmail,
+  sendObjectionHandlerEmail,
+  sendTrialExpiringEmail,
+  sendTrialExpiringTomorrowEmail,
+  sendTrialEndedEmail,
+  // Transactional
   sendPasswordResetEmail,
 };
