@@ -18,7 +18,7 @@ async function testZeptoMail() {
   console.log('Test 1: Sending simple email...');
   try {
     const result1 = await sendEmail({
-      to: 'ben_peter@disputestrike.com', // Replace with your email for testing
+      to: 'benxpeter@gmail.com', // Replace with your email for testing
       subject: 'Test Email from DisputeStrike',
       html: '<h1>Hello from DisputeStrike!</h1><p>This is a test email sent via ZeptoMail.</p>',
       plain: 'Hello from DisputeStrike! This is a test email sent via ZeptoMail.',
@@ -37,7 +37,7 @@ async function testZeptoMail() {
   console.log('Test 2: Sending trial welcome email...');
   try {
     const result2 = await sendTrialWelcomeEmail(
-      'ben_peter@disputestrike.com', // Replace with your email for testing
+      'benxpeter@gmail.com', // Replace with your email for testing
       'John Doe'
     );
     
@@ -54,7 +54,7 @@ async function testZeptoMail() {
   console.log('Test 3: Sending password reset email...');
   try {
     const result3 = await sendPasswordResetEmail(
-      'ben_peter@disputestrike.com', // Replace with your email for testing
+      'benxpeter@gmail.com', // Replace with your email for testing
       'test-reset-token-123'
     );
     
@@ -68,8 +68,8 @@ async function testZeptoMail() {
   }
   
   console.log('✨ ZeptoMail integration test complete!');
-  console.log('\n📧 Check your inbox at ben_peter@disputestrike.com for the test emails.');
-  console.log('💡 Remember to replace ben_peter@disputestrike.com with your actual email address.');
+  console.log('\n📧 Check your inbox at benxpeter@gmail.com for the test emails.');
+  console.log('💡 Remember to replace benxpeter@gmail.com with your actual email address.');
 }
 
 // Run the test
