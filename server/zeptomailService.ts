@@ -155,7 +155,12 @@ export async function sendEmail(params: SendEmailParams): Promise<boolean> {
 }
 
 /**
- * Generate professional HTML email template with DisputeStrike branding
+ * Generate professional HTML email template matching Creditfixrr style
+ * - Clean white background
+ * - Logo centered at top
+ * - Minimal text-based design
+ * - Dark navy CTA buttons
+ * - Green footer with social icons
  */
 function generateEmailTemplate(params: {
   title: string;
@@ -172,52 +177,71 @@ function generateEmailTemplate(params: {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
 </head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8fafc;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #ffffff;">
   
-  <!-- Logo Header -->
-  <div style="text-align: center; padding: 20px 0;">
-    <img src="https://www.disputestrike.com/logo-email.png" alt="DisputeStrike" style="max-width: 250px; height: auto;">
-  </div>
-  
-  <!-- Main Content Card -->
-  <div style="background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h2 style="color: #1e293b; margin-top: 0; font-size: 24px;">${title}</h2>
+  <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto;">
+    <tr>
+      <td style="padding: 40px 20px 20px 20px; text-align: center;">
+        <img src="https://www.disputestrike.com/logo-email.png" alt="DisputeStrike" style="max-width: 200px; height: auto;">
+      </td>
+    </tr>
     
-    ${content}
+    <tr>
+      <td style="padding: 20px 40px;">
+        ${content}
+        
+        ${ctaText && ctaUrl ? `
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+          <tr>
+            <td align="center">
+              <a href="${ctaUrl}" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-weight: 600; font-size: 16px;">${ctaText}</a>
+            </td>
+          </tr>
+        </table>
+        ` : ''}
+      </td>
+    </tr>
     
-    ${ctaText && ctaUrl ? `
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${ctaUrl}" style="display: inline-block; background: #10b981; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">${ctaText} →</a>
-    </div>
-    ` : ''}
-  </div>
-  
-  <!-- Footer -->
-  <div style="text-align: center; padding: 30px 20px; color: #64748b; font-size: 14px;">
-    
-    <!-- Social Media Links -->
-    <div style="margin-bottom: 20px;">
-      <a href="https://facebook.com/disputestrike" style="display: inline-block; margin: 0 8px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" style="width: 24px; height: 24px; opacity: 0.6;">
-      </a>
-      <a href="https://twitter.com/disputestrike" style="display: inline-block; margin: 0 8px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="Twitter" style="width: 24px; height: 24px; opacity: 0.6;">
-      </a>
-      <a href="https://instagram.com/disputestrike" style="display: inline-block; margin: 0 8px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" style="width: 24px; height: 24px; opacity: 0.6;">
-      </a>
-      <a href="https://linkedin.com/company/disputestrike" style="display: inline-block; margin: 0 8px;">
-        <img src="https://cdn-icons-png.flaticon.com/512/733/733561.png" alt="LinkedIn" style="width: 24px; height: 24px; opacity: 0.6;">
-      </a>
-    </div>
-    
-    <p style="margin: 10px 0;">DisputeStrike • AI-Powered Credit Repair</p>
-    <p style="margin: 10px 0; font-size: 12px;">
-      <a href="${process.env.VITE_APP_URL || 'https://www.disputestrike.com'}/terms" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Terms</a>
-      <a href="${process.env.VITE_APP_URL || 'https://www.disputestrike.com'}/privacy" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Privacy</a>
-      <a href="${process.env.VITE_APP_URL || 'https://www.disputestrike.com'}/unsubscribe" style="color: #94a3b8; text-decoration: none; margin: 0 8px;">Unsubscribe</a>
-    </p>
-  </div>
+    <!-- Green Footer -->
+    <tr>
+      <td style="background-color: #10b981; padding: 30px 20px; text-align: center;">
+        <!-- Social Media Icons -->
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
+          <tr>
+            <td align="center">
+              <a href="https://facebook.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="28" height="28" style="display: block;">
+              </a>
+              <a href="https://instagram.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" width="28" height="28" style="display: block;">
+              </a>
+              <a href="https://youtube.com/@disputestrike" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="YouTube" width="28" height="28" style="display: block;">
+              </a>
+              <a href="https://twitter.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733635.png" alt="Twitter" width="28" height="28" style="display: block;">
+              </a>
+              <a href="https://plus.google.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Google+" width="28" height="28" style="display: block;">
+              </a>
+            </td>
+          </tr>
+        </table>
+        
+        <p style="color: #ffffff; margin: 10px 0; font-size: 14px; font-weight: 600;">Copyright © ${new Date().getFullYear()} DisputeStrike Technology, All rights reserved.</p>
+        
+        <p style="color: #ffffff; margin: 15px 0; font-size: 13px;">Our mailing address is:</p>
+        <p style="color: #ffffff; margin: 5px 0; font-size: 13px;">support@disputestrike.com</p>
+        
+        <p style="color: #ffffff; margin: 20px 0 5px 0; font-size: 12px;">
+          Want to change how you receive these emails?
+        </p>
+        <p style="margin: 0;">
+          <a href="${process.env.VITE_APP_URL || 'https://www.disputestrike.com'}/unsubscribe" style="color: #ffffff; text-decoration: underline; font-size: 12px;">You can unsubscribe from this list</a>
+        </p>
+      </td>
+    </tr>
+  </table>
   
 </body>
 </html>`;
@@ -231,25 +255,29 @@ export async function sendTrialWelcomeEmail(
   name: string
 ): Promise<boolean> {
   const content = `
-    <p>Hey ${name}! 👋</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Hey ${name},</p>
     
-    <p>Thank you for starting your <strong>$1 trial</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Thank you for starting your <strong>$1 trial</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
     
-    <h3 style="color: #1e293b; font-size: 18px;">What's Next?</h3>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 15px;"><strong>What's Next?</strong></p>
     
-    <ol style="padding-left: 20px; color: #475569;">
-      <li style="margin-bottom: 12px;"><strong>Credit Report Pull</strong> - We're pulling your reports from all 3 bureaus right now (30-60 seconds)</li>
-      <li style="margin-bottom: 12px;"><strong>AI Analysis</strong> - Our AI will analyze every negative item and recommend the best disputes</li>
-      <li style="margin-bottom: 12px;"><strong>Review & Decide</strong> - See your scores, negative items, and dispute strategy</li>
-      <li style="margin-bottom: 12px;"><strong>7-Day Trial</strong> - Try everything risk-free. Cancel anytime before 7 days for a full refund</li>
+    <ol style="font-size: 15px; line-height: 1.8; color: #333333; padding-left: 20px; margin-bottom: 25px;">
+      <li><strong>Credit Report Pull</strong> - We're pulling your reports from all 3 bureaus right now (30-60 seconds)</li>
+      <li><strong>AI Analysis</strong> - Our AI will analyze every negative item and recommend the best disputes</li>
+      <li><strong>Review & Decide</strong> - See your scores, negative items, and dispute strategy</li>
+      <li><strong>7-Day Trial</strong> - Try everything risk-free. Cancel anytime before 7 days for a full refund</li>
     </ol>
     
-    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>⏰ Trial Period:</strong> 7 days from today</p>
-      <p style="margin: 8px 0 0 0; color: #92400e; font-size: 14px;"><strong>💳 After Trial:</strong> Your selected plan will activate automatically unless you cancel</p>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border-left: 4px solid #f59e0b; margin: 25px 0;">
+      <tr>
+        <td style="padding: 15px;">
+          <p style="margin: 0 0 8px 0; color: #92400e; font-size: 14px;"><strong>⏰ Trial Period:</strong> 7 days from today</p>
+          <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>💳 After Trial:</strong> Your selected plan will activate automatically unless you cancel</p>
+        </td>
+      </tr>
+    </table>
     
-    <p style="color: #64748b; font-size: 14px; margin-top: 30px;">Need help? Reply to this email or visit our support center.</p>
+    <p style="font-size: 14px; line-height: 1.6; color: #666666; margin-top: 30px;">Need help? Reply to this email or visit our support center.</p>
   `;
   
   const html = generateEmailTemplate({
@@ -260,7 +288,7 @@ export async function sendTrialWelcomeEmail(
   });
   
   const plain = `
-Hey ${name}!
+Hey ${name},
 
 Thank you for starting your $1 trial with DisputeStrike! We're excited to help you improve your credit score.
 
@@ -309,18 +337,22 @@ export async function sendPasswordResetEmail(
   const resetUrl = `${process.env.VITE_APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
   
   const content = `
-    <p>You requested to reset your password for your DisputeStrike account.</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">You requested to reset your password for your DisputeStrike account.</p>
     
-    <p>Click the button below to reset your password:</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 25px;">Click the button below to reset your password:</p>
     
-    <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0;">
-      <p style="margin: 0; color: #991b1b; font-size: 14px;"><strong>⚠️ This link will expire in 1 hour.</strong></p>
-    </div>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef2f2; border-left: 4px solid #ef4444; margin: 25px 0;">
+      <tr>
+        <td style="padding: 15px;">
+          <p style="margin: 0; color: #991b1b; font-size: 14px;"><strong>⚠️ This link will expire in 1 hour.</strong></p>
+        </td>
+      </tr>
+    </table>
     
-    <p style="color: #64748b; font-size: 14px; margin-top: 20px;">Or copy and paste this link into your browser:</p>
-    <p style="word-break: break-all; color: #94a3b8; font-size: 12px; background: #f8fafc; padding: 10px; border-radius: 4px;">${resetUrl}</p>
+    <p style="font-size: 14px; line-height: 1.6; color: #666666; margin-top: 25px;">Or copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; color: #3b82f6; font-size: 13px; background-color: #f8fafc; padding: 12px; border-radius: 4px; margin: 10px 0 25px 0;">${resetUrl}</p>
     
-    <p style="color: #64748b; font-size: 14px; margin-top: 20px;">If you didn't request this, please ignore this email. Your password will remain unchanged.</p>
+    <p style="font-size: 14px; line-height: 1.6; color: #666666;">If you didn't request this, please ignore this email. Your password will remain unchanged.</p>
   `;
   
   const html = generateEmailTemplate({
