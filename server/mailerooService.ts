@@ -120,7 +120,7 @@ export async function sendTrialWelcomeEmail(
 ): Promise<boolean> {
   return sendEmail({
     to: { address: email, display_name: name },
-    subject: 'Welcome to DisputeStrike - Your $1 Trial Has Started!',
+    subject: 'Welcome to DisputeStrike - Your Free Analysis Has Started!',
     html: `
       <!DOCTYPE html>
       <html>
@@ -136,7 +136,7 @@ export async function sendTrialWelcomeEmail(
         <div style="background-color: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
           <h2 style="color: #f97316; margin-top: 0;">Hi ${name},</h2>
           
-          <p>Thank you for starting your <strong>$1 trial</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
+          <p>Thank you for starting your <strong>Free Analysis</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
           
           <h3 style="color: #1f2937;">What's Next?</h3>
           
@@ -144,12 +144,12 @@ export async function sendTrialWelcomeEmail(
             <li style="margin-bottom: 10px;"><strong>Credit Report Pull</strong> - We're pulling your reports from all 3 bureaus right now (30-60 seconds)</li>
             <li style="margin-bottom: 10px;"><strong>AI Analysis</strong> - Our AI will analyze every negative item and recommend the best disputes</li>
             <li style="margin-bottom: 10px;"><strong>Review & Decide</strong> - See your scores, negative items, and dispute strategy</li>
-            <li style="margin-bottom: 10px;"><strong>7-Day Trial</strong> - Try everything risk-free. Cancel anytime before 7 days for a full refund</li>
+            <li style="margin-bottom: 10px;"><strong>Free Forever</strong> - See all your violations for free. Upgrade only when you're ready to dispute.</li>
           </ol>
           
           <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>⏰ Trial Period:</strong> 7 days from today</p>
-            <p style="margin: 10px 0 0 0;"><strong>💳 After Trial:</strong> Your selected plan will activate automatically unless you cancel</p>
+            <p style="margin: 0;"><strong>⏰ Status:</strong> Free Analysis Active</p>
+            <p style="margin: 10px 0 0 0;"><strong>💳 Upgrade:</strong> Choose a plan when you're ready to generate dispute letters</p>
           </div>
           
           <div style="text-align: center; margin: 30px 0;">
@@ -179,17 +179,17 @@ export async function sendTrialWelcomeEmail(
     plain: `
 Hi ${name},
 
-Thank you for starting your $1 trial with DisputeStrike! We're excited to help you improve your credit score.
+Thank you for starting your Free Analysis with DisputeStrike! We're excited to help you improve your credit score.
 
 What's Next?
 
 1. Credit Report Pull - We're pulling your reports from all 3 bureaus right now (30-60 seconds)
 2. AI Analysis - Our AI will analyze every negative item and recommend the best disputes
 3. Review & Decide - See your scores, negative items, and dispute strategy
-4. 7-Day Trial - Try everything risk-free. Cancel anytime before 7 days for a full refund
+4. Free Forever - See all your violations for free. Upgrade only when you're ready to dispute.
 
-Trial Period: 7 days from today
-After Trial: Your selected plan will activate automatically unless you cancel
+Status: Free Analysis Active
+Upgrade: Choose a plan when you're ready to generate dispute letters
 
 View Your Credit Analysis: ${process.env.VITE_APP_URL || 'http://localhost:3000'}/credit-analysis
 

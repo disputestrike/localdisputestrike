@@ -6,8 +6,8 @@
  * The new pricing model uses productsV2.ts with subscription tiers.
  * 
  * SINGLE SOURCE OF TRUTH:
- * - DIY: $49.99/month (after $1 trial)
- * - Complete: $79.99/month (after $1 trial)
+ * - DIY: $49.99/month
+ * - Complete: $79.99/month
  * - Agency: $497/$997/$1997 (separate pricing)
  */
 

@@ -222,20 +222,17 @@ function generateEmailTemplate(params: {
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 20px;">
           <tr>
             <td align="center">
-              <a href="https://facebook.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+              <a href="https://facebook.com/DisputeStrike" style="display: inline-block; margin: 0 8px;">
                 <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" width="28" height="28" style="display: block;">
               </a>
-              <a href="https://instagram.com/disputestrike" style="display: inline-block; margin: 0 8px;">
+              <a href="https://instagram.com/DisputeStrikeAI" style="display: inline-block; margin: 0 8px;">
                 <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Instagram" width="28" height="28" style="display: block;">
               </a>
-              <a href="https://youtube.com/@disputestrike" style="display: inline-block; margin: 0 8px;">
+              <a href="https://youtube.com/@DisputeStrike" style="display: inline-block; margin: 0 8px;">
                 <img src="https://cdn-icons-png.flaticon.com/512/733/733579.png" alt="YouTube" width="28" height="28" style="display: block;">
               </a>
-              <a href="https://twitter.com/disputestrike" style="display: inline-block; margin: 0 8px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/733/733635.png" alt="Twitter" width="28" height="28" style="display: block;">
-              </a>
-              <a href="https://plus.google.com/disputestrike" style="display: inline-block; margin: 0 8px;">
-                <img src="https://cdn-icons-png.flaticon.com/512/733/733558.png" alt="Google+" width="28" height="28" style="display: block;">
+              <a href="https://tiktok.com/@DisputeStrikeAI" style="display: inline-block; margin: 0 8px;">
+                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" width="28" height="28" style="display: block;">
               </a>
             </td>
           </tr>
@@ -274,7 +271,7 @@ export async function sendTrialWelcomeEmail(
   const content = `
     <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Hey ${name},</p>
     
-    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Thank you for starting your <strong>$1 trial</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Thank you for starting your <strong>Free Analysis</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
     
     <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 15px;"><strong>What's Next?</strong></p>
     
@@ -307,7 +304,7 @@ export async function sendTrialWelcomeEmail(
   const plain = `
 Hey ${name},
 
-Thank you for starting your $1 trial with DisputeStrike! We're excited to help you improve your credit score.
+Thank you for starting your Free Analysis with DisputeStrike! We're excited to help you improve your credit score.
 
 What's Next?
 

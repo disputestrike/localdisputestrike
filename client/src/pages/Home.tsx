@@ -45,9 +45,7 @@ export default function Home() {
             <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               FAQ
             </Link>
-            <Link href="/fcra-rights" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
-              Your Rights
-            </Link>
+
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Money Back Guarantee
             </Link>
@@ -1146,6 +1144,7 @@ export default function Home() {
                 <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                 <li><Link href="/contact" className="hover:text-white transition-colors">Contact</Link></li>
+                <li><Link href="/fcra-rights" className="hover:text-white transition-colors">Your Rights</Link></li>
                 <li><Link href="/admin/login" className="text-gray-500 hover:text-gray-400 transition-colors text-xs">Admin</Link></li>
               </ul>
             </div>
@@ -1157,7 +1156,7 @@ export default function Home() {
                 <a href="https://www.facebook.com/DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                   <Facebook className="h-6 w-6" />
                 </a>
-                <a href="https://www.instagram.com/DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <a href="https://www.instagram.com/DisputeStrikeAI" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                   <Instagram className="h-6 w-6" />
                 </a>
                 <a href="https://www.youtube.com/@DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">

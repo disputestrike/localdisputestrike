@@ -205,7 +205,7 @@ function PaymentForm({
         ) : (
           <>
             <Lock className="w-5 h-5" />
-            Pay $1 & Get Credit Analysis
+            Get Started & View Credit Analysis
           </>
         )}
       </button>
@@ -229,9 +229,9 @@ function PaymentForm({
       {/* Money-back guarantee */}
       <div className="text-center">
         <p className="text-sm text-gray-600">
-          <strong className="text-gray-900">7-Day Money-Back Guarantee</strong>
+          <strong className="text-gray-900">Money-Back Guarantee</strong>
           <br />
-          Cancel anytime within 7 days for a full refund
+          We stand behind our results.
         </p>
       </div>
     </form>
@@ -425,7 +425,7 @@ export default function TrialCheckout() {
                 <span className="text-5xl font-bold text-gray-900">$49</span>
                 <span className="text-2xl text-gray-900">.99</span>
                 <span className="text-gray-500">/month</span>
-                <p className="text-sm text-gray-400 mt-1">After $1 trial</p>
+                <p className="text-sm text-gray-400 mt-1">Monthly subscription</p>
               </div>
 
               <div className="space-y-3 mb-8">
@@ -468,7 +468,7 @@ export default function TrialCheckout() {
                 onClick={() => handlePlanSelect('diy')}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold transition-colors"
               >
-                Start $1 Trial
+                Start Free Analysis
               </button>
             </div>
 
@@ -489,7 +489,7 @@ export default function TrialCheckout() {
                 <span className="text-5xl font-bold text-gray-900">$79</span>
                 <span className="text-2xl text-gray-900">.99</span>
                 <span className="text-gray-500">/month</span>
-                <p className="text-sm text-gray-400 mt-1">After $1 trial</p>
+                <p className="text-sm text-gray-400 mt-1">Monthly subscription</p>
               </div>
 
               <div className="space-y-3 mb-8">
@@ -524,7 +524,7 @@ export default function TrialCheckout() {
                 onClick={() => handlePlanSelect('complete')}
                 className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold transition-colors"
               >
-                Start $1 Trial
+                Start Free Analysis
               </button>
             </div>
           </div>
@@ -586,9 +586,9 @@ export default function TrialCheckout() {
           {/* Trial Badge */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center bg-orange-500 text-white px-6 py-2 rounded-full text-lg font-bold">
-              $1 for 7 days
+              Free Analysis
             </div>
-            <p className="text-gray-500 mt-2">Then {planPrice}/mo if you continue. Cancel anytime.</p>
+            <p className="text-gray-500 mt-2">Upgrade to {planPrice}/mo when you're ready to dispute. Cancel anytime.</p>
           </div>
 
           {/* Form */}
@@ -898,9 +898,9 @@ export default function TrialCheckout() {
           {/* Trial Badge */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center bg-orange-500 text-white px-6 py-2 rounded-full text-lg font-bold">
-              $1 for 7 days
+              Free Analysis
             </div>
-            <p className="text-gray-500 mt-2">Then {planPrice}/mo if you continue. Cancel anytime.</p>
+            <p className="text-gray-500 mt-2">Upgrade to {planPrice}/mo when you're ready to dispute. Cancel anytime.</p>
           </div>
 
           {/* Order Summary */}
