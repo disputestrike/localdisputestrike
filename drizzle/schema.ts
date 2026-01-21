@@ -34,6 +34,26 @@ export const users = mysqlTable("users", {
   identityiqEnrollmentDate: timestamp("identityiqEnrollmentDate"),
   identityiqStatus: mysqlEnum("identityiqStatus", ["pending", "active", "cancelled", "failed"]).default("pending"),
   
+  // Onboarding Quiz Answers
+  creditConcern: mysqlEnum("creditConcern", ["collections", "late_payments", "charge_offs", "inaccuracies", "all_of_above", "not_sure"]),
+  creditGoal: mysqlEnum("creditGoal", ["600_650", "650_700", "700_plus", "clean_reports"]),
+  
+  // Digital Signature for Letters
+  signatureUrl: text("signatureUrl"), // S3 URL to signature image
+  signatureCreatedAt: timestamp("signatureCreatedAt"),
+  
+  // Affiliate Tracking
+  affiliateSource: mysqlEnum("affiliateSource", ["smartcredit", "identityiq", "direct_upload", "none"]).default("none"),
+  affiliateClickedAt: timestamp("affiliateClickedAt"),
+  processingFeePaid: boolean("processingFeePaid").default(false),
+  processingFeeAmount: decimal("processingFeeAmount", { precision: 10, scale: 2 }),
+  processingFeePaidAt: timestamp("processingFeePaidAt"),
+  
+  // Address Verification (Lob)
+  addressVerified: boolean("addressVerified").default(false),
+  addressVerifiedAt: timestamp("addressVerifiedAt"),
+  lobAddressId: varchar("lobAddressId", { length: 255 }),
+  
   // Agency/Merchant Account Fields
   accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
   agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies
@@ -58,9 +78,13 @@ export const userProfiles = mysqlTable("user_profiles", {
   userId: int("userId").notNull().unique(),
   
   // Personal info
+  firstName: varchar("firstName", { length: 100 }),
+  middleInitial: varchar("middleInitial", { length: 1 }),
+  lastName: varchar("lastName", { length: 100 }),
   fullName: text("fullName"),
   dateOfBirth: varchar("dateOfBirth", { length: 20 }), // Format: YYYY-MM-DD
   ssnLast4: varchar("ssnLast4", { length: 4 }), // Last 4 digits only
+  ssnFull: varchar("ssnFull", { length: 255 }), // Encrypted full SSN for bureau verification
   
   // Contact info
   phone: varchar("phone", { length: 20 }),
@@ -77,6 +101,19 @@ export const userProfiles = mysqlTable("user_profiles", {
   previousCity: varchar("previousCity", { length: 100 }),
   previousState: varchar("previousState", { length: 50 }),
   previousZip: varchar("previousZip", { length: 20 }),
+  
+  // Digital Signature
+  signatureUrl: text("signatureUrl"), // S3 URL to signature image
+  signatureCreatedAt: timestamp("signatureCreatedAt"),
+  
+  // Address Verification (Lob)
+  addressVerified: boolean("addressVerified").default(false),
+  addressVerifiedAt: timestamp("addressVerifiedAt"),
+  lobAddressId: varchar("lobAddressId", { length: 255 }),
+  
+  // Profile completion status
+  isComplete: boolean("isComplete").default(false),
+  completedAt: timestamp("completedAt"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
@@ -101,6 +138,16 @@ export const creditReports = mysqlTable("credit_reports", {
   // Credit score extracted from report
   creditScore: int("creditScore"), // 300-850
   scoreModel: varchar("scoreModel", { length: 50 }), // FICO, VantageScore 3.0, etc.
+  
+  // Report Source Tracking
+  reportSource: mysqlEnum("reportSource", ["smartcredit", "identityiq", "annualcreditreport", "direct_upload"]).default("direct_upload"),
+  
+  // AI Processing Cost Tracking
+  aiTokensUsed: int("aiTokensUsed"),
+  aiProcessingCost: decimal("aiProcessingCost", { precision: 10, scale: 4 }), // Cost in dollars
+  aiModel: varchar("aiModel", { length: 50 }), // gpt-4o, gpt-4o-mini, etc.
+  processingStatus: mysqlEnum("processingStatus", ["pending", "processing", "completed", "failed"]).default("pending"),
+  processingError: text("processingError"),
 });
 
 export type CreditReport = typeof creditReports.$inferSelect;
@@ -181,6 +228,14 @@ export const disputeLetters = mysqlTable("dispute_letters", {
   responseDeadline: timestamp("responseDeadline"),
   responseReceivedAt: timestamp("responseReceivedAt"),
   responseDetails: text("responseDetails"), // JSON
+  
+  // Lob Mailing Integration
+  lobLetterId: varchar("lobLetterId", { length: 255 }),
+  lobMailingStatus: mysqlEnum("lobMailingStatus", ["pending", "processing", "printed", "mailed", "in_transit", "delivered", "returned", "failed"]),
+  lobTrackingEvents: text("lobTrackingEvents"), // JSON array of tracking events
+  lobCost: decimal("lobCost", { precision: 10, scale: 2 }),
+  userAuthorizedAt: timestamp("userAuthorizedAt"), // When user clicked "Authorize & Send"
+  userAuthorizationIp: varchar("userAuthorizationIp", { length: 45 }), // IP address for audit
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

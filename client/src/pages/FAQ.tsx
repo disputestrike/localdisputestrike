@@ -35,7 +35,7 @@ export default function FAQ() {
     },
     {
       q: "How much does traditional credit monitoring cost?",
-      a: "Traditional credit repair companies charge $99-$149/month with 6-12 month contracts and limited results. Our plans start at just $49.99/month with unlimited dispute rounds, and you can cancel anytime. Plus, start with a $1 trial to see your real credit data before committing."
+      a: "Traditional credit repair companies charge $99-$149/month with 6-12 month contracts and limited results. Our plans start at just $49.99/month with unlimited dispute rounds, and you can cancel anytime. Plus, start with a free analysis to see your credit violations."
     },
     {
       q: "What documents do I need to mail with my letters?",
@@ -182,7 +182,7 @@ export default function FAQ() {
             Our support team is here to help. Start your free analysis and take control of your credit journey.
           </p>
           <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/trial-checkout">Start Start $1 Trial</Link>
+            <Link href="/trial-checkout">Start Start Free Analysis</Link>
           </Button>
         </div>
       </section>

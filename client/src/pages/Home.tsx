@@ -39,11 +39,14 @@ export default function Home() {
             <Link href="/how-it-works" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               How It Works
             </Link>
-            <Link href="/trial-checkout" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
+            <Link href="/pricing" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Pricing
             </Link>
             <Link href="/faq" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               FAQ
+            </Link>
+            <Link href="/fcra-rights" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
+              Your Rights
             </Link>
             <Link href="/money-back-guarantee" className="text-gray-700 hover:text-orange-600 font-medium transition-colors text-sm">
               Money Back Guarantee
@@ -59,10 +62,10 @@ export default function Home() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button variant="outline" className="border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
-                  <Link href="/trial-checkout">Start $1 Trial</Link>
+                  <Link href="/start">Start Free Analysis</Link>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/trial-checkout">Sign Up</Link>
+                  <Link href="/start">Sign Up</Link>
                 </Button>
               </>
             )}
@@ -113,17 +116,17 @@ export default function Home() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
-                <Link href="/trial-checkout">
-                  Start $1 Trial <ArrowRight className="ml-2" />
+                <Link href="/start">
+                  Start Free Analysis <ArrowRight className="ml-2" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
-                <Link href="/trial-checkout">
-                  Get Started - $1
+                <Link href="/pricing">
+                  View Pricing
                 </Link>
               </Button>
             </div>
-            <p className="text-sm text-gray-500 mt-2">Already know what you need? Skip the quiz and sign up directly.</p>
+            <p className="text-sm text-gray-500 mt-2">No credit card required. See all your violations for free.</p>
             
             <div className="flex items-center justify-center gap-2 text-yellow-500">
               {[...Array(5)].map((_, i) => (
@@ -160,10 +163,10 @@ export default function Home() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-                  <Link href="/trial-checkout">Start $1 Trial <ArrowRight className="ml-2" /></Link>
+                  <Link href="/start">Start Free Analysis <ArrowRight className="ml-2" /></Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6" asChild>
-                  <Link href="/trial-checkout">Get Started - $1</Link>
+                  <Link href="/pricing">View Pricing</Link>
                 </Button>
               </div>
             </div>
@@ -314,7 +317,7 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/trial-checkout">Take Control of Your Credit <ArrowRight className="ml-2" /></Link>
+              <Link href="/start">Take Control of Your Credit <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
         </div>
@@ -373,7 +376,7 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/trial-checkout">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
+              <Link href="/start">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
         </div>
@@ -937,8 +940,8 @@ export default function Home() {
       <section id="pricing" className="py-20 bg-gray-50">
         <div className="container">
           <div className="text-center mb-16">
-            <Badge className="mb-4 bg-orange-100 text-orange-700 border-orange-200 px-4 py-1">
-              Start with $1 for 7 days - See your real credit data
+            <Badge className="mb-4 bg-green-100 text-green-700 border-green-200 px-4 py-1">
+              Start FREE - See ALL your credit violations
             </Badge>
             <h2 className="text-4xl md:text-6xl font-extrabold text-gray-900 mb-4">Choose Your Plan</h2>
             <p className="text-xl text-gray-700">Both plans include <span className="font-semibold">unlimited dispute rounds</span> with 30-day intervals</p>
@@ -950,35 +953,35 @@ export default function Home() {
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl font-bold mb-4">DIY</CardTitle>
                 <div className="text-5xl font-extrabold text-gray-900 mb-2">$49<span className="text-2xl font-normal text-gray-600">.99</span></div>
-                <div className="text-gray-600">/month after $1 trial</div>
+                <div className="text-gray-600">/month</div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                  <span className="text-gray-700">Unlimited AI-generated dispute letters</span>
+                </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
                   <span className="text-gray-700">Unlimited dispute rounds (30-day intervals)</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">3-bureau credit monitoring</span>
+                  <span className="text-gray-700">FCRA-compliant letter templates</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">AI letter generation</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700">FCRA-compliant dispute letters</span>
+                  <span className="text-gray-700">Cross-bureau conflict detection</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <X className="h-6 w-6 text-gray-400 flex-shrink-0 mt-1" />
-                  <span className="text-gray-400">Mailing service</span>
+                  <span className="text-gray-400">You print & mail letters yourself</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <X className="h-6 w-6 text-gray-400 flex-shrink-0 mt-1" />
-                  <span className="text-gray-400">CFPB complaints</span>
+                  <span className="text-gray-400">No certified mail tracking</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/trial-checkout">Start $1 Trial</Link>
+                  <Link href="/start">Start Free Analysis</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -991,7 +994,7 @@ export default function Home() {
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl font-bold mb-4">Complete</CardTitle>
                 <div className="text-5xl font-extrabold text-orange-600 mb-2">$79<span className="text-2xl font-normal text-gray-600">.99</span></div>
-                <div className="text-gray-600">/month after $1 trial</div>
+                <div className="text-gray-600">/month</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -1000,15 +1003,15 @@ export default function Home() {
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Mailing service included</span>
+                  <span className="text-gray-700 font-semibold">We mail your letters for you</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Certified mail included</span>
+                  <span className="text-gray-700 font-semibold">USPS Certified Mail included</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Delivery tracking included</span>
+                  <span className="text-gray-700 font-semibold">Real-time delivery tracking</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
@@ -1019,7 +1022,7 @@ export default function Home() {
                   <span className="text-gray-700 font-semibold">Furnisher dispute letters</span>
                 </div>
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white mt-6" size="lg" asChild>
-                  <Link href="/trial-checkout">Start $1 Trial</Link>
+                  <Link href="/start">Start Free Analysis</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -1083,8 +1086,8 @@ export default function Home() {
             Join 16,628 registered users monitoring their credit and challenging inaccuracies
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/trial-checkout">
-              Start $1 Trial <ArrowRight className="ml-2" />
+            <Link href="/start">
+              Start Free Analysis <ArrowRight className="ml-2" />
             </Link>
           </Button>
         </div>

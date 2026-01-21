@@ -64,6 +64,10 @@ import OnboardingWizard from "./pages/OnboardingWizard";
 import ResponseUpload from "./pages/ResponseUpload";
 import DashboardHomeV2 from "./pages/DashboardHomeV2";
 import Checkout from "./pages/Checkout";
+import OnboardingQuiz from "./pages/OnboardingQuiz";
+import CompleteProfile from "./pages/CompleteProfile";
+import GetReports from "./pages/GetReports";
+import FCRARights from "./pages/FCRARights";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -89,6 +93,14 @@ function Router() {
       <Route path="/blog/3-round-strategy" component={Blog3RoundStrategy} />
       <Route path="/blog/fcra-rights" component={BlogFCRARights} />
       <Route path="/quiz" component={Quiz} />
+      
+      {/* V3 - New Free Onboarding Flow */}
+      <Route path="/start" component={OnboardingQuiz} />
+      <Route path="/get-started" component={OnboardingQuiz} />
+      <Route path="/complete-profile" component={CompleteProfile} />
+      <Route path="/get-reports" component={GetReports} />
+      <Route path="/fcra-rights" component={FCRARights} />
+      <Route path="/your-rights" component={FCRARights} />
       
       {/* V2 - Trial Flow Routes */}
       <Route path="/trial-checkout" component={TrialCheckout} />

@@ -179,7 +179,7 @@ export default function About() {
               Join thousands of users who've successfully deleted negative items and raised their credit scores.
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-              <Link href="/trial-checkout">Start Start $1 Trial</Link>
+              <Link href="/trial-checkout">Start Start Free Analysis</Link>
             </Button>
           </div>
         </div>

@@ -51,7 +51,7 @@ export default function Pricing() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" onClick={handleStartTrial}>
-                  Start $1 Trial
+                  Start Free Analysis
                 </Button>
               </>
             )}
@@ -105,7 +105,7 @@ export default function Pricing() {
                     <span className="text-2xl font-bold text-gray-900">.99</span>
                     <span className="text-gray-500">/month</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">After $1 trial</p>
+                  <p className="text-sm text-gray-500 mt-2">per month</p>
                 </CardHeader>
 
                 <CardContent className="space-y-4 pt-6">
@@ -177,7 +177,7 @@ export default function Pricing() {
                     className="w-full bg-orange-500 text-white py-6 rounded-xl font-semibold text-lg hover:bg-orange-600 transition flex items-center justify-center gap-2"
                     onClick={handleStartTrial}
                   >
-                    Start Complete - $1 Trial
+                    Get Complete Plan
                     <ArrowRight className="w-5 h-5" />
                   </Button>
                   <p className="text-xs text-center text-gray-500">
@@ -198,7 +198,7 @@ export default function Pricing() {
                     <span className="text-2xl font-bold text-gray-900">.99</span>
                     <span className="text-gray-500">/month</span>
                   </div>
-                  <p className="text-sm text-gray-500 mt-2">After $1 trial</p>
+                  <p className="text-sm text-gray-500 mt-2">per month</p>
                 </CardHeader>
 
                 <CardContent className="space-y-4 pt-6">
@@ -267,7 +267,7 @@ export default function Pricing() {
                     className="w-full py-6 rounded-xl font-semibold text-lg hover:bg-gray-50 transition"
                     onClick={handleStartTrial}
                   >
-                    Start DIY - $1 Trial
+                    Get DIY Plan
                   </Button>
                   <p className="text-xs text-center text-gray-500">
                     Upgrade to Complete anytime
@@ -382,7 +382,7 @@ export default function Pricing() {
         <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-3xl p-12 text-center text-white shadow-xl">
           <h2 className="text-3xl font-bold mb-4">Ready to See Your Real Credit Data?</h2>
           <p className="text-xl mb-8 text-orange-100">
-            Start your $1 trial now and get AI-powered recommendations in minutes.
+            Start your free analysis now and get AI-powered recommendations in minutes.
           </p>
           <Button 
             size="lg" 

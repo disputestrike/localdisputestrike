@@ -47,7 +47,7 @@ export default function Features() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/trial-checkout">Start $1 Trial</Link>
+                  <Link href="/trial-checkout">Start Free Analysis</Link>
                 </Button>
               </>
             )}
@@ -375,7 +375,7 @@ export default function Features() {
             Start your free credit analysis and experience the precision of professional-grade dispute automation
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/trial-checkout">Start Start $1 Trial</Link>
+            <Link href="/trial-checkout">Start Start Free Analysis</Link>
           </Button>
         </div>
       </section>

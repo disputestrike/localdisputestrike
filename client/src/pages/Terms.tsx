@@ -83,7 +83,7 @@ export default function Terms() {
             <section className="mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">4. Payment Terms</h2>
               <p className="text-gray-700 leading-relaxed mb-4">
-                DisputeStrike offers a $1 trial for 7 days followed by monthly subscription plans:
+                DisputeStrike offers a free credit analysis followed by monthly subscription plans:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
                 <li><strong>DIY Plan ($49.99/month):</strong> Unlimited dispute rounds with 30-day intervals, 3-bureau credit monitoring, AI letter generation, FCRA-compliant dispute letters. User is responsible for mailing letters.</li>
