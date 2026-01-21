@@ -1,4 +1,4 @@
-import * as db from './db';
+import { getDb } from './db';
 import { users, subscriptions } from '../drizzle/schema';
 import { eq, and, lte, gte, isNull, sql } from 'drizzle-orm';
 import { emailTemplateService } from './emailTemplateService';
@@ -11,6 +11,9 @@ export async function processTrialEmails() {
   console.log('[TrialEmails] Processing trial email sequence...');
   
   try {
+    const db = await getDb();
+    if (!db) return;
+
     const now = new Date();
     
     // Get all users with active trials
@@ -131,6 +134,9 @@ export async function sendPaymentReminders() {
   console.log('[PaymentReminders] Checking for upcoming payments...');
   
   try {
+    const db = await getDb();
+    if (!db) return;
+
     const threeDaysFromNow = new Date();
     threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
 

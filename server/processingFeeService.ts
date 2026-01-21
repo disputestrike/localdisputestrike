@@ -6,7 +6,7 @@
  */
 
 import Stripe from 'stripe';
-import { db } from './db';
+import { getDb } from './db';
 import { users } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
@@ -106,6 +106,9 @@ export async function verifyAndRecordProcessingFee(sessionId: string): Promise<b
       return false;
     }
 
+    const db = await getDb();
+    if (!db) return false;
+
     // Update user record to mark processing fee as paid
     await db.update(users)
       .set({
@@ -128,6 +131,9 @@ export async function verifyAndRecordProcessingFee(sessionId: string): Promise<b
  */
 export async function canAccessAnalysis(userId: number): Promise<{ allowed: boolean; reason: string }> {
   try {
+    const db = await getDb();
+    if (!db) return { allowed: false, reason: 'Database connection failed' };
+
     const [user] = await db.select({
       processingFeePaid: users.processingFeePaid,
       affiliateSource: users.affiliateSource,
@@ -161,6 +167,9 @@ export async function canAccessAnalysis(userId: number): Promise<{ allowed: bool
  */
 export async function trackAffiliateClick(userId: number, source: 'smartcredit' | 'identityiq'): Promise<void> {
   try {
+    const db = await getDb();
+    if (!db) return;
+
     await db.update(users)
       .set({
         affiliateSource: source,

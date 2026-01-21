@@ -6,7 +6,7 @@
  * NOTE: API calls are placeholders until IdentityIQ credentials are provided
  */
 
-import * as db from './db';
+import { getDb } from './db';
 import { users } from '../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
@@ -60,6 +60,9 @@ export async function enrollUserInIdentityIQ(
   console.log(`[IdentityIQ Enrollment] Starting enrollment for user ${userId} (${email})`);
   
   try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+
     // TODO: Replace with actual IdentityIQ API call when credentials are available
     // 
     // const response = await fetch('https://api.identityiq.com/v1/enroll', {
@@ -107,7 +110,7 @@ export async function enrollUserInIdentityIQ(
     console.log(`[IdentityIQ Enrollment] SUCCESS: User ${userId} enrolled as ${identityiqUserId}`);
 
     // Update user record with IdentityIQ user ID
-    await db.db
+    await db
       .update(users)
       .set({
         identityiqUserId,
@@ -126,13 +129,16 @@ export async function enrollUserInIdentityIQ(
   } catch (error: any) {
     console.error(`[IdentityIQ Enrollment] FAILED for user ${userId}:`, error);
 
-    // Update user status to failed
-    await db.db
-      .update(users)
-      .set({
-        identityiqStatus: 'failed',
-      })
-      .where(eq(users.id, userId));
+    const db = await getDb();
+    if (db) {
+      // Update user status to failed
+      await db
+        .update(users)
+        .set({
+          identityiqStatus: 'failed',
+        })
+        .where(eq(users.id, userId));
+    }
 
     return {
       success: false,
@@ -258,6 +264,9 @@ export async function cancelIdentityIQSubscription(
   console.log(`[IdentityIQ Cancel] Starting for user ${userId} (${identityiqUserId})`);
   
   try {
+    const db = await getDb();
+    if (!db) throw new Error('Database connection failed');
+
     // TODO: Replace with actual IdentityIQ API call
     // 
     // const response = await fetch(
@@ -280,7 +289,7 @@ export async function cancelIdentityIQSubscription(
     console.log(`[IdentityIQ Cancel] SUCCESS for user ${userId}`);
 
     // Update user status
-    await db.db
+    await db
       .update(users)
       .set({
         identityiqStatus: 'cancelled',

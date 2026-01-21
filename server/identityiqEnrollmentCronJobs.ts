@@ -4,7 +4,7 @@
  * Handles automated enrollment and credit report pulling for new users
  */
 
-import * as db from './db';
+import { getDb } from './db';
 import { users, subscriptions } from '../drizzle/schema';
 import { eq, and, isNull, isNotNull } from 'drizzle-orm';
 import {
@@ -24,8 +24,11 @@ export async function processPendingEnrollments() {
   console.log('[Cron] Processing pending IdentityIQ enrollments...');
 
   try {
+    const db = await getDb();
+    if (!db) return;
+
     // Find users with pending enrollment
-    const pendingUsers = await db.db
+    const pendingUsers = await db
       .select({
         id: users.id,
         email: users.email,
@@ -112,9 +115,12 @@ export async function retryFailedCreditPulls() {
   console.log('[Cron] Retrying failed credit report pulls...');
 
   try {
+    const db = await getDb();
+    if (!db) return;
+
     // Find users who are enrolled but don't have credit data yet
     // (In a real implementation, we'd check a separate credit_reports table)
-    const usersNeedingRetry = await db.db
+    const usersNeedingRetry = await db
       .select({
         id: users.id,
         identityiqUserId: users.identityiqUserId,
@@ -173,10 +179,13 @@ export async function cancelExpiredTrialSubscriptions() {
   console.log('[Cron] Canceling IdentityIQ for expired trials...');
 
   try {
+    const db = await getDb();
+    if (!db) return;
+
     const now = new Date();
 
     // Find users with expired trials and no active subscription
-    const expiredTrials = await db.db
+    const expiredTrials = await db
       .select({
         userId: users.id,
         identityiqUserId: users.identityiqUserId,

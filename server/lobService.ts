@@ -52,17 +52,9 @@ export interface AuthorizationData {
   letterId: number;
   authorizedAt: Date;
   ipAddress: string;
-  checkboxes: {
-    accuracyConfirmed: boolean;
-    authorizedToSend: boolean;
-    understandCosts: boolean;
-    agreeToTerms: boolean;
-  };
 }
 
-/**
- * Bureau mailing addresses
- */
+// Bureau addresses for mailing
 export const BUREAU_ADDRESSES: Record<string, MailingAddress> = {
   transunion: {
     name: 'TransUnion Consumer Solutions',
@@ -70,7 +62,7 @@ export const BUREAU_ADDRESSES: Record<string, MailingAddress> = {
     address_city: 'Chester',
     address_state: 'PA',
     address_zip: '19016',
-    address_country: 'US'
+    address_country: 'US',
   },
   equifax: {
     name: 'Equifax Information Services LLC',
@@ -78,7 +70,7 @@ export const BUREAU_ADDRESSES: Record<string, MailingAddress> = {
     address_city: 'Atlanta',
     address_state: 'GA',
     address_zip: '30374',
-    address_country: 'US'
+    address_country: 'US',
   },
   experian: {
     name: 'Experian',
@@ -86,26 +78,16 @@ export const BUREAU_ADDRESSES: Record<string, MailingAddress> = {
     address_city: 'Allen',
     address_state: 'TX',
     address_zip: '75013',
-    address_country: 'US'
-  }
+    address_country: 'US',
+  },
 };
 
 /**
- * Verify user address using Lob's address verification API
+ * Verify an address using Lob API
  */
-export async function verifyAddress(address: MailingAddress): Promise<{
-  valid: boolean;
-  deliverable: boolean;
-  correctedAddress?: MailingAddress;
-  error?: string;
-}> {
+export async function verifyAddress(address: MailingAddress): Promise<{ valid: boolean; deliverable: boolean; error?: string }> {
   if (LOB_TEST_MODE) {
-    // In test mode, always return valid
-    return {
-      valid: true,
-      deliverable: true,
-      correctedAddress: address,
-    };
+    return { valid: true, deliverable: true };
   }
 
   try {
@@ -117,7 +99,7 @@ export async function verifyAddress(address: MailingAddress): Promise<{
       },
       body: JSON.stringify({
         primary_line: address.address_line1,
-        secondary_line: address.address_line2 || '',
+        secondary_line: address.address_line2,
         city: address.address_city,
         state: address.address_state,
         zip_code: address.address_zip,
@@ -126,18 +108,20 @@ export async function verifyAddress(address: MailingAddress): Promise<{
 
     const data = await response.json();
 
-    if (data.deliverability === 'deliverable' || data.deliverability === 'deliverable_unnecessary_unit') {
+    if (data.error) {
+      return { valid: false, deliverable: false, error: data.error.message };
+    }
+
+    if (data.deliverability === 'deliverable') {
       return {
         valid: true,
         deliverable: true,
-        correctedAddress: {
-          name: address.name,
+        address: {
           address_line1: data.primary_line,
-          address_line2: data.secondary_line || undefined,
+          address_line2: data.secondary_line,
           address_city: data.components.city,
           address_state: data.components.state,
           address_zip: data.components.zip_code,
-          address_country: 'US',
         },
       };
     }
@@ -183,14 +167,14 @@ export async function sendCertifiedLetter(params: SendLetterParams): Promise<Sen
       await db.update(disputeLetters)
         .set({
           lobLetterId: mockLetterId,
-        trackingNumber: mockTrackingNumber,
-        lobMailingStatus: 'processing',
-        lobCost: CERTIFIED_LETTER_COST.toString(),
-        mailedAt: new Date(),
-        status: 'mailed',
-        userAuthorizedAt: new Date(),
-        userAuthorizationIp: userIp || 'unknown',
-            responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+          trackingNumber: mockTrackingNumber,
+          lobMailingStatus: 'processing',
+          lobCost: CERTIFIED_LETTER_COST.toString(),
+          mailedAt: new Date(),
+          status: 'mailed',
+          userAuthorizedAt: new Date(),
+          userAuthorizationIp: userIp || 'unknown',
+          responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
         })
         .where(eq(disputeLetters.id, letterId));
     }
@@ -243,16 +227,19 @@ export async function sendCertifiedLetter(params: SendLetterParams): Promise<Sen
       await dbProd.update(disputeLetters)
         .set({
           lobLetterId: data.id,
-        trackingNumber: data.tracking_number,
-        lobMailingStatus: 'processing',
-        lobCost: (data.price || CERTIFIED_LETTER_COST).toString(),
-        mailedAt: new Date(),
-        status: 'mailed',
-        userAuthorizedAt: new Date(),
-        userAuthorizationIp: userIp || 'unknown',
-        responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      })
-      .where(eq(disputeLetters.id, letterId));
+          trackingNumber: data.tracking_number,
+          lobMailingStatus: 'processing',
+          lobCost: (data.price || CERTIFIED_LETTER_COST).toString(),
+          mailedAt: new Date(),
+          status: 'mailed',
+          userAuthorizedAt: new Date(),
+          userAuthorizationIp: userIp || 'unknown',
+          responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        })
+        .where(eq(disputeLetters.id, letterId));
+    }
+
+    console.log(`[LobService] Letter ${data.id} sent to ${bureau.toUpperCase()}`);
 
     return {
       success: true,
@@ -279,22 +266,18 @@ export async function getMailingStatus(lobLetterId: string): Promise<{
   expectedDelivery?: string;
 }> {
   if (LOB_TEST_MODE) {
-    // Test mode - return mock tracking
-    const now = new Date();
     return {
       status: 'in_transit',
       trackingEvents: [
-        { name: 'Created', time: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-        { name: 'Rendered PDF', time: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString() },
-        { name: 'Processed for Delivery', time: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString() },
-        { name: 'In Transit', time: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString() },
+        { name: 'Mailed', time: new Date().toISOString(), location: 'Chester, PA' }
       ],
-      expectedDelivery: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      expectedDelivery: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
     };
   }
 
   try {
     const response = await fetch(`${LOB_API_BASE}/letters/${lobLetterId}`, {
+      method: 'GET',
       headers: {
         'Authorization': `Basic ${Buffer.from(LOB_API_KEY + ':').toString('base64')}`,
       },
@@ -380,19 +363,3 @@ export async function getUserMailingAddress(userId: number): Promise<MailingAddr
 export function calculateMailingCost(letterCount: number): number {
   return letterCount * CERTIFIED_LETTER_COST;
 }
-
-/**
- * Check if Lob is configured
- */
-export function isLobConfigured(): boolean {
-  return !!LOB_API_KEY;
-}
-
-/**
- * Check if running in test mode
- */
-export function isTestMode(): boolean {
-  return LOB_TEST_MODE;
-}
-
-export { CERTIFIED_LETTER_COST, LOB_TEST_MODE };
