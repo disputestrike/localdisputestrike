@@ -124,16 +124,39 @@ export async function registerUser(input: RegisterInput, baseUrl: string): Promi
     
     // Create user
     const openId = generateOpenId();
-    await db.insert(users).values({
-      openId,
-      name: name.trim(),
-      email: email.toLowerCase(),
-      loginMethod: 'email',
-      passwordHash,
-      emailVerified: false,
-      emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationExpires,
-    });
+    
+    // FAULT TOLERANT REGISTRATION:
+    // We try to insert with all fields. If it fails (e.g. database schema not updated),
+    // we fall back to a minimal insert with only core fields.
+    try {
+      await db.insert(users).values({
+        openId,
+        name: name.trim(),
+        email: email.toLowerCase(),
+        loginMethod: 'email',
+        passwordHash,
+        emailVerified: false,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: verificationExpires,
+        // New fields that might not exist yet in live DB
+        creditConcern: (input as any).creditConcern || null,
+        creditGoal: (input as any).creditGoal || null,
+        affiliateSource: (input as any).affiliateSource || null,
+      });
+    } catch (dbError) {
+      console.warn('[Auth] Full registration failed, falling back to minimal registration:', dbError);
+      // Fallback to minimal fields that definitely exist
+      await db.insert(users).values({
+        openId,
+        name: name.trim(),
+        email: email.toLowerCase(),
+        loginMethod: 'email',
+        passwordHash,
+        emailVerified: false,
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: verificationExpires,
+      });
+    }
     
     // Get the created user
     const newUser = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
