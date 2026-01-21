@@ -7,7 +7,7 @@
  * Cost: ~$5.99 per certified letter (includes postage + tracking)
  */
 
-import { db } from "./db";
+import { getDb } from "./db";
 import { disputeLetters, users, userProfiles } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 
@@ -178,9 +178,11 @@ export async function sendCertifiedLetter(params: SendLetterParams): Promise<Sen
     const expectedDelivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     // Update letter record in database
-    await db.update(disputeLetters)
-      .set({
-        lobLetterId: mockLetterId,
+    const db = await getDb();
+    if (db) {
+      await db.update(disputeLetters)
+        .set({
+          lobLetterId: mockLetterId,
         trackingNumber: mockTrackingNumber,
         lobMailingStatus: 'processing',
         lobCost: CERTIFIED_LETTER_COST.toString(),
@@ -188,9 +190,10 @@ export async function sendCertifiedLetter(params: SendLetterParams): Promise<Sen
         status: 'mailed',
         userAuthorizedAt: new Date(),
         userAuthorizationIp: userIp || 'unknown',
-        responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      })
-      .where(eq(disputeLetters.id, letterId));
+            responseDeadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        })
+        .where(eq(disputeLetters.id, letterId));
+    }
 
     console.log(`[LobService] TEST MODE: Letter ${mockLetterId} created for bureau ${bureau}`);
 
@@ -235,9 +238,11 @@ export async function sendCertifiedLetter(params: SendLetterParams): Promise<Sen
     }
 
     // Update letter record in database
-    await db.update(disputeLetters)
-      .set({
-        lobLetterId: data.id,
+    const dbProd = await getDb();
+    if (dbProd) {
+      await dbProd.update(disputeLetters)
+        .set({
+          lobLetterId: data.id,
         trackingNumber: data.tracking_number,
         lobMailingStatus: 'processing',
         lobCost: (data.price || CERTIFIED_LETTER_COST).toString(),
@@ -316,6 +321,9 @@ export async function getMailingStatus(lobLetterId: string): Promise<{
  */
 export async function recordAuthorization(data: AuthorizationData): Promise<boolean> {
   try {
+    const db = await getDb();
+    if (!db) return false;
+    
     // Update the letter with authorization info
     await db.update(disputeLetters)
       .set({
@@ -337,6 +345,9 @@ export async function recordAuthorization(data: AuthorizationData): Promise<bool
  */
 export async function getUserMailingAddress(userId: number): Promise<MailingAddress | null> {
   try {
+    const db = await getDb();
+    if (!db) return null;
+    
     const [profile] = await db.select()
       .from(userProfiles)
       .where(eq(userProfiles.userId, userId));
