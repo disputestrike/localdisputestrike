@@ -54,6 +54,10 @@ export const users = mysqlTable("users", {
   addressVerifiedAt: timestamp("addressVerifiedAt"),
   lobAddressId: varchar("lobAddressId", { length: 255 }),
   
+  // Social Login Fields
+  googleId: varchar("googleId", { length: 255 }),
+  profilePicture: text("profilePicture"),
+  
   // Agency/Merchant Account Fields
   accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
   agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies

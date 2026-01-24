@@ -14,6 +14,10 @@ import {
   getUserFromToken,
   generateToken,
 } from './customAuth';
+import {
+  getGoogleAuthUrl,
+  handleGoogleCallback,
+} from './googleAuth';
 
 const router = Router();
 
@@ -368,6 +372,81 @@ router.delete('/delete-account', async (req, res) => {
   } catch (error) {
     console.error('[Auth Router] Delete account error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete account' });
+  }
+});
+
+/**
+ * GET /api/auth/google
+ * Redirect to Google OAuth
+ */
+router.get('/google', (req, res) => {
+  try {
+    const baseUrl = getBaseUrl(req);
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    const state = req.query.redirect as string || '/dashboard';
+    
+    const authUrl = getGoogleAuthUrl(redirectUri, state);
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error('[Auth Router] Google auth error:', error);
+    res.redirect('/login?error=google_auth_failed');
+  }
+});
+
+/**
+ * GET /api/auth/google/callback
+ * Handle Google OAuth callback
+ */
+router.get('/google/callback', async (req, res) => {
+  try {
+    const { code, state, error } = req.query;
+    
+    if (error) {
+      console.error('[Auth Router] Google auth error:', error);
+      return res.redirect('/login?error=google_auth_denied');
+    }
+    
+    if (!code || typeof code !== 'string') {
+      return res.redirect('/login?error=no_code');
+    }
+    
+    const baseUrl = getBaseUrl(req);
+    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    
+    const result = await handleGoogleCallback(code, redirectUri);
+    
+    if (result.success && result.token) {
+      // Set HTTP-only cookies
+      res.cookie('auth-token', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+      
+      res.cookie('manus-session', result.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      
+      // Redirect to intended destination or dashboard
+      const redirectTo = (state as string) || '/dashboard';
+      
+      // If new user, redirect to get-reports to start the flow
+      if (result.user?.isNewUser) {
+        return res.redirect('/get-reports');
+      }
+      
+      return res.redirect(redirectTo);
+    } else {
+      console.error('[Auth Router] Google callback failed:', result.message);
+      return res.redirect(`/login?error=${encodeURIComponent(result.message)}`);
+    }
+  } catch (error) {
+    console.error('[Auth Router] Google callback error:', error);
+    res.redirect('/login?error=google_callback_failed');
   }
 });
 
