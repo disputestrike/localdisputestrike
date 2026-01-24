@@ -397,27 +397,23 @@ export const appRouter = router({
         // This code MUST be replaced with your actual S3 pre-signed URL generation logic.
         // The client expects a signedUrl for PUT and a fileUrl for GET.
         const fileUrl = `https://disputestrike-uploads.s3.amazonaws.com/${fileKey}`;
-        const signedUrl = `https://your-signed-url-for-put-goes-here/${fileKey}`; // Placeholder
-
-        return {
-          fileKey: fileKey,
-          fileUrl: fileUrl,
-          signedUrl: signedUrl,
-        };protectedProcedure
-      .input(z.object({
-        fileKey: z.string(),
-        contentType: z.string(),
-      }))
-      .mutation(async ({ input }) => {
-        // This procedure is now redundant as the client uploads directly to the signed URL.
-        // We return success to allow the client to proceed to the lightAnalysis step.
-        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
-      }),
-  }),
-  admin: router({
-    getStats: adminProcedure.query(async ({ ctx }) => {
-      
-      const { getAllUsers, getAllDisputeLetters, getAllPayments } = await import('./db');
+        const signedUrl = `https://your-signed-url-for-put-goes-here/${f401	
+402	        return {
+403	          fileKey: fileKey,
+404	          fileUrl: fileUrl,
+405	          signedUrl: signedUrl,
+406	        };
+407	      }),
+408	    uploadToS3: protectedProcedure
+409	      .input(z.object({
+410	        fileKey: z.string(),
+411	        contentType: z.string(),
+412	      }))
+413	      .mutation(async ({ input }) => {
+414	        // This procedure is now redundant as the client uploads directly to the signed URL.
+415	        // We return success to allow the client to proceed to the lightAnalysis step.
+416	        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
+417	      }),llDisputeLetters, getAllPayments } = await import('./db');
       
       const users = await getAllUsers();
       const letters = await getAllDisputeLetters();
@@ -1290,7 +1286,9 @@ Be thorough and list every negative item found.`;
     /**
      * List all documents for user
      */
-    list: protectedProcedure.query(async ({ ctx }) => {
+        };
+      }),
+    uploadToS3: protectedProcedure.query(async ({ ctx }) => {
       return db.getUserDocuments(ctx.user.id);
     }),
 
@@ -3306,6 +3304,7 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         }),
     }),
   }),
-});
-
-export type AppRouter = typeof appRouter;
+3307	});
+3308	
+3309	export type AppRouter = typeof appRouter;
+3310	
