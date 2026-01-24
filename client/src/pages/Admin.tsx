@@ -184,7 +184,11 @@ export default function Admin() {
                   </TableHeader>
                   <TableBody>
                     {allUsers?.map((u) => (
-                      <TableRow key={u.id}>
+                      <TableRow 
+                        key={u.id} 
+                        className="cursor-pointer hover:bg-gray-50"
+                        onClick={() => setLocation(`/admin/user/${u.id}`)}
+                      >
                         <TableCell className="font-medium">{u.name}</TableCell>
                         <TableCell>{u.email}</TableCell>
                         <TableCell>
