@@ -151,7 +151,7 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
     }
     
     // Check if user already exists by email
-    // Only select columns that exist in the database
+    // Only select columns that actually exist in the database
     const existingUsers = await db.select({
       id: users.id,
       openId: users.openId,
@@ -177,19 +177,6 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       phoneNumber: users.phoneNumber,
       identityiqUserId: users.identityiqUserId,
       identityiqEnrollmentDate: users.identityiqEnrollmentDate,
-      identityiqStatus: users.identityiqStatus,
-      creditConcern: users.creditConcern,
-      creditGoal: users.creditGoal,
-      signatureUrl: users.signatureUrl,
-      signatureCreatedAt: users.signatureCreatedAt,
-      affiliateSource: users.affiliateSource,
-      affiliateClickedAt: users.affiliateClickedAt,
-      processingFeePaid: users.processingFeePaid,
-      processingFeeAmount: users.processingFeeAmount,
-      processingFeePaidAt: users.processingFeePaidAt,
-      addressVerified: users.addressVerified,
-      addressVerifiedAt: users.addressVerifiedAt,
-      lobAddressId: users.lobAddressId,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     }).from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
@@ -251,19 +238,6 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       phoneNumber: users.phoneNumber,
       identityiqUserId: users.identityiqUserId,
       identityiqEnrollmentDate: users.identityiqEnrollmentDate,
-      identityiqStatus: users.identityiqStatus,
-      creditConcern: users.creditConcern,
-      creditGoal: users.creditGoal,
-      signatureUrl: users.signatureUrl,
-      signatureCreatedAt: users.signatureCreatedAt,
-      affiliateSource: users.affiliateSource,
-      affiliateClickedAt: users.affiliateClickedAt,
-      processingFeePaid: users.processingFeePaid,
-      processingFeeAmount: users.processingFeeAmount,
-      processingFeePaidAt: users.processingFeePaidAt,
-      addressVerified: users.addressVerified,
-      addressVerifiedAt: users.addressVerifiedAt,
-      lobAddressId: users.lobAddressId,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     }).from(users).where(eq(users.openId, openId)).limit(1);
@@ -319,19 +293,6 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       phoneNumber: users.phoneNumber,
       identityiqUserId: users.identityiqUserId,
       identityiqEnrollmentDate: users.identityiqEnrollmentDate,
-      identityiqStatus: users.identityiqStatus,
-      creditConcern: users.creditConcern,
-      creditGoal: users.creditGoal,
-      signatureUrl: users.signatureUrl,
-      signatureCreatedAt: users.signatureCreatedAt,
-      affiliateSource: users.affiliateSource,
-      affiliateClickedAt: users.affiliateClickedAt,
-      processingFeePaid: users.processingFeePaid,
-      processingFeeAmount: users.processingFeeAmount,
-      processingFeePaidAt: users.processingFeePaidAt,
-      addressVerified: users.addressVerified,
-      addressVerifiedAt: users.addressVerifiedAt,
-      lobAddressId: users.lobAddressId,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
     }).from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
