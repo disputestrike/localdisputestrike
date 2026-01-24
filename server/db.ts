@@ -51,6 +51,9 @@ import {
   activityLog,
   InsertActivityLog,
   ActivityLog,
+  agencies,
+  InsertAgency,
+  Agency,
   agencyClients,
   InsertAgencyClient,
   AgencyClient,
@@ -1768,22 +1771,31 @@ export async function upgradeToAgency(
   const slotsByPlan = { starter: 50, professional: 200, enterprise: 500 };
   const priceByPlan = { starter: 497, professional: 997, enterprise: 1997 };
 
-  await db.update(users).set({
-    accountType: 'agency',
+  await db.insert(agencies).values({
+    userId,
     agencyName,
-    agencyPlanTier: planTier,
+    planTier,
     clientSlotsIncluded: slotsByPlan[planTier],
     clientSlotsUsed: 0,
-    agencyMonthlyPrice: String(priceByPlan[planTier]),
-  }).where(eq(users.id, userId));
+    monthlyPrice: String(priceByPlan[planTier]),
+    status: 'active',
+  }).onDuplicateKeyUpdate({
+    set: {
+      agencyName,
+      planTier,
+      clientSlotsIncluded: slotsByPlan[planTier],
+      monthlyPrice: String(priceByPlan[planTier]),
+      updatedAt: new Date(),
+    }
+  });
 }
 
 export async function getAgencyStats(agencyUserId: number) {
   const db = await getDb();
   if (!db) return null;
 
-  const [user] = await db.select().from(users).where(eq(users.id, agencyUserId));
-  if (!user || user.accountType !== 'agency') return null;
+  const [agency] = await db.select().from(agencies).where(eq(agencies.userId, agencyUserId));
+  if (!agency) return null;
 
   const clients = await db.select().from(agencyClients).where(eq(agencyClients.agencyUserId, agencyUserId));
   const letters = await db.select().from(agencyClientLetters).where(eq(agencyClientLetters.agencyUserId, agencyUserId));
@@ -1793,11 +1805,11 @@ export async function getAgencyStats(agencyUserId: number) {
   const activeDisputes = letters.filter(l => l.status !== 'resolved').length;
 
   return {
-    agencyName: user.agencyName,
-    planTier: user.agencyPlanTier,
-    clientSlotsIncluded: user.clientSlotsIncluded || 0,
-    clientSlotsUsed: user.clientSlotsUsed || 0,
-    monthlyPrice: user.agencyMonthlyPrice,
+    agencyName: agency.agencyName,
+    planTier: agency.planTier,
+    clientSlotsIncluded: agency.clientSlotsIncluded || 0,
+    clientSlotsUsed: agency.clientSlotsUsed || 0,
+    monthlyPrice: agency.monthlyPrice,
     totalClients: clients.length,
     activeClients,
     totalLetters,

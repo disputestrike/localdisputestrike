@@ -642,7 +642,44 @@ export type InsertActivityLog = typeof activityLog.$inferInsert;
 
 
 /**
- * Agency Clients - Sub-accounts managed by agency accounts
+ * Agencies - Agency/Merchant accounts
+ */
+export const agencies = mysqlTable("agencies", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(), // Foreign key to users table
+  
+  // Agency info
+  agencyName: varchar("agencyName", { length: 255 }).notNull(),
+  planTier: mysqlEnum("planTier", ["starter", "professional", "enterprise"]).notNull(),
+  
+  // Client slots
+  clientSlotsIncluded: int("clientSlotsIncluded").notNull(),
+  clientSlotsUsed: int("clientSlotsUsed").default(0).notNull(),
+  
+  // Pricing
+  monthlyPrice: varchar("monthlyPrice", { length: 50 }).notNull(),
+  
+  // Stripe subscription
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 255 }),
+  subscriptionStatus: varchar("subscriptionStatus", { length: 50 }), // active, past_due, canceled, etc.
+  
+  // Subscription dates
+  subscriptionStartDate: timestamp("subscriptionStartDate"),
+  subscriptionEndDate: timestamp("subscriptionEndDate"),
+  
+  // Status
+  status: mysqlEnum("status", ["active", "paused", "canceled"]).default("active").notNull(),
+  
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Agency = typeof agencies.$inferSelect;
+export type InsertAgency = typeof agencies.$inferInsert;
+
+/**
+ * Agency Clients - Clients managed by an agency
  */
 export const agencyClients = mysqlTable("agency_clients", {
   id: int("id").autoincrement().primaryKey(),

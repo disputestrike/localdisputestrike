@@ -2976,13 +2976,13 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
 
     // Check if user is an agency
     isAgency: protectedProcedure.query(async ({ ctx }) => {
-      const user = await db.getUserById(ctx.user.id);
+      const agency = await db.getAgencyStats(ctx.user.id);
       return {
-        isAgency: user?.accountType === 'agency',
-        agencyName: user?.agencyName,
-        planTier: user?.agencyPlanTier,
-        clientSlotsIncluded: user?.clientSlotsIncluded || 0,
-        clientSlotsUsed: user?.clientSlotsUsed || 0,
+        isAgency: !!agency,
+        agencyName: agency?.agencyName,
+        planTier: agency?.planTier,
+        clientSlotsIncluded: agency?.clientSlotsIncluded || 0,
+        clientSlotsUsed: agency?.clientSlotsUsed || 0,
       };
     }),
 
