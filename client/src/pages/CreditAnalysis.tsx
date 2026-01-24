@@ -1,8 +1,8 @@
 /**
  * Credit Analysis Dashboard
  * 
- * Shown after $1 trial payment - displays real credit data and AI recommendations
- * Users can see their problems but can't generate letters until they upgrade
+ * Shown after subscription payment - displays real credit data and AI recommendations
+ * Full access for Essential and Complete subscribers
  */
 
 import { useState, useEffect } from 'react';

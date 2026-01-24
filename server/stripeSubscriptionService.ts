@@ -2,10 +2,10 @@
  * Stripe Subscription Service
  * 
  * Handles complete subscription lifecycle:
- * - $1 trial with 7-day period
- * - Auto-billing after trial
- * - Immediate upgrades during trial
- * - Cancellations
+ * - Free preview (no payment)
+ * - Essential: $79.99/mo
+ * - Complete: $129.99/mo
+ * - Upgrades and cancellations
  */
 
 import Stripe from 'stripe';
@@ -16,28 +16,30 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 // Plan pricing (in cents)
 export const PLAN_PRICES = {
-  diy: 4999, // $49.99
-  complete: 7999, // $79.99
+  essential: 7999, // $79.99
+  complete: 12999, // $129.99
+  // Legacy mappings for backward compatibility
+  diy: 7999, // Maps to Essential
 };
 
-// Trial configuration
+// Stripe Price IDs (TEST MODE)
+export const STRIPE_PRICE_IDS = {
+  essential: process.env.STRIPE_ESSENTIAL_PRICE_ID || 'price_1St92mJbDEkzZWwHpe7Ljb1h',
+  complete: process.env.STRIPE_COMPLETE_PRICE_ID || 'price_1St9QKJbDEkzZWwHbzChpIVL',
+};
+
+// Legacy trial config (kept for backward compatibility with existing code)
 export const TRIAL_CONFIG = {
-  price: 100, // $1.00
-  days: 7,
+  price: 0, // Free preview now
+  days: 0,
 };
 
 /**
- * Create a subscription with 7-day trial
- * 
- * Flow:
- * 1. Customer pays $1 upfront
- * 2. Subscription created with 7-day trial
- * 3. After 7 days, Stripe auto-charges monthly fee
- * 4. Customer can upgrade immediately or cancel anytime
+ * Create a subscription (no trial - direct payment)
  */
-export async function createTrialSubscription(params: {
+export async function createSubscription(params: {
   email: string;
-  plan: 'diy' | 'complete';
+  plan: 'essential' | 'complete';
   userId: number;
 }): Promise<{
   clientSecret: string;
@@ -64,25 +66,12 @@ export async function createTrialSubscription(params: {
     });
   }
   
-  // Create subscription with trial
+  const priceId = STRIPE_PRICE_IDS[plan];
+  
+  // Create subscription (no trial)
   const subscription = await stripe.subscriptions.create({
     customer: customer.id,
-    items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `DisputeStrike ${plan === 'complete' ? 'Complete' : 'DIY'} Plan`,
-            description: 'Credit monitoring and dispute automation',
-          },
-          unit_amount: PLAN_PRICES[plan],
-          recurring: {
-            interval: 'month',
-          },
-        },
-      },
-    ],
-    trial_period_days: TRIAL_CONFIG.days,
+    items: [{ price: priceId }],
     payment_behavior: 'default_incomplete',
     payment_settings: {
       save_default_payment_method: 'on_subscription',
@@ -92,28 +81,11 @@ export async function createTrialSubscription(params: {
     metadata: {
       userId: userId.toString(),
       plan,
-      type: 'trial',
     },
   });
   
   const invoice = subscription.latest_invoice as Stripe.Invoice;
   const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-  
-  // Create $1 setup fee
-  const setupFee = await stripe.invoiceItems.create({
-    customer: customer.id,
-    amount: TRIAL_CONFIG.price,
-    currency: 'usd',
-    description: '7-day trial access fee',
-  });
-  
-  // Create invoice for the $1 fee
-  const trialInvoice = await stripe.invoices.create({
-    customer: customer.id,
-    auto_advance: true,
-  });
-  
-  await stripe.invoices.finalizeInvoice(trialInvoice.id);
   
   return {
     clientSecret: paymentIntent.client_secret!,
@@ -123,37 +95,28 @@ export async function createTrialSubscription(params: {
 }
 
 /**
- * Upgrade subscription immediately during trial
- * 
- * This ends the trial and starts billing immediately
+ * Legacy function - now just creates a regular subscription
+ * Kept for backward compatibility
  */
-export async function upgradeTrialToSubscription(params: {
-  subscriptionId: string;
+export async function createTrialSubscription(params: {
+  email: string;
+  plan: 'diy' | 'complete' | 'essential';
   userId: number;
 }): Promise<{
-  success: boolean;
-  subscription: Stripe.Subscription;
+  clientSecret: string;
+  subscriptionId: string;
+  customerId: string;
 }> {
-  const { subscriptionId } = params;
-  
-  // Update subscription to end trial immediately
-  const subscription = await stripe.subscriptions.update(subscriptionId, {
-    trial_end: 'now',
-    proration_behavior: 'none',
+  // Map legacy 'diy' to 'essential'
+  const mappedPlan = params.plan === 'diy' ? 'essential' : params.plan as 'essential' | 'complete';
+  return createSubscription({
+    ...params,
+    plan: mappedPlan,
   });
-  
-  return {
-    success: true,
-    subscription,
-  };
 }
 
 /**
  * Cancel subscription
- * 
- * Options:
- * - Immediate: Cancel right away
- * - At period end: Cancel at end of current billing period
  */
 export async function cancelSubscription(params: {
   subscriptionId: string;
@@ -166,23 +129,17 @@ export async function cancelSubscription(params: {
   
   if (immediate) {
     const subscription = await stripe.subscriptions.cancel(subscriptionId);
-    return {
-      success: true,
-      subscription,
-    };
+    return { success: true, subscription };
   } else {
     const subscription = await stripe.subscriptions.update(subscriptionId, {
       cancel_at_period_end: true,
     });
-    return {
-      success: true,
-      subscription,
-    };
+    return { success: true, subscription };
   }
 }
 
 /**
- * Reactivate a canceled subscription (before it actually ends)
+ * Reactivate a canceled subscription
  */
 export async function reactivateSubscription(params: {
   subscriptionId: string;
@@ -196,10 +153,7 @@ export async function reactivateSubscription(params: {
     cancel_at_period_end: false,
   });
   
-  return {
-    success: true,
-    subscription,
-  };
+  return { success: true, subscription };
 }
 
 /**
@@ -207,7 +161,7 @@ export async function reactivateSubscription(params: {
  */
 export async function changeSubscriptionPlan(params: {
   subscriptionId: string;
-  newPlan: 'diy' | 'complete';
+  newPlan: 'essential' | 'complete';
 }): Promise<{
   success: boolean;
   subscription: Stripe.Subscription;
@@ -221,29 +175,19 @@ export async function changeSubscriptionPlan(params: {
     throw new Error('No subscription item found');
   }
   
+  const priceId = STRIPE_PRICE_IDS[newPlan];
+  
   const updatedSubscription = await stripe.subscriptions.update(subscriptionId, {
     items: [
       {
         id: currentItemId,
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `DisputeStrike ${newPlan === 'complete' ? 'Complete' : 'DIY'} Plan`,
-          },
-          unit_amount: PLAN_PRICES[newPlan],
-          recurring: {
-            interval: 'month',
-          },
-        },
+        price: priceId,
       },
     ],
     proration_behavior: 'create_prorations',
   });
   
-  return {
-    success: true,
-    subscription: updatedSubscription,
-  };
+  return { success: true, subscription: updatedSubscription };
 }
 
 /**
@@ -276,33 +220,18 @@ export async function getSubscriptionDetails(params: {
  */
 export async function handleStripeWebhook(params: {
   event: Stripe.Event;
-  onTrialStarted?: (data: { userId: number; customerId: string; subscriptionId: string }) => Promise<void>;
   onSubscriptionActivated?: (data: { userId: number; customerId: string; subscriptionId: string }) => Promise<void>;
   onSubscriptionCanceled?: (data: { userId: number; subscriptionId: string }) => Promise<void>;
   onPaymentFailed?: (data: { userId: number; subscriptionId: string }) => Promise<void>;
 }): Promise<void> {
-  const { event, onTrialStarted, onSubscriptionActivated, onSubscriptionCanceled, onPaymentFailed } = params;
+  const { event, onSubscriptionActivated, onSubscriptionCanceled, onPaymentFailed } = params;
   
   switch (event.type) {
-    case 'customer.subscription.created': {
-      const subscription = event.data.object as Stripe.Subscription;
-      const userId = parseInt(subscription.metadata.userId || '0');
-      
-      if (subscription.status === 'trialing' && onTrialStarted) {
-        await onTrialStarted({
-          userId,
-          customerId: subscription.customer as string,
-          subscriptionId: subscription.id,
-        });
-      }
-      break;
-    }
-    
+    case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription;
       const userId = parseInt(subscription.metadata.userId || '0');
       
-      // Trial ended and subscription became active
       if (subscription.status === 'active' && onSubscriptionActivated) {
         await onSubscriptionActivated({
           userId,
@@ -359,4 +288,11 @@ export async function createCustomerPortalSession(params: {
   });
   
   return session.url;
+}
+
+/**
+ * Legacy helper - get trial end date (now returns null since no trial)
+ */
+export function getTrialEndDate(): Date | null {
+  return null;
 }

@@ -331,7 +331,7 @@ www.disputestrike.com
   
   return sendEmail({
     to: { address: email, display_name: name },
-    subject: 'Welcome to DisputeStrike - Your $1 Trial Has Started!',
+    subject: 'Welcome to DisputeStrike - Your Account is Ready!',
     html,
     plain,
     tags: {
