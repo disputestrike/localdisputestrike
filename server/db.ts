@@ -158,10 +158,17 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     // TiDB requires at least one field in ON DUPLICATE KEY UPDATE.
-    // Using raw SQL to ensure correct syntax for TiDB.
+    // Using raw SQL with direct values to avoid TiDB parameter issues.
+    const openId = values.openId;
+    const name = values.name ? `'${values.name.replace(/'/g, "''")}'` : 'NULL';
+    const email = values.email ? `'${values.email.replace(/'/g, "''")}'` : 'NULL';
+    const loginMethod = values.loginMethod ? `'${values.loginMethod.replace(/'/g, "''")}'` : 'NULL';
+    const role = values.role ? `'${values.role.replace(/'/g, "''")}'` : "'user'";
+    const lastSignedIn = values.lastSignedIn ? `'${values.lastSignedIn.toISOString().slice(0, 19).replace('T', ' ')}'` : 'NOW()';
+
     const sql = `
       INSERT INTO users (openId, name, email, loginMethod, role, lastSignedIn)
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES ('${openId}', ${name}, ${email}, ${loginMethod}, ${role}, ${lastSignedIn})
       ON DUPLICATE KEY UPDATE 
       lastSignedIn = VALUES(lastSignedIn),
       name = VALUES(name),
@@ -170,16 +177,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       role = VALUES(role)
     `;
     
-    const params = [
-      values.openId,
-      values.name || null,
-      values.email || null,
-      values.loginMethod || null,
-      values.role || 'user',
-      values.lastSignedIn || new Date()
-    ];
-
-    await db.execute(sql, params);
+    await db.execute(sql);
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
