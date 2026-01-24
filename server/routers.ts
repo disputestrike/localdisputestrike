@@ -986,6 +986,18 @@ Be thorough and list every negative item found.`;
 
   creditReports: router({
     /**
+     * Perform a light analysis on a credit report for the FREE preview flow
+     */
+    lightAnalysis: protectedProcedure
+      .input(z.object({
+        fileUrl: z.string(),
+      }))
+      .query(async ({ input }) => {
+        const { performLightAnalysis } = await import('./creditReportParser');
+        const result = await performLightAnalysis(input.fileUrl);
+        return result;
+      }),
+    /**
      * Upload credit report - automatically parses and extracts accounts
      */
     upload: protectedProcedure
