@@ -42,7 +42,8 @@ import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();	  const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);ax' | 'experian' | 'combined' | null>(null);
+  const { user } = useAuth();
+  const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
   const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);

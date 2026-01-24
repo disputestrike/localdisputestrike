@@ -24,7 +24,7 @@ export interface LightAnalysisResult {
   };
 }
 
-export interface ParsedAccount {{
+export interface ParsedAccount {
   accountName: string;
   accountNumber: string;
   balance: number;

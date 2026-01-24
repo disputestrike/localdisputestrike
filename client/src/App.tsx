@@ -114,7 +114,7 @@ function Router() {
       
       {/* Dashboard Routes */}
         <Route path="/dashboard" component={Dashboard} />
-        <Route path="/dashboard/preview" component={PreviewResults} />/>
+        <Route path="/dashboard/preview" component={PreviewResults} />
       <Route path="/dashboard/home" component={DashboardHome} />
       <Route path="/dashboard/v2" component={DashboardHomeV2} />
       
