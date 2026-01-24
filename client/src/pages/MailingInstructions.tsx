@@ -25,7 +25,7 @@ export default function MailingInstructions() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
-            <span className="font-bold text-xl">DisputeStrike AI</span>
+            <span className="font-bold text-xl">DisputeStrike</span>
           </div>
           <div className="flex items-center gap-4">
             <Button variant="outline" size="sm" asChild>

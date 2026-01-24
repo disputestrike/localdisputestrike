@@ -3,7 +3,7 @@
  * 
  * Two options:
  * 1. SmartCredit Affiliate Link (recommended) - FREE analysis
- * 2. Direct Upload - $4.95 processing fee
+ * 2. Direct Upload - FREE preview analysis
  */
 
 import { useState, useCallback } from 'react';
@@ -30,13 +30,11 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { loadStripe } from '@stripe/stripe-js';
 
 // SmartCredit Affiliate Link
 const SMARTCREDIT_AFFILIATE_URL = 'https://www.smartcredit.com/?PID=87529';
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY || '');
 
 interface UploadedReport {
   bureau: 'transunion' | 'equifax' | 'experian';
@@ -47,8 +45,7 @@ export default function GetReports() {
   const [, setLocation] = useLocation();
   const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'upload' | null>(null);
   const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
-  const [paymentComplete, setPaymentComplete] = useState(false);
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,39 +73,7 @@ export default function GetReports() {
     setSelectedOption('smartcredit');
   };
 
-  // Handle $4.95 processing fee payment
-  const handleProcessingFeePayment = async () => {
-    setIsProcessingPayment(true);
-    setError(null);
-    
-    try {
-      // Create checkout session for $4.95 processing fee
-      const response = await fetch('/api/payments/create-processing-fee-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to create payment session');
-      }
-      
-      const { sessionId } = await response.json();
-      
-      // Redirect to Stripe Checkout
-      const stripe = await stripePromise;
-      if (stripe) {
-        const { error } = await stripe.redirectToCheckout({ sessionId });
-        if (error) {
-          throw new Error(error.message);
-        }
-      }
-    } catch (e) {
-      setError('Payment failed. Please try again.');
-      console.error('Payment error:', e);
-    } finally {
-      setIsProcessingPayment(false);
-    }
-  };
+
 
   // File upload handler
   const onDrop = useCallback((acceptedFiles: File[], bureau: 'transunion' | 'equifax' | 'experian') => {
@@ -227,8 +192,8 @@ export default function GetReports() {
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img loading="lazy" src="/logo.webp" alt="DisputeStrike AI" className="h-10 w-10" />
-            <span className="font-bold text-2xl">DisputeStrike AI</span>
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+            <span className="font-bold text-2xl">DisputeStrike</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             Get Your Credit Reports
@@ -264,7 +229,7 @@ export default function GetReports() {
                   <Star className="w-5 h-5 text-yellow-500" />
                   <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">RECOMMENDED</span>
                 </div>
-                <span className="text-2xl font-bold text-green-600">FREE</span>
+      
               </div>
               <CardTitle className="text-lg">Get Reports via SmartCredit</CardTitle>
               <CardDescription>
@@ -308,7 +273,7 @@ export default function GetReports() {
             </CardContent>
           </Card>
 
-          {/* Option B: Direct Upload ($4.95) */}
+          {/* Option B: Direct Upload (FREE Preview) */}
           <Card 
             className={`border-2 cursor-pointer transition-all ${
               selectedOption === 'upload' 
@@ -322,62 +287,44 @@ export default function GetReports() {
                 <div className="flex items-center gap-2">
                   <Upload className="w-5 h-5 text-gray-500" />
                 </div>
-                <span className="text-2xl font-bold text-gray-700">$4.95</span>
+                <span className="text-2xl font-bold text-green-600">FREE</span>
               </div>
-              <CardTitle className="text-lg">Upload Your Own Reports</CardTitle>
+              <CardTitle className="text-lg">Option 2: Already Have Reports?</CardTitle>
               <CardDescription>
-                Already have your credit reports? Upload them directly.
+                Upload your existing reports for FREE preview analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm mb-4">
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-gray-400" />
-                  <span>Upload PDF or HTML reports</span>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>✅ FREE preview (violation count only)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-gray-400" />
-                  <span>One-time processing fee</span>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>✅ No credit card required</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-gray-400" />
-                  <span>AI analysis included</span>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>✅ Instant analysis</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-400" />
-                  <span className="text-muted-foreground">Covers AI processing costs</span>
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>✅ Upgrade to see full details</span>
                 </li>
               </ul>
               
-              {!paymentComplete ? (
-                <Button 
-                  variant="outline"
-                  className="w-full"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedOption('upload');
-                    handleProcessingFeePayment();
-                  }}
-                  disabled={isProcessingPayment}
-                >
-                  {isProcessingPayment ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Pay $4.95 Processing Fee
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 p-2 rounded">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">Payment Complete!</span>
-                </div>
-              )}
+              <Button 
+                variant="outline"
+                className="w-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedOption('upload');
+                }}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload Reports (FREE Preview)
+              </Button>
             </CardContent>
           </Card>
         </div>
@@ -429,13 +376,13 @@ export default function GetReports() {
           </Card>
         )}
 
-        {/* Direct Upload Flow (after payment) */}
-        {selectedOption === 'upload' && paymentComplete && (
+        {/* Direct Upload Flow (free preview) */}
+        {selectedOption === 'upload' && (
           <Card className="border-2 border-blue-200 bg-blue-50 mb-6">
             <CardContent className="pt-6">
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                Payment Complete! Upload Your Reports
+                Upload Your Reports for FREE Preview
               </h3>
               
               <div className="space-y-4">
@@ -532,7 +479,7 @@ export default function GetReports() {
         {/* Disclaimer */}
         <div className="mt-6 text-center text-xs text-muted-foreground max-w-lg mx-auto">
           <p>
-            DisputeStrike is not affiliated with SmartCredit, IdentityIQ, or the credit bureaus. 
+            DisputeStrike is not affiliated with SmartCredit, AnnualCreditReport.com, IdentityIQ, or the credit bureaus. 
             We are a software tool that helps you dispute inaccurate information on your credit reports.
             Results not guaranteed.
           </p>

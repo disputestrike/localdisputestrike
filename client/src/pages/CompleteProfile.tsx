@@ -480,8 +480,8 @@ export default function CompleteProfile() {
         {/* Header */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img loading="lazy" src="/logo.webp" alt="DisputeStrike AI" className="h-10 w-10" />
-            <span className="font-bold text-2xl">DisputeStrike AI</span>
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+            <span className="font-bold text-2xl">DisputeStrike</span>
           </div>
           <h1 className="text-2xl md:text-3xl font-bold mb-2">
             Complete Your Profile
