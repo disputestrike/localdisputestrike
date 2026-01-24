@@ -108,7 +108,7 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) 
           </p>
           <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
             <li><span className="font-bold">Specific Account Names</span> (e.g., Chase Bank, Portfolio Recovery)</li>
-            <li><span className="font-bold">Proprietary Dispute Methods</span> (The 43 FCRA violation checks)</li>
+            <li><span className="font-bold">Proprietary Dispute Methods</span> (Our advanced FCRA violation checks)</li>
             <li><span className="font-bold">Full Report Analysis</span> (Required to generate legal dispute letters)</li>
           </ul>
 

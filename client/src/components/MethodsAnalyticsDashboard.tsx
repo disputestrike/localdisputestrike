@@ -52,7 +52,7 @@ const CATEGORY_NAMES: Record<string, string> = {
   statistical_pattern: 'Statistical & Pattern',
 };
 
-// Method names for the 43 methods
+// Method names for the dispute methods
 const METHOD_NAMES: Record<number, string> = {
   1: 'Date Opened Discrepancy',
   2: 'Last Activity Date Conflict',
@@ -96,8 +96,10 @@ const METHOD_NAMES: Record<number, string> = {
   40: 'Pattern Recognition Anomaly',
   41: 'Cross-Bureau Conflict Score',
   42: 'Deletion Probability Analysis',
-  43: 'Metro 2 Format Violation',
+  43: 'Metro 2 Format Violation', // Keep the definition for now, but remove hardcoded references below
 };
+
+const TOTAL_METHODS = Object.keys(METHOD_NAMES).length;
 
 export function MethodsAnalyticsDashboard() {
   const { data, isLoading, error } = trpc.admin.getMethodAnalytics.useQuery();
@@ -194,7 +196,7 @@ export function MethodsAnalyticsDashboard() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Methods Used</p>
-              <p className="text-2xl font-bold text-gray-900">{summary.uniqueMethods} / 43</p>
+              <p className="text-2xl font-bold text-gray-900">{summary.uniqueMethods} / {TOTAL_METHODS}</p>
             </div>
           </div>
         </div>
@@ -297,10 +299,10 @@ export function MethodsAnalyticsDashboard() {
         )}
       </div>
 
-      {/* All 43 Methods Table */}
+      {/* All Dispute Detection Methods Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All 43 Dispute Detection Methods</h3>
+          <h3 className="text-lg font-semibold text-gray-900">All Dispute Detection Methods</h3>
           <p className="text-sm text-gray-500 mt-1">
             Complete breakdown of all detection algorithms and their performance
           </p>
@@ -333,7 +335,7 @@ export function MethodsAnalyticsDashboard() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {Array.from({ length: 43 }, (_, i) => i + 1).map(methodNum => {
+              {Array.from({ length: TOTAL_METHODS }, (_, i) => i + 1).map(methodNum => {
                 const methodStats = stats.find(s => s.methodNumber === methodNum);
                 const category = methodStats?.methodCategory || getDefaultCategory(methodNum);
                 

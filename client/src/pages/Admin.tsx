@@ -157,7 +157,7 @@ export default function Admin() {
             </TabsTrigger>
             <TabsTrigger value="methods">
               <Zap className="h-4 w-4 mr-2" />
-              43 Methods
+              Dispute Methods
             </TabsTrigger>
           </TabsList>
 
@@ -328,11 +328,11 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {/* 43 Methods Analytics Tab */}
+          {/* Methods Analytics Tab */}
           <TabsContent value="methods" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>43 Dispute Detection Methods Analytics</CardTitle>
+                <CardTitle>Dispute Detection Methods Analytics</CardTitle>
                 <CardDescription>
                   Track which detection algorithms are most effective at achieving deletions
                 </CardDescription>
