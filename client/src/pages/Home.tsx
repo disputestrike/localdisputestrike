@@ -1156,7 +1156,7 @@ export default function Home() {
                 <a href="https://www.facebook.com/DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                   <Facebook className="h-6 w-6" />
                 </a>
-                <a href="https://www.instagram.com/DisputeStrikeAI" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
+                <a href="https://www.instagram.com/DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
                   <Instagram className="h-6 w-6" />
                 </a>
                 <a href="https://www.youtube.com/@DisputeStrike" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">
