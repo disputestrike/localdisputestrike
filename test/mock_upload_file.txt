@@ -1,0 +1,3 @@
+This is a mock credit report file content.
+It is used to simulate a successful file upload and trigger the light analysis flow.
+The content is irrelevant as the analysis is mocked in the sandbox environment.

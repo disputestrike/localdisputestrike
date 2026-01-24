@@ -393,24 +393,23 @@ export const appRouter = router({
         
         // Generate a unique, user-scoped key
         const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${fileName}`;
-        
-        // NOTE: In a real-world scenario, this would call an S3 SDK to generate a pre-signed URL
-        // For this sandbox environment, we just return the secure, user-scoped key
+                const { s3Provider } = await import("./s3Provider");
+        const signedUrl = await s3Provider.getSignedUrl(fileKey, contentType);
+        const fileUrl = `https://disputestrike-uploads.s3.amazonaws.com/${fileKey}`;
+
         return {
           fileKey: fileKey,
-          fileUrl: `https://s3.disputestrike.com/${fileKey}`, // Mock URL
-        };
-      }),
-    uploadToS3: protectedProcedure
+          fileUrl: fileUrl,
+          signedUrl: signedUrl,
+        };protectedProcedure
       .input(z.object({
         fileKey: z.string(),
         contentType: z.string(),
       }))
       .mutation(async ({ input }) => {
-        // Mock S3 upload - in a real app, this would handle the actual upload
-        // We assume the fileKey is already user-scoped and secure
-        const fileUrl = `https://s3.disputestrike.com/${input.fileKey}`;
-        return { url: fileUrl, key: input.fileKey };
+        // This procedure is now redundant as the client uploads directly to the signed URL.
+        // We return success to allow the client to proceed to the lightAnalysis step.
+        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
       }),
   }),
   admin: router({

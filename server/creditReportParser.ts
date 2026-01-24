@@ -386,33 +386,31 @@ export async function performLightAnalysis(fileUrl: string): Promise<LightAnalys
   // For this task, we will simulate the result based on a full parse,
   // but the intent is to show that this is a separate, cheaper step.
   
-  // MOCK IMPLEMENTATION to ensure it always succeeds in the sandbox
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate AI processing time
-
-  // Generate a random, but consistent, result based on the fileUrl
-  const hash = fileUrl.length % 10;
+  const allAccounts = await parseWithVisionAICombined(fileUrl);
   
-  const totalViolations = 20 + hash * 3;
-  const critical = 5 + hash;
-  const high = 8 + hash;
-  const medium = 5;
-  const low = totalViolations - critical - high - medium;
-
+  // Simulate the aggregation logic for the teaser
+  const totalViolations = allAccounts.length;
+  
+  // Simple simulation of severity and category breakdown
+  const severityBreakdown = {
+    critical: Math.floor(totalViolations * 0.1),
+    high: Math.floor(totalViolations * 0.2),
+    medium: Math.floor(totalViolations * 0.3),
+    low: totalViolations - Math.floor(totalViolations * 0.6),
+  };
+  
+  const categoryBreakdown = {
+    latePayments: Math.floor(totalViolations * 0.4),
+    collections: Math.floor(totalViolations * 0.3),
+    chargeOffs: Math.floor(totalViolations * 0.1),
+    judgments: Math.floor(totalViolations * 0.05),
+    other: totalViolations - Math.floor(totalViolations * 0.85),
+  };
+  
   return {
     totalViolations,
-    severityBreakdown: {
-      critical,
-      high,
-      medium,
-      low,
-    },
-    categoryBreakdown: {
-      latePayments: 5 + hash,
-      collections: 3 + hash,
-      chargeOffs: 2,
-      judgments: 1,
-      other: totalViolations - (5 + hash) - (3 + hash) - 2 - 1,
-    },
+    severityBreakdown,
+    categoryBreakdown,
   };
 }
 
