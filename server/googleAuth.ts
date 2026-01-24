@@ -151,7 +151,48 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
     }
     
     // Check if user already exists by email
-    const existingUsers = await db.select().from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
+    // Only select columns that exist in the database
+    const existingUsers = await db.select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      passwordHash: users.passwordHash,
+      emailVerified: users.emailVerified,
+      emailVerificationToken: users.emailVerificationToken,
+      emailVerificationExpires: users.emailVerificationExpires,
+      passwordResetToken: users.passwordResetToken,
+      passwordResetExpires: users.passwordResetExpires,
+      firstName: users.firstName,
+      middleInitial: users.middleInitial,
+      lastName: users.lastName,
+      address: users.address,
+      city: users.city,
+      state: users.state,
+      zipCode: users.zipCode,
+      ssn: users.ssn,
+      dateOfBirth: users.dateOfBirth,
+      phoneNumber: users.phoneNumber,
+      identityiqUserId: users.identityiqUserId,
+      identityiqEnrollmentDate: users.identityiqEnrollmentDate,
+      identityiqStatus: users.identityiqStatus,
+      creditConcern: users.creditConcern,
+      creditGoal: users.creditGoal,
+      signatureUrl: users.signatureUrl,
+      signatureCreatedAt: users.signatureCreatedAt,
+      affiliateSource: users.affiliateSource,
+      affiliateClickedAt: users.affiliateClickedAt,
+      processingFeePaid: users.processingFeePaid,
+      processingFeeAmount: users.processingFeeAmount,
+      processingFeePaidAt: users.processingFeePaidAt,
+      addressVerified: users.addressVerified,
+      addressVerifiedAt: users.addressVerifiedAt,
+      lobAddressId: users.lobAddressId,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    }).from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
     const existingUser = existingUsers[0];
     
     if (existingUser) {
@@ -185,7 +226,47 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
     const openId = generateOpenId(googleUser.id);
     
     // Check if a user with this openId already exists (edge case)
-    const usersByOpenId = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+    const usersByOpenId = await db.select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      passwordHash: users.passwordHash,
+      emailVerified: users.emailVerified,
+      emailVerificationToken: users.emailVerificationToken,
+      emailVerificationExpires: users.emailVerificationExpires,
+      passwordResetToken: users.passwordResetToken,
+      passwordResetExpires: users.passwordResetExpires,
+      firstName: users.firstName,
+      middleInitial: users.middleInitial,
+      lastName: users.lastName,
+      address: users.address,
+      city: users.city,
+      state: users.state,
+      zipCode: users.zipCode,
+      ssn: users.ssn,
+      dateOfBirth: users.dateOfBirth,
+      phoneNumber: users.phoneNumber,
+      identityiqUserId: users.identityiqUserId,
+      identityiqEnrollmentDate: users.identityiqEnrollmentDate,
+      identityiqStatus: users.identityiqStatus,
+      creditConcern: users.creditConcern,
+      creditGoal: users.creditGoal,
+      signatureUrl: users.signatureUrl,
+      signatureCreatedAt: users.signatureCreatedAt,
+      affiliateSource: users.affiliateSource,
+      affiliateClickedAt: users.affiliateClickedAt,
+      processingFeePaid: users.processingFeePaid,
+      processingFeeAmount: users.processingFeeAmount,
+      processingFeePaidAt: users.processingFeePaidAt,
+      addressVerified: users.addressVerified,
+      addressVerifiedAt: users.addressVerifiedAt,
+      lobAddressId: users.lobAddressId,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    }).from(users).where(eq(users.openId, openId)).limit(1);
     if (usersByOpenId[0]) {
       const user = usersByOpenId[0];
       const token = generateToken(user.id, user.email || '');
@@ -213,7 +294,47 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
     });
     
     // Get the created user
-    const newUsers = await db.select().from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
+    const newUsers = await db.select({
+      id: users.id,
+      openId: users.openId,
+      name: users.name,
+      email: users.email,
+      loginMethod: users.loginMethod,
+      role: users.role,
+      passwordHash: users.passwordHash,
+      emailVerified: users.emailVerified,
+      emailVerificationToken: users.emailVerificationToken,
+      emailVerificationExpires: users.emailVerificationExpires,
+      passwordResetToken: users.passwordResetToken,
+      passwordResetExpires: users.passwordResetExpires,
+      firstName: users.firstName,
+      middleInitial: users.middleInitial,
+      lastName: users.lastName,
+      address: users.address,
+      city: users.city,
+      state: users.state,
+      zipCode: users.zipCode,
+      ssn: users.ssn,
+      dateOfBirth: users.dateOfBirth,
+      phoneNumber: users.phoneNumber,
+      identityiqUserId: users.identityiqUserId,
+      identityiqEnrollmentDate: users.identityiqEnrollmentDate,
+      identityiqStatus: users.identityiqStatus,
+      creditConcern: users.creditConcern,
+      creditGoal: users.creditGoal,
+      signatureUrl: users.signatureUrl,
+      signatureCreatedAt: users.signatureCreatedAt,
+      affiliateSource: users.affiliateSource,
+      affiliateClickedAt: users.affiliateClickedAt,
+      processingFeePaid: users.processingFeePaid,
+      processingFeeAmount: users.processingFeeAmount,
+      processingFeePaidAt: users.processingFeePaidAt,
+      addressVerified: users.addressVerified,
+      addressVerifiedAt: users.addressVerifiedAt,
+      lobAddressId: users.lobAddressId,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    }).from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
     const newUser = newUsers[0];
     
     if (!newUser) {
