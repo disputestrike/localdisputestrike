@@ -1,20 +1,20 @@
 /**
  * Rate Limiting Service
  * 
- * Prevents spam and abuse of the free preview feature:
- * - 3 free previews per account per month
- * - 5 free previews per IP per day
+ * Prevents abuse of the dispute generation feature:
+ * - 3 dispute generations per account per month
+ * - 5 dispute generations per IP per day
  * - Tracks usage in database
  */
 
 import { eq, and, gt, sql } from 'drizzle-orm';
-import { db } from './db';
+import { getDb } from './db';
 import { users } from '../drizzle/schema';
 
 // Rate limit configuration
 export const RATE_LIMITS = {
-  FREE_PREVIEW_PER_USER_PER_MONTH: 3,
-  FREE_PREVIEW_PER_IP_PER_DAY: 5,
+  DISPUTES_PER_USER_PER_MONTH: 3,
+  DISPUTES_PER_IP_PER_DAY: 5,
   SIGNUP_PER_IP_PER_HOUR: 10,
 };
 
@@ -23,70 +23,73 @@ export const RATE_LIMITS = {
 const ipLimitCache = new Map<string, { count: number; resetAt: number }>();
 
 /**
- * Check if a user can run a free preview
+ * Check if a user can generate disputes
  */
-export async function canRunFreePreview(userId: number, ipAddress: string): Promise<{
+export async function canGenerateDisputes(userId: number, ipAddress: string): Promise<{
   allowed: boolean;
   reason?: string;
-  remainingPreviews?: number;
+  remainingDisputes?: number;
 }> {
   try {
+    const db = await getDb();
+    if (!db) {
+      return { allowed: false, reason: 'Database not available' };
+    }
+
     // Check user's monthly limit
-    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    const userList = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     
-    if (!user[0]) {
+    if (!userList[0]) {
       return { allowed: false, reason: 'User not found' };
     }
     
-    // Get user's preview count this month
-    // Note: This assumes we track preview usage in the user record or a separate table
-    // For now, we'll use a simple in-memory approach
-    const userPreviewCount = await getUserMonthlyPreviewCount(userId);
+    // Get user's dispute count this month
+    const userDisputeCount = await getUserMonthlyDisputeCount(userId);
     
-    if (userPreviewCount >= RATE_LIMITS.FREE_PREVIEW_PER_USER_PER_MONTH) {
+    if (userDisputeCount >= RATE_LIMITS.DISPUTES_PER_USER_PER_MONTH) {
       return {
         allowed: false,
-        reason: `You've reached your limit of ${RATE_LIMITS.FREE_PREVIEW_PER_USER_PER_MONTH} free previews this month. Upgrade to Essential for unlimited analysis.`,
-        remainingPreviews: 0,
+        reason: `You've reached your limit of ${RATE_LIMITS.DISPUTES_PER_USER_PER_MONTH} disputes this month. Upgrade to Essential for unlimited disputes.`,
+        remainingDisputes: 0,
       };
     }
     
     // Check IP daily limit
     const ipCount = getIpDailyCount(ipAddress);
     
-    if (ipCount >= RATE_LIMITS.FREE_PREVIEW_PER_IP_PER_DAY) {
+    if (ipCount >= RATE_LIMITS.DISPUTES_PER_IP_PER_DAY) {
       return {
         allowed: false,
-        reason: 'Too many preview requests from this location. Please try again tomorrow.',
-        remainingPreviews: RATE_LIMITS.FREE_PREVIEW_PER_USER_PER_MONTH - userPreviewCount,
+        reason: 'Too many dispute requests from this location. Please try again tomorrow.',
+        remainingDisputes: RATE_LIMITS.DISPUTES_PER_USER_PER_MONTH - userDisputeCount,
       };
     }
     
     return {
       allowed: true,
-      remainingPreviews: RATE_LIMITS.FREE_PREVIEW_PER_USER_PER_MONTH - userPreviewCount - 1,
+      remainingDisputes: RATE_LIMITS.DISPUTES_PER_USER_PER_MONTH - userDisputeCount - 1,
     };
   } catch (error) {
-    console.error('[Rate Limit] Error checking preview limit:', error);
+    console.error('[Rate Limit] Error checking dispute limit:', error);
     // Fail open - allow the request but log the error
-    return { allowed: true, remainingPreviews: undefined };
+    return { allowed: true, remainingDisputes: undefined };
   }
 }
 
 /**
- * Record a free preview usage
+ * Record a dispute generation usage
  */
-export async function recordFreePreviewUsage(userId: number, ipAddress: string): Promise<void> {
+export async function recordDisputeUsage(userId: number, ipAddress: string): Promise<void> {
   try {
     // Increment user's monthly count
-    await incrementUserMonthlyPreviewCount(userId);
+    await incrementUserMonthlyDisputeCount(userId);
     
     // Increment IP daily count
     incrementIpDailyCount(ipAddress);
     
-    console.log(`[Rate Limit] Recorded preview usage for user ${userId} from IP ${maskIp(ipAddress)}`);
+    console.log(`[Rate Limit] Recorded dispute usage for user ${userId} from IP ${maskIp(ipAddress)}`);
   } catch (error) {
-    console.error('[Rate Limit] Error recording preview usage:', error);
+    console.error('[Rate Limit] Error recording dispute usage:', error);
   }
 }
 
@@ -136,40 +139,40 @@ export function recordAccountCreation(ipAddress: string): void {
 // Helper Functions
 // ============================================
 
-// In-memory storage for user preview counts (use database in production)
-const userPreviewCounts = new Map<number, { count: number; month: string }>();
+// In-memory storage for user dispute counts (use database in production)
+const userDisputeCounts = new Map<number, { count: number; month: string }>();
 
 function getCurrentMonth(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
-async function getUserMonthlyPreviewCount(userId: number): Promise<number> {
+async function getUserMonthlyDisputeCount(userId: number): Promise<number> {
   const currentMonth = getCurrentMonth();
-  const cached = userPreviewCounts.get(userId);
+  const cached = userDisputeCounts.get(userId);
   
   if (cached && cached.month === currentMonth) {
     return cached.count;
   }
   
   // Reset for new month
-  userPreviewCounts.set(userId, { count: 0, month: currentMonth });
+  userDisputeCounts.set(userId, { count: 0, month: currentMonth });
   return 0;
 }
 
-async function incrementUserMonthlyPreviewCount(userId: number): Promise<void> {
+async function incrementUserMonthlyDisputeCount(userId: number): Promise<void> {
   const currentMonth = getCurrentMonth();
-  const cached = userPreviewCounts.get(userId);
+  const cached = userDisputeCounts.get(userId);
   
   if (cached && cached.month === currentMonth) {
     cached.count++;
   } else {
-    userPreviewCounts.set(userId, { count: 1, month: currentMonth });
+    userDisputeCounts.set(userId, { count: 1, month: currentMonth });
   }
 }
 
 function getIpDailyCount(ipAddress: string): number {
-  const key = `preview_${ipAddress}`;
+  const key = `dispute_${ipAddress}`;
   const now = Date.now();
   
   const cached = ipLimitCache.get(key);
@@ -182,7 +185,7 @@ function getIpDailyCount(ipAddress: string): number {
 }
 
 function incrementIpDailyCount(ipAddress: string): void {
-  const key = `preview_${ipAddress}`;
+  const key = `dispute_${ipAddress}`;
   const now = Date.now();
   const endOfDay = new Date();
   endOfDay.setHours(23, 59, 59, 999);
@@ -224,6 +227,6 @@ export function getRateLimitStats(): {
 } {
   return {
     activeIpLimits: ipLimitCache.size,
-    activeUserLimits: userPreviewCounts.size,
+    activeUserLimits: userDisputeCounts.size,
   };
 }

@@ -1391,11 +1391,26 @@ Be thorough and list every negative item found.`;
         currentAddress: z.string(),
         previousAddress: z.string().optional(),
         bureaus: z.array(z.enum(['transunion', 'equifax', 'experian'])),
-        accountIds: z.array(z.number()).optional(), // Optional: specific accounts to dispute (bulk selection)
+        accountIds: z.array(z.number()).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
         const userName = ctx.user.name || 'User';
+        
+        // Apply rate limiting
+        const { canGenerateDisputes, recordDisputeUsage } = await import('./rateLimitService');
+        const ipAddress = ctx.req?.ip || ctx.req?.socket?.remoteAddress || '0.0.0.0';
+        const rateCheckResult = await canGenerateDisputes(userId, ipAddress);
+        
+        if (!rateCheckResult.allowed) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: rateCheckResult.reason || 'Rate limit exceeded',
+          });
+        }
+        
+        // Record this dispute generation for rate limiting
+        await recordDisputeUsage(userId, ipAddress);
 
         // Get accounts - either specific ones or all
         let accounts = await db.getNegativeAccountsByUserId(userId);
