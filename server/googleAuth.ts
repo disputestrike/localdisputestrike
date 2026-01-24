@@ -5,10 +5,11 @@
  * - OAuth 2.0 flow
  * - User creation/login
  * - Token generation
+ * - Self-healing database migration
  */
 
 import crypto from 'crypto';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { getDb } from './db';
 import { users } from '../drizzle/schema';
 import { generateToken } from './customAuth';
@@ -20,6 +21,33 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || 'GOCSPX-IjRtm8I
 // Generate a unique openId for new users
 function generateOpenId(): string {
   return `google_${crypto.randomBytes(16).toString('hex')}`;
+}
+
+/**
+ * Self-healing database migration
+ * Automatically adds missing columns if they don't exist
+ */
+async function ensureSchemaUpdated(db: any) {
+  try {
+    console.log('[Google Auth] Checking database schema...');
+    
+    // Check if googleId column exists
+    try {
+      await db.execute(sql`SELECT googleId FROM users LIMIT 1`);
+      console.log('[Google Auth] Schema is up to date.');
+    } catch (e: any) {
+      if (e.message && (e.message.includes('Unknown column') || e.message.includes('no such column'))) {
+        console.log('[Google Auth] Missing googleId column. Attempting to add it...');
+        await db.execute(sql`ALTER TABLE users ADD COLUMN googleId VARCHAR(255) UNIQUE`);
+        console.log('[Google Auth] Successfully added googleId column.');
+      } else {
+        throw e;
+      }
+    }
+  } catch (error) {
+    console.error('[Google Auth] Schema update failed:', error);
+    // We don't throw here to allow the rest of the flow to attempt to proceed
+  }
 }
 
 export interface GoogleUserInfo {
@@ -132,6 +160,9 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       return { success: false, message: 'Database not available' };
     }
     
+    // Run self-healing migration
+    await ensureSchemaUpdated(db);
+    
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code, redirectUri);
     if (!tokens) {
@@ -158,6 +189,7 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
         name: googleUser.name || existingUser.name,
         lastSignedIn: new Date(),
         emailVerified: true, // Google emails are verified
+        googleId: googleUser.id, // Link Google ID if not already linked
       }).where(eq(users.id, existingUser.id));
       
       const token = generateToken(existingUser.id, existingUser.email || '');
@@ -183,6 +215,7 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
     
     await db.insert(users).values({
       openId,
+      googleId: googleUser.id,
       name: googleUser.name || 'User',
       email: googleUser.email.toLowerCase(),
       loginMethod: 'google',
