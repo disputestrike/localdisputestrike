@@ -80,7 +80,7 @@ export default function AdminEnhanced() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
-            <span className="font-bold text-xl">DisputeStrike AI - Admin Dashboard</span>
+            <span className="font-bold text-xl">DisputeStrike - Admin Dashboard</span>
           </div>
           <div className="flex items-center gap-4">
             <Badge variant="destructive">Admin</Badge>
@@ -474,7 +474,7 @@ export default function AdminEnhanced() {
                           <p className="text-sm text-gray-600 mb-3">Score: 615 → 646 | 15 days to results</p>
                           <div className="bg-white p-3 rounded border text-sm">
                             <p className="italic text-gray-700">
-                              "I was skeptical at first, but DisputeStrike AI delivered real results. Within just 15 days, 
+                              "I was skeptical at first, but DisputeStrike delivered real results. Within just 15 days, 
                               I saw 2 negative accounts completely removed from my credit report, and my score jumped 31 points! 
                               Now I can finally qualify for that car loan I've been dreaming about. This platform is a game-changer."
                             </p>

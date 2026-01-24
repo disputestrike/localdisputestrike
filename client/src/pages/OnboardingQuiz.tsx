@@ -125,8 +125,8 @@ export default function OnboardingQuiz() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <img loading="lazy" src="/logo.webp" alt="DisputeStrike AI" className="h-10 w-10" />
-            <span className="font-bold text-2xl">DisputeStrike AI</span>
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
+            <span className="font-bold text-2xl">DisputeStrike</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
             Start Your Free Credit Analysis
@@ -270,7 +270,7 @@ export default function OnboardingQuiz() {
           </div>
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-green-500" />
-            <span>43 FCRA Violation Methods</span>
+            <span>FCRA Violation Detection</span>
           </div>
         </div>
 

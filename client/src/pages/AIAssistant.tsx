@@ -279,7 +279,7 @@ export default function AIAssistant() {
           <CardHeader className="border-b bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <CardTitle className="text-xl">Credit Dispute AI Assistant</CardTitle>
             <CardDescription className="text-blue-100">
-              Powered by DisputeStrike AI - Expert FCRA Knowledge | 📎 Attach Documents | 🎤 Voice Input
+              Powered by DisputeStrike - Expert FCRA Knowledge | 📎 Attach Documents | 🎤 Voice Input
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
