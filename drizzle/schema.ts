@@ -54,21 +54,8 @@ export const users = mysqlTable("users", {
   addressVerifiedAt: timestamp("addressVerifiedAt"),
   lobAddressId: varchar("lobAddressId", { length: 255 }),
   
-  // Social Login Fields
-  googleId: varchar("googleId", { length: 255 }),
-  profilePicture: text("profilePicture"),
-  
-  // Agency/Merchant Account Fields
-  accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual").notNull(),
-  agencyName: varchar("agencyName", { length: 255 }), // Business name for agencies
-  agencyPlanTier: mysqlEnum("agencyPlanTier", ["starter", "professional", "enterprise"]),
-  clientSlotsIncluded: int("clientSlotsIncluded").default(0), // 50, 200, or 500 based on plan
-  clientSlotsUsed: int("clientSlotsUsed").default(0),
-  agencyMonthlyPrice: decimal("agencyMonthlyPrice", { precision: 10, scale: 2 }), // 497, 997, or 1997
-  
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
