@@ -20,23 +20,23 @@ export const users = mysqlTable("users", {
   passwordResetExpires: timestamp("passwordResetExpires"),
   
   // Identity and Address Fields (for IdentityIQ integration)
-  firstName: varchar("firstName", { length: 255 }),
-  middleInitial: varchar("middleInitial", { length: 1 }),
-  lastName: varchar("lastName", { length: 255 }),
-  address: varchar("address", { length: 500 }),
-  city: varchar("city", { length: 255 }),
-  state: varchar("state", { length: 2 }),
-  zipCode: varchar("zipCode", { length: 10 }),
-  ssn: varchar("ssn", { length: 255 }), // Encrypted
-  dateOfBirth: varchar("dateOfBirth", { length: 10 }), // YYYY-MM-DD
-  phoneNumber: varchar("phoneNumber", { length: 20 }),
-  identityiqUserId: varchar("identityiqUserId", { length: 255 }),
-  identityiqEnrollmentDate: timestamp("identityiqEnrollmentDate"),
+  // firstName: varchar("firstName", { length: 255 }),
+  // middleInitial: varchar("middleInitial", { length: 1 }),
+  // lastName: varchar("lastName", { length: 255 }),
+  // address: varchar("address", { length: 500 }),
+  // city: varchar("city", { length: 255 }),
+  // state: varchar("state", { length: 2 }),
+  // zipCode: varchar("zipCode", { length: 10 }),
+  // ssn: varchar("ssn", { length: 255 }), // Encrypted
+  // dateOfBirth: varchar("dateOfBirth", { length: 10 }), // YYYY-MM-DD
+  // phoneNumber: varchar("phoneNumber", { length: 20 }),
+  // identityiqUserId: varchar("identityiqUserId", { length: 255 }),
+  // identityiqEnrollmentDate: timestamp("identityiqEnrollmentDate"),
   
   // Address Verification (Lob)
-  addressVerified: boolean("addressVerified").default(false),
-  addressVerifiedAt: timestamp("addressVerifiedAt"),
-  lobAddressId: varchar("lobAddressId", { length: 255 }),
+  // addressVerified: boolean("addressVerified").default(false),
+  // addressVerifiedAt: timestamp("addressVerifiedAt"),
+  // lobAddressId: varchar("lobAddressId", { length: 255 }),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
