@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LightAnalysisResult } from "@/server/creditReportParser";
 import { Link } from "wouter";
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
@@ -39,8 +40,8 @@ import { MobileUploadZone } from "@/components/MobileUploadZone";
 import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
-  const { user } = useAuth();
-  const [uploadingBureau, setUploadingBureau] = useState<string | null>(null);
+  const { user } = useAuth();	  const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);ax' | 'experian' | 'combined' | null>(null);
+  const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
   const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);
   
@@ -224,17 +225,35 @@ export default function Dashboard() {
   });
 
   // Combined upload mutation for 3-bureau reports
-  const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
-    onSuccess: () => {
-      toast.success("Combined report uploaded! AI is extracting accounts from all 3 bureaus...");
-      refetchReports();
-      setUploadingBureau(null);
-    },
-    onError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
-      setUploadingBureau(null);
-    },
-  });
+  // Full upload will be triggered after the user upgrades.
+  // The original mutation is commented out to enforce the FREE preview flow.
+  // const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
+  //   onSuccess: () => {
+  //     toast.success("Combined report uploaded! AI is extracting accounts from all 3 bureaus...");
+  //     refetchReports();
+  //     setUploadingBureau(null);
+  //   },
+  //   onError: (error) => {
+  //     toast.error(`Upload failed: ${error.message}`);
+  //     setUploadingBureau(null);
+  //   },
+  // });
+
+  const lightAnalysisQuery = trpc.creditReports.lightAnalysis.useQuery(
+    { fileUrl: lightAnalysisResult?.fileUrl || '' },
+    {
+      enabled: !!lightAnalysisResult?.fileUrl && !lightAnalysisResult.totalViolations, // Only run if fileUrl is set and we haven't run analysis yet
+      onSuccess: (data) => {
+        setLightAnalysisResult({ ...data, fileUrl: lightAnalysisResult!.fileUrl });
+        toast.success("Light analysis complete! Review your results.");
+        // We don't navigate here, we use the state change to render the Preview component
+      },
+      onError: (error) => {
+        toast.error(`Analysis failed: ${error.message}`);
+        setUploadingBureau(null);
+      },
+    }
+  );
 
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent, bureau: string) => {
@@ -667,12 +686,9 @@ export default function Dashboard() {
                                 contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
                               });
                               
-                              // Now use the combined upload endpoint
-                              await uploadCombinedReport.mutateAsync({
-                                fileName: file.name,
-                                fileUrl: uploadResult.url,
-                                fileKey: uploadResult.key,
-                              });
+                              // Now trigger the light analysis
+                              setLightAnalysisResult({ fileUrl: uploadResult.url } as any); // Set the fileUrl to trigger the query
+                              toast.info('File uploaded. Running light analysis...');
                               
                             } catch (error) {
                               console.error('Combined upload failed:', error);
