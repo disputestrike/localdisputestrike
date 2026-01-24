@@ -158,12 +158,12 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
+      await db.insert(users).values(values);
+    } else {
+      await db.insert(users).values(values).onDuplicateKeyUpdate({
+        set: updateSet,
+      });
     }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
