@@ -1421,6 +1421,21 @@ Be thorough and list every negative item found.`;
           });
         }
         
+        // --- 30-DAY DISPUTE LOCK ---
+        const lastLetter = await db.getLastDisputeLetter(userId);
+        if (lastLetter) {
+          const thirtyDaysAgo = new Date();
+          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+          
+          if (lastLetter.createdAt > thirtyDaysAgo) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Dispute letters can only be generated once every 30 days to comply with bureau requirements and prevent frivolous flags.',
+            });
+          }
+        }
+        // --- END 30-DAY DISPUTE LOCK ---
+
         // Record this dispute generation for rate limiting
         await recordDisputeUsage(userId, ipAddress);
 
