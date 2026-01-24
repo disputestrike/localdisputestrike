@@ -304,12 +304,22 @@ export default function Dashboard() {
     setUploadingBureau(bureau);
     
     // Convert file to base64
-    // 1. Get secure, user-scoped file key from server
-    const { fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
-      bureau,
-      fileName: file.name,
-      contentType: file.type,
-    });
+    let fileKey: string;
+    let mockFileUrl: string;
+    
+    try {
+      // 1. Get secure, user-scoped file key from server
+      ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+        bureau,
+        fileName: file.name,
+        contentType: file.type,
+      }));
+    } catch (error) {
+      console.error('Failed to get signed URL:', error);
+      toast.error('Upload failed: Could not secure file path.');
+      setUploadingBureau(null);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async (e) => {
       const arrayBuffer = e.target?.result as ArrayBuffer;
@@ -688,14 +698,26 @@ export default function Dashboard() {
                         const file = e.target.files?.[0];
                         if (file) {
                           setUploadingBureau('combined');
-                          toast.info('Uploading combined 3-bureau report...');
+                          toast.info('Preparing upload...');
                           
-                          // 1. Get secure, user-scoped file key from server
-                          const { fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
-                            bureau: 'combined',
-                            fileName: file.name,
-                            contentType: file.type,
-                          });
+                          let fileKey: string;
+                          let mockFileUrl: string;
+                          
+                          try {
+                            // 1. Get secure, user-scoped file key from server
+                            ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+                              bureau: 'combined',
+                              fileName: file.name,
+                              contentType: file.type,
+                            }));
+                          } catch (error) {
+                            console.error('Failed to get signed URL:', error);
+                            toast.error('Upload failed: Could not secure file path.');
+                            setUploadingBureau(null);
+                            return;
+                          }
+                          
+                          toast.info('Uploading combined 3-bureau report...');
                           const reader = new FileReader();
                           reader.onload = async (ev) => {
                             const arrayBuffer = ev.target?.result as ArrayBuffer;
@@ -716,6 +738,7 @@ export default function Dashboard() {
                             } catch (error) {
                               console.error('Combined upload failed:', error);
                               toast.error('Failed to upload combined report');
+                            } finally {
                               setUploadingBureau(null);
                             }
                           };
