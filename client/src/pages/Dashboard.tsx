@@ -673,6 +673,7 @@ export default function Dashboard() {
                                 fileUrl: uploadResult.url,
                                 fileKey: uploadResult.key,
                               });
+                              
                             } catch (error) {
                               console.error('Combined upload failed:', error);
                               toast.error('Failed to upload combined report');
