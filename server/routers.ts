@@ -3061,6 +3061,22 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
           internalNotes: z.string().optional(),
         }))
         .mutation(async ({ ctx, input }) => {
+          const agencyStats = await db.getAgencyStats(ctx.user.id);
+          
+          if (!agencyStats) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Agency stats not found. Please contact support.',
+            });
+          }
+
+          if (agencyStats.clientSlotsUsed >= agencyStats.clientSlotsIncluded) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: `Client limit reached. Your current plan allows for ${agencyStats.clientSlotsIncluded} clients. Please upgrade your plan.`,
+            });
+          }
+
           const client = await db.createAgencyClient({
             agencyUserId: ctx.user.id,
             ...input,
