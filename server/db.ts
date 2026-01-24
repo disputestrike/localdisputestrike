@@ -158,14 +158,28 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     }
 
     // TiDB requires at least one field in ON DUPLICATE KEY UPDATE.
-    // If updateSet is empty, we use lastSignedIn as a fallback since it's always updated.
-    const finalUpdateSet = Object.keys(updateSet).length > 0 
-      ? updateSet 
-      : { lastSignedIn: values.lastSignedIn || new Date() };
+    // Using raw SQL to ensure correct syntax for TiDB.
+    const sql = `
+      INSERT INTO users (openId, name, email, loginMethod, role, lastSignedIn)
+      VALUES (?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE 
+      lastSignedIn = VALUES(lastSignedIn),
+      name = VALUES(name),
+      email = VALUES(email),
+      loginMethod = VALUES(loginMethod),
+      role = VALUES(role)
+    `;
+    
+    const params = [
+      values.openId,
+      values.name || null,
+      values.email || null,
+      values.loginMethod || null,
+      values.role || 'user',
+      values.lastSignedIn || new Date()
+    ];
 
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: finalUpdateSet,
-    });
+    await db.execute(sql, params);
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
