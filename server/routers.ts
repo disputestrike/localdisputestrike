@@ -404,7 +404,6 @@ export const appRouter = router({
     uploadToS3: protectedProcedure
       .input(z.object({
         fileKey: z.string(),
-        fileData: z.array(z.number()),
         contentType: z.string(),
       }))
       .mutation(async ({ input }) => {

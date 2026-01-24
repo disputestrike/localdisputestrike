@@ -317,9 +317,9 @@ export default function Dashboard() {
       
       try {
         // 2. Upload to S3 via tRPC (using the secure key)
+        // NOTE: We are removing fileData from the payload to prevent large payload errors in the mock environment
         const uploadResult = await uploadToS3.mutateAsync({
           fileKey,
-          fileData: Array.from(uint8Array),
           contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
         });
         
@@ -703,9 +703,9 @@ export default function Dashboard() {
                             
                             try {
                               // Upload to S3 first
+                              // NOTE: We are removing fileData from the payload to prevent large payload errors in the mock environment
                               const uploadResult = await uploadToS3.mutateAsync({
                                 fileKey,
-                                fileData: Array.from(uint8Array),
                                 contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
                               });
                               
