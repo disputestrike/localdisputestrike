@@ -105,13 +105,14 @@ import {
     console.error('[Cron] Error in processPendingEnrollments:', error);
   }
 */
-}
 
 /**
  * Retry failed credit report pulls
  * 
  * Runs hourly to retry credit pulls that failed initially
+ * DISABLED: Uses identityiqStatus which doesn't exist in TiDB
  */
+/*
 export async function retryFailedCreditPulls() {
   console.log('[Cron] Retrying failed credit report pulls...');
 
@@ -170,12 +171,15 @@ export async function retryFailedCreditPulls() {
     console.error('[Cron] Error in retryFailedCreditPulls:', error);
   }
 }
+*/
 
 /**
  * Cancel IdentityIQ subscriptions for expired trials
  * 
  * Runs daily to cancel IdentityIQ for users whose trial expired without subscribing
+ * DISABLED: Uses identityiqStatus which doesn't exist in TiDB
  */
+/*
 export async function cancelExpiredTrialSubscriptions() {
   console.log('[Cron] Canceling IdentityIQ for expired trials...');
 
@@ -243,3 +247,4 @@ export async function cancelExpiredTrialSubscriptions() {
     console.error('[Cron] Error in cancelExpiredTrialSubscriptions:', error);
   }
 }
+*/
