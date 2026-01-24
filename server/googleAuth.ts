@@ -5,11 +5,11 @@
  * - OAuth 2.0 flow
  * - User creation/login
  * - Token generation
- * - Self-healing database migration
+ * - Bulletproof implementation using existing openId column
  */
 
 import crypto from 'crypto';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { getDb } from './db';
 import { users } from '../drizzle/schema';
 import { generateToken } from './customAuth';
@@ -19,35 +19,9 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '56326714738-d92eth6jol
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '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';
 
 // Generate a unique openId for new users
-function generateOpenId(): string {
-  return `google_${crypto.randomBytes(16).toString('hex')}`;
-}
-
-/**
- * Self-healing database migration
- * Automatically adds missing columns if they don't exist
- */
-async function ensureSchemaUpdated(db: any) {
-  try {
-    console.log('[Google Auth] Checking database schema...');
-    
-    // Check if googleId column exists
-    try {
-      await db.execute(sql`SELECT googleId FROM users LIMIT 1`);
-      console.log('[Google Auth] Schema is up to date.');
-    } catch (e: any) {
-      if (e.message && (e.message.includes('Unknown column') || e.message.includes('no such column'))) {
-        console.log('[Google Auth] Missing googleId column. Attempting to add it...');
-        await db.execute(sql`ALTER TABLE users ADD COLUMN googleId VARCHAR(255) UNIQUE`);
-        console.log('[Google Auth] Successfully added googleId column.');
-      } else {
-        throw e;
-      }
-    }
-  } catch (error) {
-    console.error('[Google Auth] Schema update failed:', error);
-    // We don't throw here to allow the rest of the flow to attempt to proceed
-  }
+function generateOpenId(googleId: string): string {
+  // Use the Google ID as part of the openId to ensure uniqueness and linkability
+  return `google_${googleId}`;
 }
 
 export interface GoogleUserInfo {
@@ -160,9 +134,6 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       return { success: false, message: 'Database not available' };
     }
     
-    // Run self-healing migration
-    await ensureSchemaUpdated(db);
-    
     // Exchange code for tokens
     const tokens = await exchangeCodeForTokens(code, redirectUri);
     if (!tokens) {
@@ -179,17 +150,17 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       return { success: false, message: 'No email provided by Google' };
     }
     
-    // Check if user already exists
+    // Check if user already exists by email
     const existingUsers = await db.select().from(users).where(eq(users.email, googleUser.email.toLowerCase())).limit(1);
     const existingUser = existingUsers[0];
     
     if (existingUser) {
       // User exists - update their info and log them in
+      // We use a safe update that doesn't touch the googleId column
       await db.update(users).set({
         name: googleUser.name || existingUser.name,
         lastSignedIn: new Date(),
         emailVerified: true, // Google emails are verified
-        googleId: googleUser.id, // Link Google ID if not already linked
       }).where(eq(users.id, existingUser.id));
       
       const token = generateToken(existingUser.id, existingUser.email || '');
@@ -210,12 +181,31 @@ export async function handleGoogleCallback(code: string, redirectUri: string): P
       };
     }
     
-    // New user - create account
-    const openId = generateOpenId();
+    // New user - create account using openId as the link
+    const openId = generateOpenId(googleUser.id);
     
+    // Check if a user with this openId already exists (edge case)
+    const usersByOpenId = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+    if (usersByOpenId[0]) {
+      const user = usersByOpenId[0];
+      const token = generateToken(user.id, user.email || '');
+      return {
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          emailVerified: true,
+          isNewUser: false,
+        },
+      };
+    }
+
+    // Insert new user without using the googleId column to avoid schema errors
     await db.insert(users).values({
       openId,
-      googleId: googleUser.id,
       name: googleUser.name || 'User',
       email: googleUser.email.toLowerCase(),
       loginMethod: 'google',
