@@ -20,8 +20,9 @@ import {
  * - Have paid but not yet enrolled in IdentityIQ
  * - Have all required identity information
  */
-// DISABLED: Requires identityiqStatus column
+// DISABLED: Requires identityiqStatus column that doesn't exist in TiDB
 // export async function processPendingEnrollments() {
+/*
   console.log('[Cron] Processing pending IdentityIQ enrollments...');
 
   try {
@@ -94,17 +95,16 @@ import {
           console.log(`[Cron] ❌ Failed to enroll user ${user.id}: ${result.error}`);
         }
       } catch (error: any) {
+        console.error('[Cron] Enrollment error:', error);
         failureCount++;
-        console.error(`[Cron] Error processing user ${user.id}:`, error);
       }
     }
 
-    console.log(
-      `[Cron] Enrollment processing complete: ${successCount} success, ${failureCount} failures`
-    );
+    console.log(`[Cron] Enrollment processing complete: ${successCount} succeeded, ${failureCount} failed`);
   } catch (error) {
     console.error('[Cron] Error in processPendingEnrollments:', error);
   }
+*/
 }
 
 /**
