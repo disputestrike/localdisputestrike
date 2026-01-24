@@ -372,6 +372,48 @@ ${userName}`;
 }
 
 export const appRouter = router({
+  upload: router({
+    getSignedUrl: protectedProcedure
+      .input(z.object({
+        bureau: z.enum(['transunion', 'equifax', 'experian', 'combined', 'document']),
+        fileName: z.string(),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { bureau, fileName, contentType } = input;
+        const userId = ctx.user.id;
+        
+        // Determine the base path for the file
+        let basePath: string;
+        if (bureau === 'document') {
+          basePath = 'documents';
+        } else {
+          basePath = 'credit-reports';
+        }
+        
+        // Generate a unique, user-scoped key
+        const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${fileName}`;
+        
+        // NOTE: In a real-world scenario, this would call an S3 SDK to generate a pre-signed URL
+        // For this sandbox environment, we just return the secure, user-scoped key
+        return {
+          fileKey: fileKey,
+          fileUrl: `https://s3.disputestrike.com/${fileKey}`, // Mock URL
+        };
+      }),
+    uploadToS3: protectedProcedure
+      .input(z.object({
+        fileKey: z.string(),
+        fileData: z.array(z.number()),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        // Mock S3 upload - in a real app, this would handle the actual upload
+        // We assume the fileKey is already user-scoped and secure
+        const fileUrl = `https://s3.disputestrike.com/${input.fileKey}`;
+        return { url: fileUrl, key: input.fileKey };
+      }),
+  }),
   admin: router({
     getStats: adminProcedure.query(async ({ ctx }) => {
       

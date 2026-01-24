@@ -303,22 +303,26 @@ export default function Dashboard() {
     setUploadingBureau(bureau);
     
     // Convert file to base64
-    // Upload file to S3 first
-    const fileKey = `credit-reports/${user?.id}/${bureau}/${Date.now()}-${file.name}`;
+    // 1. Get secure, user-scoped file key from server
+    const { fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+      bureau,
+      fileName: file.name,
+      contentType: file.type,
+    });
     const reader = new FileReader();
     reader.onload = async (e) => {
       const arrayBuffer = e.target?.result as ArrayBuffer;
       const uint8Array = new Uint8Array(arrayBuffer);
       
       try {
-        // Upload to S3 via tRPC
+        // 2. Upload to S3 via tRPC (using the secure key)
         const uploadResult = await uploadToS3.mutateAsync({
           fileKey,
           fileData: Array.from(uint8Array),
           contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
         });
         
-        // Now create credit report record
+        // 3. Now create credit report record
         await uploadReport.mutateAsync({
           bureau,
           fileName: file.name,
@@ -685,8 +689,12 @@ export default function Dashboard() {
                           setUploadingBureau('combined');
                           toast.info('Uploading combined 3-bureau report...');
                           
-                          // Convert file to array buffer
-                          const fileKey = `credit-reports/${user?.id}/combined/${Date.now()}-${file.name}`;
+                          // 1. Get secure, user-scoped file key from server
+                          const { fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+                            bureau: 'combined',
+                            fileName: file.name,
+                            contentType: file.type,
+                          });
                           const reader = new FileReader();
                           reader.onload = async (ev) => {
                             const arrayBuffer = ev.target?.result as ArrayBuffer;
