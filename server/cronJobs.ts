@@ -326,15 +326,15 @@ export function startAllCronJobs(): void {
   startWinbackEmailCron();
   startRoundUnlockCron();
   
-  // IdentityIQ payment cron jobs
-  startIdentityIQPaymentCron();
-  startIdentityIQRetryCron();
-  startIdentityIQSyncCron();
+  // IdentityIQ payment cron jobs - DISABLED: Uses non-existent columns
+  // startIdentityIQPaymentCron();
+  // startIdentityIQRetryCron();
+  // startIdentityIQSyncCron();
   
-  // IdentityIQ enrollment and credit pull cron jobs
-  startIdentityIQEnrollmentCron();
-  startIdentityIQCreditPullCron();
-  startIdentityIQTrialCancellationCron();
+  // IdentityIQ enrollment and credit pull cron jobs - DISABLED: Uses non-existent columns
+  // startIdentityIQEnrollmentCron();
+  // startIdentityIQCreditPullCron();
+  // startIdentityIQTrialCancellationCron();
   
   cronJobsStarted = true;
   console.log('[Cron] All cron jobs started successfully');
