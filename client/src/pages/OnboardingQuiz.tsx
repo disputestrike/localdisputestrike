@@ -270,7 +270,7 @@ export default function OnboardingQuiz() {
           </div>
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-green-500" />
-            <span>43 FCRA Violation Methods</span>
+            <span>AI-Powered Violation Detection</span>
           </div>
         </div>
 

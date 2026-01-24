@@ -472,7 +472,7 @@ export default function GetReports() {
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-green-500" />
-            <span>43 FCRA Violations Checked</span>
+            <span>Comprehensive Violation Detection</span>
           </div>
         </div>
 
