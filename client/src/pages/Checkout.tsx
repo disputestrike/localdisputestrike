@@ -16,11 +16,11 @@ import {
 } from 'lucide-react';
 
 const PLANS = {
-  diy: {
-    id: 'diy',
-    name: 'DIY',
-    price: '$49.99',
-    priceAmount: 4999,
+  essential: {
+    id: 'essential',
+    name: 'Essential',
+    price: '$79.99',
+    priceAmount: 7999,
     period: '/month',
     features: [
       'Unlimited dispute rounds',
@@ -33,16 +33,30 @@ const PLANS = {
   complete: {
     id: 'complete',
     name: 'Complete',
-    price: '$79.99',
-    priceAmount: 7999,
+    price: '$129.99',
+    priceAmount: 12999,
     period: '/month',
     popular: true,
     features: [
-      'Everything in DIY, plus:',
+      'Everything in Essential, plus:',
       'We mail letters for you',
-      'Certified mail included',
+      '5 mailings/month included',
       'CFPB complaint filing',
       'Furnisher disputes'
+    ]
+  },
+  // Legacy mapping
+  diy: {
+    id: 'essential',
+    name: 'Essential',
+    price: '$79.99',
+    priceAmount: 7999,
+    period: '/month',
+    features: [
+      'Unlimited dispute rounds',
+      'AI letter generation',
+      'FCRA-compliant letters',
+      'You print & mail letters'
     ]
   }
 };
@@ -57,8 +71,9 @@ export default function Checkout() {
 
   // Get tier from URL params
   const params = new URLSearchParams(window.location.search);
-  const tierParam = params.get('tier') as 'diy' | 'complete' | null;
-  const [selectedTier, setSelectedTier] = useState<'diy' | 'complete'>(tierParam || 'complete');
+  const tierParam = params.get('tier') || params.get('plan');
+  const mappedTier = tierParam === 'diy' ? 'essential' : (tierParam as 'essential' | 'complete' | null);
+  const [selectedTier, setSelectedTier] = useState<'essential' | 'complete'>(mappedTier || 'complete');
 
   const plan = PLANS[selectedTier];
 

@@ -3,7 +3,7 @@ import { Zap, Clock, ArrowRight, X, Loader2, Check } from 'lucide-react';
 
 interface UpgradeBannerProps {
   trialEndsAt: Date;
-  currentPlan: 'diy' | 'complete';
+  currentPlan: 'essential' | 'complete';
   onUpgrade: () => Promise<void>;
 }
 
@@ -18,7 +18,7 @@ export default function UpgradeBanner({ trialEndsAt, currentPlan, onUpgrade }: U
   const daysLeft = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   const hoursLeft = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60));
   
-  const planPrice = currentPlan === 'complete' ? '$79.99' : '$49.99';
+  const planPrice = currentPlan === 'complete' ? '$129.99' : '$79.99';
   
   const handleUpgrade = async () => {
     setLoading(true);
@@ -94,7 +94,7 @@ export default function UpgradeBanner({ trialEndsAt, currentPlan, onUpgrade }: U
                   </>
                 ) : (
                   <>
-                    Upgrade to {currentPlan === 'complete' ? 'Complete' : 'DIY'} - {planPrice}/mo
+                    Upgrade to {currentPlan === 'complete' ? 'Complete' : 'Essential'} - {planPrice}/mo
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}
@@ -109,7 +109,7 @@ export default function UpgradeBanner({ trialEndsAt, currentPlan, onUpgrade }: U
         
         {/* Benefits */}
         <div className="mt-6 pt-6 border-t border-white/20">
-          <p className="text-sm font-semibold mb-3">What you get with {currentPlan === 'complete' ? 'Complete' : 'DIY'}:</p>
+          <p className="text-sm font-semibold mb-3">What you get with {currentPlan === 'complete' ? 'Complete' : 'Essential'}:</p>
           <div className="grid sm:grid-cols-2 gap-2 text-sm">
             <div className="flex items-center gap-2">
               <Check className="w-4 h-4 flex-shrink-0" />

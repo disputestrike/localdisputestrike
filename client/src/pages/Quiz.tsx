@@ -483,14 +483,14 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$49.99</div>
+                            <div className="text-3xl font-bold">$79.99</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
                         <Button 
                           className="w-full mt-4" 
                           variant={getRecommendedPackage() === "starter" ? "default" : "outline"}
-                          onClick={() => setLocation("/pricing?package=starter")}
+                          onClick={() => setLocation("/pricing?package=essential")}
                         >
                           Get Started <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
@@ -519,14 +519,14 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$49.99</div>
+                            <div className="text-3xl font-bold">$79.99</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
                         <Button 
                           className="w-full mt-4" 
                           variant={getRecommendedPackage() === "standard" ? "default" : "outline"}
-                          onClick={() => setLocation("/pricing?package=standard")}
+                          onClick={() => setLocation("/pricing?package=essential")}
                         >
                           Get Started <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
@@ -556,14 +556,14 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$79.99</div>
+                            <div className="text-3xl font-bold">$129.99</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
                         <Button 
                           className="w-full mt-4" 
                           variant={getRecommendedPackage() === "professional" ? "default" : "outline"}
-                          onClick={() => setLocation("/pricing?package=professional")}
+                          onClick={() => setLocation("/pricing?package=complete")}
                         >
                           Get Started <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>

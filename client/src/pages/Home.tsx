@@ -946,11 +946,11 @@ export default function Home() {
           </div>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* DIY Plan */}
+            {/* Essential Plan */}
             <Card className="border-2">
               <CardHeader className="text-center pb-8">
-                <CardTitle className="text-2xl font-bold mb-4">DIY</CardTitle>
-                <div className="text-5xl font-extrabold text-gray-900 mb-2">$49<span className="text-2xl font-normal text-gray-600">.99</span></div>
+                <CardTitle className="text-2xl font-bold mb-4">Essential</CardTitle>
+                <div className="text-5xl font-extrabold text-gray-900 mb-2">$79<span className="text-2xl font-normal text-gray-600">.99</span></div>
                 <div className="text-gray-600">/month</div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -991,13 +991,13 @@ export default function Home() {
               </div>
               <CardHeader className="text-center pb-8">
                 <CardTitle className="text-2xl font-bold mb-4">Complete</CardTitle>
-                <div className="text-5xl font-extrabold text-orange-600 mb-2">$79<span className="text-2xl font-normal text-gray-600">.99</span></div>
+                <div className="text-5xl font-extrabold text-orange-600 mb-2">$129<span className="text-2xl font-normal text-gray-600">.99</span></div>
                 <div className="text-gray-600">/month</div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
-                  <span className="text-gray-700 font-semibold">Everything in DIY, plus:</span>
+                  <span className="text-gray-700 font-semibold">Everything in Essential, plus:</span>
                 </div>
                 <div className="flex items-start gap-3">
                   <Check className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />

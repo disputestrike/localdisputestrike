@@ -57,8 +57,8 @@ import ResetPassword from "./pages/ResetPassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import { CookieConsent } from "./components/CookieConsent";
 
-// V2 - New Trial Flow Pages
-import TrialCheckout from "./pages/TrialCheckout";
+// V2 - New Flow Pages
+import PreviewResults from "./pages/PreviewResults";
 import CreditAnalysis from "./pages/CreditAnalysis";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import ResponseUpload from "./pages/ResponseUpload";
@@ -102,8 +102,9 @@ function Router() {
       <Route path="/fcra-rights" component={FCRARights} />
       <Route path="/your-rights" component={FCRARights} />
       
-      {/* V2 - Trial Flow Routes */}
-      <Route path="/trial-checkout" component={TrialCheckout} />
+      {/* V2 - Flow Routes */}
+      <Route path="/preview-results" component={PreviewResults} />
+      <Route path="/trial-checkout">{() => { window.location.href = '/pricing'; return null; }}</Route>
       <Route path="/checkout" component={Checkout} />
       <Route path="/trial-success" component={CreditAnalysis} />
       <Route path="/credit-analysis" component={CreditAnalysis} />

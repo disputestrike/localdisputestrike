@@ -86,8 +86,8 @@ export default function Terms() {
                 DisputeStrike offers a free credit analysis followed by monthly subscription plans:
               </p>
               <ul className="list-disc pl-6 text-gray-700 space-y-2 mb-4">
-                <li><strong>DIY Plan ($49.99/month):</strong> Unlimited dispute rounds with 30-day intervals, 3-bureau credit monitoring, AI letter generation, FCRA-compliant dispute letters. User is responsible for mailing letters.</li>
-                <li><strong>Complete Plan ($79.99/month):</strong> Everything in DIY, plus mailing service included, certified mail included, delivery tracking, CFPB complaint generator, and furnisher dispute letters.</li>
+                <li><strong>Essential Plan ($79.99/month):</strong> Unlimited dispute rounds with 30-day intervals, full AI violation analysis, unlimited letter generation, FCRA-compliant dispute letters. User is responsible for printing and mailing letters. Optional SmartCredit monitoring add-on ($29.99/month billed separately by ConsumerDirect).</li>
+                <li><strong>Complete Plan ($129.99/month):</strong> Everything in Essential, plus automated certified mailing (5 mailings/month included), USPS tracking, automatic follow-ups, CFPB complaint generator, and priority support. Requires SmartCredit monitoring ($29.99/month billed separately by ConsumerDirect)..</li>
               </ul>
               <p className="text-gray-700 leading-relaxed mb-4">
                 All payments are processed securely through Stripe. By purchasing a package, you agree to pay the stated price and authorize us to charge your payment method.

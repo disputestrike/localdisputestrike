@@ -1,10 +1,15 @@
 /**
  * DisputeStrike V2 - Product and Pricing Configuration
  * 
- * FINAL PRICING STRUCTURE:
- * - $1 Trial (7 days) - See real credit data + AI recommendations
- * - DIY ($49.99/mo) - Unlimited rounds + monitoring (User mails)
- * - Complete ($79.99/mo) - Unlimited rounds + we mail + CFPB + Furnisher
+ * FINAL PRICING STRUCTURE (January 2026):
+ * - Free Preview - See violation counts (blurred details)
+ * - Essential ($79.99/mo) - Unlimited rounds + monitoring (User mails)
+ * - Complete ($129.99/mo) - Unlimited rounds + we mail + CFPB + Furnisher
+ * - Agency: $497/$997/$1997 (separate pricing)
+ * 
+ * SmartCredit Integration:
+ * - Essential: SmartCredit is OPTIONAL (+$29.99/mo billed separately by ConsumerDirect)
+ * - Complete: SmartCredit is REQUIRED (+$29.99/mo billed separately by ConsumerDirect)
  */
 
 export interface SubscriptionTier {
@@ -12,7 +17,7 @@ export interface SubscriptionTier {
   name: string;
   description: string;
   monthlyPrice: number;  // in cents
-  stripePriceId?: string;  // Stripe Price ID (set after creating in Stripe)
+  stripePriceId?: string;  // Stripe Price ID
   features: string[];
   roundsIncluded: number;  // -1 = unlimited
   includesMonitoring: boolean;
@@ -20,72 +25,127 @@ export interface SubscriptionTier {
   includesCFPB: boolean;
   includesFurnisher: boolean;
   popular?: boolean;
+  smartCreditRequired?: boolean;
+  smartCreditOptional?: boolean;
+  mailingsIncluded?: number;  // For Complete tier
 }
 
-export const TRIAL_PRICE = 100;  // $1.00 in cents
+// STRIPE PRICE IDS - TEST MODE
+// To switch to LIVE mode, create products in Stripe Live Dashboard and update these
+export const STRIPE_PRICE_IDS = {
+  essential: process.env.STRIPE_ESSENTIAL_PRICE_ID || 'price_1St92mJbDEkzZWwHpe7Ljb1h', // $79.99/mo TEST
+  complete: process.env.STRIPE_COMPLETE_PRICE_ID || 'price_1St9QKJbDEkzZWwHbzChpIVL',   // $129.99/mo TEST
+};
 
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
-  diy: {
-    id: 'diy',
-    name: 'DIY',
-    description: 'Unlimited rounds + credit monitoring (You mail)',
-    monthlyPrice: 4999,  // $49.99
+  essential: {
+    id: 'essential',
+    name: 'Essential',
+    description: 'Everything you need to fix your credit',
+    monthlyPrice: 7999,  // $79.99
+    stripePriceId: STRIPE_PRICE_IDS.essential,
     features: [
-      'Unlimited dispute rounds (30-day intervals)',
-      '3-bureau credit monitoring (daily updates)',
-      'AI analyzes & selects best items to dispute',
-      'FCRA-compliant dispute letters',
-      'Round 1-2-3 escalation strategy',
-      'Dashboard tracking',
-      'You print & mail yourself',
+      'Upload reports from anywhere',
+      'Full AI violation analysis',
+      'Unlimited dispute letter generation',
+      'Download letters as PDF',
+      'Round 2 & 3 escalation strategies',
+      'Progress tracking dashboard',
+      'You print & mail letters yourself',
     ],
     roundsIncluded: -1,
-    includesMonitoring: true,
+    includesMonitoring: false,  // SmartCredit is optional add-on
     includesWhiteGloveMailing: false,
     includesCFPB: false,
-    includesFurnisher: false,
+    includesFurnisher: true,
+    smartCreditOptional: true,
+    smartCreditRequired: false,
   },
   
   complete: {
     id: 'complete',
     name: 'Complete',
-    description: 'Unlimited rounds + we mail + CFPB + Furnisher',
-    monthlyPrice: 7999,  // $79.99
+    description: 'We mail everything for you',
+    monthlyPrice: 12999,  // $129.99
+    stripePriceId: STRIPE_PRICE_IDS.complete,
     features: [
-      'Unlimited dispute rounds (30-day intervals)',
-      '3-bureau credit monitoring (daily updates)',
-      'AI analyzes & selects best items to dispute',
-      'FCRA-compliant dispute letters',
-      'Round 1-2-3 escalation strategy',
-      'Dashboard tracking',
-      'We mail everything via certified mail',
-      'One-click "Send Disputes"',
-      'Real-time delivery tracking',
+      'Everything in Essential, PLUS:',
+      'Automated certified mailing',
+      'One-click dispute sending',
+      'USPS certified mail tracking',
+      'Automatic 30-day follow-ups',
+      '5 mailings/month included',
+      'Additional mailings: $6.99 each',
+      'Priority email support',
       'CFPB complaint generator',
-      'Furnisher dispute letters',
-      'Priority support',
     ],
     roundsIncluded: -1,  // Unlimited
-    includesMonitoring: true,
+    includesMonitoring: true,  // SmartCredit required
     includesWhiteGloveMailing: true,
     includesCFPB: true,
     includesFurnisher: true,
     popular: true,
+    smartCreditRequired: true,
+    smartCreditOptional: false,
+    mailingsIncluded: 5,
+  },
+  
+  // Legacy mapping for old 'diy' references - maps to Essential
+  diy: {
+    id: 'essential',
+    name: 'Essential',
+    description: 'Everything you need to fix your credit',
+    monthlyPrice: 7999,  // $79.99 - mapped from old DIY
+    stripePriceId: STRIPE_PRICE_IDS.essential,
+    features: [
+      'Upload reports from anywhere',
+      'Full AI violation analysis',
+      'Unlimited dispute letter generation',
+      'Download letters as PDF',
+      'Round 2 & 3 escalation strategies',
+      'Progress tracking dashboard',
+    ],
+    roundsIncluded: -1,
+    includesMonitoring: false,
+    includesWhiteGloveMailing: false,
+    includesCFPB: false,
+    includesFurnisher: true,
+    smartCreditOptional: true,
   },
 };
+
+// SmartCredit pricing info
+export const SMARTCREDIT_CONFIG = {
+  monthlyPrice: 2999,  // $29.99/mo - billed separately by ConsumerDirect
+  affiliateUrl: 'https://www.smartcredit.com/?PID=87529',
+  marginPerMonth: 1439,  // $14.39 margin per signup
+  features: [
+    '3-bureau credit monitoring',
+    'Monthly updated reports',
+    'Score tracking',
+    'Alerts when reports change',
+  ],
+};
+
+// Extra mailing pricing for Complete tier
+export const EXTRA_MAILING_PRICE = 699;  // $6.99 per additional mailing
 
 /**
  * Get tier by ID
  */
 export function getTier(id: string): SubscriptionTier | undefined {
+  // Map legacy 'diy' to 'essential'
+  if (id === 'diy') {
+    return SUBSCRIPTION_TIERS.essential;
+  }
   return SUBSCRIPTION_TIERS[id];
 }
 
 /**
- * Get all tiers as array
+ * Get all tiers as array (excluding legacy mappings)
  */
 export function getAllTiers(): SubscriptionTier[] {
-  return Object.values(SUBSCRIPTION_TIERS);
+  return [SUBSCRIPTION_TIERS.essential, SUBSCRIPTION_TIERS.complete];
 }
 
 /**
@@ -100,7 +160,7 @@ export function formatPrice(cents: number): string {
  * Check if user can start a new round based on their tier
  */
 export function canStartRound(tier: string, currentRound: number): boolean {
-  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  const tierConfig = getTier(tier);
   if (!tierConfig) return false;
   
   // Unlimited rounds
@@ -114,7 +174,7 @@ export function canStartRound(tier: string, currentRound: number): boolean {
  * Get the maximum rounds for a tier
  */
 export function getMaxRounds(tier: string): number {
-  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  const tierConfig = getTier(tier);
   if (!tierConfig) return 0;
   return tierConfig.roundsIncluded;
 }
@@ -123,7 +183,7 @@ export function getMaxRounds(tier: string): number {
  * Check if tier includes a feature
  */
 export function tierHasFeature(tier: string, feature: 'monitoring' | 'whiteGlove' | 'cfpb' | 'furnisher'): boolean {
-  const tierConfig = SUBSCRIPTION_TIERS[tier];
+  const tierConfig = getTier(tier);
   if (!tierConfig) return false;
   
   switch (feature) {
@@ -164,31 +224,52 @@ export function isRoundUnlocked(mailedAt: Date | null, responsesUploaded: boolea
 }
 
 /**
- * Trial configuration
+ * Legacy trial configuration - kept for backward compatibility
+ * Note: Trial has been replaced with Free Preview tier
  */
 export const TRIAL_CONFIG = {
-  price: 100,  // $1.00 in cents
-  durationDays: 7,
+  price: 0,  // Free now
+  durationDays: 0,  // No trial period
   features: [
-    'Real credit data from all 3 bureaus',
-    'AI analysis of negative items',
-    'Win probability for each item',
-    'Personalized recommendations',
+    'Upload credit reports',
+    'See violation count',
+    'Category breakdown',
+    'Deletion potential estimate',
   ],
 };
 
 /**
- * Calculate trial end date
+ * Calculate trial end date - legacy function
  */
 export function getTrialEndDate(startDate: Date): Date {
-  const endDate = new Date(startDate);
-  endDate.setDate(endDate.getDate() + TRIAL_CONFIG.durationDays);
-  return endDate;
+  // No trial anymore, return same date
+  return startDate;
 }
 
 /**
- * Check if trial is expired
+ * Check if trial is expired - legacy function
  */
 export function isTrialExpired(trialEndsAt: Date): boolean {
-  return new Date() > trialEndsAt;
+  // No trial anymore, always return false
+  return false;
+}
+
+/**
+ * Calculate total cost with SmartCredit
+ */
+export function getTotalWithSmartCredit(tier: string): number {
+  const tierConfig = getTier(tier);
+  if (!tierConfig) return 0;
+  return tierConfig.monthlyPrice + SMARTCREDIT_CONFIG.monthlyPrice;
+}
+
+/**
+ * Get display text for SmartCredit requirement
+ */
+export function getSmartCreditRequirement(tier: string): 'required' | 'optional' | 'none' {
+  const tierConfig = getTier(tier);
+  if (!tierConfig) return 'none';
+  if (tierConfig.smartCreditRequired) return 'required';
+  if (tierConfig.smartCreditOptional) return 'optional';
+  return 'none';
 }

@@ -5,9 +5,9 @@
  * This file is kept for backward compatibility with old checkout flow.
  * The new pricing model uses productsV2.ts with subscription tiers.
  * 
- * SINGLE SOURCE OF TRUTH:
- * - DIY: $49.99/month
- * - Complete: $79.99/month
+ * SINGLE SOURCE OF TRUTH (January 2026):
+ * - Essential: $79.99/month (formerly DIY at $49.99)
+ * - Complete: $129.99/month (formerly $79.99)
  * - Agency: $497/$997/$1997 (separate pricing)
  */
 
@@ -23,18 +23,18 @@ export interface Product {
 
 export const PRODUCTS: Record<string, Product> = {
   // NEW SUBSCRIPTION MODEL (aligned with productsV2.ts)
-  diy: {
-    id: 'diy',
-    name: 'DIY',
-    description: 'Unlimited rounds + credit monitoring (You mail)',
-    price: 4999, // $49.99/month
+  essential: {
+    id: 'essential',
+    name: 'Essential',
+    description: 'Everything you need to fix your credit (You mail)',
+    price: 7999, // $79.99/month
     features: [
-      'Unlimited dispute rounds (30-day intervals)',
-      '3-bureau credit monitoring (daily updates)',
-      'AI analyzes & selects best items to dispute',
-      'FCRA-compliant dispute letters',
-      'Round 1-2-3 escalation strategy',
-      'Dashboard tracking',
+      'Upload reports from anywhere',
+      'Full AI violation analysis',
+      'Unlimited dispute letter generation',
+      'Download letters as PDF',
+      'Round 2 & 3 escalation strategies',
+      'Progress tracking dashboard',
       'You print & mail yourself',
     ],
     isSubscription: true,
@@ -42,20 +42,17 @@ export const PRODUCTS: Record<string, Product> = {
   complete: {
     id: 'complete',
     name: 'Complete',
-    description: 'Unlimited rounds + we mail + CFPB + Furnisher',
-    price: 7999, // $79.99/month
+    description: 'We mail everything for you',
+    price: 12999, // $129.99/month
     features: [
-      'Unlimited dispute rounds (30-day intervals)',
-      '3-bureau credit monitoring (daily updates)',
-      'AI analyzes & selects best items to dispute',
-      'FCRA-compliant dispute letters',
-      'Round 1-2-3 escalation strategy',
-      'Dashboard tracking',
-      'We mail everything via certified mail',
-      'One-click "Send Disputes"',
-      'Real-time delivery tracking',
+      'Everything in Essential',
+      'Automated certified mailing',
+      'One-click dispute sending',
+      'USPS certified mail tracking',
+      'Automatic 30-day follow-ups',
+      '5 mailings/month included',
+      'Additional mailings: $6.99 each',
       'CFPB complaint generator',
-      'Furnisher dispute letters',
       'Priority support',
     ],
     popular: true,
@@ -63,14 +60,27 @@ export const PRODUCTS: Record<string, Product> = {
   },
   
   // LEGACY PRODUCTS (kept for backward compatibility, mapped to new tiers)
+  diy: {
+    id: 'essential',
+    name: 'Essential',
+    description: 'Everything you need to fix your credit (You mail)',
+    price: 7999, // $79.99/month - mapped from old DIY
+    features: [
+      'Upload reports from anywhere',
+      'Full AI violation analysis',
+      'Unlimited dispute letter generation',
+      'Download letters as PDF',
+    ],
+    isSubscription: true,
+  },
   diy_quick: {
-    id: 'diy',
-    name: 'DIY',
-    description: 'Unlimited rounds + credit monitoring (You mail)',
-    price: 4999, // $49.99/month - UPDATED from old $29
+    id: 'essential',
+    name: 'Essential',
+    description: 'Everything you need to fix your credit (You mail)',
+    price: 7999, // $79.99/month - mapped from old DIY
     features: [
       'Unlimited dispute rounds',
-      '3-bureau credit monitoring',
+      'Full AI analysis',
       'AI dispute letter generation',
       'Dashboard tracking',
     ],
@@ -79,13 +89,13 @@ export const PRODUCTS: Record<string, Product> = {
   diy_complete: {
     id: 'complete',
     name: 'Complete',
-    description: 'Full dispute package with white glove mailing',
-    price: 7999, // $79.99/month
+    description: 'We mail everything for you',
+    price: 12999, // $129.99/month
     features: [
-      'Everything in DIY',
+      'Everything in Essential',
       'We mail everything via certified mail',
       'CFPB complaint generator',
-      'Furnisher dispute letters',
+      'Priority support',
     ],
     popular: true,
     isSubscription: true,
@@ -94,7 +104,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'complete',
     name: 'Complete',
     description: 'Premium service - mapped to Complete tier',
-    price: 7999, // $79.99/month
+    price: 12999, // $129.99/month
     features: [
       'Everything in Complete',
       'Priority support',
@@ -105,7 +115,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'complete',
     name: 'Complete Monthly',
     description: 'Complete package, monthly billing',
-    price: 7999, // $79.99/month
+    price: 12999, // $129.99/month
     features: [
       'Full Complete package',
       'Cancel anytime',
@@ -116,7 +126,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'complete',
     name: 'Complete Annual',
     description: 'Complete package, annual billing (save 17%)',
-    price: 79900, // $799.00/year (equivalent to ~$66.58/month)
+    price: 129900, // $1,299.00/year (equivalent to ~$108.25/month)
     features: [
       'Full Complete package',
       'Save 17% vs monthly',
