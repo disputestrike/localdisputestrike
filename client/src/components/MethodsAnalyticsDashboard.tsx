@@ -297,97 +297,24 @@ export function MethodsAnalyticsDashboard() {
         )}
       </div>
 
-      {/* All 43 Methods Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">All 43 Dispute Detection Methods</h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Complete breakdown of all detection algorithms and their performance
-          </p>
+      {/* Methods Summary (IP Protected) */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Detection Performance Summary</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-blue-50 rounded-lg p-4">
+            <p className="text-sm text-gray-600">Total Triggers</p>
+            <p className="text-2xl font-bold text-blue-600">{stats.reduce((sum, s) => sum + (s.triggerCount || 0), 0)}</p>
+          </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-sm text-gray-600">Successful Deletions</p>
+            <p className="text-2xl font-bold text-green-600">{stats.reduce((sum, s) => sum + (s.deletionCount || 0), 0)}</p>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-4">
+            <p className="text-sm text-gray-600">Average Success Rate</p>
+            <p className="text-2xl font-bold text-purple-600">{stats.length > 0 ? Math.round(stats.reduce((sum, s) => sum + (s.successRate || 0), 0) / stats.length) : 0}%</p>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Method Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Triggers
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Deletions
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Success Rate
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Avg. Probability
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {Array.from({ length: 43 }, (_, i) => i + 1).map(methodNum => {
-                const methodStats = stats.find(s => s.methodNumber === methodNum);
-                const category = methodStats?.methodCategory || getDefaultCategory(methodNum);
-                
-                return (
-                  <tr key={methodNum} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {methodNum}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {METHOD_NAMES[methodNum] || `Method ${methodNum}`}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span 
-                        className="px-2 py-1 text-xs font-medium rounded-full"
-                        style={{ 
-                          backgroundColor: `${CATEGORY_COLORS[category]}20`,
-                          color: CATEGORY_COLORS[category]
-                        }}
-                      >
-                        {CATEGORY_NAMES[category] || category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {methodStats?.triggerCount || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {methodStats?.deletionCount || 0}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {methodStats && methodStats.triggerCount > 0 ? (
-                        <div className="flex items-center">
-                          <div className="w-16 bg-gray-200 rounded-full h-2 mr-2">
-                            <div 
-                              className="bg-green-500 h-2 rounded-full" 
-                              style={{ width: `${methodStats.successRate}%` }}
-                            />
-                          </div>
-                          <span className="text-sm text-gray-600">{methodStats.successRate}%</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-gray-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {methodStats?.avgDeletionProbability 
-                        ? `${Math.round(methodStats.avgDeletionProbability)}%` 
-                        : '—'}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <p className="text-xs text-gray-500 mt-4">Detailed method information is proprietary and not displayed for security reasons.</p>
       </div>
 
       {/* Category Legend */}

@@ -157,7 +157,7 @@ export default function Admin() {
             </TabsTrigger>
             <TabsTrigger value="methods">
               <Zap className="h-4 w-4 mr-2" />
-              43 Methods
+              Detection Methods
             </TabsTrigger>
           </TabsList>
 
@@ -328,7 +328,7 @@ export default function Admin() {
             </div>
           </TabsContent>
 
-          {/* 43 Methods Analytics Tab */}
+          {/* Detection Analytics Tab */}
           <TabsContent value="methods" className="space-y-6">
             <Card>
               <CardHeader>

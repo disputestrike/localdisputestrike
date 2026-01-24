@@ -119,7 +119,7 @@ export function MethodLetterGenerator({
           <div>
             <h2 className="text-2xl font-bold">Method-Specific Letter Generator</h2>
             <p className="text-orange-100">
-              Generate specialized dispute letters based on the 43 detection methods
+              Generate specialized dispute letters based on your credit violations
             </p>
           </div>
         </div>
