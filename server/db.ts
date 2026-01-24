@@ -159,13 +159,17 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
     // TiDB requires at least one field in ON DUPLICATE KEY UPDATE.
     // If updateSet is empty, we use openId as a fallback since it won't change.
-    const finalUpdateSet = Object.keys(updateSet).length > 0 
-      ? updateSet 
-      : { openId: values.openId };
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: finalUpdateSet,
-    });
+    if (Object.keys(updateSet).length > 0) {
+      await db.insert(users).values(values).onDuplicateKeyUpdate({
+        set: updateSet,
+      });
+    } else {
+      // If no fields to update, we can just try to insert and ignore duplicate key error
+      // or use a dummy update like openId = openId
+      await db.insert(users).values(values).onDuplicateKeyUpdate({
+        set: { openId: values.openId },
+      });
+    }
   } catch (error) {
     console.error("[Database] Failed to upsert user:", error);
     throw error;
