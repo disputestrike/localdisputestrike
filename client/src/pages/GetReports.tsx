@@ -3,7 +3,7 @@
  * 
  * Two options:
  * 1. SmartCredit Affiliate Link (recommended) - FREE analysis
- * 2. Direct Upload - FREE preview flow
+ * 2. Direct Upload - FREE preview analysis
  */
 
 import { useState, useCallback } from 'react';
@@ -32,6 +32,7 @@ import { useDropzone } from 'react-dropzone';
 // SmartCredit Affiliate Link
 const SMARTCREDIT_AFFILIATE_URL = 'https://www.smartcredit.com/?PID=87529';
 
+// Initialize Stripe
 interface UploadedReport {
   bureau: 'transunion' | 'equifax' | 'experian';
   file: File;
@@ -41,6 +42,7 @@ export default function GetReports() {
   const [, setLocation] = useLocation();
   const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'upload' | null>(null);
   const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -67,6 +69,7 @@ export default function GetReports() {
     // Set selected option
     setSelectedOption('smartcredit');
   };
+
 
   // File upload handler
   const onDrop = useCallback((acceptedFiles: File[], bureau: 'transunion' | 'equifax' | 'experian') => {
@@ -222,7 +225,7 @@ export default function GetReports() {
                   <Star className="w-5 h-5 text-yellow-500" />
                   <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">RECOMMENDED</span>
                 </div>
-                <span className="text-2xl font-bold text-green-600">FREE</span>
+      
               </div>
               <CardTitle className="text-lg">Get Reports via SmartCredit</CardTitle>
               <CardDescription>
@@ -282,40 +285,40 @@ export default function GetReports() {
                 </div>
                 <span className="text-2xl font-bold text-green-600">FREE</span>
               </div>
-              <CardTitle className="text-lg">Upload Your Own Reports</CardTitle>
+              <CardTitle className="text-lg">Option 2: Already Have Reports?</CardTitle>
               <CardDescription>
-                Already have your credit reports? Upload them directly.
+                Upload your existing reports for FREE preview analysis
               </CardDescription>
             </CardHeader>
             <CardContent>
               <ul className="space-y-2 text-sm mb-4">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Upload PDF or HTML reports</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>FREE preview analysis</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>AI analysis included</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-blue-400" />
-                  <span className="text-muted-foreground">No payment required</span>
+	                  <span>✅ FREE preview (violation count only)</span>
+	                </li>
+	                <li className="flex items-center gap-2">
+	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+	                  <span>✅ No credit card required</span>
+	                </li>
+	                <li className="flex items-center gap-2">
+	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+	                  <span>✅ Instant analysis</span>
+	                </li>
+	                <li className="flex items-center gap-2">
+	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+	                  <span>✅ Upgrade to see full details</span>
                 </li>
               </ul>
               
               <Button 
-                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+	                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedOption('upload');
                 }}
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload Reports (FREE)
+	                Upload Reports (FREE Preview)
               </Button>
             </CardContent>
           </Card>
@@ -368,13 +371,13 @@ export default function GetReports() {
           </Card>
         )}
 
-        {/* Direct Upload Flow (FREE Preview) */}
+	        {/* Direct Upload Flow (FREE Preview) */}
         {selectedOption === 'upload' && (
           <Card className="border-2 border-blue-200 bg-blue-50 mb-6">
             <CardContent className="pt-6">
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-blue-500" />
-                Upload Your Credit Reports
+	                Upload Your Reports for FREE Preview
               </h3>
               
               <div className="space-y-4">
@@ -460,14 +463,15 @@ export default function GetReports() {
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-green-500" />
-            <span>FCRA Violations Checked</span>
+	            <span>Comprehensive Violation Detection</span>
           </div>
         </div>
 
         {/* Disclaimer */}
         <div className="mt-6 text-center text-xs text-muted-foreground max-w-lg mx-auto">
           <p>
-            DisputeStrike is not affiliated with SmartCredit or the credit bureaus. 
+	            DisputeStrike is not affiliated with SmartCredit, AnnualCreditReport.com, IdentityIQ, or the credit bureaus. 
+
             We are a software tool that helps you dispute inaccurate information on your credit reports.
             Results not guaranteed.
           </p>

@@ -157,7 +157,7 @@ export default function Admin() {
             </TabsTrigger>
             <TabsTrigger value="methods">
               <Zap className="h-4 w-4 mr-2" />
-              Dispute Methods
+	              Dispute Methods
             </TabsTrigger>
           </TabsList>
 
