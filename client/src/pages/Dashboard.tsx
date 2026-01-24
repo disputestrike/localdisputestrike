@@ -27,7 +27,8 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { LightAnalysisResult } from "@/server/creditReportParser";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+import PreviewResults from "./PreviewResults";
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
 import { CreditScoreChart } from "@/components/CreditScoreChart";
@@ -40,6 +41,7 @@ import { MobileUploadZone } from "@/components/MobileUploadZone";
 import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
+  const [, setLocation] = useLocation();
   const { user } = useAuth();	  const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);ax' | 'experian' | 'combined' | null>(null);
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
@@ -47,6 +49,15 @@ export default function Dashboard() {
   
   // Bulk account selection state
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number>>(new Set());
+
+  if (!user) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // If light analysis is complete, show the preview results component
+  if (lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
+    return <PreviewResults analysis={lightAnalysisResult} onUpgrade={handleUpgrade} />;
+  }
   
   // Sort state for accounts
   const [sortBy, setSortBy] = useState<'default' | 'conflicts' | 'balance'>('default');
@@ -226,6 +237,9 @@ export default function Dashboard() {
 
   // Combined upload mutation for 3-bureau reports
   // Full upload will be triggered after the user upgrades.
+  const handleUpgrade = () => {
+    setLocation('/pricing'); // Redirect to pricing page for upgrade
+  }
   // The original mutation is commented out to enforce the FREE preview flow.
   // const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
   //   onSuccess: () => {

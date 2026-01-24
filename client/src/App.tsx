@@ -8,6 +8,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
+import PreviewResults from "@/pages/PreviewResults";
 import AIAssistant from "@/pages/AIAssistant";
 import LetterView from "@/pages/LetterView";
 import AdminEnhanced from "@/pages/AdminEnhanced";
@@ -112,7 +113,8 @@ function Router() {
       <Route path="/responses/:roundId" component={ResponseUpload} />
       
       {/* Dashboard Routes */}
-      <Route path="/dashboard" component={DashboardHome} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/dashboard/preview" component={PreviewResults} />/>
       <Route path="/dashboard/home" component={DashboardHome} />
       <Route path="/dashboard/v2" component={DashboardHomeV2} />
       
