@@ -138,10 +138,7 @@ export async function registerUser(input: RegisterInput, baseUrl: string): Promi
         emailVerified: false,
         emailVerificationToken: verificationToken,
         emailVerificationExpires: verificationExpires,
-        // New fields that might not exist yet in live DB
-        creditConcern: (input as any).creditConcern || null,
-        creditGoal: (input as any).creditGoal || null,
-        affiliateSource: (input as any).affiliateSource || null,
+
       });
     } catch (dbError) {
       console.warn('[Auth] Full registration failed, falling back to minimal registration:', dbError);

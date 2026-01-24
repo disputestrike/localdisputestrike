@@ -20,7 +20,8 @@ import {
  * - Have paid but not yet enrolled in IdentityIQ
  * - Have all required identity information
  */
-export async function processPendingEnrollments() {
+// DISABLED: Requires identityiqStatus column
+// export async function processPendingEnrollments() {
   console.log('[Cron] Processing pending IdentityIQ enrollments...');
 
   try {

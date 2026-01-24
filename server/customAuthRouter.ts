@@ -34,17 +34,14 @@ function getBaseUrl(req: any): string {
  */
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, creditConcern, creditGoal, affiliateSource } = req.body;
+    const { name, email, password } = req.body;
     const baseUrl = getBaseUrl(req);
     
     const result = await registerUser({ 
       name, 
       email, 
-      password,
-      creditConcern,
-      creditGoal,
-      affiliateSource
-    } as any, baseUrl);
+      password
+    }, baseUrl);
     
     if (result.success) {
       res.status(201).json(result);

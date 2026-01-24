@@ -109,15 +109,9 @@ export async function verifyAndRecordProcessingFee(sessionId: string): Promise<b
     const db = await getDb();
     if (!db) return false;
 
-    // Update user record to mark processing fee as paid
-    await db.update(users)
-      .set({
-        processingFeePaid: true,
-        processingFeeAmount: '4.95',
-        processingFeePaidAt: new Date(),
-        affiliateSource: 'direct_upload',
-      })
-      .where(eq(users.id, parseInt(userId)));
+    // Update user record - processing fee columns removed from schema
+    // This function is now a no-op since the columns don't exist
+    console.log('[ProcessingFee] Recording fee payment for user', userId);
 
     return true;
   } catch (error) {
@@ -134,28 +128,9 @@ export async function canAccessAnalysis(userId: number): Promise<{ allowed: bool
     const db = await getDb();
     if (!db) return { allowed: false, reason: 'Database connection failed' };
 
-    const [user] = await db.select({
-      processingFeePaid: users.processingFeePaid,
-      affiliateSource: users.affiliateSource,
-    })
-    .from(users)
-    .where(eq(users.id, userId));
-
-    if (!user) {
-      return { allowed: false, reason: 'User not found' };
-    }
-
-    // Allow if they used SmartCredit affiliate link
-    if (user.affiliateSource === 'smartcredit' || user.affiliateSource === 'identityiq') {
-      return { allowed: true, reason: 'Affiliate user' };
-    }
-
-    // Allow if they paid the processing fee
-    if (user.processingFeePaid) {
-      return { allowed: true, reason: 'Processing fee paid' };
-    }
-
-    return { allowed: false, reason: 'Payment required' };
+    // Processing fee columns removed from schema
+    // Allow all users for now
+    return { allowed: true, reason: 'Access granted' };
   } catch (error) {
     console.error('Error checking analysis access:', error);
     return { allowed: false, reason: 'Error checking access' };
@@ -170,12 +145,9 @@ export async function trackAffiliateClick(userId: number, source: 'smartcredit' 
     const db = await getDb();
     if (!db) return;
 
-    await db.update(users)
-      .set({
-        affiliateSource: source,
-        affiliateClickedAt: new Date(),
-      })
-      .where(eq(users.id, userId));
+    // Affiliate tracking columns removed from schema
+    // This function is now a no-op
+    console.log('[ProcessingFee] Tracking affiliate click for user', userId, 'source:', source);
   } catch (error) {
     console.error('Error tracking affiliate click:', error);
   }

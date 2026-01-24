@@ -32,22 +32,6 @@ export const users = mysqlTable("users", {
   phoneNumber: varchar("phoneNumber", { length: 20 }),
   identityiqUserId: varchar("identityiqUserId", { length: 255 }),
   identityiqEnrollmentDate: timestamp("identityiqEnrollmentDate"),
-  identityiqStatus: mysqlEnum("identityiqStatus", ["pending", "active", "cancelled", "failed"]).default("pending"),
-  
-  // Onboarding Quiz Answers
-  creditConcern: mysqlEnum("creditConcern", ["collections", "late_payments", "charge_offs", "inaccuracies", "all_of_above", "not_sure"]),
-  creditGoal: mysqlEnum("creditGoal", ["600_650", "650_700", "700_plus", "clean_reports"]),
-  
-  // Digital Signature for Letters
-  signatureUrl: text("signatureUrl"), // S3 URL to signature image
-  signatureCreatedAt: timestamp("signatureCreatedAt"),
-  
-  // Affiliate Tracking
-  affiliateSource: mysqlEnum("affiliateSource", ["smartcredit", "identityiq", "direct_upload", "none"]).default("none"),
-  affiliateClickedAt: timestamp("affiliateClickedAt"),
-  processingFeePaid: boolean("processingFeePaid").default(false),
-  processingFeeAmount: decimal("processingFeeAmount", { precision: 10, scale: 2 }),
-  processingFeePaidAt: timestamp("processingFeePaidAt"),
   
   // Address Verification (Lob)
   addressVerified: boolean("addressVerified").default(false),
