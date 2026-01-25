@@ -245,14 +245,20 @@ async function startServer() {
         return res.status(400).json({ error: 'No file uploaded' });
       }
       
-      // Get user ID from session cookie (simplified - in production use proper auth)
-      const userId = (req as any).userId || 'anonymous';
+      // Get user ID from session
+      const ctx = await createContext({ req, res });
+      const userId = ctx.user?.id;
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
       const bureau = req.body.bureau || 'document';
       const fileName = req.file.originalname;
       
       // Generate file key and save
       const fileKey = fileStorage.generateFileKey(
-        typeof userId === 'number' ? userId : parseInt(userId) || 0,
+        userId,
         bureau,
         fileName
       );

@@ -1045,18 +1045,18 @@ Be thorough and list every negative item found.`;
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      // Clear the cookie by setting it to expire immediately
-      // Use expires instead of maxAge for better browser compatibility
-      ctx.res.clearCookie(COOKIE_NAME, {
-        ...cookieOptions,
-        expires: new Date(0), // Expire immediately
-      });
-      // Also set the cookie to empty value with immediate expiration as backup
+      
+      // Clear the cookie by setting it to empty value with immediate expiration
+      // We set it multiple times with different options to ensure it's cleared
       ctx.res.cookie(COOKIE_NAME, '', {
         ...cookieOptions,
         expires: new Date(0),
         maxAge: 0,
       });
+      
+      // Also clear without domain/path just in case
+      ctx.res.clearCookie(COOKIE_NAME);
+      
       return {
         success: true,
       } as const;

@@ -302,6 +302,11 @@ function FileUpload({
 
 export default function CompleteProfile() {
   const [, setLocation] = useLocation();
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      window.location.href = '/';
+    }
+  });
   const [step, setStep] = useState(1); // 1: Personal, 2: Address, 3: Documents & Signature
   const [data, setData] = useState<ProfileData>(initialData);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -533,6 +538,18 @@ export default function CompleteProfile() {
               <span className="text-sm font-medium">{label}</span>
             </div>
           ))}
+        </div>
+
+        <div className="flex justify-end mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground hover:text-red-500"
+            onClick={() => logoutMutation.mutate()}
+          >
+            <X className="w-4 h-4 mr-2" />
+            Logout & Start Over
+          </Button>
         </div>
 
         {/* Form Card */}
