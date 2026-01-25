@@ -96,8 +96,21 @@ router.post('/login', async (req, res) => {
  * Logout and clear session
  */
 router.post('/logout', (req, res) => {
-  res.clearCookie('auth-token');
-  res.clearCookie('manus-session');
+  const cookieOptions = {
+    path: '/',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+  };
+  
+  const cookiesToClear = ['auth-token', 'manus-session', 'app_session_id'];
+  
+  cookiesToClear.forEach(name => {
+    res.cookie(name, '', { ...cookieOptions, expires: new Date(0), maxAge: 0 });
+    res.clearCookie(name, cookieOptions);
+    res.clearCookie(name);
+  });
+  
   res.json({ success: true, message: 'Logged out successfully' });
 });
 

@@ -1046,16 +1046,18 @@ Be thorough and list every negative item found.`;
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       
-      // Clear the cookie by setting it to empty value with immediate expiration
-      // We set it multiple times with different options to ensure it's cleared
-      ctx.res.cookie(COOKIE_NAME, '', {
-        ...cookieOptions,
-        expires: new Date(0),
-        maxAge: 0,
-      });
+      // Clear all possible auth cookies
+      const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session'];
       
-      // Also clear without domain/path just in case
-      ctx.res.clearCookie(COOKIE_NAME);
+      cookiesToClear.forEach(name => {
+        ctx.res.cookie(name, '', {
+          ...cookieOptions,
+          expires: new Date(0),
+          maxAge: 0,
+        });
+        ctx.res.clearCookie(name, cookieOptions);
+        ctx.res.clearCookie(name);
+      });
       
       return {
         success: true,

@@ -320,7 +320,12 @@ export default function Dashboard() {
       formData.append('bureau', bureau);
       formData.append('fileKey', uploadResult.key);
       
-      const uploadResponse = await fetch(uploadResult.uploadUrl, {
+      // Ensure we use the absolute URL if provided, otherwise relative
+      const uploadUrl = uploadResult.uploadUrl.startsWith('http') 
+        ? uploadResult.uploadUrl 
+        : `${window.location.origin}${uploadResult.uploadUrl}`;
+
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
         body: formData,
         credentials: 'include', // Include cookies for auth

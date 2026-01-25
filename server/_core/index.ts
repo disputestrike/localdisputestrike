@@ -246,10 +246,12 @@ async function startServer() {
       }
       
       // Get user ID from session
-      const ctx = await createContext({ req, res });
+      // We need to pass the full options to createContext
+      const ctx = await createContext({ req, res } as any);
       const userId = ctx.user?.id;
       
       if (!userId) {
+        console.warn('[Upload] Unauthorized upload attempt');
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
