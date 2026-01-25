@@ -307,25 +307,18 @@ export default function Dashboard() {
     toast.info(`Preparing ${bureau} upload...`);
     
     try {
-      // 1. Get secure, user-scoped file key and signed URL from server
-      const { fileKey, signedUrl, fileUrl } = await trpc.upload.getSignedUrl.queryFn({
-        bureau,
-        fileName: file.name,
-        contentType: file.type,
-      });
-
-      // 2. Upload to S3 (simulated via uploadToS3 mutation for this environment)
+      // 1. Upload to S3 via mutation (server handles file key generation)
       const uploadResult = await uploadToS3.mutateAsync({
-        fileKey,
+        fileKey: `credit-reports/${bureau}/${Date.now()}_${file.name}`,
         contentType: file.type as any,
       });
 
       if (bureau === 'combined') {
-        // 3a. For combined reports, trigger light analysis for the FREE preview
+        // 2a. For combined reports, trigger light analysis for the FREE preview
         setLightAnalysisResult({ fileUrl: uploadResult.url } as any);
         toast.info('File uploaded. Running light analysis...');
       } else {
-        // 3b. For individual reports, create the record and trigger full parsing
+        // 2b. For individual reports, create the record and trigger full parsing
         await uploadReport.mutateAsync({
           bureau: bureau as any,
           fileName: file.name,
@@ -336,7 +329,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Upload failed: Could not secure file path.');
+      toast.error('Upload failed. Please try again.');
     } finally {
       setUploadingBureau(null);
     }

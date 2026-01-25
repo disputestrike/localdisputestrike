@@ -413,10 +413,18 @@ export const appRouter = router({
         fileKey: z.string(),
         contentType: z.string(),
       }))
-      .mutation(async ({ input }) => {
-        // This procedure is now redundant as the client uploads directly to the signed URL.
-        // We return success to allow the client to proceed to the lightAnalysis step.
-        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
+      .mutation(async ({ ctx, input }) => {
+        // Generate a secure, user-scoped file key
+        const userId = ctx.user.id;
+        const timestamp = Date.now();
+        const secureFileKey = `uploads/${userId}/${timestamp}_${input.fileKey.split('/').pop()}`;
+        
+        // Return the secure URL and key
+        // In production, this would upload to actual S3
+        return { 
+          url: `https://disputestrike-uploads.s3.amazonaws.com/${secureFileKey}`, 
+          key: secureFileKey 
+        };
       }),
   }),
   admin: router({
