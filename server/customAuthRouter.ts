@@ -51,19 +51,23 @@ function getAffiliateSource(req: any): 'smartcredit' | 'identityiq' | 'direct_up
  * in Google Cloud Console. Use GOOGLE_REDIRECT_URI to force a specific URI.
  * We normalize 127.0.0.1 → localhost so it matches typical Google Console setup.
  *
- * In development, prefer VITE_APP_URL or BASE_URL when set so the redirect_uri is
- * stable and matches what you added in Google Console (avoids port/Host mismatches).
+ * In production (Railway etc.), prefer VITE_APP_URL, BASE_URL, or RAILWAY_PUBLIC_DOMAIN
+ * so redirect_uri is stable and matches what you add in Google Console (avoids
+ * redirect_uri_mismatch from request-derived Host differing from your public URL).
  */
 function getGoogleRedirectUri(req: any): string {
   if (process.env.GOOGLE_REDIRECT_URI) {
     return process.env.GOOGLE_REDIRECT_URI.replace(/\/$/, '');
   }
-  const isDev = process.env.NODE_ENV !== 'production';
   const envBase = (process.env.VITE_APP_URL || process.env.BASE_URL || '').trim().replace(/\/$/, '');
-  if (isDev && envBase) {
-    let base = envBase.replace(/^http:\/\/127\.0\.0\.1(:\d+)?/, (_, port) =>
+  if (envBase) {
+    const base = envBase.replace(/^http:\/\/127\.0\.0\.1(:\d+)?/, (_, port) =>
       `http://localhost${port || ''}`
     );
+    return `${base}/api/auth/google/callback`;
+  }
+  if (process.env.RAILWAY_PUBLIC_DOMAIN) {
+    const base = `https://${process.env.RAILWAY_PUBLIC_DOMAIN.replace(/^https?:\/\//, '').replace(/\/$/, '')}`;
     return `${base}/api/auth/google/callback`;
   }
   let base = getBaseUrl(req).replace(/\/$/, '');

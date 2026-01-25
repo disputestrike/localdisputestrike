@@ -51,6 +51,17 @@ All storage and file serving use **Railway disk only**. No `manus-upload-file` o
 - **`NODE_ENV`**: Do **not** set `NODE_ENV=development` in Railway Variables. The production build bakes `NODE_ENV=production` and never imports `vite-dev`; using `development` can cause `ERR_MODULE_NOT_FOUND` for `/app/dist/vite-dev`.
 - Health check: **`GET /api/health`**.
 
+## 4a. Google OAuth on Railway (fix `redirect_uri_mismatch`)
+
+1. Set **`VITE_APP_URL`** in Railway Variables to your **exact** public app URL, e.g. `https://localdisputestrike.up.railway.app` (no trailing slash). The app uses this for `redirect_uri` in production so it stays stable.
+2. **Google Cloud Console** → **APIs & Services** → **Credentials** → your **OAuth 2.0 Client** → **Authorized redirect URIs**.
+3. Add **exactly**:  
+   `https://<your-railway-domain>/api/auth/google/callback`  
+   e.g. `https://localdisputestrike.up.railway.app/api/auth/google/callback`  
+   No trailing slash. Must match `VITE_APP_URL` + `/api/auth/google/callback`.
+4. Save. Redeploy if you changed `VITE_APP_URL`, then try **Sign in with Google** again.
+5. **Optional:** Visit `https://<your-app>/api/auth/google/redirect-uri` to confirm the `redirectUri` the app sends; it must match what you added in Google Console.
+
 ## 5. Preview upload + Vision
 
 - **Text PDFs**: Parsed with `pdf-parse` → `runPreviewAnalysis` (no storage).

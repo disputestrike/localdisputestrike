@@ -56,6 +56,7 @@ export default function GetReports() {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorSuggestion, setErrorSuggestion] = useState<string | null>(null);
 
   const totalSteps = 6;
   const currentStep = 5;
@@ -123,11 +124,13 @@ export default function GetReports() {
   const handleStartAnalysis = async () => {
     if (uploadedReports.length === 0) {
       setError('Please upload at least one credit report');
+      setErrorSuggestion(null);
       return;
     }
     
     setIsAnalyzing(true);
     setError(null);
+    setErrorSuggestion(null);
     
     try {
       // Upload files and start analysis
@@ -142,18 +145,20 @@ export default function GetReports() {
       });
 
       const contentType = response.headers.get('content-type') ?? '';
-      let data: { error?: string } = {};
+      let data: { error?: string; message?: string; suggestion?: string } = {};
       if (contentType.includes('application/json')) {
-        data = (await response.json().catch(() => ({}))) as { error?: string };
+        data = (await response.json().catch(() => ({}))) as { error?: string; message?: string; suggestion?: string };
       } else {
         const text = await response.text();
         console.error('[GetReports] Non-JSON response:', response.status, text.slice(0, 500));
       }
 
       if (!response.ok) {
-        const msg = (data?.error as string) || `Upload failed (${response.status}). Please try again.`;
+        const msg = data?.error || data?.message || `Upload failed (${response.status}). Please try again.`;
         console.error('[GetReports] Server error:', response.status, data?.error ?? msg);
-        throw new Error(msg);
+        setError(msg);
+        setErrorSuggestion(data?.suggestion ?? null);
+        return;
       }
 
       sessionStorage.setItem('previewAnalysis', JSON.stringify({ ...data, fileUrl: '' }));
@@ -561,9 +566,24 @@ export default function GetReports() {
 
         {/* Error Message */}
         {error && (
-          <div className="flex items-center gap-2 text-sm text-red-500 bg-red-50 p-3 rounded-lg mb-6">
-            <AlertCircle className="w-4 h-4" />
-            <span>{error}</span>
+          <div className="flex flex-col gap-1 text-sm bg-red-50 p-3 rounded-lg mb-6">
+            <div className="flex items-center gap-2 text-red-500">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+            {errorSuggestion && (
+              <p className="text-muted-foreground pl-6">
+                {errorSuggestion.includes('AnnualCreditReport.com') ? (
+                  <>
+                    {errorSuggestion.replace(/\bAnnualCreditReport\.com\b/g, '').replace(/\s*\.\s*$/, '').trim()}
+                    {' '}
+                    <a href={ANNUAL_CREDIT_REPORT_URL} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">AnnualCreditReport.com</a>.
+                  </>
+                ) : (
+                  errorSuggestion
+                )}
+              </p>
+            )}
           </div>
         )}
 

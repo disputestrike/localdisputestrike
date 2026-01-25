@@ -61,6 +61,8 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
   totalViolations: number;
   severityBreakdown: { critical: number; high: number; medium: number; low: number };
   categoryBreakdown: { latePayments: number; collections: number; chargeOffs: number; judgments: number; other: number };
+  accountPreviews?: { name: string; last4: string; balance: string; status: string; amountType?: string }[];
+  creditScore?: number;
 } {
   const t = Math.max(1, p.totalViolations);
   return {
@@ -78,6 +80,8 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
       judgments: p.categories?.publicRecords ?? 0,
       other: (p.categories?.inquiries ?? 0) + (p.categories?.accountErrors ?? 0) + (p.categories?.other ?? 0),
     },
+    accountPreviews: p.accountPreviews?.length ? p.accountPreviews : undefined,
+    creditScore: p.creditScore,
   };
 }
 
@@ -147,17 +151,37 @@ router.post(
       if (!trimmedText && fallbackCandidates.length) {
         return res.status(422).json({
           error: 'Image-only PDFs temporarily unsupported. Use PDFs with selectable text.',
+          message: 'We could not extract any text from your PDFs.',
+          suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
         });
       }
 
       if (!trimmedText) {
         return res.status(422).json({
-          error: 'Could not read text from your PDFs. Use PDFs with selectable text, or image-only scans (Vision will run when text extraction fails).',
+          error: 'Could not read text from your PDFs.',
+          message: 'Use PDFs with selectable text.',
+          suggestion: 'Try a different file or use AnnualCreditReport.com.',
+        });
+      }
+
+      // Validate PDF quality: too little text → likely empty or corrupt
+      if (trimmedText.length < 100) {
+        return res.status(422).json({
+          error: 'PDF appears empty or corrupt',
+          message: 'This PDF may be corrupted, image-only, or not a credit report.',
+          suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
         });
       }
 
       try {
         const preview = await runPreviewAnalysis(trimmedText);
+        if (preview.totalViolations === 0) {
+          return res.status(422).json({
+            error: 'Could not extract violations from this report',
+            message: 'This PDF may be corrupted, image-only, or not a credit report.',
+            suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
+          });
+        }
         const light = toLightAnalysisResult(preview);
         return res.status(200).json(light);
       } catch (e: unknown) {

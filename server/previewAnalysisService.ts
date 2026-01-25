@@ -17,6 +17,15 @@ const openai: OpenAI | null = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
   : null;
 
+export interface AccountPreviewItem {
+  name: string;
+  last4: string;
+  balance: string;
+  status: string;
+  /** e.g. "Unpaid Balance" or "Past Due" */
+  amountType?: string;
+}
+
 export interface PreviewAnalysisResult {
   totalViolations: number;
   deletionPotential: number;
@@ -34,15 +43,11 @@ export interface PreviewAnalysisResult {
     transunion: number;
   };
   estimatedScoreIncrease: string;
+  /** Up to 10 partial previews: name, last4, balance, status only. */
+  accountPreviews?: AccountPreviewItem[];
 }
 
-const PREVIEW_SYSTEM_PROMPT = `You are a credit report analyzer. Your job is to count violations and categorize them.
-
-IMPORTANT: Return ONLY aggregate counts. Do NOT include:
-- Specific account names
-- Specific dollar amounts
-- Specific dates
-- Any identifying information
+const PREVIEW_SYSTEM_PROMPT = `You are a credit report analyzer. Your job is to count violations, categorize them, and return up to 10 partial account previews.
 
 Return a JSON object with this exact structure:
 {
@@ -61,19 +66,20 @@ Return a JSON object with this exact structure:
     "equifax": <number>,
     "transunion": <number>
   },
-  "estimatedScoreIncrease": "<range like 50-80>"
+  "estimatedScoreIncrease": "<range like 50-80>",
+  "accountPreviews": [
+    { "name": "<creditor>", "last4": "<last 4 digits>", "balance": "<e.g. 2769 or $2,769>", "status": "<e.g. Collection, Charge-off>", "amountType": "Unpaid Balance" }
+  ],
+  "creditScore": 587
 }
 
-Count violations based on:
-- Late payments (30, 60, 90+ days)
-- Collections accounts
-- Hard inquiries (especially recent ones)
-- Public records (bankruptcies, liens, judgments)
-- Account errors (wrong balances, wrong dates, duplicate accounts)
-- Other FCRA violations
-
-Deletion potential is based on how many items have clear FCRA violations or cross-bureau discrepancies.
-Score increase estimate is based on typical improvements from removing negative items.`;
+RULES:
+- Count violations: late payments, collections, inquiries, public records, account errors, other FCRA issues.
+- accountPreviews: List up to 10 negative accounts. Use ONLY: creditor name, last 4 digits, balance, status, amountType (Unpaid Balance or Past Due). Do NOT include full account numbers, addresses, or collection agency details.
+- creditScore: If the report includes a credit score, extract it as a number. Otherwise omit the field.
+- amountType: Use "Unpaid Balance" or "Past Due" per account.
+- If you cannot extract meaningful accountPreviews, use an empty array [].
+- Deletion potential and score increase: base on typical improvements from removing negative items.`;
 
 /**
  * Fallback when no AI API key: simple keyword-based violation count.
@@ -178,6 +184,20 @@ export async function runPreviewAnalysis(
 }
 
 function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisResult {
+  const raw = result.accountPreviews ?? [];
+  const accountPreviews: AccountPreviewItem[] = raw
+    .filter((a): a is AccountPreviewItem => Boolean(a?.name && a?.last4))
+    .slice(0, 10)
+    .map((a) => ({
+      name: String(a.name).slice(0, 80),
+      last4: String(a.last4).replace(/\D/g, '').slice(-4),
+      balance: String(a.balance ?? '0').slice(0, 24),
+      status: String(a.status ?? 'Unknown').slice(0, 40),
+      amountType: a.amountType ? String(a.amountType).slice(0, 24) : undefined,
+    }));
+  const creditScore = result.creditScore != null && Number.isFinite(result.creditScore)
+    ? Math.max(300, Math.min(850, Math.round(result.creditScore)))
+    : undefined;
   return {
     totalViolations: Math.max(0, Math.min(200, result.totalViolations || 0)),
     deletionPotential: Math.max(0, Math.min(100, result.deletionPotential || 50)),
@@ -195,6 +215,8 @@ function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisR
       transunion: Math.max(0, result.bureauBreakdown?.transunion || 0),
     },
     estimatedScoreIncrease: result.estimatedScoreIncrease || '30-60',
+    accountPreviews: accountPreviews.length ? accountPreviews : undefined,
+    creditScore,
   };
 }
 
