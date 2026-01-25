@@ -60,11 +60,14 @@ export default function Dashboard() {
   }
 
   // Gating logic: If user is free and has uploaded a report, show preview
+  // Agency and Paid users should NOT be gated
   const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
   const isAgencyUser = user?.accountType === 'agency';
+  const isPaidUser = userProfile?.subscriptionTier && userProfile.subscriptionTier !== 'none';
   const hasUploadedReport = creditReports && creditReports.length > 0;
   
-  if (!isAgencyUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
+  // ONLY gate if user is strictly FREE and NOT an agency
+  if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
     return (
       <DashboardLayout>
         <PreviewResults 

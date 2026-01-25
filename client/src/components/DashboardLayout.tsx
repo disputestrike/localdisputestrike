@@ -505,11 +505,18 @@ function DashboardLayoutContent({
                 <DropdownMenuItem
                   onClick={async () => {
                     try {
+                      console.log('[Auth] Attempting logout...');
                       await logout();
-                      window.location.href = "/login";
+                      
+                      // Clear local storage as a backup
+                      localStorage.removeItem('disputestrike-user-info');
+                      localStorage.removeItem('auth-token');
+                      
+                      // Force a full page reload to the login page to clear all states
+                      window.location.href = "/login?logout=success";
                     } catch (error) {
                       console.error("Logout failed:", error);
-                      window.location.href = "/login";
+                      window.location.href = "/login?logout=error";
                     }
                   }}
                   className="cursor-pointer text-red-400 focus:text-red-400"

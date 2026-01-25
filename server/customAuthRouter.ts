@@ -103,8 +103,19 @@ router.post('/logout', (req, res) => {
   const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session', 'app_session_id'];
   
   cookiesToClear.forEach(name => {
-    res.cookie(name, '', { ...cookieOptions, expires: new Date(0), maxAge: 0 });
-    res.clearCookie(name, cookieOptions);
+    // Method 1: Set expired cookie
+    res.cookie(name, '', { 
+      ...cookieOptions, 
+      expires: new Date(0), 
+      maxAge: 0,
+      path: '/',
+    });
+    
+    // Method 2: Clear cookie explicitly
+    res.clearCookie(name, { ...cookieOptions, path: '/' });
+    
+    // Method 3: Clear without options just in case
+    res.clearCookie(name);
   });
   
   res.json({ success: true, message: 'Logged out successfully' });

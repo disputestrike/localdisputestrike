@@ -1049,16 +1049,23 @@ Be thorough and list every negative item found.`;
     logout: publicProcedure.mutation(async ({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       
-      // Clear all possible session cookies
+      // Clear all possible session cookies with multiple methods for reliability
       const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session', 'app_session_id'];
       
       cookiesToClear.forEach(name => {
+        // Method 1: Set expired cookie
         ctx.res.cookie(name, '', { 
           ...cookieOptions, 
           expires: new Date(0),
           maxAge: 0,
+          path: '/',
         });
-        ctx.res.clearCookie(name, cookieOptions);
+        
+        // Method 2: Clear cookie explicitly
+        ctx.res.clearCookie(name, { ...cookieOptions, path: '/' });
+        
+        // Method 3: Clear without options just in case
+        ctx.res.clearCookie(name);
       });
 
       return { success: true };
