@@ -1,22 +1,22 @@
 /**
  * PDF Text Extraction Service
  *
- * Dual extractor: pdf-parse first, then pdfjs-dist if empty. Uses whichever
- * returns more text. Per Source Bible §5 (Technical Architecture): PDF text
- * extraction library + AI analysis. Works on buffers (multer memory storage).
+ * Dual extractor: pdf-parse (v2 PDFParse) first, then pdfjs-dist if empty.
+ * Uses whichever returns more text. Works on buffers (multer memory storage).
  */
 
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const pdfParseModule = require('pdf-parse');
-const pdfParse = (typeof pdfParseModule === 'function' ? pdfParseModule : pdfParseModule.default) as (buf: Buffer) => Promise<{ text: string }>;
 
-/** Extract text via pdf-parse. Returns '' on error. */
+/** Extract text via pdf-parse v2 (PDFParse class). Returns '' on error. */
 async function extractWithPdfParse(buffer: Buffer): Promise<string> {
   try {
-    const data = await pdfParse(buffer);
-    return (data?.text || '').trim();
+    const { PDFParse } = require('pdf-parse');
+    const parser = new PDFParse({ data: buffer });
+    const result = await parser.getText();
+    await parser.destroy().catch(() => {});
+    return (result?.text ?? '').trim();
   } catch (e) {
     console.warn('[pdfParsingService] pdf-parse failed:', e);
     return '';
@@ -48,8 +48,7 @@ async function extractWithPdfJsDist(buffer: Buffer): Promise<string> {
 
 /**
  * Extract text from a PDF buffer. Uses pdf-parse first, then pdfjs-dist if
- * little or no text. Returns whichever yields more. Per Source Bible §5:
- * PDF extraction library + AI analysis.
+ * little or no text. Returns whichever yields more.
  */
 export async function extractTextFromPDFBuffer(buffer: Buffer): Promise<string> {
   const fromParse = await extractWithPdfParse(buffer);

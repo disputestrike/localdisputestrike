@@ -133,11 +133,14 @@ export async function runPreviewAnalysis(
       });
 
       const content = response.content?.[0] as { text?: string } | undefined;
-      const text = typeof content?.text === 'string' ? content.text : '';
+      let text = typeof content?.text === 'string' ? content.text : '';
       if (!text) {
         throw new Error('No response from Anthropic');
       }
-
+      // Strip markdown code blocks (Claude sometimes returns ```json ... ```)
+      if (text.includes('```')) {
+        text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+      }
       const result = JSON.parse(text) as PreviewAnalysisResult;
       return normalizePreviewResult(result);
     }
@@ -159,11 +162,13 @@ export async function runPreviewAnalysis(
       response_format: { type: 'json_object' },
     });
 
-    const content = response.choices[0]?.message?.content;
+    let content = response.choices[0]?.message?.content ?? '';
     if (!content) {
       throw new Error('No response from OpenAI');
     }
-
+    if (content.includes('```')) {
+      content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    }
     const result = JSON.parse(content) as PreviewAnalysisResult;
     return normalizePreviewResult(result);
   } catch (error) {

@@ -12,8 +12,6 @@ import {
   runPreviewAnalysis,
   type PreviewAnalysisResult,
 } from './previewAnalysisService';
-import { fileStorage } from './s3Provider';
-import { performLightAnalysis } from './creditReportParser';
 
 const router = Router();
 
@@ -145,38 +143,11 @@ router.post(
 
       const trimmedText = combinedText.trim();
 
-      // Vision path: when no extractable text (e.g. image-only PDFs), use Vision AI. Railway only – no manus.
-      // Save to fileStorage, serve via /api/files. Vision needs a PUBLIC URL (Forge fetches it). Localhost fails.
+      // Vision path disabled: forge.manus.im unreachable. Image-only PDFs → 422.
       if (!trimmedText && fallbackCandidates.length) {
-        const best = fallbackCandidates.sort((a, b) => b.file.size - a.file.size)[0];
-        const safeName = (best.file.originalname || 'report.pdf').replace(/[^a-zA-Z0-9.\-_]/g, '_');
-        const previewKey = `preview/${Date.now()}_${safeName}`;
-        const mime = best.file.mimetype || 'application/pdf';
-        const { fileUrl } = await fileStorage.saveFile(previewKey, best.file.buffer, mime);
-        const isLocalhost = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//i.test(fileUrl);
-        if (isLocalhost) {
-          return res.status(422).json({
-            error: 'All PDFs appear to be image-only scans. Vision AI cannot read localhost URLs. Use PDFs with selectable text, or deploy to Railway to analyze image-only PDFs.',
-          });
-        }
-        try {
-          const light = await performLightAnalysis(fileUrl);
-          return res.status(200).json(light);
-        } catch (e: unknown) {
-          console.error('[Preview] Vision path failed:', e);
-          const msg = e instanceof Error ? e.message : '';
-          if (msg.includes('No accounts extracted')) {
-            return res.status(422).json({
-              error: 'Could not extract accounts from this report. Try a different file or use PDFs with selectable text.',
-            });
-          }
-          if (msg.includes('Storage') || msg.includes('ENOENT') || msg.includes('permission')) {
-            return res.status(503).json({
-              error: 'File storage unavailable. On Railway, set RAILWAY_VOLUME_MOUNT_PATH and add a volume.',
-            });
-          }
-          return res.status(500).json({ error: 'Preview analysis failed. Please try again.' });
-        }
+        return res.status(422).json({
+          error: 'Image-only PDFs temporarily unsupported. Use PDFs with selectable text.',
+        });
       }
 
       if (!trimmedText) {
