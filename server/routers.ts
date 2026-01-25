@@ -397,7 +397,7 @@ export const appRouter = router({
         // This code MUST be replaced with your actual S3 pre-signed URL generation logic.
         // The client expects a signedUrl for PUT and a fileUrl for GET.
         const fileUrl = `https://disputestrike-uploads.s3.amazonaws.com/${fileKey}`;
-        const signedUrl = `https://your-signed-url-for-put-goes-here/${f401	
+        const signedUrl = `https://your-signed-url-for-put-401	
 402	        return {
 403	          fileKey: fileKey,
 404	          fileUrl: fileUrl,
@@ -413,9 +413,8 @@ export const appRouter = router({
 414	        // This procedure is now redundant as the client uploads directly to the signed URL.
 415	        // We return success to allow the client to proceed to the lightAnalysis step.
 416	        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
-417	      }),llDisputeLetters, getAllPayments } = await import('./db');
-      
-      const users = await getAllUsers();
+417	      }),
+418	  }),);
       const letters = await getAllDisputeLetters();
       const payments = await getAllPayments();
       
@@ -3303,8 +3302,8 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
           return letter;
         }),
     }),
-  }),
-3307	});
-3308	
-3309	export type AppRouter = typeof appRouter;
-3310	
+3305	  }),
+3306	});
+3307	
+3308	export type AppRouter = typeof appRouter;
+3309	
