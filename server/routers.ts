@@ -1014,7 +1014,7 @@ Be thorough and list every negative item found.`;
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      ctx.res.clearCookie(COOKIE_NAME, { path: '/', sameSite: 'none', maxAge: -1 });
       return {
         success: true,
       } as const;
