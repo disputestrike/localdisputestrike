@@ -227,6 +227,67 @@ async function startServer() {
   // V2 - Trial, subscription, and round management routes
   const routesV2 = (await import('../routesV2')).default;
   app.use('/api', routesV2);
+
+  // File upload and serving routes (Railway volume storage)
+  const { fileStorage } = await import('../s3Provider');
+  const multer = (await import('multer')).default;
+  
+  // Configure multer for memory storage (we'll save to Railway volume)
+  const upload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+  });
+  
+  // File upload endpoint
+  app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      // Get user ID from session cookie (simplified - in production use proper auth)
+      const userId = (req as any).userId || 'anonymous';
+      const bureau = req.body.bureau || 'document';
+      const fileName = req.file.originalname;
+      
+      // Generate file key and save
+      const fileKey = fileStorage.generateFileKey(
+        typeof userId === 'number' ? userId : parseInt(userId) || 0,
+        bureau,
+        fileName
+      );
+      
+      const result = await fileStorage.saveFile(fileKey, req.file.buffer, req.file.mimetype);
+      
+      res.json({
+        success: true,
+        fileUrl: result.fileUrl,
+        fileKey: result.fileKey,
+      });
+    } catch (error) {
+      console.error('[Upload] Error:', error);
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  });
+  
+  // File serving endpoint
+  app.get('/api/files/:key(*)', async (req, res) => {
+    try {
+      const key = decodeURIComponent(req.params.key);
+      const file = await fileStorage.getFile(key);
+      
+      if (!file) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      res.setHeader('Content-Type', file.contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+      res.send(file.data);
+    } catch (error) {
+      console.error('[Files] Error:', error);
+      res.status(500).json({ error: 'Failed to retrieve file' });
+    }
+  });
   
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);

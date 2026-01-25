@@ -307,39 +307,47 @@ export default function Dashboard() {
     toast.info(`Preparing ${bureau} upload...`);
     
     try {
-      // 1. Get pre-signed URL from server
+      // 1. Get upload info from server (generates file key and upload URL)
       const uploadResult = await uploadToS3.mutateAsync({
         fileKey: `credit-reports/${bureau}/${Date.now()}_${file.name}`,
         contentType: file.type as any,
       });
 
-      // 2. Upload file directly to S3 using the pre-signed URL
+      // 2. Upload file to server using FormData (Railway volume storage)
       toast.info('Uploading file to secure storage...');
-      const s3Response = await fetch(uploadResult.uploadUrl, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('bureau', bureau);
+      formData.append('fileKey', uploadResult.key);
+      
+      const uploadResponse = await fetch(uploadResult.uploadUrl, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include', // Include cookies for auth
       });
 
-      if (!s3Response.ok) {
-        throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorData.error || `Upload failed: ${uploadResponse.status}`);
       }
 
-      console.log('[handleFileUpload] File uploaded to S3 successfully:', uploadResult.url);
+      const uploadData = await uploadResponse.json();
+      const fileUrl = uploadData.fileUrl || uploadResult.url;
+      const fileKey = uploadData.fileKey || uploadResult.key;
+
+      console.log('[handleFileUpload] File uploaded successfully:', fileUrl);
 
       if (bureau === 'combined') {
         // 3a. For combined reports, trigger light analysis for the FREE preview
-        setLightAnalysisResult({ fileUrl: uploadResult.url } as any);
+        setLightAnalysisResult({ fileUrl: fileUrl } as any);
         toast.info('File uploaded. Running light analysis...');
       } else {
         // 3b. For individual reports, create the record and trigger full parsing
         await uploadReport.mutateAsync({
           bureau: bureau as any,
           fileName: file.name,
-          fileUrl: uploadResult.url,
-          fileKey: uploadResult.key,
+          fileUrl: fileUrl,
+          fileKey: fileKey,
         });
         toast.success(`${bureau.charAt(0).toUpperCase() + bureau.slice(1)} report uploaded successfully!`);
       }

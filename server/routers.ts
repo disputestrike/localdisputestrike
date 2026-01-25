@@ -9,7 +9,7 @@ import { publicProcedure, protectedProcedure, router, adminProcedure, superAdmin
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
-import { s3Provider } from "./s3Provider";
+// File storage is now handled via /api/upload endpoint in index.ts
 // import { uploadRouter } from "./uploadRouter";
 
 // Admin procedures imported from _core/trpc with role hierarchy support
@@ -375,8 +375,8 @@ ${userName}`;
 export const appRouter = router({
   upload: router({
     /**
-     * Get a pre-signed URL for uploading a file directly to S3
-     * Client will use this URL to PUT the file directly to S3
+     * Get upload info for Railway volume storage
+     * Returns the upload endpoint URL and file key
      */
     getSignedUrl: protectedProcedure
       .input(z.object({
@@ -385,7 +385,7 @@ export const appRouter = router({
         contentType: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { bureau, fileName, contentType } = input;
+        const { bureau, fileName } = input;
         const userId = ctx.user.id;
         
         // Determine the base path for the file
@@ -397,31 +397,29 @@ export const appRouter = router({
         }
         
         // Generate a unique, user-scoped key
-        const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${fileName}`;
+        const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${sanitizedFileName}`;
         
-        try {
-          // Generate a real pre-signed URL for PUT operation
-          const { uploadUrl, fileUrl } = await s3Provider.getSignedUploadUrl(fileKey, contentType);
-          
-          console.log(`[getSignedUrl] Generated pre-signed URL for user ${userId}, key: ${fileKey}`);
-          
-          return {
-            fileKey: fileKey,
-            fileUrl: fileUrl,
-            signedUrl: uploadUrl, // This is the pre-signed PUT URL
-          };
-        } catch (error) {
-          console.error('[getSignedUrl] Failed to generate pre-signed URL:', error);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Failed to generate upload URL. Please try again.',
-          });
-        }
+        // For Railway volume storage, files are uploaded via /api/upload endpoint
+        const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
+          ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+          : process.env.BASE_URL || 'http://localhost:3000';
+        
+        const uploadUrl = `${baseUrl}/api/upload`;
+        const fileUrl = `${baseUrl}/api/files/${encodeURIComponent(fileKey)}`;
+        
+        console.log(`[getSignedUrl] Generated upload info for user ${userId}, key: ${fileKey}`);
+        
+        return {
+          fileKey: fileKey,
+          fileUrl: fileUrl,
+          signedUrl: uploadUrl, // This is the upload endpoint URL
+        };
       }),
 
     /**
-     * Legacy uploadToS3 mutation - now just returns pre-signed URL info
-     * Kept for backward compatibility with existing client code
+     * Upload endpoint info for Railway volume storage
+     * Returns the upload endpoint URL and file key
      */
     uploadToS3: protectedProcedure
       .input(z.object({
@@ -431,26 +429,24 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const userId = ctx.user.id;
         const timestamp = Date.now();
-        const secureFileKey = `uploads/${userId}/${timestamp}_${input.fileKey.split('/').pop()}`;
+        const sanitizedFileName = (input.fileKey.split('/').pop() || 'file').replace(/[^a-zA-Z0-9.-]/g, '_');
+        const secureFileKey = `uploads/${userId}/${timestamp}_${sanitizedFileName}`;
         
-        try {
-          // Generate a real pre-signed URL for PUT operation
-          const { uploadUrl, fileUrl } = await s3Provider.getSignedUploadUrl(secureFileKey, input.contentType);
-          
-          console.log(`[uploadToS3] Generated pre-signed URL for user ${userId}, key: ${secureFileKey}`);
-          
-          return { 
-            url: fileUrl,
-            key: secureFileKey,
-            uploadUrl: uploadUrl, // Client should use this to PUT the file
-          };
-        } catch (error) {
-          console.error('[uploadToS3] Failed to generate pre-signed URL:', error);
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'Could not secure file path. Please try again.',
-          });
-        }
+        // For Railway volume storage, files are uploaded via /api/upload endpoint
+        const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
+          ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+          : process.env.BASE_URL || 'http://localhost:3000';
+        
+        const uploadUrl = `${baseUrl}/api/upload`;
+        const fileUrl = `${baseUrl}/api/files/${encodeURIComponent(secureFileKey)}`;
+        
+        console.log(`[uploadToS3] Generated upload info for user ${userId}, key: ${secureFileKey}`);
+        
+        return { 
+          url: fileUrl,
+          key: secureFileKey,
+          uploadUrl: uploadUrl, // Client should POST to this endpoint with FormData
+        };
       }),
   }),
   admin: router({
