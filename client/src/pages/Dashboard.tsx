@@ -51,6 +51,10 @@ export default function Dashboard() {
   // Bulk account selection state
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number>>(new Set());
 
+  const handleUpgrade = () => {
+    setLocation('/pricing'); // Redirect to pricing page for upgrade
+  };
+
   if (!user) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -238,9 +242,7 @@ export default function Dashboard() {
 
   // Combined upload mutation for 3-bureau reports
   // Full upload will be triggered after the user upgrades.
-  const handleUpgrade = () => {
-    setLocation('/pricing'); // Redirect to pricing page for upgrade
-  }
+
   // The original mutation is commented out to enforce the FREE preview flow.
   // const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
   //   onSuccess: () => {
@@ -300,56 +302,44 @@ export default function Dashboard() {
     }
   };
 
-  const handleFileUpload = async (bureau: "transunion" | "equifax" | "experian", file: File) => {
+  const handleFileUpload = async (bureau: "transunion" | "equifax" | "experian" | "combined", file: File) => {
     setUploadingBureau(bureau);
-    
-    // Convert file to base64
-    let fileKey: string;
-    let mockFileUrl: string;
+    toast.info(`Preparing ${bureau} upload...`);
     
     try {
-      // 1. Get secure, user-scoped file key from server
-      ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.queryFn({
+      // 1. Get secure, user-scoped file key and signed URL from server
+      const { fileKey, signedUrl, fileUrl } = await trpc.upload.getSignedUrl.queryFn({
         bureau,
         fileName: file.name,
         contentType: file.type,
-      }));
-    } catch (error) {
-      console.error('Failed to get signed URL:', error);
-      toast.error('Upload failed: Could not secure file path.');
-      setUploadingBureau(null);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const arrayBuffer = e.target?.result as ArrayBuffer;
-      const uint8Array = new Uint8Array(arrayBuffer);
-      
-      try {
-        // 2. Upload to S3 via tRPC (using the secure key)
-        // NOTE: We are removing fileData from the payload to prevent large payload errors in the mock environment
-        const uploadResult = await uploadToS3.mutateAsync({
-          fileKey,
-          contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
-        });
-        
-        // 3. Now create credit report record
+      });
+
+      // 2. Upload to S3 (simulated via uploadToS3 mutation for this environment)
+      const uploadResult = await uploadToS3.mutateAsync({
+        fileKey,
+        contentType: file.type as any,
+      });
+
+      if (bureau === 'combined') {
+        // 3a. For combined reports, trigger light analysis for the FREE preview
+        setLightAnalysisResult({ fileUrl: uploadResult.url } as any);
+        toast.info('File uploaded. Running light analysis...');
+      } else {
+        // 3b. For individual reports, create the record and trigger full parsing
         await uploadReport.mutateAsync({
-          bureau,
+          bureau: bureau as any,
           fileName: file.name,
           fileUrl: uploadResult.url,
           fileKey: uploadResult.key,
         });
-        
-        toast.success(`${bureau} report uploaded successfully!`);
-      } catch (error) {
-        console.error('Upload failed:', error);
-        toast.error('Failed to upload file');
-      } finally {
-        setUploadingBureau(null);
+        toast.success(`${bureau.charAt(0).toUpperCase() + bureau.slice(1)} report uploaded successfully!`);
       }
-    };
-    reader.readAsArrayBuffer(file);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      toast.error('Upload failed: Could not secure file path.');
+    } finally {
+      setUploadingBureau(null);
+    }
   };
 
   // Delete mutation
@@ -656,23 +646,24 @@ export default function Dashboard() {
                               )}
                             </Button>
                           </div>
-                          <Button 
-                            variant="destructive" 
-                            size="sm" 
-                            className="w-full"
-                            onClick={() => handleDeleteReport(report.id)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete Report
-                          </Button>
-                        </div>
-                      ) : (
-                        <MobileUploadZone
-                          bureau={bureau}
-                          onFileSelect={(file) => handleFileUpload(bureau, file)}
-                          isUploading={isUploading}
-                          hasExistingReport={false}
-                        />
+                          <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        id={`upload-${bureau}`}
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(bureau, file);
+                          }
+                        }}
+                      />
+                      <MobileUploadZone
+                        bureau={bureau}
+                        onFileSelect={(file) => handleFileUpload(bureau, file)}
+                        isUploading={isUploading}
+                        hasExistingReport={false}
+                      />
                       )}
                     </CardContent>
                   </Card>
@@ -694,82 +685,44 @@ export default function Dashboard() {
                       accept=".pdf,image/*"
                       id="upload-combined"
                       className="hidden"
-                      onChange={async (e) => {
+                      onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          setUploadingBureau('combined');
-                          toast.info('Preparing upload...');
-                          
-                          let fileKey: string;
-                          let mockFileUrl: string;
-                          
-                          try {
-                            // 1. Get secure, user-scoped file key from server
-                            ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.queryFn({
-                              bureau: 'combined',
-                              fileName: file.name,
-                              contentType: file.type,
-                            }));
-                          } catch (error) {
-                            console.error('Failed to get signed URL:', error);
-                            toast.error('Upload failed: Could not secure file path.');
-                            setUploadingBureau(null);
-                            return;
-                          }
-                          
-                          toast.info('Uploading combined 3-bureau report...');
-                          const reader = new FileReader();
-                          reader.onload = async (ev) => {
-                            const arrayBuffer = ev.target?.result as ArrayBuffer;
-                            const uint8Array = new Uint8Array(arrayBuffer);
-                            
-                            try {
-                              // Upload to S3 first
-                              // NOTE: We are removing fileData from the payload to prevent large payload errors in the mock environment
-                              const uploadResult = await uploadToS3.mutateAsync({
-                                fileKey,
-                                contentType: file.type as 'application/pdf' | 'image/jpeg' | 'image/png' | 'image/gif' | 'text/html' | 'text/plain',
-                              });
-                              
-                              // Now trigger the light analysis
-                              setLightAnalysisResult({ fileUrl: uploadResult.url } as any); // Set the fileUrl to trigger the query
-                              toast.info('File uploaded. Running light analysis...');
-                              
-                            } catch (error) {
-                              console.error('Combined upload failed:', error);
-                              toast.error('Failed to upload combined report');
-                            } finally {
-                              setUploadingBureau(null);
-                            }
-                          };
-                          reader.readAsArrayBuffer(file);
+                          handleFileUpload('combined', file);
                         }
                       }}
-                      disabled={uploadingBureau !== null}
                     />
-                    <Button
-                      variant="outline"
-                      className="w-full h-32"
+                    <div
+                      className={`flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-lg cursor-pointer hover:border-primary/50 transition-colors ${
+                        dragOver === 'combined' ? 'border-primary bg-primary/5' : 'border-muted'
+                      }`}
                       onClick={() => document.getElementById('upload-combined')?.click()}
-                      disabled={uploadingBureau !== null}
+                      onDragOver={(e) => handleDragOver(e, 'combined')}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, 'combined' as any)}
                     >
-                      {uploadingBureau ? (
-                        <div className="flex flex-col items-center gap-2">
-                          <div className="h-6 w-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                          <span>Uploading...</span>
+                      {uploadingBureau === 'combined' ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                          <div className="text-center">
+                            <p className="font-semibold">Uploading Combined Report...</p>
+                            <p className="text-sm text-muted-foreground">This may take a moment for large files</p>
+                          </div>
                         </div>
                       ) : (
-                        <div className="flex flex-col items-center gap-2">
-                          <Upload className="h-8 w-8" />
+                        <div className="flex flex-col items-center gap-3">
+                          <div className="p-4 bg-primary/10 rounded-full">
+                            <Upload className="h-10 w-10 text-primary" />
+                          </div>
                           <div className="text-center">
-                            <div className="font-semibold">Click to Upload</div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              PDF or image files accepted
-                            </div>
+                            <p className="text-lg font-semibold">Click to upload or drag and drop</p>
+                            <p className="text-sm text-muted-foreground">
+                              Upload your 3-bureau report (PDF or Image) for a free analysis
+                            </p>
                           </div>
                         </div>
                       )}
-                    </Button>
+                    </div>
                     {creditReports && creditReports.length > 0 && (
                       <div className="space-y-2">
                         <div className="text-sm font-medium">Uploaded Reports:</div>

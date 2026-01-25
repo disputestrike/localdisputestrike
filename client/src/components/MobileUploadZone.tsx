@@ -36,8 +36,8 @@ export function MobileUploadZone({
   // Handle file selection
   const handleFileChange = useCallback((file: File) => {
     // Validate file type
-    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
+    const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+    if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.heic')) {
       toast.error('Please upload a PDF or image file');
       return;
     }
@@ -48,19 +48,9 @@ export function MobileUploadZone({
       return;
     }
 
-    setSelectedFile(file);
-
-    // Create preview for images
-    if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPreviewUrl(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPreviewUrl(null);
-    }
-  }, []);
+    // Trigger upload automatically
+    onFileSelect(file);
+  }, [onFileSelect]);
 
   // Handle drag events with touch support
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -172,50 +162,7 @@ export function MobileUploadZone({
         />
 
         {/* Preview state */}
-        {selectedFile && !isUploading ? (
-          <div className="space-y-4">
-            {previewUrl ? (
-              <div className="relative rounded-lg overflow-hidden border">
-                <img 
-                  src={previewUrl} 
-                  alt="Preview" 
-                  className="w-full h-48 object-cover"
-                />
-                <button
-                  onClick={handleCancel}
-                  className="absolute top-2 right-2 p-1 bg-black/50 rounded-full text-white hover:bg-black/70"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-                <FileText className="h-10 w-10 text-primary" />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{selectedFile.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </div>
-                <button
-                  onClick={handleCancel}
-                  className="p-1 hover:bg-muted-foreground/10 rounded"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-            )}
-            
-            <Button 
-              onClick={handleConfirmUpload} 
-              className="w-full"
-              size="lg"
-            >
-              <CheckCircle2 className="h-5 w-5 mr-2" />
-              Upload {bureau.charAt(0).toUpperCase() + bureau.slice(1)} Report
-            </Button>
-          </div>
-        ) : isUploading ? (
+        {isUploading ? (
           <div className="flex flex-col items-center justify-center py-8">
             <div className="relative">
               <div className="h-16 w-16 rounded-full border-4 border-primary/20" />
