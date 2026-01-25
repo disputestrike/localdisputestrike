@@ -61,9 +61,10 @@ export default function Dashboard() {
 
   // Gating logic: If user is free and has uploaded a report, show preview
   const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
+  const isAgencyUser = user?.accountType === 'agency';
   const hasUploadedReport = creditReports && creditReports.length > 0;
   
-  if (isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
+  if (!isAgencyUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
     return (
       <DashboardLayout>
         <PreviewResults 
@@ -352,12 +353,12 @@ export default function Dashboard() {
 
       console.log('[handleFileUpload] File uploaded successfully:', fileUrl);
 
-      if (bureau === 'combined') {
+      if (bureau === 'combined' && !isAgencyUser && isFreeUser) {
         // 3a. For combined reports, trigger light analysis for the FREE preview
         setLightAnalysisResult({ fileUrl: fileUrl } as any);
         toast.info('File uploaded. Running light analysis...');
       } else {
-        // 3b. For individual reports, create the record and trigger full parsing
+        // 3b. For individual reports or combined reports for paid/agency users, create the record and trigger full parsing
         await uploadReport.mutateAsync({
           bureau: bureau as any,
           fileName: file.name,

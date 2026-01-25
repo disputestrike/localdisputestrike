@@ -9,6 +9,7 @@ import { publicProcedure, protectedProcedure, router, adminProcedure, superAdmin
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
+import { COOKIE_NAME } from "@shared/const";
 // File storage is now handled via /api/upload endpoint in index.ts
 // import { uploadRouter } from "./uploadRouter";
 
@@ -1046,7 +1047,7 @@ Be thorough and list every negative item found.`;
       return ctx.user || null;
     }),
     logout: publicProcedure.mutation(async ({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions();
+      const cookieOptions = getSessionCookieOptions(ctx.req);
       
       // Clear all possible session cookies
       const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session', 'app_session_id'];
@@ -1056,9 +1057,8 @@ Be thorough and list every negative item found.`;
           ...cookieOptions, 
           expires: new Date(0),
           maxAge: 0,
-          path: '/' 
         });
-        ctx.res.clearCookie(name, { ...cookieOptions, path: '/' });
+        ctx.res.clearCookie(name, cookieOptions);
       });
 
       return { success: true };

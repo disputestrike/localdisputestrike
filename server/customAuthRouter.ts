@@ -18,6 +18,8 @@ import {
   getGoogleAuthUrl,
   handleGoogleCallback,
 } from './googleAuth';
+import { getSessionCookieOptions } from './_core/cookies';
+import { COOKIE_NAME } from '@shared/const';
 
 const router = Router();
 
@@ -96,19 +98,13 @@ router.post('/login', async (req, res) => {
  * Logout and clear session
  */
 router.post('/logout', (req, res) => {
-  const cookieOptions = {
-    path: '/',
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax' as const,
-  };
+  const cookieOptions = getSessionCookieOptions(req as any);
   
-  const cookiesToClear = ['auth-token', 'manus-session', 'app_session_id'];
+  const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session', 'app_session_id'];
   
   cookiesToClear.forEach(name => {
     res.cookie(name, '', { ...cookieOptions, expires: new Date(0), maxAge: 0 });
     res.clearCookie(name, cookieOptions);
-    res.clearCookie(name);
   });
   
   res.json({ success: true, message: 'Logged out successfully' });
