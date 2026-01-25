@@ -646,24 +646,28 @@ export default function Dashboard() {
                               )}
                             </Button>
                           </div>
+                        </div>
+                      ) : (
+                        <>
                           <input
-                        type="file"
-                        accept=".pdf,image/*"
-                        id={`upload-${bureau}`}
-                        className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            handleFileUpload(bureau, file);
-                          }
-                        }}
-                      />
-                      <MobileUploadZone
-                        bureau={bureau}
-                        onFileSelect={(file) => handleFileUpload(bureau, file)}
-                        isUploading={isUploading}
-                        hasExistingReport={false}
-                      />
+                            type="file"
+                            accept=".pdf,image/*"
+                            id={`upload-${bureau}`}
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleFileUpload(bureau, file);
+                              }
+                            }}
+                          />
+                          <MobileUploadZone
+                            bureau={bureau}
+                            onFileSelect={(file) => handleFileUpload(bureau, file)}
+                            isUploading={isUploading}
+                            hasExistingReport={false}
+                          />
+                        </>
                       )}
                     </CardContent>
                   </Card>
