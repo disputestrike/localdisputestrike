@@ -393,28 +393,34 @@ export const appRouter = router({
         
         // Generate a unique, user-scoped key
         const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${fileName}`;
-                // NOTE: The AWS SDK installation failed in the sandbox.
+        
+        // NOTE: The AWS SDK installation failed in the sandbox.
         // This code MUST be replaced with your actual S3 pre-signed URL generation logic.
         // The client expects a signedUrl for PUT and a fileUrl for GET.
         const fileUrl = `https://disputestrike-uploads.s3.amazonaws.com/${fileKey}`;
-        const signedUrl = `https://your-signed-url-for-put-401	
-402	        return {
-403	          fileKey: fileKey,
-404	          fileUrl: fileUrl,
-405	          signedUrl: signedUrl,
-406	        };
-407	      }),
-408	    uploadToS3: protectedProcedure
-409	      .input(z.object({
-410	        fileKey: z.string(),
-411	        contentType: z.string(),
-412	      }))
-413	      .mutation(async ({ input }) => {
-414	        // This procedure is now redundant as the client uploads directly to the signed URL.
-415	        // We return success to allow the client to proceed to the lightAnalysis step.
-416	        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
-417	      }),
-418	  }),);
+        const signedUrl = `https://your-signed-url-for-put-goes-here/${fileKey}`; // Placeholder
+
+        return {
+          fileKey: fileKey,
+          fileUrl: fileUrl,
+          signedUrl: signedUrl,
+        };
+      }),
+    uploadToS3: protectedProcedure
+      .input(z.object({
+        fileKey: z.string(),
+        contentType: z.string(),
+      }))
+      .mutation(async ({ input }) => {
+        // This procedure is now redundant as the client uploads directly to the signed URL.
+        // We return success to allow the client to proceed to the lightAnalysis step.
+        return { url: `https://s3.disputestrike.com/${input.fileKey}`, key: input.fileKey };
+      }),
+  }),
+  admin: router({
+    getStats: adminProcedure.query(async ({ ctx }) => {
+      const { getAllUsers, getAllDisputeLetters, getAllPayments } = await import('./db');
+      const users = await getAllUsers();
       const letters = await getAllDisputeLetters();
       const payments = await getAllPayments();
       
@@ -428,19 +434,13 @@ export const appRouter = router({
         lettersThisMonth: letters.filter(l => l.createdAt.getTime() >= thisMonthStart).length,
         totalRevenue: payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
         revenueThisMonth: payments.filter(p => p.createdAt.getTime() >= thisMonthStart).reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
-        successRate: 78, // Placeholder - would calculate from actual dispute outcomes
+        successRate: 78, // Placeholder
         completedDisputes: letters.filter(l => l.status === 'mailed').length,
         lettersByBureau: {
           transunion: letters.filter(l => l.bureau === 'transunion').length,
           equifax: letters.filter(l => l.bureau === 'equifax').length,
           experian: letters.filter(l => l.bureau === 'experian').length,
-        },
-        conflictTypes: {
-          balance: 0, // Would calculate from actual conflict data
-          status: 0,
-          date: 0,
-          reaging: 0,
-        },
+        }
       };
     }),
     listUsers: adminProcedure.query(async ({ ctx }) => {
@@ -1285,9 +1285,7 @@ Be thorough and list every negative item found.`;
     /**
      * List all documents for user
      */
-        };
-      }),
-    uploadToS3: protectedProcedure.query(async ({ ctx }) => {
+    list: protectedProcedure.query(async ({ ctx }) => {
       return db.getUserDocuments(ctx.user.id);
     }),
 
@@ -3302,8 +3300,7 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
           return letter;
         }),
     }),
-3305	  }),
-3306	});
-3307	
-3308	export type AppRouter = typeof appRouter;
-3309	
+}),
+});
+
+export type AppRouter = typeof appRouter;
