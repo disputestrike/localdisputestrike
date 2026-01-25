@@ -503,7 +503,15 @@ function DashboardLayoutContent({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={async () => {
+                    try {
+                      await logout();
+                      window.location.href = "/login";
+                    } catch (error) {
+                      console.error("Logout failed:", error);
+                      window.location.href = "/login";
+                    }
+                  }}
                   className="cursor-pointer text-red-400 focus:text-red-400"
                 >
                   <LogOut className="mr-2 h-4 w-4" />

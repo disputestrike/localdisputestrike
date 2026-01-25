@@ -59,9 +59,19 @@ export default function Dashboard() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  // If light analysis is complete, show the preview results component
-  if (lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
-    return <PreviewResults analysis={lightAnalysisResult} onUpgrade={handleUpgrade} />;
+  // Gating logic: If user is free and has uploaded a report, show preview
+  const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
+  const hasUploadedReport = creditReports && creditReports.length > 0;
+  
+  if (isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
+    return (
+      <DashboardLayout>
+        <PreviewResults 
+          analysis={lightAnalysisResult} 
+          onUpgrade={handleUpgrade} 
+        />
+      </DashboardLayout>
+    );
   }
   
   // Sort state for accounts

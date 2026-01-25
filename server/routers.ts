@@ -1042,26 +1042,26 @@ Be thorough and list every negative item found.`;
   system: systemRouter,
   
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
+    me: publicProcedure.query(async ({ ctx }) => {
+      return ctx.user || null;
+    }),
+    logout: publicProcedure.mutation(async ({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions();
       
-      // Clear all possible auth cookies
-      const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session'];
+      // Clear all possible session cookies
+      const cookiesToClear = [COOKIE_NAME, 'auth-token', 'manus-session', 'app_session_id'];
       
       cookiesToClear.forEach(name => {
-        ctx.res.cookie(name, '', {
-          ...cookieOptions,
+        ctx.res.cookie(name, '', { 
+          ...cookieOptions, 
           expires: new Date(0),
           maxAge: 0,
+          path: '/' 
         });
-        ctx.res.clearCookie(name, cookieOptions);
-        ctx.res.clearCookie(name);
+        ctx.res.clearCookie(name, { ...cookieOptions, path: '/' });
       });
-      
-      return {
-        success: true,
-      } as const;
+
+      return { success: true };
     }),
   }),
 
@@ -3084,9 +3084,10 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
 
     // Check if user is an agency
     isAgency: protectedProcedure.query(async ({ ctx }) => {
+      const user = await db.getUserById(ctx.user.id);
       const agency = await db.getAgencyStats(ctx.user.id);
       return {
-        isAgency: !!agency,
+        isAgency: user?.accountType === 'agency' || !!agency,
         agencyName: agency?.agencyName,
         planTier: agency?.planTier,
         clientSlotsIncluded: agency?.clientSlotsIncluded || 0,
