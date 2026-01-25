@@ -89,7 +89,9 @@ router.post('/trial/create', async (req, res) => {
 
     const [user] = await db.insert(db.schema.users).values({
       email: data.email,
-      fullName: data.fullName,
+      name: data.fullName,
+      openId: `email|${data.email}`, // Generate a unique openId for email-based users
+      loginMethod: 'email',
     }).returning();
 
     const trialEndsAt = getTrialEndDate(new Date());

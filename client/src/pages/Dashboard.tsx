@@ -1,4 +1,4 @@
-import DashboardLayout from "@/components/DashboardLayout";
+
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,11 +24,13 @@ import {
   Printer,
   ArrowUpDown
 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "sonner";
 import { LightAnalysisResult } from "@/server/creditReportParser";
 import { Link, useLocation } from "wouter";
 import PreviewResults from "./PreviewResults";
+
+const DashboardLayout = React.lazy(() => import("@/components/DashboardLayout"));
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
 import { CreditScoreChart } from "@/components/CreditScoreChart";
@@ -51,6 +53,10 @@ export default function Dashboard() {
   // Bulk account selection state
   const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number>>(new Set());
 
+  // Fetch data
+  const { data: userProfile } = trpc.profile.get.useQuery();
+  const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
+
   const handleUpgrade = () => {
     setLocation('/pricing'); // Redirect to pricing page for upgrade
   };
@@ -69,12 +75,14 @@ export default function Dashboard() {
   // ONLY gate if user is strictly FREE and NOT an agency
   if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
     return (
-      <DashboardLayout>
-        <PreviewResults 
-          analysis={lightAnalysisResult} 
-          onUpgrade={handleUpgrade} 
-        />
-      </DashboardLayout>
+      <React.Suspense fallback={<div>Loading Layout...</div>}>
+        <DashboardLayout>
+          <PreviewResults 
+            analysis={lightAnalysisResult} 
+            onUpgrade={handleUpgrade} 
+          />
+        </DashboardLayout>
+      </React.Suspense>
     );
   }
   
@@ -85,7 +93,6 @@ export default function Dashboard() {
   const [dragOver, setDragOver] = useState<string | null>(null);
 
   // Fetch data
-  const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
   const uploadToS3 = trpc.upload.uploadToS3.useMutation();
   const { data: negativeAccounts, refetch: refetchAccounts } = trpc.negativeAccounts.list.useQuery(
     undefined,
@@ -154,9 +161,6 @@ export default function Dashboard() {
       setIsLoadingPreview(false);
     },
   });
-  
-  // Fetch user profile for address auto-fill
-  const { data: userProfile } = trpc.profile.get.useQuery();
 
   const handleGenerateLetters = async () => {
     if (!negativeAccounts || negativeAccounts.length === 0) {
@@ -356,12 +360,23 @@ export default function Dashboard() {
 
       console.log('[handleFileUpload] File uploaded successfully:', fileUrl);
 
-      if (bureau === 'combined' && !isAgencyUser && isFreeUser) {
-        // 3a. For combined reports, trigger light analysis for the FREE preview
-        setLightAnalysisResult({ fileUrl: fileUrl } as any);
-        toast.info('File uploaded. Running light analysis...');
+      if (bureau === 'combined') {
+        if (!isAgencyUser && isFreeUser) {
+          // 3a. For combined reports, trigger light analysis for the FREE preview
+          setLightAnalysisResult({ fileUrl: fileUrl } as any);
+          toast.info('File uploaded. Running light analysis...');
+        } else {
+          // 3b. For combined reports for paid/agency users, use uploadCombined endpoint
+          await trpc.creditReports.uploadCombined.mutateAsync({
+            fileName: file.name,
+            fileUrl: fileUrl,
+            fileKey: fileKey,
+          });
+          toast.success(`Combined report uploaded successfully! AI is extracting accounts...`);
+          refetchReports();
+        }
       } else {
-        // 3b. For individual reports or combined reports for paid/agency users, create the record and trigger full parsing
+        // 3c. For individual reports, create the record and trigger full parsing
         await uploadReport.mutateAsync({
           bureau: bureau as any,
           fileName: file.name,
@@ -369,6 +384,7 @@ export default function Dashboard() {
           fileKey: fileKey,
         });
         toast.success(`${bureau.charAt(0).toUpperCase() + bureau.slice(1)} report uploaded successfully!`);
+        refetchReports();
       }
     } catch (error) {
       console.error('Upload failed:', error);

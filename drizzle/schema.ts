@@ -125,7 +125,10 @@ export const creditReports = mysqlTable("credit_reports", {
   processingError: text("processingError"),
 });
 
-export type CreditReport = typeof creditReports.$inferSelect;
+export type CreditReport = typeof creditReports.$inferSelect & {
+  creditScore: number | null;
+  scoreModel: string | null;
+};
 export type InsertCreditReport = typeof creditReports.$inferInsert;
 
 /**
