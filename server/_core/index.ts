@@ -294,9 +294,9 @@ async function startServer() {
   );
   
   // development mode uses Vite, production mode uses static files
+  // Production build uses --define:process.env.NODE_ENV="production" so this branch is dead code;
+  // never imports vite-dev, avoiding ERR_MODULE_NOT_FOUND in containers.
   if (process.env.NODE_ENV === "development") {
-    // Dynamically import setupVite from vite-dev.ts only in development
-    // This file is NOT bundled for production, avoiding vite dependency issues
     const { setupVite } = await import("./vite-dev");
     await setupVite(app, server);
   } else {

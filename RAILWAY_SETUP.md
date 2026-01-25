@@ -48,6 +48,7 @@ All storage and file serving use **Railway disk only**. No `manus-upload-file` o
 
 - Use the **Dockerfile** (Railway detects it) or connect the repo and deploy.
 - **`PORT`** is set by Railway; the app uses it automatically.
+- **`NODE_ENV`**: Do **not** set `NODE_ENV=development` in Railway Variables. The production build bakes `NODE_ENV=production` and never imports `vite-dev`; using `development` can cause `ERR_MODULE_NOT_FOUND` for `/app/dist/vite-dev`.
 - Health check: **`GET /api/health`**.
 
 ## 5. Preview upload + Vision

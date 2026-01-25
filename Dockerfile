@@ -41,5 +41,5 @@ ENV NODE_ENV=production
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD ["sh", "-c", "wget --no-verbose --tries=1 --spider \"http://localhost:${PORT:-3000}/api/health\" || exit 1"]
 
-# Start the application
-CMD ["node", "dist/index.js"]
+# Start the application (NODE_ENV=production ensures we never import vite-dev)
+CMD ["sh", "-c", "NODE_ENV=production exec node dist/index.js"]
