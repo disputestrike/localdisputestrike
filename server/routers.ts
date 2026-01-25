@@ -379,7 +379,7 @@ export const appRouter = router({
         fileName: z.string(),
         contentType: z.string(),
       }))
-      .mutation(async ({ ctx, input }) => {
+      .query(async ({ ctx, input }) => {
         const { bureau, fileName, contentType } = input;
         const userId = ctx.user.id;
         

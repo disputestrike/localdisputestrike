@@ -309,7 +309,7 @@ export default function Dashboard() {
     
     try {
       // 1. Get secure, user-scoped file key from server
-      ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+      ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.queryFn({
         bureau,
         fileName: file.name,
         contentType: file.type,
@@ -705,7 +705,7 @@ export default function Dashboard() {
                           
                           try {
                             // 1. Get secure, user-scoped file key from server
-                            ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.mutateAsync({
+                            ({ fileKey, fileUrl: mockFileUrl } = await trpc.upload.getSignedUrl.queryFn({
                               bureau: 'combined',
                               fileName: file.name,
                               contentType: file.type,
