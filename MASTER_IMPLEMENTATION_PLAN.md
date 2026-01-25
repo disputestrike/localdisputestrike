@@ -4,6 +4,8 @@
 **Target Launch:** Next Week  
 **Status:** PENDING YOUR APPROVAL
 
+> **⚠️ Superseded (Jan 2026):** The $4.95 processing fee has been **removed** per the Compliance Audit. Direct upload is now **FREE** preview. See `COMPLIANCE_IMPLEMENTATION_PLAN.md` for current implementation.
+
 ---
 
 # TABLE OF CONTENTS

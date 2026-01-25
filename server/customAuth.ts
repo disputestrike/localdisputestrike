@@ -68,6 +68,7 @@ export interface RegisterInput {
   name: string;
   email: string;
   password: string;
+  affiliateSource?: 'smartcredit' | 'identityiq' | 'direct_upload' | 'none';
 }
 
 export interface LoginInput {
@@ -91,7 +92,7 @@ export interface AuthResult {
  * Register a new user with email and password
  */
 export async function registerUser(input: RegisterInput, baseUrl: string): Promise<AuthResult> {
-  const { name, email, password } = input;
+  const { name, email, password, affiliateSource } = input;
   
   // Validate input
   if (!name || name.trim().length < 2) {
@@ -138,6 +139,7 @@ export async function registerUser(input: RegisterInput, baseUrl: string): Promi
         emailVerified: false,
         emailVerificationToken: verificationToken,
         emailVerificationExpires: verificationExpires,
+        affiliateSource: affiliateSource || 'direct_upload',
 
       });
     } catch (dbError) {

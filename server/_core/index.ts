@@ -3,7 +3,6 @@ import express from "express";
 import cookieParser from "cookie-parser";
 // import passport from "passport"; // Disabled - social login removed
 import { createServer } from "http";
-import net from "net";
 import helmet from "helmet";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -13,25 +12,6 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic } from "./vite";
 import { startAllCronJobs } from "../cronJobs";
-
-function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise(resolve => {
-    const server = net.createServer();
-    server.listen(port, () => {
-      server.close(() => resolve(true));
-    });
-    server.on("error", () => resolve(false));
-  });
-}
-
-async function findAvailablePort(startPort: number = 3000): Promise<number> {
-  for (let port = startPort; port < startPort + 20; port++) {
-    if (await isPortAvailable(port)) {
-      return port;
-    }
-  }
-  throw new Error(`No available port found starting from ${startPort}`);
-}
 
 async function startServer() {
   const app = express();
@@ -80,7 +60,7 @@ async function startServer() {
   
   // 2. CORS - Cross-Origin Resource Sharing
   const allowedOrigins = [
-    process.env.VITE_APP_URL || "http://localhost:3000",
+    process.env.VITE_APP_URL || "http://localhost:3001",
     "https://api.manus.im",
     "https://js.stripe.com",
   ];
@@ -224,6 +204,10 @@ async function startServer() {
   // app.use(passport.initialize());
   // app.use('/api/auth', createSocialAuthRouter());
   
+  // Affiliate tracking + Free preview upload-and-analyze (Compliance Audit Jan 2026)
+  const affiliateAndPreviewRouter = (await import('../affiliateAndPreviewRouter')).default;
+  app.use('/api', affiliateAndPreviewRouter);
+
   // V2 - Trial, subscription, and round management routes
   const routesV2 = (await import('../routesV2')).default;
   app.use('/api', routesV2);
@@ -319,18 +303,22 @@ async function startServer() {
     serveStatic(app);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
+  const isDev = process.env.NODE_ENV === 'development';
+  const port = isDev
+    ? 3001
+    : parseInt(process.env.PORT || "3001", 10);
 
-  if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
-  }
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err?.code === 'EADDRINUSE') {
+      console.error(`\n[ERROR] Port ${port} is in use. Stop the process using it (e.g. another \`pnpm dev\` or the old server), then run \`pnpm dev\` again.\n`);
+      process.exit(1);
+    }
+    throw err;
+  });
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     console.log(`[SECURITY] Helmet, CORS, and Rate Limiting enabled`);
-    
-    // Start cron jobs after server is running
     startAllCronJobs();
   });
 }

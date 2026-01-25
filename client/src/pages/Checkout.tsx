@@ -14,13 +14,14 @@ import {
   Star,
   Loader2
 } from 'lucide-react';
+import { CONSUMER_PRICING, formatPrice } from "@/lib/pricing";
 
 const PLANS = {
   essential: {
     id: 'essential',
     name: 'Essential',
-    price: '$79.99',
-    priceAmount: 7999,
+    price: formatPrice(CONSUMER_PRICING.ESSENTIAL.monthlyPrice),
+    priceAmount: CONSUMER_PRICING.ESSENTIAL.monthlyPrice,
     period: '/month',
     features: [
       'Unlimited dispute rounds',
@@ -33,8 +34,8 @@ const PLANS = {
   complete: {
     id: 'complete',
     name: 'Complete',
-    price: '$129.99',
-    priceAmount: 12999,
+    price: formatPrice(CONSUMER_PRICING.COMPLETE.monthlyPrice),
+    priceAmount: CONSUMER_PRICING.COMPLETE.monthlyPrice,
     period: '/month',
     popular: true,
     features: [
@@ -43,20 +44,6 @@ const PLANS = {
       '5 mailings/month included',
       'CFPB complaint filing',
       'Furnisher disputes'
-    ]
-  },
-  // Legacy mapping
-  diy: {
-    id: 'essential',
-    name: 'Essential',
-    price: '$79.99',
-    priceAmount: 7999,
-    period: '/month',
-    features: [
-      'Unlimited dispute rounds',
-      'AI letter generation',
-      'FCRA-compliant letters',
-      'You print & mail letters'
     ]
   }
 };

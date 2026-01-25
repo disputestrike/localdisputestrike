@@ -115,7 +115,7 @@ describe('Agency Client Data Structure', () => {
   });
 });
 
-// Test agency plan tiers
+// Test agency plan tiers (SOURCE BIBLE v2.0 Jan 2026)
 describe('Agency Plan Tiers', () => {
   const planTiers = {
     starter: { price: 497, slots: 50 },

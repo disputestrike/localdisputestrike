@@ -75,6 +75,9 @@ import {
   userDocuments,
   InsertUserDocument,
   UserDocument,
+  smartcreditPulls,
+  InsertSmartcreditPull,
+  SmartcreditPull,
   subscriptionsV2,
   InsertSubscriptionV2,
   SubscriptionV2,
@@ -97,15 +100,20 @@ export async function getDb() {
       const dbUrl = process.env.DATABASE_URL;
       // Remove any existing ssl parameter from URL
       const cleanUrl = dbUrl.replace(/[?&]ssl=[^&]*/g, '');
-      // Add proper SSL configuration
+      // Add proper SSL configuration with connection timeout
       const sslUrl = cleanUrl.includes('?') 
-        ? `${cleanUrl}&ssl={"rejectUnauthorized":false}` 
-        : `${cleanUrl}?ssl={"rejectUnauthorized":false}`;
+        ? `${cleanUrl}&ssl={"rejectUnauthorized":false}&connectTimeout=10000` 
+        : `${cleanUrl}?ssl={"rejectUnauthorized":false}&connectTimeout=10000`;
       _db = drizzle(sslUrl);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      console.log("[Database] Database connection initialized");
+    } catch (error: any) {
+      console.error("[Database] Failed to connect:", error.message || error);
+      console.error("[Database] Error code:", error.code);
+      console.error("[Database] Check your DATABASE_URL environment variable");
       _db = null;
     }
+  } else if (!process.env.DATABASE_URL) {
+    console.warn("[Database] DATABASE_URL environment variable is not set");
   }
   return _db;
 }
@@ -466,6 +474,32 @@ export async function updateDisputeLetterStatus(
   await db.update(disputeLetters)
     .set({ status, ...updates })
     .where(eq(disputeLetters.id, letterId));
+}
+
+// ============================================================================
+// SMARTCREDIT PULL TRACKING
+// ============================================================================
+
+export async function recordSmartcreditPull(pull: InsertSmartcreditPull): Promise<SmartcreditPull> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(smartcreditPulls).values(pull);
+  const insertedId = Number(result[0].insertId);
+  const inserted = await db.select().from(smartcreditPulls).where(eq(smartcreditPulls.id, insertedId)).limit(1);
+  if (!inserted[0]) throw new Error("Failed to retrieve inserted SmartCredit pull");
+  return inserted[0];
+}
+
+export async function getLastSmartcreditPull(userId: number): Promise<SmartcreditPull | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(smartcreditPulls)
+    .where(eq(smartcreditPulls.userId, userId))
+    .orderBy(desc(smartcreditPulls.pulledAt))
+    .limit(1);
+  return result[0];
 }
 
 // ============================================================================
@@ -1780,7 +1814,7 @@ export async function upgradeToAgency(
   if (!db) return;
 
   const slotsByPlan = { starter: 50, professional: 200, enterprise: 500 };
-  const priceByPlan = { starter: 497, professional: 997, enterprise: 1997 };
+  const priceByPlan = { starter: 497, professional: 997, enterprise: 1997 }; // SOURCE BIBLE v2.0 Jan 2026
 
   await db.insert(agencies).values({
     userId,

@@ -1,7 +1,7 @@
 /**
  * Stripe Subscription Service
  * 
- * Handles complete subscription lifecycle:
+ * Handles complete subscription lifecycle (SOURCE BIBLE v2.0 Jan 2026):
  * - Free preview (no payment)
  * - Essential: $79.99/mo
  * - Complete: $129.99/mo
@@ -10,15 +10,14 @@
 
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2024-12-18.acacia',
-});
+const stripe: Stripe | null = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' })
+  : null;
 
-// Plan pricing (in cents)
+// Plan pricing (in cents) – SOURCE BIBLE v2.0 Jan 2026
 export const PLAN_PRICES = {
   essential: 7999, // $79.99
   complete: 12999, // $129.99
-  // Legacy mappings for backward compatibility
   diy: 7999, // Maps to Essential
 };
 
@@ -46,6 +45,7 @@ export async function createSubscription(params: {
   subscriptionId: string;
   customerId: string;
 }> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   const { email, plan, userId } = params;
   
   // Create or get customer

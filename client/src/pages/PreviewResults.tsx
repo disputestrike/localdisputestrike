@@ -1,17 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LightAnalysisResult } from "@/server/creditReportParser";
-import { Link } from "wouter";
-import { AlertTriangle, CheckCircle2, Lock, TrendingUp, ArrowRight, Check } from "lucide-react";
+import type { LightAnalysisResult } from "@shared/types";
+import { AlertTriangle, CheckCircle2, Lock, TrendingUp } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 interface PreviewResultsProps {
   analysis: LightAnalysisResult & { fileUrl: string };
   onUpgrade: () => void;
 }
-
-const SmartCreditAffiliateLink = "https://www.smartcredit.com/?PID=87529";
 
 const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) => {
   const { totalViolations, severityBreakdown, categoryBreakdown } = analysis;
@@ -104,28 +102,28 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) 
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-lg font-semibold text-gray-700">
-            The following critical details are currently blurred to protect our proprietary AI methods and your privacy:
+            The following critical details are currently blurred to protect our proprietary analysis and your privacy:
           </p>
           <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
             <li><span className="font-bold">Specific Account Names</span> (e.g., Chase Bank, Portfolio Recovery)</li>
-            <li><span className="font-bold">Proprietary Dispute Methods</span> (Our advanced FCRA violation checks)</li>
+            <li><span className="font-bold">Advanced FCRA Analysis</span> (Our dispute analysis and violation checks)</li>
             <li><span className="font-bold">Full Report Analysis</span> (Required to generate legal dispute letters)</li>
           </ul>
 
           <div className="flex flex-col md:flex-row gap-4 pt-4">
-            {/* Option 1: SmartCredit Affiliate (Recommended) - PRIMARY REVENUE DRIVER */}
-            <Button asChild className="flex-1 h-auto py-6 bg-green-600 hover:bg-green-700 text-white text-lg font-bold shadow-lg">
-              <a href={SmartCreditAffiliateLink} target="_blank" rel="noopener noreferrer">
-                <Check className="w-5 h-5 mr-2" />
-                Option 1: Get Full Report FREE via SmartCredit ($1 Trial)
-                <span className="text-sm font-normal block mt-1">Your sign-up covers the full AI analysis cost. **RECOMMENDED**</span>
-              </a>
+            <Button
+              onClick={onUpgrade}
+              className="flex-1 h-auto py-6 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg"
+            >
+              Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)
+              <span className="text-sm font-normal block mt-1">Print & mail letters yourself.</span>
             </Button>
-
-            {/* Option 2: Upgrade Subscription - FALLBACK */}
-            <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg">
-              Upgrade to DIY Plan ($49.99/mo)
-              <span className="text-sm font-normal block mt-1">Unlock full details and letter generation instantly.</span>
+            <Button
+              onClick={onUpgrade}
+              className="flex-1 h-auto py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg"
+            >
+              Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)
+              <span className="text-sm font-normal block mt-1">We mail for you (5/month included).</span>
             </Button>
           </div>
         </CardContent>

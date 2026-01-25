@@ -83,7 +83,7 @@ export default function DashboardHomeV2() {
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold text-gray-900">Welcome back, {dashboardData.user.fullName}!</h1>
             <Badge className={isCompleteTier ? "bg-orange-100 text-orange-700 border-orange-200" : "bg-blue-100 text-blue-700 border-blue-200"}>
-              {isCompleteTier ? "Complete Plan" : "DIY Plan"}
+              {isCompleteTier ? "Complete Plan" : "Essential Plan"}
             </Badge>
           </div>
           <div className="flex items-center gap-2">
@@ -253,7 +253,7 @@ export default function DashboardHomeV2() {
                       <Download className="w-6 h-6 text-blue-500 flex-shrink-0" />
                       <div>
                         <h4 className="font-semibold text-blue-900">Download & Mail Your Letters</h4>
-                        <p className="text-sm text-blue-700">On the DIY plan, you must print and mail these letters yourself via USPS Certified Mail.</p>
+                        <p className="text-sm text-blue-700">On the Essential plan, you must print and mail these letters yourself via USPS Certified Mail.</p>
                       </div>
                     </div>
 

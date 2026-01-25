@@ -26,8 +26,51 @@ const router = Router();
 // Get base URL from request
 function getBaseUrl(req: any): string {
   const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'http';
-  const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3000';
-  return `${protocol}://${host}`;
+  // Prefer x-forwarded-host (for proxies), then host header, then fallback
+  const host = req.headers['x-forwarded-host'] || req.headers.host || 'localhost:3001';
+  const baseUrl = `${protocol}://${host}`;
+  console.log('[Auth] Base URL:', baseUrl, 'from headers:', { 
+    'x-forwarded-host': req.headers['x-forwarded-host'],
+    'x-forwarded-proto': req.headers['x-forwarded-proto'],
+    host: req.headers.host,
+    protocol: req.protocol
+  });
+  return baseUrl;
+}
+
+function getAffiliateSource(req: any): 'smartcredit' | 'identityiq' | 'direct_upload' | 'none' {
+  const raw = (req.cookies?.affiliate_source || '').toString().toLowerCase();
+  if (raw === 'smartcredit' || raw === 'identityiq' || raw === 'none') {
+    return raw;
+  }
+  return 'direct_upload';
+}
+
+/**
+ * Google OAuth redirect_uri must EXACTLY match one of the "Authorized redirect URIs"
+ * in Google Cloud Console. Use GOOGLE_REDIRECT_URI to force a specific URI.
+ * We normalize 127.0.0.1 → localhost so it matches typical Google Console setup.
+ *
+ * In development, prefer VITE_APP_URL or BASE_URL when set so the redirect_uri is
+ * stable and matches what you added in Google Console (avoids port/Host mismatches).
+ */
+function getGoogleRedirectUri(req: any): string {
+  if (process.env.GOOGLE_REDIRECT_URI) {
+    return process.env.GOOGLE_REDIRECT_URI.replace(/\/$/, '');
+  }
+  const isDev = process.env.NODE_ENV !== 'production';
+  const envBase = (process.env.VITE_APP_URL || process.env.BASE_URL || '').trim().replace(/\/$/, '');
+  if (isDev && envBase) {
+    let base = envBase.replace(/^http:\/\/127\.0\.0\.1(:\d+)?/, (_, port) =>
+      `http://localhost${port || ''}`
+    );
+    return `${base}/api/auth/google/callback`;
+  }
+  let base = getBaseUrl(req).replace(/\/$/, '');
+  base = base.replace(/^http:\/\/127\.0\.0\.1(:\d+)?/, (_, port) =>
+    `http://localhost${port || ''}`
+  );
+  return `${base}/api/auth/google/callback`;
 }
 
 /**
@@ -38,11 +81,13 @@ router.post('/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     const baseUrl = getBaseUrl(req);
+    const affiliateSource = getAffiliateSource(req);
     
     const result = await registerUser({ 
       name, 
       email, 
-      password
+      password,
+      affiliateSource,
     }, baseUrl);
     
     if (result.success) {
@@ -393,20 +438,42 @@ router.delete('/delete-account', async (req, res) => {
 });
 
 /**
+ * GET /api/auth/google/redirect-uri
+ * Debug: returns the exact redirect_uri we send to Google. Visit from the same
+ * origin you use for login (e.g. http://localhost:3001), then add this EXACT
+ * string to Google Console → Credentials → OAuth client → Authorized redirect URIs.
+ */
+router.get('/google/redirect-uri', (req, res) => {
+  const redirectUri = getGoogleRedirectUri(req);
+  console.log('[Auth] Google redirect_uri (copy to Google Console):', redirectUri);
+  res.json({
+    redirectUri,
+    currentUrl: `${req.protocol}://${req.get('host')}${req.originalUrl}`,
+    headers: {
+      host: req.headers.host,
+      'x-forwarded-host': req.headers['x-forwarded-host'],
+      'x-forwarded-proto': req.headers['x-forwarded-proto'],
+    },
+    hint: 'Add this EXACT string to Google Cloud Console → APIs & Services → Credentials → your OAuth client → Authorized redirect URIs. No trailing slash.',
+  });
+});
+
+/**
  * GET /api/auth/google
  * Redirect to Google OAuth
  */
 router.get('/google', (req, res) => {
   try {
-    const baseUrl = getBaseUrl(req);
-    const redirectUri = `${baseUrl}/api/auth/google/callback`;
+    const redirectUri = getGoogleRedirectUri(req);
     const state = req.query.redirect as string || '/dashboard';
-    
+    console.log('[Auth] Google OAuth redirect_uri:', redirectUri, 'state:', state);
     const authUrl = getGoogleAuthUrl(redirectUri, state);
+    console.log('[Auth] Redirecting to Google:', authUrl);
     res.redirect(authUrl);
   } catch (error) {
-    console.error('[Auth Router] Google auth error:', error);
-    res.redirect('/login?error=google_auth_failed');
+    const message = error instanceof Error ? error.message : 'Google auth failed';
+    console.error('[Auth Router] Google auth error:', message);
+    res.redirect(`/login?error=${encodeURIComponent(message)}`);
   }
 });
 
@@ -418,19 +485,28 @@ router.get('/google/callback', async (req, res) => {
   try {
     const { code, state, error } = req.query;
     
+    console.log('[Auth Router] Google callback received:', { 
+      hasCode: !!code, 
+      hasState: !!state, 
+      error,
+      url: req.url,
+      host: req.headers.host 
+    });
+    
     if (error) {
-      console.error('[Auth Router] Google auth error:', error);
-      return res.redirect('/login?error=google_auth_denied');
+      console.error('[Auth Router] Google auth error from query:', error);
+      return res.redirect('/login?error=' + encodeURIComponent(`Google auth error: ${error}`));
     }
     
     if (!code || typeof code !== 'string') {
+      console.error('[Auth Router] No authorization code received');
       return res.redirect('/login?error=no_code');
     }
     
-    const baseUrl = getBaseUrl(req);
-    const redirectUri = `${baseUrl}/api/auth/google/callback`;
-    
-    const result = await handleGoogleCallback(code, redirectUri);
+    const redirectUri = getGoogleRedirectUri(req);
+    console.log('[Auth Router] Using redirect_uri for token exchange:', redirectUri);
+    const affiliateSource = getAffiliateSource(req);
+    const result = await handleGoogleCallback(code, redirectUri, affiliateSource);
     
     if (result.success && result.token) {
       // Set HTTP-only cookies
@@ -462,8 +538,9 @@ router.get('/google/callback', async (req, res) => {
       return res.redirect(`/login?error=${encodeURIComponent(result.message)}`);
     }
   } catch (error) {
-    console.error('[Auth Router] Google callback error:', error);
-    res.redirect('/login?error=google_callback_failed');
+    const message = error instanceof Error ? error.message : 'Google callback failed';
+    console.error('[Auth Router] Google callback error:', message);
+    res.redirect(`/login?error=${encodeURIComponent(message)}`);
   }
 });
 

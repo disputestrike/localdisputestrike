@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Zap, Clock, ArrowRight, X, Loader2, Check } from 'lucide-react';
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 interface UpgradeBannerProps {
   trialEndsAt: Date;
@@ -18,7 +19,7 @@ export default function UpgradeBanner({ trialEndsAt, currentPlan, onUpgrade }: U
   const daysLeft = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
   const hoursLeft = Math.ceil((trialEndsAt.getTime() - now.getTime()) / (1000 * 60 * 60));
   
-  const planPrice = currentPlan === 'complete' ? '$129.99' : '$79.99';
+  const planPrice = currentPlan === 'complete' ? CONSUMER_PRICE_LABELS.complete : CONSUMER_PRICE_LABELS.essential;
   
   const handleUpgrade = async () => {
     setLoading(true);

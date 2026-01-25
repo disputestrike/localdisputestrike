@@ -5,10 +5,10 @@
  * This file is kept for backward compatibility with old checkout flow.
  * The new pricing model uses productsV2.ts with subscription tiers.
  * 
- * SINGLE SOURCE OF TRUTH (January 2026):
- * - Essential: $79.99/month (formerly DIY at $49.99)
- * - Complete: $129.99/month (formerly $79.99)
- * - Agency: $497/$997/$1997 (separate pricing)
+ * SOURCE BIBLE v2.0 Jan 2026:
+ * - Essential: $79.99/month
+ * - Complete: $129.99/month
+ * - Agency: $497 / $997 / $1,997 (separate pricing)
  */
 
 export interface Product {
@@ -27,7 +27,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'essential',
     name: 'Essential',
     description: 'Everything you need to fix your credit (You mail)',
-    price: 7999, // $79.99/month
+    price: 7999, // $79.99/month (SOURCE BIBLE v2.0 Jan 2026)
     features: [
       'Upload reports from anywhere',
       'Full AI violation analysis',
@@ -43,7 +43,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'complete',
     name: 'Complete',
     description: 'We mail everything for you',
-    price: 12999, // $129.99/month
+    price: 12999, // $129.99/month (SOURCE BIBLE v2.0 Jan 2026)
     features: [
       'Everything in Essential',
       'Automated certified mailing',
@@ -64,7 +64,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'essential',
     name: 'Essential',
     description: 'Everything you need to fix your credit (You mail)',
-    price: 7999, // $79.99/month - mapped from old DIY
+    price: 7999, // $79.99/month (SOURCE BIBLE v2.0 Jan 2026)
     features: [
       'Upload reports from anywhere',
       'Full AI violation analysis',
@@ -77,7 +77,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'essential',
     name: 'Essential',
     description: 'Everything you need to fix your credit (You mail)',
-    price: 7999, // $79.99/month - mapped from old DIY
+    price: 7999, // $79.99/month (SOURCE BIBLE v2.0 Jan 2026)
     features: [
       'Unlimited dispute rounds',
       'Full AI analysis',
@@ -90,7 +90,7 @@ export const PRODUCTS: Record<string, Product> = {
     id: 'complete',
     name: 'Complete',
     description: 'We mail everything for you',
-    price: 12999, // $129.99/month
+    price: 12999, // $129.99/month (SOURCE BIBLE v2.0 Jan 2026)
     features: [
       'Everything in Essential',
       'We mail everything via certified mail',

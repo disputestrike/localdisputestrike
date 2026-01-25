@@ -10,6 +10,9 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  affiliateSource: mysqlEnum("affiliateSource", ["smartcredit", "identityiq", "direct_upload", "none"])
+    .default("direct_upload")
+    .notNull(),
   
   // Custom Auth Fields (for self-hosting without Manus OAuth)
   passwordHash: varchar("passwordHash", { length: 255 }), // bcrypt hash
@@ -18,6 +21,7 @@ export const users = mysqlTable("users", {
   emailVerificationExpires: timestamp("emailVerificationExpires"),
   passwordResetToken: varchar("passwordResetToken", { length: 255 }),
   passwordResetExpires: timestamp("passwordResetExpires"),
+  lastSignedIn: timestamp("lastSignedIn").defaultNow(),
   
   // Identity and Address Fields (for IdentityIQ integration)
   // firstName: varchar("firstName", { length: 255 }),
@@ -235,6 +239,17 @@ export const smartcreditTokens = mysqlTable("smartcredit_tokens", {
   createdAt: timestamp("created_at").notNull(),
   updatedAt: timestamp("updated_at").notNull(),
 });
+
+// SmartCredit report pull tracking (manual user pulls)
+export const smartcreditPulls = mysqlTable("smartcredit_pulls", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("user_id").notNull(),
+  pulledAt: timestamp("pulled_at").defaultNow().notNull(),
+  source: mysqlEnum("source", ["smartcredit", "annualcreditreport", "direct_upload"]).default("smartcredit").notNull(),
+});
+
+export type SmartcreditPull = typeof smartcreditPulls.$inferSelect;
+export type InsertSmartcreditPull = typeof smartcreditPulls.$inferInsert;
 
 // Parser comparison logs (custom parser vs SmartCredit)
 export const parserComparisons = mysqlTable("parser_comparisons", {

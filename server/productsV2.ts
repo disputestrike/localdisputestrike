@@ -1,11 +1,11 @@
 /**
  * DisputeStrike V2 - Product and Pricing Configuration
  * 
- * FINAL PRICING STRUCTURE (January 2026):
+ * FINAL PRICING STRUCTURE (SOURCE BIBLE v2.0 Jan 2026):
  * - Free Preview - See violation counts (blurred details)
- * - Essential ($79.99/mo) - Unlimited rounds + monitoring (User mails)
- * - Complete ($129.99/mo) - Unlimited rounds + we mail + CFPB + Furnisher
- * - Agency: $497/$997/$1997 (separate pricing)
+ * - Essential ($79.99/mo) - Unlimited rounds, user mails
+ * - Complete ($129.99/mo) - We mail + CFPB + Furnisher
+ * - Agency: $497 / $997 / $1,997 (separate pricing)
  * 
  * SmartCredit Integration:
  * - Essential: SmartCredit is OPTIONAL (+$29.99/mo billed separately by ConsumerDirect)
@@ -33,8 +33,8 @@ export interface SubscriptionTier {
 // STRIPE PRICE IDS - TEST MODE
 // To switch to LIVE mode, create products in Stripe Live Dashboard and update these
 export const STRIPE_PRICE_IDS = {
-  essential: process.env.STRIPE_ESSENTIAL_PRICE_ID || 'price_1St92mJbDEkzZWwHpe7Ljb1h', // $79.99/mo TEST
-  complete: process.env.STRIPE_COMPLETE_PRICE_ID || 'price_1St9QKJbDEkzZWwHbzChpIVL',   // $129.99/mo TEST
+  essential: process.env.STRIPE_ESSENTIAL_PRICE_ID || 'price_1St92mJbDEkzZWwHpe7Ljb1h', // $79.99/mo
+  complete: process.env.STRIPE_COMPLETE_PRICE_ID || 'price_1St9QKJbDEkzZWwHbzChpIVL',   // $129.99/mo
 };
 
 export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
@@ -42,7 +42,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
     id: 'essential',
     name: 'Essential',
     description: 'Everything you need to fix your credit',
-    monthlyPrice: 7999,  // $79.99
+    monthlyPrice: 7999,  // $79.99 (SOURCE BIBLE v2.0 Jan 2026)
     stripePriceId: STRIPE_PRICE_IDS.essential,
     features: [
       'Upload reports from anywhere',
@@ -66,7 +66,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
     id: 'complete',
     name: 'Complete',
     description: 'We mail everything for you',
-    monthlyPrice: 12999,  // $129.99
+    monthlyPrice: 12999,  // $129.99 (SOURCE BIBLE v2.0 Jan 2026)
     stripePriceId: STRIPE_PRICE_IDS.complete,
     features: [
       'Everything in Essential, PLUS:',
@@ -95,7 +95,7 @@ export const SUBSCRIPTION_TIERS: Record<string, SubscriptionTier> = {
     id: 'essential',
     name: 'Essential',
     description: 'Everything you need to fix your credit',
-    monthlyPrice: 7999,  // $79.99 - mapped from old DIY
+    monthlyPrice: 7999,  // $79.99 (SOURCE BIBLE v2.0 Jan 2026)
     stripePriceId: STRIPE_PRICE_IDS.essential,
     features: [
       'Upload reports from anywhere',

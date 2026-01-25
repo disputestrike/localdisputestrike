@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, ArrowRight, ArrowLeft, Shield, TrendingUp, Zap, AlertTriangle, Star, Crown, Sparkles, Clock, FileText, Target, Award, Lock, Check, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 // Toast functionality - using simple alerts for now
 const toast = ({ title, description, variant }: { title: string; description?: string; variant?: string }) => {
@@ -483,7 +484,7 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$79.99</div>
+                            <div className="text-3xl font-bold">{CONSUMER_PRICE_LABELS.essential}</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
@@ -519,7 +520,7 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$79.99</div>
+                            <div className="text-3xl font-bold">{CONSUMER_PRICE_LABELS.essential}</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>
@@ -556,7 +557,7 @@ export default function Quiz() {
                             </ul>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold">$129.99</div>
+                            <div className="text-3xl font-bold">{CONSUMER_PRICE_LABELS.complete}</div>
                             <div className="text-sm text-muted-foreground">/month</div>
                           </div>
                         </div>

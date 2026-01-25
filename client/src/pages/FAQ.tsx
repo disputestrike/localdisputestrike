@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { ChevronDown } from "lucide-react";
 import { Link } from "wouter";
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 export default function FAQ() {
   const { isAuthenticated } = useAuth();
@@ -15,7 +16,7 @@ export default function FAQ() {
   const faqs = [
     {
       q: "How is this different from other credit monitoring services?",
-      a: "We use AI to detect cross-bureau conflicts that support removal requests under FCRA law. Most services use generic templates with 30-40% success rates. Our documentation-driven letters get results vary by cases. Plus, our affordable monthly plans start at just $79.99/month with no long-term contracts - cancel anytime."
+      a: `We use AI to detect cross-bureau conflicts that support removal requests under FCRA law. Most services use generic templates with 30-40% success rates. Our documentation-driven letters get results vary by cases. Plus, our affordable monthly plans start at just ${CONSUMER_PRICE_LABELS.essential}/month with no long-term contracts - cancel anytime.`
     },
     {
       q: "Is this legal?",
@@ -31,11 +32,11 @@ export default function FAQ() {
     },
     {
       q: "What if nothing gets deleted?",
-      a: "While many users see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters. We also offer a 110% software satisfaction guarantee if you're not satisfied."
+      a: "While many users see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. The Complete plan includes unlimited letters. We also offer a 110% software satisfaction guarantee if you're not satisfied."
     },
     {
       q: "How much does traditional credit monitoring cost?",
-      a: "Traditional credit repair companies charge $99-$149/month with 6-12 month contracts and limited results. Our plans start at just $79.99/month with unlimited dispute rounds, and you can cancel anytime. Plus, start with a free preview to see your credit violations."
+      a: `Traditional credit repair companies charge $99-$149/month with 6-12 month contracts and limited results. Our plans start at just ${CONSUMER_PRICE_LABELS.essential}/month with unlimited dispute rounds, and you can cancel anytime. Plus, start with a free preview to see your credit violations.`
     },
     {
       q: "What documents do I need to mail with my letters?",
@@ -75,7 +76,7 @@ export default function FAQ() {
     },
     {
       q: "What if I need help or have questions?",
-      a: "All packages include email support. Complete Package package includes priority support with faster response times. We also provide comprehensive guides, mailing instructions, and escalation templates for every scenario."
+      a: "All plans include email support. The Complete plan includes priority support with faster response times. We also provide comprehensive guides, mailing instructions, and escalation templates for every scenario."
     }
   ];
 

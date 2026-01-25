@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
 import PreviewResults from "@/pages/PreviewResults";
+import PreviewResultsPage from "@/pages/PreviewResultsPage";
 import AIAssistant from "@/pages/AIAssistant";
 import LetterView from "@/pages/LetterView";
 import AdminEnhanced from "@/pages/AdminEnhanced";
@@ -59,7 +60,6 @@ import VerifyEmail from "./pages/VerifyEmail";
 import { CookieConsent } from "./components/CookieConsent";
 
 // V2 - New Flow Pages
-import PreviewResults from "./pages/PreviewResults";
 import CreditAnalysis from "./pages/CreditAnalysis";
 import OnboardingWizard from "./pages/OnboardingWizard";
 import ResponseUpload from "./pages/ResponseUpload";
@@ -104,7 +104,7 @@ function Router() {
       <Route path="/your-rights" component={FCRARights} />
       
       {/* V2 - Flow Routes */}
-      <Route path="/preview-results" component={PreviewResults} />
+      <Route path="/preview-results" component={PreviewResultsPage} />
       <Route path="/trial-checkout">{() => { window.location.href = '/pricing'; return null; }}</Route>
       <Route path="/checkout" component={Checkout} />
       <Route path="/trial-success" component={CreditAnalysis} />
@@ -114,7 +114,7 @@ function Router() {
       
       {/* Dashboard Routes */}
         <Route path="/dashboard" component={Dashboard} />
-        <Route path="/dashboard/preview" component={PreviewResults} />
+        <Route path="/dashboard/preview" component={PreviewResultsPage} />
       <Route path="/dashboard/home" component={DashboardHome} />
       <Route path="/dashboard/v2" component={DashboardHomeV2} />
       

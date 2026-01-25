@@ -404,7 +404,7 @@ export const appRouter = router({
         // For Railway volume storage, files are uploaded via /api/upload endpoint
         const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
           ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-          : process.env.BASE_URL || 'http://localhost:3000';
+          : process.env.BASE_URL || 'http://localhost:3001';
         
         const uploadUrl = `${baseUrl}/api/upload`;
         const fileUrl = `${baseUrl}/api/files/${encodeURIComponent(fileKey)}`;
@@ -436,7 +436,7 @@ export const appRouter = router({
         // For Railway volume storage, files are uploaded via /api/upload endpoint
         const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
           ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-          : process.env.BASE_URL || 'http://localhost:3000';
+          : process.env.BASE_URL || 'http://localhost:3001';
         
         const uploadUrl = `${baseUrl}/api/upload`;
         const fileUrl = `${baseUrl}/api/files/${encodeURIComponent(secureFileKey)}`;
@@ -1229,6 +1229,67 @@ Be thorough and list every negative item found.`;
       }),
   }),
 
+  smartCredit: router({
+    /**
+     * Check if user can pull new SmartCredit reports (30-day limit)
+     */
+    canPull: protectedProcedure.query(async ({ ctx }) => {
+      const lastPull = await db.getLastSmartcreditPull(ctx.user.id);
+      if (!lastPull?.pulledAt) {
+        return {
+          allowed: true,
+          daysRemaining: 0,
+          nextPullDate: null,
+          lastPullAt: null,
+        };
+      }
+
+      const lastPullDate = new Date(lastPull.pulledAt);
+      const nextPullDate = new Date(lastPullDate);
+      nextPullDate.setDate(nextPullDate.getDate() + 30);
+      const now = new Date();
+      const diffMs = nextPullDate.getTime() - now.getTime();
+      const daysRemaining = diffMs > 0 ? Math.ceil(diffMs / (1000 * 60 * 60 * 24)) : 0;
+
+      return {
+        allowed: diffMs <= 0,
+        daysRemaining,
+        nextPullDate: diffMs > 0 ? nextPullDate : null,
+        lastPullAt: lastPullDate,
+      };
+    }),
+
+    /**
+     * Record a SmartCredit pull (manual user download)
+     */
+    recordPull: protectedProcedure
+      .input(z.object({
+        source: z.enum(['smartcredit', 'annualcreditreport', 'direct_upload']).optional(),
+      }).optional())
+      .mutation(async ({ ctx, input }) => {
+        const lastPull = await db.getLastSmartcreditPull(ctx.user.id);
+        if (lastPull?.pulledAt) {
+          const lastPullDate = new Date(lastPull.pulledAt);
+          const nextPullDate = new Date(lastPullDate);
+          nextPullDate.setDate(nextPullDate.getDate() + 30);
+          if (new Date() < nextPullDate) {
+            return {
+              success: false,
+              message: 'Report pulls are limited to once per 30 days.',
+              nextPullDate,
+            };
+          }
+        }
+
+        await db.recordSmartcreditPull({
+          userId: ctx.user.id,
+          source: input?.source || 'smartcredit',
+        });
+
+        return { success: true };
+      }),
+  }),
+
   scoreHistory: router({
     /**
      * Get credit score history for user
@@ -1534,6 +1595,51 @@ Be thorough and list every negative item found.`;
         if (input.accountIds && input.accountIds.length > 0) {
           accounts = accounts.filter(a => input.accountIds!.includes(a.id));
         }
+
+        // --- PER-ACCOUNT 30-DAY DISPUTE LOCK + MAX 3 ROUNDS ---
+        const existingLetters = await db.getDisputeLettersByUserId(userId);
+        const now = new Date();
+        const lockWindowMs = 30 * 24 * 60 * 60 * 1000;
+        const lockedAccounts: string[] = [];
+        const maxedAccounts: string[] = [];
+
+        for (const account of accounts) {
+          const related = existingLetters.filter(letter => {
+            if (!letter.accountsDisputed) return false;
+            try {
+              const ids = JSON.parse(letter.accountsDisputed) as number[];
+              return Array.isArray(ids) && ids.includes(account.id);
+            } catch {
+              return false;
+            }
+          });
+
+          const rounds = related.length;
+          if (rounds >= 3) {
+            maxedAccounts.push(account.accountName);
+            continue;
+          }
+
+          const lastLetter = related.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+          if (lastLetter && now.getTime() - lastLetter.createdAt.getTime() < lockWindowMs) {
+            lockedAccounts.push(account.accountName);
+          }
+        }
+
+        if (maxedAccounts.length > 0) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `Max 3 dispute rounds reached for: ${maxedAccounts.slice(0, 3).join(', ')}${maxedAccounts.length > 3 ? '…' : ''}`,
+          });
+        }
+
+        if (lockedAccounts.length > 0) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: `30-day lock active for: ${lockedAccounts.slice(0, 3).join(', ')}${lockedAccounts.length > 3 ? '…' : ''}`,
+          });
+        }
+        // --- END PER-ACCOUNT LOCK ---
         
         // Import AI letter generator
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
@@ -2617,7 +2723,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           throw new Error('Invalid product');
         }
         
-        const origin = ctx.req.headers.origin || 'http://localhost:3000';
+        const origin = ctx.req.headers.origin || 'http://localhost:3001';
         
         // Create Stripe checkout session
         const session = await stripe.checkout.sessions.create({

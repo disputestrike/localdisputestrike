@@ -1,26 +1,27 @@
 /**
  * Credit Analysis Dashboard
- * 
+ *
  * Shown after subscription payment - displays real credit data and AI recommendations
  * Full access for Essential and Complete subscribers
  */
 
-import { useState, useEffect } from 'react';
-import { useLocation, Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
-import { 
-  Shield, 
-  AlertTriangle, 
-  TrendingUp, 
-  CheckCircle, 
-  Lock, 
+import { useState, useEffect, useMemo } from "react";
+import { useLocation, Link } from "wouter";
+import { trpc } from "@/lib/trpc";
+import {
+  Shield,
+  AlertTriangle,
+  TrendingUp,
+  CheckCircle,
+  Lock,
   Clock,
   ChevronRight,
   Zap,
   Target,
   DollarSign,
-  Star
-} from 'lucide-react';
+  Star,
+} from "lucide-react";
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 interface CreditScore {
   bureau: string;
@@ -50,100 +51,92 @@ interface AnalysisData {
   estimatedScoreIncrease: number;
   estimatedInterestSavings: number;
   trialEndsAt: string;
-  subscription: {
-    status: string;
-    tier: string;
-  };
+  subscription: { status: string; tier: string };
 }
 
-// Mock data for demo
-const mockAnalysis: AnalysisData = {
-  scores: [
-    { bureau: 'TransUnion', score: 642, change: -12 },
-    { bureau: 'Equifax', score: 638, change: -8 },
-    { bureau: 'Experian', score: 651, change: -5 },
-  ],
-  negativeItems: [
-    {
-      id: 1,
-      accountName: 'PORTFOLIO RECOVERY',
-      accountType: 'Collection',
-      balance: 2847,
-      bureau: 'All 3',
-      status: 'Collection',
-      isRecommended: true,
-      winProbability: 89,
-      recommendationReason: 'Balance conflicts across bureaus - strong case for deletion',
-      hasConflicts: true,
-    },
-    {
-      id: 2,
-      accountName: 'CAPITAL ONE',
-      accountType: 'Credit Card',
-      balance: 1200,
-      bureau: 'TransUnion, Equifax',
-      status: '90 Day Late',
-      isRecommended: true,
-      winProbability: 76,
-      recommendationReason: 'Date reporting error detected between bureaus',
-      hasConflicts: true,
-    },
-    {
-      id: 3,
-      accountName: 'MIDLAND CREDIT',
-      accountType: 'Collection',
-      balance: 1203,
-      bureau: 'Experian',
-      status: 'Collection',
-      isRecommended: true,
-      winProbability: 82,
-      recommendationReason: 'Original creditor info missing - potential FCRA violation',
-      hasConflicts: false,
-    },
-    {
-      id: 4,
-      accountName: 'SYNCHRONY BANK',
-      accountType: 'Credit Card',
-      balance: 890,
-      bureau: 'All 3',
-      status: 'Charge-off',
-      isRecommended: false,
-      winProbability: 45,
-      recommendationReason: 'Consistent reporting across bureaus',
-      hasConflicts: false,
-    },
-    {
-      id: 5,
-      accountName: 'MEDICAL COLLECTION',
-      accountType: 'Medical',
-      balance: 450,
-      bureau: 'Equifax',
-      status: 'Collection',
-      isRecommended: true,
-      winProbability: 72,
-      recommendationReason: 'Medical collections have weak documentation requirements',
-      hasConflicts: false,
-    },
-  ],
-  totalNegativeItems: 8,
-  estimatedScoreIncrease: 87,
-  estimatedInterestSavings: 4200,
-  trialEndsAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  subscription: {
-    status: 'trial',
-    tier: 'none',
-  },
+const BUREAU_LABELS: Record<string, string> = {
+  transunion: "TransUnion",
+  equifax: "Equifax",
+  experian: "Experian",
 };
 
 export default function CreditAnalysis() {
   const [, setLocation] = useLocation();
-  const [selectedTier, setSelectedTier] = useState<'diy' | 'complete'>('complete');
+  const [selectedTier, setSelectedTier] = useState<"essential" | "complete">("complete");
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const MAX_ITEMS_PER_ROUND = 5;
 
-  // Use mock data for demo, replace with real API call
-  const analysis = mockAnalysis;
-  const isLoading = false;
+  const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const { data: negativeAccounts = [], isLoading: accountsLoading } = trpc.negativeAccounts.list.useQuery();
+  const { data: profile } = trpc.profile.get.useQuery();
+
+  const analysis = useMemo((): AnalysisData => {
+    const scores: CreditScore[] = [
+      { bureau: "TransUnion", score: 0 },
+      { bureau: "Equifax", score: 0 },
+      { bureau: "Experian", score: 0 },
+    ];
+    const byBureau: Record<string, CreditScore> = {
+      TransUnion: scores[0],
+      Equifax: scores[1],
+      Experian: scores[2],
+    };
+    for (const r of creditReports) {
+      const label = BUREAU_LABELS[r.bureau] || r.bureau;
+      const existing = byBureau[label];
+      if (existing && r.creditScore != null) {
+        existing.score = r.creditScore;
+      }
+    }
+    const negativeItems: NegativeItem[] = negativeAccounts.map((a) => {
+      const bal = typeof a.balance === "string" ? parseFloat(a.balance) || 0 : Number(a.balance) || 0;
+      const hasConflicts = !!a.hasConflicts;
+      const bureauLabel = (a.bureau || "")
+        .split(/[,/]/)
+        .map((b) => BUREAU_LABELS[b.trim().toLowerCase()] || b.trim())
+        .filter(Boolean)
+        .join(", ") || "—";
+      return {
+        id: a.id,
+        accountName: a.accountName || "Unknown",
+        accountType: a.accountType || "Unknown",
+        balance: bal,
+        bureau: bureauLabel || "—",
+        status: a.status || "—",
+        dateOpened: a.dateOpened ?? undefined,
+        lastActivity: a.lastActivity ?? undefined,
+        isRecommended: hasConflicts,
+        winProbability: hasConflicts ? 78 : 55,
+        recommendationReason: hasConflicts
+          ? "Conflicts across bureaus – strong dispute case"
+          : "Standard dispute opportunity",
+        hasConflicts,
+      };
+    });
+
+    const totalNegativeItems = negativeItems.length;
+    const conflictCount = negativeItems.filter((i) => i.hasConflicts).length;
+    const estimatedScoreIncrease = Math.min(120, conflictCount * 15 + (totalNegativeItems - conflictCount) * 6);
+    const totalBalance = negativeItems.reduce((sum, i) => sum + i.balance, 0);
+    const estimatedInterestSavings = Math.round(totalBalance * 0.12);
+
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 7);
+    const subscriptionTier = (profile as { subscriptionTier?: string })?.subscriptionTier ?? "none";
+    const subStatus = subscriptionTier === "none" ? "trial" : "active";
+
+    return {
+      scores,
+      negativeItems,
+      totalNegativeItems,
+      estimatedScoreIncrease,
+      estimatedInterestSavings,
+      trialEndsAt: trialEnd.toISOString(),
+      subscription: { status: subStatus, tier: subscriptionTier },
+    };
+  }, [creditReports, negativeAccounts, profile]);
+
+  const isLoading = reportsLoading || accountsLoading;
 
   const getDaysRemaining = () => {
     if (!analysis?.trialEndsAt) return 7;
@@ -181,7 +174,7 @@ export default function CreditAnalysis() {
     {
       id: 'essential' as const,
       name: 'Essential',
-      price: '$79.99',
+      price: CONSUMER_PRICE_LABELS.essential,
       period: '/month',
       rounds: 'Unlimited',
       features: ['Unlimited dispute rounds', '30-day intervals', 'AI letter generation', 'You mail letters'],
@@ -189,7 +182,7 @@ export default function CreditAnalysis() {
     {
       id: 'complete' as const,
       name: 'Complete',
-      price: '$129.99',
+      price: CONSUMER_PRICE_LABELS.complete,
       period: '/month',
       rounds: 'Unlimited',
       popular: true,
@@ -232,6 +225,27 @@ export default function CreditAnalysis() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your credit analysis...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const hasNoData = !analysis.totalNegativeItems && !creditReports.length;
+  if (hasNoData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md px-4">
+          <Shield className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-gray-900 mb-2">No credit data yet</h1>
+          <p className="text-gray-600 mb-6">
+            Upload your credit reports from the dashboard to see your scores, negative items, and AI recommendations.
+          </p>
+          <Link href="/dashboard">
+            <a className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium">
+              Go to Dashboard
+              <ChevronRight className="w-4 h-4" />
+            </a>
+          </Link>
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -30,22 +30,43 @@ const GoogleIcon = () => (
 );
 
 export default function Login() {
-  const [location, setLocation] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [redirectUriHint, setRedirectUriHint] = useState(
+    typeof window !== "undefined"
+      ? `${window.location.origin}/api/auth/google/callback`
+      : "http://localhost:3001/api/auth/google/callback"
+  );
 
   // Check for error in URL params (from Google OAuth redirect)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlError = params.get('error');
     if (urlError) {
-      setError(decodeURIComponent(urlError));
-      // Clean up URL
+      const decoded = decodeURIComponent(urlError);
+      setError(decoded);
       window.history.replaceState({}, '', '/login');
     }
+  }, []);
+  const isRedirectMismatch = error?.toLowerCase().includes('redirect_uri_mismatch') ?? false;
+  
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/auth/google/redirect-uri", { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!isMounted || !data?.redirectUri) return;
+        setRedirectUriHint(data.redirectUri);
+      })
+      .catch(() => {
+        // Ignore - fallback is already set.
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const handleGoogleSignIn = () => {
@@ -126,7 +147,17 @@ export default function Login() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <Alert variant="destructive" className="bg-red-50 border-red-200">
-                  <AlertDescription className="text-red-600">{error}</AlertDescription>
+                  <AlertDescription className="text-red-600 space-y-2">
+                    <span>{error}</span>
+                    {isRedirectMismatch && (
+                      <>
+                        <span className="block mt-2 font-medium">Fix: Add this exact URI in Google Cloud Console:</span>
+                        <code className="block mt-1 p-2 bg-red-100 rounded text-sm break-all">{redirectUriHint}</code>
+                        <span className="block mt-2 text-sm">APIs & Services → Credentials → your OAuth client → Authorized redirect URIs. No trailing slash.</span>
+                        <a href="https://developers.google.com/identity/protocols/oauth2/web-server" target="_blank" rel="noopener noreferrer" className="block mt-2 text-sm underline">Related: Google OAuth 2.0 for Web Server Applications</a>
+                      </>
+                    )}
+                  </AlertDescription>
                 </Alert>
               )}
 

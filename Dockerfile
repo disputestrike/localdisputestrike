@@ -37,9 +37,9 @@ EXPOSE 3000
 # Set environment
 ENV NODE_ENV=production
 
-# Health check
+# Health check (PORT set by Railway at runtime)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+  CMD ["sh", "-c", "wget --no-verbose --tries=1 --spider \"http://localhost:${PORT:-3000}/api/health\" || exit 1"]
 
 # Start the application
 CMD ["node", "dist/index.js"]

@@ -1,15 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { trpc } from '../lib/trpc';
 import { 
   FileText, 
-  Download, 
   AlertTriangle, 
   CheckCircle,
   ChevronDown,
   ChevronUp,
-  Zap,
-  Scale,
-  Shield
+  Zap
 } from 'lucide-react';
 
 // Category colors
@@ -64,7 +61,7 @@ export function MethodLetterGenerator({
   const [generatedLetter, setGeneratedLetter] = useState<string | null>(null);
   
   // Fetch all method templates
-  const { data: templates, isLoading } = trpc.disputeLetters.getMethodTemplates.useQuery();
+  const { data: templates, isLoading, isError, error } = trpc.disputeLetters.getMethodTemplates.useQuery();
   
   // Generate letter mutation
   const generateMutation = trpc.disputeLetters.generateMethodSpecificLetter.useMutation({
@@ -76,10 +73,33 @@ export function MethodLetterGenerator({
     },
   });
 
+  useEffect(() => {
+    if (!templates || !preSelectedMethod) return;
+    const template = templates.find((item) => item.methodNumber === preSelectedMethod);
+    if (!template) return;
+    setSelectedMethod(preSelectedMethod);
+    setExpandedCategory(template.category);
+  }, [preSelectedMethod, templates]);
+
+  useEffect(() => {
+    setGeneratedLetter(null);
+  }, [selectedMethod, selectedBureau]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    );
+  }
+  
+  if (isError) {
+    return (
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center space-x-2 text-red-600">
+          <AlertTriangle className="h-5 w-5" />
+          <span>Failed to load dispute methods: {error?.message || "Unknown error"}</span>
+        </div>
       </div>
     );
   }
@@ -147,10 +167,15 @@ export function MethodLetterGenerator({
 
       {/* Method Selection */}
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Detection Method</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Dispute Type</h3>
         <p className="text-sm text-gray-500 mb-4">
-          Choose the specific violation type to generate a specialized dispute letter
+          Choose the violation type to generate a specialized dispute letter
         </p>
+        {!templates?.length && (
+          <div className="rounded-lg border border-dashed border-gray-200 p-6 text-center text-sm text-gray-500">
+            No method templates available yet.
+          </div>
+        )}
         
         <div className="space-y-4">
           {templatesByCategory && Object.entries(templatesByCategory).map(([category, methods]) => (
@@ -164,7 +189,7 @@ export function MethodLetterGenerator({
                     {CATEGORY_NAMES[category] || category}
                   </span>
                   <span className="text-sm text-gray-500">
-                    ({methods?.length || 0} methods)
+                    ({methods?.length || 0} types)
                   </span>
                 </div>
                 {expandedCategory === category ? (

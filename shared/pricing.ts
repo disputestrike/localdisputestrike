@@ -6,10 +6,10 @@
  * 
  * Last Updated: January 2026
  * 
- * PRICING STRUCTURE:
+ * PRICING STRUCTURE (SOURCE BIBLE v2.0 Jan 2026):
  * - Free Preview: $0 (blurred results, no letters)
- * - Essential: $79.99/mo (full analysis, you mail)
- * - Complete: $129.99/mo (we mail for you, 5 letters/mo included)
+ * - Essential: $79.99/mo (full analysis, unlimited letters, you mail)
+ * - Complete: $129.99/mo (we mail for you, automated certified mailing)
  * 
  * SmartCredit: Optional for Essential, Required for Complete
  * - Billed separately by ConsumerDirect: $29.99/mo
@@ -41,7 +41,7 @@ export const CONSUMER_PRICING = {
     ],
   },
   
-  // Essential Plan (formerly DIY)
+  // Essential Bundle (SOURCE BIBLE v2.0 Jan 2026)
   ESSENTIAL: {
     id: 'essential',
     name: 'Essential',
@@ -63,7 +63,7 @@ export const CONSUMER_PRICING = {
     smartCreditOptional: true,
   },
   
-  // Complete Plan
+  // Complete Bundle (SOURCE BIBLE v2.0 Jan 2026)
   COMPLETE: {
     id: 'complete',
     name: 'Complete',
@@ -110,7 +110,7 @@ export const AGENCY_PRICING = {
   STARTER: {
     id: 'agency_starter',
     name: 'Starter',
-    price: 49700, // $497/mo in cents
+    price: 49700, // $497/mo (SOURCE BIBLE v2.0 Jan 2026)
     description: 'For new agencies starting out',
     clientLimit: 50,
     features: [
@@ -125,7 +125,7 @@ export const AGENCY_PRICING = {
   PROFESSIONAL: {
     id: 'agency_professional',
     name: 'Professional',
-    price: 99700, // $997/mo in cents
+    price: 99700, // $997/mo (SOURCE BIBLE v2.0 Jan 2026)
     description: 'For growing agencies',
     clientLimit: 200,
     features: [
@@ -141,7 +141,7 @@ export const AGENCY_PRICING = {
   ENTERPRISE: {
     id: 'agency_enterprise',
     name: 'Enterprise',
-    price: 199700, // $1,997/mo in cents
+    price: 199700, // $1,997/mo (SOURCE BIBLE v2.0 Jan 2026)
     description: 'For established agencies',
     clientLimit: 500,
     features: [
@@ -160,8 +160,8 @@ export const AGENCY_PRICING = {
 // ============================================
 
 export const STRIPE_PRICE_IDS = {
-  essential: process.env.STRIPE_ESSENTIAL_PRICE_ID || 'price_1St92mJbDEkzZWwHpe7Ljb1h',
-  complete: process.env.STRIPE_COMPLETE_PRICE_ID || 'price_1St9QKJbDEkzZWwHbzChpIVL',
+  essential: (typeof process !== 'undefined' ? process.env?.STRIPE_ESSENTIAL_PRICE_ID : undefined) || 'price_1St92mJbDEkzZWwHpe7Ljb1h',
+  complete: (typeof process !== 'undefined' ? process.env?.STRIPE_COMPLETE_PRICE_ID : undefined) || 'price_1St9QKJbDEkzZWwHbzChpIVL',
 };
 
 // ============================================
@@ -181,10 +181,11 @@ export function formatPriceShort(cents: number): string {
   return `$${dollars.toFixed(2)}`;
 }
 
-export function getConsumerTier(id: 'free' | 'essential' | 'complete') {
+export function getConsumerTier(id: 'free' | 'essential' | 'diy' | 'complete') {
   switch (id) {
     case 'free': return CONSUMER_PRICING.FREE_PREVIEW;
-    case 'essential': return CONSUMER_PRICING.ESSENTIAL;
+    case 'essential':
+    case 'diy': return CONSUMER_PRICING.ESSENTIAL;
     case 'complete': return CONSUMER_PRICING.COMPLETE;
     default: return null;
   }
@@ -209,16 +210,14 @@ export const PRICING_DISPLAY = {
   COMPLETE_MONTHLY: '$129.99/month',
   SMARTCREDIT_MONTHLY: '$29.99/month',
   
-  // With SmartCredit totals
+  // With SmartCredit totals (SOURCE BIBLE)
   ESSENTIAL_WITH_SMARTCREDIT: '$109.98/month',
   COMPLETE_WITH_SMARTCREDIT: '$159.98/month',
   
-  // Agency
+  // Agency (SOURCE BIBLE v2.0 Jan 2026)
   AGENCY_STARTER: '$497/month',
   AGENCY_PROFESSIONAL: '$997/month',
   AGENCY_ENTERPRISE: '$1,997/month',
   
-  // Legacy (for backward compatibility)
-  DIY_MONTHLY: '$79.99/month',
   TRIAL: 'Free Preview',
 };

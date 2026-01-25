@@ -7,14 +7,19 @@ import { Router } from 'express';
 import Stripe from 'stripe';
 import * as db from './db';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-12-15.clover',
-});
+const stripe: Stripe | null = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-12-15.clover' })
+  : null;
 
 export const stripeWebhookRouter = Router();
 
 // CRITICAL: This route MUST use express.raw() to preserve the raw body for signature verification
 stripeWebhookRouter.post('/webhook', async (req, res) => {
+  if (!stripe) {
+    console.warn('[Stripe Webhook] Stripe not configured (missing STRIPE_SECRET_KEY)');
+    return res.status(503).send('Stripe not configured');
+  }
+
   const sig = req.headers['stripe-signature'];
 
   if (!sig) {

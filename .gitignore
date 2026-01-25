@@ -101,6 +101,9 @@ jspm_packages/
 tmp/
 temp/
 
+# Local uploads / Railway volume (do not commit)
+data/
+
 # Database
 *.db
 *.sqlite

@@ -79,7 +79,7 @@ export default function RoundStatus({
   }, [lockedUntil, isLocked]);
 
   const nextRound = currentRound + 1;
-  const isUnlimited = true; // Both DIY and Complete are unlimited rounds now
+  const isUnlimited = true; // Both Essential and Complete are unlimited rounds now
 
   return (
     <Card className="border-none shadow-sm overflow-hidden">

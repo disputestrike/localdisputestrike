@@ -6,10 +6,9 @@
 import Stripe from 'stripe';
 import { SUBSCRIPTION_TIERS, TRIAL_CONFIG, getTier, getTrialEndDate, isTrialExpired } from './productsV2';
 
-// Initialize Stripe (use environment variable)
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16',
-});
+const stripe: Stripe | null = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' })
+  : null;
 
 // Stripe Price IDs (set these after creating products in Stripe Dashboard)
 export const STRIPE_PRICE_IDS = {
@@ -28,6 +27,7 @@ export async function createTrialCheckout(
   successUrl: string,
   cancelUrl: string
 ): Promise<{ sessionId: string; url: string }> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     payment_method_types: ['card'],
@@ -74,6 +74,7 @@ export async function createSubscriptionCheckout(
   successUrl: string,
   cancelUrl: string
 ): Promise<{ sessionId: string; url: string }> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   const tierConfig = getTier(tier);
   if (!tierConfig) {
     throw new Error(`Invalid tier: ${tier}`);
@@ -124,6 +125,7 @@ export async function cancelSubscription(
   stripeSubscriptionId: string,
   cancelAtPeriodEnd: boolean = true
 ): Promise<void> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   if (cancelAtPeriodEnd) {
     // Cancel at end of billing period
     await stripe.subscriptions.update(stripeSubscriptionId, {
@@ -142,6 +144,7 @@ export async function changeTier(
   stripeSubscriptionId: string,
   newTier: 'starter' | 'professional' | 'complete'
 ): Promise<void> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   const priceId = STRIPE_PRICE_IDS[newTier];
   if (!priceId) {
     throw new Error(`Stripe Price ID not configured for tier: ${newTier}`);
@@ -177,6 +180,7 @@ export async function getSubscriptionStatus(
   currentPeriodEnd: Date;
   cancelAtPeriodEnd: boolean;
 }> {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   const subscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
 
   return {
@@ -273,5 +277,6 @@ export function verifyWebhookSignature(
   signature: string,
   webhookSecret: string
 ): Stripe.Event {
+  if (!stripe) throw new Error('Stripe not configured (STRIPE_SECRET_KEY missing)');
   return stripe.webhooks.constructEvent(payload, signature, webhookSecret);
 }

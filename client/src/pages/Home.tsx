@@ -1055,7 +1055,7 @@ export default function Home() {
               },
               {
                 q: "What if nothing gets deleted?",
-                a: "While many users see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete Package package includes unlimited letters."
+                a: "While many users see positive results, results vary by case. We provide escalation strategies and round 2 letters for stubborn items. Complete plan includes unlimited letters."
               }
             ].map((faq, i) => (
               <Card key={i} className="border-2 cursor-pointer hover:border-orange-600 transition-colors" onClick={() => setOpenFaq(openFaq === i ? null : i)}>

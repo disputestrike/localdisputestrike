@@ -5,6 +5,7 @@ import { MobileMenu } from "@/components/MobileMenu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Shield, Clock, DollarSign, FileCheck } from "lucide-react";
 import { Link } from "wouter";
+import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
 
 export default function Guarantee() {
   const { isAuthenticated } = useAuth();
@@ -154,7 +155,7 @@ export default function Guarantee() {
                   <div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">All Packages Covered</h3>
                     <p className="text-gray-700">
-                      Whether you purchased the $29 Starter or the $399 Complete Package package, our guarantee covers every tier.
+                      Whether you purchased the Essential ({CONSUMER_PRICE_LABELS.essential}/mo) or Complete ({CONSUMER_PRICE_LABELS.complete}/mo) plan, our guarantee covers every tier.
                     </p>
                   </div>
                 </div>

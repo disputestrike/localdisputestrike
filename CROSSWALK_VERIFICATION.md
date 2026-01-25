@@ -3,6 +3,8 @@
 **Date:** January 20, 2026  
 **Status:** ✅ COMPLETE
 
+> **⚠️ Superseded (Jan 2026):** The $4.95 processing fee has been **removed** per the Compliance Audit. Direct upload is now **FREE** preview. `processingFeeService` and `processing_fee_*` DB fields are **not** used. See `COMPLIANCE_IMPLEMENTATION_PLAN.md` for current implementation.
+
 ---
 
 ## 1. PRICING MODEL CHANGES

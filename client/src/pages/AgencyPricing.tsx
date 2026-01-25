@@ -28,14 +28,14 @@ import { useLocation, Link } from "wouter";
 import { MerchantNavigation } from "@/components/MerchantNavigation";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useAuth } from "@/_core/hooks/useAuth";
-import { getLoginUrl } from "@/const";
+import { AGENCY_PRICE_LABELS, AGENCY_PRICING } from "@/lib/pricing";
 
 const plans = [
   {
     name: "Starter",
     tier: "starter" as const,
-    price: 497,
-    clients: 50,
+    priceLabel: AGENCY_PRICE_LABELS.starter,
+    clients: AGENCY_PRICING.STARTER.clientLimit,
     description: "Perfect for new credit repair businesses",
     popular: false,
     features: [
@@ -51,8 +51,8 @@ const plans = [
   {
     name: "Professional",
     tier: "professional" as const,
-    price: 997,
-    clients: 200,
+    priceLabel: AGENCY_PRICE_LABELS.professional,
+    clients: AGENCY_PRICING.PROFESSIONAL.clientLimit,
     description: "For growing credit repair agencies",
     popular: true,
     features: [
@@ -69,8 +69,8 @@ const plans = [
   {
     name: "Enterprise",
     tier: "enterprise" as const,
-    price: 1997,
-    clients: 500,
+    priceLabel: AGENCY_PRICE_LABELS.enterprise,
+    clients: AGENCY_PRICING.ENTERPRISE.clientLimit,
     description: "For established credit repair firms",
     popular: false,
     features: [
@@ -198,7 +198,7 @@ export default function AgencyPricing() {
                   <CardTitle className="text-2xl">{plan.name}</CardTitle>
                   <CardDescription>{plan.description}</CardDescription>
                   <div className="mt-4">
-                    <span className="text-4xl font-bold">${plan.price}</span>
+                    <span className="text-4xl font-bold">{plan.priceLabel}</span>
                     <span className="text-gray-500">/month</span>
                   </div>
                   <div className="mt-2 text-sm text-orange-600 font-medium">
@@ -414,7 +414,7 @@ export default function AgencyPricing() {
               </div>
               <div className="flex justify-between items-center border-t pt-2 mt-2">
                 <span className="text-gray-600">Monthly Price</span>
-                <span className="font-bold text-lg">${selectedPlan?.price}/mo</span>
+                <span className="font-bold text-lg">{selectedPlan?.priceLabel}/mo</span>
               </div>
             </div>
           </div>

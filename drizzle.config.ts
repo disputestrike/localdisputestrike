@@ -8,7 +8,7 @@ if (!connectionString) {
 // Parse the connection string and add SSL
 const url = new URL(connectionString.replace('mysql://', 'http://'));
 const host = url.hostname;
-const port = parseInt(url.port || '4000');
+const port = parseInt(url.port || '3306');
 const user = url.username;
 const password = url.password;
 const database = url.pathname.slice(1).split('?')[0];

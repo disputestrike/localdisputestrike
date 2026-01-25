@@ -13,11 +13,15 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Use Railway volume mount path, fallback to local uploads directory
-const STORAGE_PATH = process.env.RAILWAY_VOLUME_MOUNT_PATH || '/data/uploads';
-const BASE_URL = process.env.RAILWAY_PUBLIC_DOMAIN 
+// Storage path: Railway volume (default /data), UPLOAD_DIR, or local ./data/uploads
+const isRailway = Boolean(process.env.RAILWAY_PUBLIC_DOMAIN || process.env.RAILWAY_ENVIRONMENT);
+const STORAGE_PATH = process.env.RAILWAY_VOLUME_MOUNT_PATH
+  || (isRailway ? '/data' : undefined)
+  || process.env.UPLOAD_DIR
+  || path.join(process.cwd(), 'data', 'uploads');
+const BASE_URL = process.env.RAILWAY_PUBLIC_DOMAIN
   ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-  : process.env.BASE_URL || 'http://localhost:3000';
+  : process.env.BASE_URL || process.env.VITE_APP_URL || 'http://localhost:3001';
 
 // Ensure storage directory exists
 function ensureStorageDir(subPath: string = '') {

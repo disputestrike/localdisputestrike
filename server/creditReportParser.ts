@@ -6,23 +6,9 @@
  * Uses Vision AI (Gemini) for PDF parsing
  */
 
-// Interface for the Light Analysis result
-export interface LightAnalysisResult {
-  totalViolations: number;
-  severityBreakdown: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-  };
-  categoryBreakdown: {
-    collections: number;
-    latePayments: number;
-    chargeOffs: number;
-    judgments: number;
-    other: number;
-  };
-}
+import type { LightAnalysisResult } from '../../shared/types';
+
+export type { LightAnalysisResult };
 
 export interface ParsedAccount {
   accountName: string;
@@ -381,37 +367,62 @@ Expected output: 30-50+ account entries across all bureaus`;
  * This is a cheap operation ($0.20) that only returns aggregate counts.
  */
 export async function performLightAnalysis(fileUrl: string): Promise<LightAnalysisResult> {
-  // NOTE: In a real-world scenario, this would call a different, cheaper AI model
-  // or a specialized endpoint that only returns the aggregate counts.
-  // For this task, we will simulate the result based on a full parse,
-  // but the intent is to show that this is a separate, cheaper step.
-  
   const allAccounts = await parseWithVisionAICombined(fileUrl);
-  
-  // Simulate the aggregation logic for the teaser
-  // Ensure a minimum of 5 violations are shown for a compelling preview,
-  // even if the parser failed to extract everything.
-  const extractedViolations = allAccounts.length;
-  const totalViolations = Math.max(extractedViolations, 5);
-  
-  // Simple simulation of severity and category breakdown
-  const severityBreakdown = {
-    critical: Math.floor(totalViolations * 0.1),
-    high: Math.floor(totalViolations * 0.2),
-    medium: Math.floor(totalViolations * 0.3),
-    low: totalViolations - Math.floor(totalViolations * 0.6),
-  };
-  
+  if (!allAccounts.length) {
+    throw new Error('No accounts extracted from report');
+  }
+
   const categoryBreakdown = {
-    latePayments: Math.floor(totalViolations * 0.4),
-    collections: Math.floor(totalViolations * 0.3),
-    chargeOffs: Math.floor(totalViolations * 0.1),
-    judgments: Math.floor(totalViolations * 0.05),
-    other: totalViolations - Math.floor(totalViolations * 0.85),
+    latePayments: 0,
+    collections: 0,
+    chargeOffs: 0,
+    judgments: 0,
+    other: 0,
   };
-  
+
+  const severityBreakdown = {
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+  };
+
+  const classifyCategory = (text: string) => {
+    if (text.includes('collection')) return 'collections';
+    if (text.includes('charge off') || text.includes('charged off')) return 'chargeOffs';
+    if (text.includes('late') || text.includes('past due') || text.includes('delinquent')) return 'latePayments';
+    if (
+      text.includes('judgment') ||
+      text.includes('lien') ||
+      text.includes('bankrupt') ||
+      text.includes('foreclosure') ||
+      text.includes('repossession')
+    ) {
+      return 'judgments';
+    }
+    return 'other';
+  };
+
+  const classifySeverity = (category: keyof typeof categoryBreakdown) => {
+    if (category === 'collections' || category === 'chargeOffs' || category === 'judgments') {
+      return 'critical';
+    }
+    if (category === 'latePayments') {
+      return 'high';
+    }
+    return 'medium';
+  };
+
+  for (const account of allAccounts) {
+    const blob = `${account.status} ${account.accountType} ${account.negativeReason || ''}`.toLowerCase();
+    const category = classifyCategory(blob);
+    categoryBreakdown[category] += 1;
+    const severity = classifySeverity(category);
+    severityBreakdown[severity] += 1;
+  }
+
   return {
-    totalViolations,
+    totalViolations: allAccounts.length,
     severityBreakdown,
     categoryBreakdown,
   };

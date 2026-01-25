@@ -14,6 +14,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { 
+  CONSUMER_PRICE_LABELS, 
+  SMARTCREDIT_PRICING, 
+  formatPrice 
+} from "@/lib/pricing";
 
 export default function Pricing() {
   const { isAuthenticated } = useAuth();
@@ -95,7 +100,7 @@ export default function Pricing() {
                 <CardTitle className="text-2xl">Free Preview</CardTitle>
                 <CardDescription>See what's wrong with your credit</CardDescription>
                 <div className="mt-4">
-                  <div className="text-5xl font-bold">$0</div>
+                  <div className="text-5xl font-bold">{formatPrice(0)}</div>
                   <p className="text-sm text-muted-foreground mt-1">No credit card required</p>
                 </div>
               </CardHeader>
@@ -152,7 +157,7 @@ export default function Pricing() {
                 <CardTitle className="text-2xl">Essential</CardTitle>
                 <CardDescription>Everything you need to fix your credit</CardDescription>
                 <div className="mt-4">
-                  <div className="text-5xl font-bold">$79.99</div>
+                  <div className="text-5xl font-bold">{CONSUMER_PRICE_LABELS.essential}</div>
                   <p className="text-sm text-muted-foreground mt-1">per month</p>
                 </div>
               </CardHeader>
@@ -211,7 +216,7 @@ export default function Pricing() {
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium">SmartCredit Monitoring</span>
-                      <Badge variant="outline" className="bg-white">+$29.99/mo</Badge>
+                      <Badge variant="outline" className="bg-white">+{formatPrice(SMARTCREDIT_PRICING.customerPrice)}/mo</Badge>
                     </div>
                     <p className="text-xs text-muted-foreground mb-3">
                       Billed separately by ConsumerDirect
@@ -236,7 +241,7 @@ export default function Pricing() {
                     </ul>
                     
                     <p className="text-xs text-muted-foreground mt-3">
-                      <strong>Total with SmartCredit: $109.98/month</strong>
+                      <strong>Total with SmartCredit: {CONSUMER_PRICE_LABELS.essentialWithSmartCredit}/month</strong>
                     </p>
                   </div>
                 </div>
@@ -266,7 +271,7 @@ export default function Pricing() {
                 <CardTitle className="text-2xl">Complete</CardTitle>
                 <CardDescription>We mail everything for you</CardDescription>
                 <div className="mt-4">
-                  <div className="text-5xl font-bold">$129.99</div>
+                  <div className="text-5xl font-bold">{CONSUMER_PRICE_LABELS.complete}</div>
                   <p className="text-sm text-muted-foreground mt-1">per month</p>
                 </div>
               </CardHeader>
@@ -318,7 +323,7 @@ export default function Pricing() {
                       SmartCredit monitoring required for automated mailing ($29.99/mo - billed separately)
                     </p>
                     <p className="text-xs font-semibold">
-                      Total with SmartCredit: $159.98/month
+                      Total with SmartCredit: {CONSUMER_PRICE_LABELS.completeWithSmartCredit}/month
                     </p>
                   </div>
                 </div>
@@ -355,8 +360,8 @@ export default function Pricing() {
                     <div className="bg-white rounded-lg p-4 mb-3">
                       <p className="text-sm mb-2"><strong>You'll have two charges if you add SmartCredit:</strong></p>
                       <ul className="text-sm space-y-1 ml-4">
-                        <li>• DisputeStrike: $79.99 or $129.99/month (billed by us)</li>
-                        <li>• SmartCredit: $29.99/month (billed separately by ConsumerDirect)</li>
+                        <li>• DisputeStrike: {CONSUMER_PRICE_LABELS.essential} or {CONSUMER_PRICE_LABELS.complete}/month (billed by us)</li>
+                        <li>• SmartCredit: {formatPrice(SMARTCREDIT_PRICING.customerPrice)}/month (billed separately by ConsumerDirect)</li>
                       </ul>
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -423,15 +428,15 @@ export default function Pricing() {
                   </tr>
                   <tr className="border-b bg-gray-50 font-semibold">
                     <td className="p-4">Monthly cost</td>
-                    <td className="text-center p-4">$0</td>
-                    <td className="text-center p-4 bg-orange-100">$79.99</td>
-                    <td className="text-center p-4">$129.99</td>
+                    <td className="text-center p-4">{formatPrice(0)}</td>
+                    <td className="text-center p-4 bg-orange-100">{CONSUMER_PRICE_LABELS.essential}</td>
+                    <td className="text-center p-4">{CONSUMER_PRICE_LABELS.complete}</td>
                   </tr>
                   <tr className="bg-gray-50 font-semibold">
                     <td className="p-4">With SmartCredit</td>
                     <td className="text-center p-4">-</td>
-                    <td className="text-center p-4 bg-orange-100">$109.98</td>
-                    <td className="text-center p-4">$159.98</td>
+                    <td className="text-center p-4 bg-orange-100">{CONSUMER_PRICE_LABELS.essentialWithSmartCredit}</td>
+                    <td className="text-center p-4">{CONSUMER_PRICE_LABELS.completeWithSmartCredit}</td>
                   </tr>
                 </tbody>
               </table>
@@ -466,9 +471,9 @@ export default function Pricing() {
                   <p className="text-sm text-muted-foreground">
                     You'll see <strong>two separate charges</strong> if you use SmartCredit:
                     <br /><br />
-                    1. <strong>DisputeStrike</strong> ($79.99 or $129.99) - billed monthly by us
+                    1. <strong>DisputeStrike</strong> ({CONSUMER_PRICE_LABELS.essential} or {CONSUMER_PRICE_LABELS.complete}) - billed monthly by us
                     <br />
-                    2. <strong>SmartCredit</strong> ($29.99) - billed monthly by ConsumerDirect
+                    2. <strong>SmartCredit</strong> ({formatPrice(SMARTCREDIT_PRICING.customerPrice)}) - billed monthly by ConsumerDirect
                     <br /><br />
                     Both are separate subscriptions and can be canceled independently.
                   </p>

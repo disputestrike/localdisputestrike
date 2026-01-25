@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
-import { LightAnalysisResult } from "@/server/creditReportParser";
+import type { LightAnalysisResult } from "@shared/types";
 import { Link, useLocation } from "wouter";
 import PreviewResults from "./PreviewResults";
 
@@ -61,38 +61,9 @@ export default function Dashboard() {
     setLocation('/pricing'); // Redirect to pricing page for upgrade
   };
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  // Gating logic: If user is free and has uploaded a report, show preview
-  // Agency and Paid users should NOT be gated
-  const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
-  const isAgencyUser = user?.accountType === 'agency';
-  const isPaidUser = userProfile?.subscriptionTier && userProfile.subscriptionTier !== 'none';
-  const hasUploadedReport = creditReports && creditReports.length > 0;
-  
-  // ONLY gate if user is strictly FREE and NOT an agency
-  if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
-    return (
-      <React.Suspense fallback={<div>Loading Layout...</div>}>
-        <DashboardLayout>
-          <PreviewResults 
-            analysis={lightAnalysisResult} 
-            onUpgrade={handleUpgrade} 
-          />
-        </DashboardLayout>
-      </React.Suspense>
-    );
-  }
-  
-  // Sort state for accounts
+  // All hooks must run before any conditional return (Rules of Hooks)
   const [sortBy, setSortBy] = useState<'default' | 'conflicts' | 'balance'>('default');
-  
-  // Drag and drop state
   const [dragOver, setDragOver] = useState<string | null>(null);
-
-  // Fetch data
   const uploadToS3 = trpc.upload.uploadToS3.useMutation();
   const { data: negativeAccounts, refetch: refetchAccounts } = trpc.negativeAccounts.list.useQuery(
     undefined,
@@ -161,6 +132,55 @@ export default function Dashboard() {
       setIsLoadingPreview(false);
     },
   });
+
+  const uploadReport = trpc.creditReports.upload.useMutation({
+    onSuccess: () => {
+      toast.success("Credit report uploaded successfully!");
+      refetchReports();
+      setUploadingBureau(null);
+    },
+    onError: (error) => {
+      toast.error(`Upload failed: ${error.message}`);
+      setUploadingBureau(null);
+    },
+  });
+
+  const lightAnalysisQuery = trpc.creditReports.lightAnalysis.useQuery(
+    { fileUrl: lightAnalysisResult?.fileUrl || '' },
+    {
+      enabled: !!lightAnalysisResult?.fileUrl && !lightAnalysisResult.totalViolations,
+      onSuccess: (data) => {
+        if (lightAnalysisResult?.fileUrl) {
+          setLightAnalysisResult({ ...data, fileUrl: lightAnalysisResult.fileUrl });
+        }
+        toast.success("Light analysis complete! Review your results.");
+      },
+      onError: (error) => {
+        toast.error(`Analysis failed: ${error.message}`);
+        setUploadingBureau(null);
+      },
+    }
+  );
+
+  // Early returns only after all hooks (Rules of Hooks)
+  if (!user) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
+  const isAgencyUser = user?.accountType === 'agency';
+  const isPaidUser = userProfile?.subscriptionTier && userProfile.subscriptionTier !== 'none';
+  const hasUploadedReport = creditReports && creditReports.length > 0;
+
+  if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
+    return (
+      <React.Suspense fallback={<div>Loading Layout...</div>}>
+        <DashboardLayout>
+          <PreviewResults analysis={lightAnalysisResult} onUpgrade={handleUpgrade} />
+        </DashboardLayout>
+      </React.Suspense>
+    );
+  }
 
   const handleGenerateLetters = async () => {
     if (!negativeAccounts || negativeAccounts.length === 0) {
@@ -244,51 +264,6 @@ export default function Dashboard() {
       console.error('Letter generation failed:', error);
     }
   };
-
-  // Mutations
-  const uploadReport = trpc.creditReports.upload.useMutation({
-    onSuccess: () => {
-      toast.success("Credit report uploaded successfully!");
-      refetchReports();
-      setUploadingBureau(null);
-    },
-    onError: (error) => {
-      toast.error(`Upload failed: ${error.message}`);
-      setUploadingBureau(null);
-    },
-  });
-
-  // Combined upload mutation for 3-bureau reports
-  // Full upload will be triggered after the user upgrades.
-
-  // The original mutation is commented out to enforce the FREE preview flow.
-  // const uploadCombinedReport = trpc.creditReports.uploadCombined.useMutation({
-  //   onSuccess: () => {
-  //     toast.success("Combined report uploaded! AI is extracting accounts from all 3 bureaus...");
-  //     refetchReports();
-  //     setUploadingBureau(null);
-  //   },
-  //   onError: (error) => {
-  //     toast.error(`Upload failed: ${error.message}`);
-  //     setUploadingBureau(null);
-  //   },
-  // });
-
-  const lightAnalysisQuery = trpc.creditReports.lightAnalysis.useQuery(
-    { fileUrl: lightAnalysisResult?.fileUrl || '' },
-    {
-      enabled: !!lightAnalysisResult?.fileUrl && !lightAnalysisResult.totalViolations, // Only run if fileUrl is set and we haven't run analysis yet
-      onSuccess: (data) => {
-        setLightAnalysisResult({ ...data, fileUrl: lightAnalysisResult!.fileUrl });
-        toast.success("Light analysis complete! Review your results.");
-        // We don't navigate here, we use the state change to render the Preview component
-      },
-      onError: (error) => {
-        toast.error(`Analysis failed: ${error.message}`);
-        setUploadingBureau(null);
-      },
-    }
-  );
 
   // Drag and drop handlers
   const handleDragOver = (e: React.DragEvent, bureau: string) => {
@@ -457,7 +432,8 @@ export default function Dashboard() {
   const progress = (progressSteps.filter(s => s.done).length / progressSteps.length) * 100;
 
   return (
-    <DashboardLayout>
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <DashboardLayout>
       <div className="space-y-6">
         {/* Progress Section */}
         <Card>
@@ -1540,5 +1516,6 @@ export default function Dashboard() {
         </div>
       )}
     </DashboardLayout>
+    </React.Suspense>
   );
 }

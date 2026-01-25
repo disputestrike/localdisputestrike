@@ -40,6 +40,16 @@ let identityiqEnrollmentInterval: NodeJS.Timeout | null = null;
 let identityiqCreditPullInterval: NodeJS.Timeout | null = null;
 let identityiqTrialCancellationInterval: NodeJS.Timeout | null = null;
 
+function shouldRunCronJobs(): boolean {
+  if (process.env.DISABLE_CRON_JOBS === 'true') {
+    return false;
+  }
+  if (process.env.NODE_ENV !== 'production' && process.env.ENABLE_CRON_JOBS !== 'true') {
+    return false;
+  }
+  return true;
+}
+
 /**
  * Calculate milliseconds until next 9am
  */
@@ -309,6 +319,11 @@ export function stopCronJobs(): void {
 export function startAllCronJobs(): void {
   if (cronJobsStarted) {
     console.log('[Cron] Cron jobs already started, skipping');
+    return;
+  }
+  
+  if (!shouldRunCronJobs()) {
+    console.log('[Cron] Cron jobs disabled (set ENABLE_CRON_JOBS=true to enable)');
     return;
   }
 

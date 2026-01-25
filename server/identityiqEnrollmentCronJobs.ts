@@ -15,13 +15,12 @@ import {
 
 /**
  * Process pending IdentityIQ enrollments
- * 
- * Runs every 5 minutes to check for users who:
- * - Have paid but not yet enrolled in IdentityIQ
- * - Have all required identity information
+ * DISABLED: Requires identityiqStatus column that doesn't exist in TiDB.
+ * Stub export so cronJobs can import; no-op.
  */
-// DISABLED: Requires identityiqStatus column that doesn't exist in TiDB
-// export async function processPendingEnrollments() {
+export async function processPendingEnrollments(): Promise<void> {
+  return; // disabled
+}
 /*
   console.log('[Cron] Processing pending IdentityIQ enrollments...');
 
@@ -108,12 +107,14 @@ import {
 
 /**
  * Retry failed credit report pulls
- * 
- * Runs hourly to retry credit pulls that failed initially
- * DISABLED: Uses identityiqStatus which doesn't exist in TiDB
+ * DISABLED: Uses identityiqStatus which doesn't exist in TiDB.
+ * Stub export so cronJobs can import; no-op.
  */
+export async function retryFailedCreditPulls(): Promise<void> {
+  return; // disabled
+}
 /*
-export async function retryFailedCreditPulls() {
+export async function _retryFailedCreditPullsImpl() {
   console.log('[Cron] Retrying failed credit report pulls...');
 
   try {
@@ -175,12 +176,14 @@ export async function retryFailedCreditPulls() {
 
 /**
  * Cancel IdentityIQ subscriptions for expired trials
- * 
- * Runs daily to cancel IdentityIQ for users whose trial expired without subscribing
- * DISABLED: Uses identityiqStatus which doesn't exist in TiDB
+ * DISABLED: Uses identityiqStatus which doesn't exist in TiDB.
+ * Stub export so cronJobs can import; no-op.
  */
+export async function cancelExpiredTrialSubscriptions(): Promise<void> {
+  return; // disabled
+}
 /*
-export async function cancelExpiredTrialSubscriptions() {
+export async function _cancelExpiredTrialSubscriptionsImpl() {
   console.log('[Cron] Canceling IdentityIQ for expired trials...');
 
   try {

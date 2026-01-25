@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AGENCY_PRICE_LABELS } from "@/lib/pricing";
 import {
   Dialog,
   DialogContent,
@@ -116,7 +117,11 @@ export default function AgencyDashboard() {
 
   // Calculate revenue (mock for now - would come from Stripe)
   const monthlyRevenue = stats?.activeClients ? stats.activeClients * 79 : 0;
-  const planPrice = stats?.planTier === 'enterprise' ? 1997 : stats?.planTier === 'professional' ? 997 : 497;
+  const planPrice = stats?.planTier === 'enterprise'
+    ? AGENCY_PRICE_LABELS.enterprise
+    : stats?.planTier === 'professional'
+      ? AGENCY_PRICE_LABELS.professional
+      : AGENCY_PRICE_LABELS.starter;
 
   if (statsLoading) {
     return (

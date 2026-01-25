@@ -17,10 +17,14 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Analytics script - only included if VITE_ANALYTICS_ENDPOINT and VITE_ANALYTICS_WEBSITE_ID are set -->
+    <!-- Remove the comment below and uncomment the script if you have analytics configured -->
+    <!--
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
       data-website-id="%VITE_ANALYTICS_WEBSITE_ID%"></script>
+    -->
   </body>
 
 </html>

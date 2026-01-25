@@ -11,6 +11,14 @@ import { useLocation } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   ExternalLink,
   Upload,
@@ -31,6 +39,7 @@ import { useDropzone } from 'react-dropzone';
 
 // SmartCredit Affiliate Link
 const SMARTCREDIT_AFFILIATE_URL = 'https://www.smartcredit.com/?PID=87529';
+const ANNUAL_CREDIT_REPORT_URL = 'https://www.annualcreditreport.com/';
 
 // Initialize Stripe
 interface UploadedReport {
@@ -40,8 +49,10 @@ interface UploadedReport {
 
 export default function GetReports() {
   const [, setLocation] = useLocation();
-  const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'upload' | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'annual' | 'upload' | null>(null);
   const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
+  const [showSmartCreditModal, setShowSmartCreditModal] = useState(false);
+  const [smartCreditConfirmed, setSmartCreditConfirmed] = useState(false);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,11 +74,32 @@ export default function GetReports() {
       console.error('Failed to track affiliate click:', e);
     }
     
+    setShowSmartCreditModal(true);
+  };
+
+  const confirmSmartCredit = () => {
+    if (!smartCreditConfirmed) {
+      setError('Please confirm you understand the SmartCredit billing before continuing.');
+      return;
+    }
     // Open SmartCredit in new tab
     window.open(SMARTCREDIT_AFFILIATE_URL, '_blank');
-    
-    // Set selected option
+    setShowSmartCreditModal(false);
     setSelectedOption('smartcredit');
+  };
+
+  const handleAnnualCreditReportClick = async () => {
+    try {
+      await fetch('/api/affiliate/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'direct_upload' }),
+      });
+    } catch (e) {
+      console.error('Failed to track direct upload click:', e);
+    }
+    window.open(ANNUAL_CREDIT_REPORT_URL, '_blank');
+    setSelectedOption('annual');
   };
 
 
@@ -108,16 +140,28 @@ export default function GetReports() {
         method: 'POST',
         body: formData,
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to upload reports');
+
+      const contentType = response.headers.get('content-type') ?? '';
+      let data: { error?: string } = {};
+      if (contentType.includes('application/json')) {
+        data = (await response.json().catch(() => ({}))) as { error?: string };
+      } else {
+        const text = await response.text();
+        console.error('[GetReports] Non-JSON response:', response.status, text.slice(0, 500));
       }
-      
-      // Navigate to analysis page
-      setLocation('/credit-analysis');
+
+      if (!response.ok) {
+        const msg = (data?.error as string) || `Upload failed (${response.status}). Please try again.`;
+        console.error('[GetReports] Server error:', response.status, data?.error ?? msg);
+        throw new Error(msg);
+      }
+
+      sessionStorage.setItem('previewAnalysis', JSON.stringify({ ...data, fileUrl: '' }));
+      setLocation('/preview-results');
     } catch (e) {
-      setError('Failed to upload reports. Please try again.');
-      console.error('Upload error:', e);
+      const message = e instanceof Error ? e.message : 'Failed to upload reports. Please try again.';
+      setError(message);
+      console.error('[GetReports] Upload error:', e);
     } finally {
       setIsAnalyzing(false);
     }
@@ -209,7 +253,7 @@ export default function GetReports() {
         </div>
 
         {/* Option Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {/* Option A: SmartCredit (Recommended) */}
           <Card 
             className={`border-2 cursor-pointer transition-all ${
@@ -269,7 +313,57 @@ export default function GetReports() {
             </CardContent>
           </Card>
 
-          {/* Option B: Direct Upload (FREE Preview) */}
+          {/* Option B: AnnualCreditReport.com (FREE) */}
+          <Card
+            className={`border-2 cursor-pointer transition-all ${
+              selectedOption === 'annual'
+                ? 'border-primary ring-2 ring-primary/20'
+                : 'border-border hover:border-primary/50'
+            }`}
+            onClick={() => setSelectedOption('annual')}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ExternalLink className="w-5 h-5 text-emerald-500" />
+                </div>
+                <span className="text-2xl font-bold text-green-600">FREE</span>
+              </div>
+              <CardTitle className="text-lg">Option 2: AnnualCreditReport.com</CardTitle>
+              <CardDescription>
+                Government-mandated free reports (once per year per bureau)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 text-sm mb-4">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>Free official reports from all 3 bureaus</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>Works with FREE preview analysis</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <span>Download PDFs and upload here</span>
+                </li>
+              </ul>
+
+              <Button
+                className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAnnualCreditReportClick();
+                }}
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Get Free Reports
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option C: Direct Upload (FREE Preview) */}
           <Card 
             className={`border-2 cursor-pointer transition-all ${
               selectedOption === 'upload' 
@@ -371,7 +465,54 @@ export default function GetReports() {
           </Card>
         )}
 
-	        {/* Direct Upload Flow (FREE Preview) */}
+        {/* AnnualCreditReport Flow (FREE Preview) */}
+        {selectedOption === 'annual' && (
+          <Card className="border-2 border-emerald-200 bg-emerald-50 mb-6">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                Upload AnnualCreditReport PDFs
+              </h3>
+
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Download your reports from AnnualCreditReport.com and upload them below:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <BureauUpload bureau="transunion" label="TransUnion" />
+                  <BureauUpload bureau="equifax" label="Equifax" />
+                  <BureauUpload bureau="experian" label="Experian" />
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white p-3 rounded-lg">
+                  <Info className="w-4 h-4 text-blue-500" />
+                  <span>Upload at least one report to continue. More reports = more violations found.</span>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={handleStartAnalysis}
+                  disabled={uploadedReports.length === 0 || isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing Reports...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Start FREE AI Analysis
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Direct Upload Flow (FREE Preview) */}
         {selectedOption === 'upload' && (
           <Card className="border-2 border-blue-200 bg-blue-50 mb-6">
             <CardContent className="pt-6">
@@ -477,6 +618,44 @@ export default function GetReports() {
           </p>
         </div>
       </div>
+
+      <Dialog open={showSmartCreditModal} onOpenChange={setShowSmartCreditModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>You're About to Subscribe to SmartCredit</DialogTitle>
+            <DialogDescription>
+              SmartCredit is billed separately by ConsumerDirect at $29.99/month. This is in addition to any DisputeStrike subscription.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div className="rounded-md bg-muted p-3">
+              <p className="font-medium">Important billing details</p>
+              <ul className="mt-2 space-y-1 text-muted-foreground">
+                <li>• You will see two separate charges on your card.</li>
+                <li>• SmartCredit appears as SMARTCREDIT or CONSUMERDIRECT.</li>
+                <li>• You can cancel SmartCredit anytime with ConsumerDirect.</li>
+              </ul>
+            </div>
+            <label className="flex items-start gap-2">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={smartCreditConfirmed}
+                onChange={(e) => setSmartCreditConfirmed(e.target.checked)}
+              />
+              <span>I understand I am subscribing to SmartCredit separately.</span>
+            </label>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSmartCreditModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmSmartCredit}>
+              Continue to SmartCredit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

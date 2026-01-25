@@ -1,7 +1,7 @@
 /**
  * agencyCapacityService.ts - Agency Client Capacity Limits
  * 
- * Enforces client limits based on agency subscription tier:
+ * Enforces client limits based on agency subscription tier (SOURCE BIBLE v2.0 Jan 2026):
  * - Starter: 50 clients ($497/mo)
  * - Professional: 200 clients ($997/mo)
  * - Enterprise: 500 clients ($1,997/mo)
