@@ -9,6 +9,7 @@ import { publicProcedure, protectedProcedure, router, adminProcedure, superAdmin
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import * as db from "./db";
+import { s3Provider } from "./s3Provider";
 // import { uploadRouter } from "./uploadRouter";
 
 // Admin procedures imported from _core/trpc with role hierarchy support
@@ -373,13 +374,17 @@ ${userName}`;
 
 export const appRouter = router({
   upload: router({
+    /**
+     * Get a pre-signed URL for uploading a file directly to S3
+     * Client will use this URL to PUT the file directly to S3
+     */
     getSignedUrl: protectedProcedure
       .input(z.object({
         bureau: z.enum(['transunion', 'equifax', 'experian', 'combined', 'document']),
         fileName: z.string(),
         contentType: z.string(),
       }))
-      .query(async ({ ctx, input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { bureau, fileName, contentType } = input;
         const userId = ctx.user.id;
         
@@ -394,37 +399,58 @@ export const appRouter = router({
         // Generate a unique, user-scoped key
         const fileKey = `${basePath}/${userId}/${bureau}/${Date.now()}_${fileName}`;
         
-        // NOTE: In a production environment, you would use the AWS SDK to generate a real pre-signed URL.
-        // For this implementation, we will use a simulated signed URL that points to our uploadToS3 endpoint
-        // or a direct S3 URL if configured.
-        const fileUrl = `https://disputestrike-uploads.s3.amazonaws.com/${fileKey}`;
-        // We use the fileUrl as the signedUrl for the simulation, 
-        // but in production this would be a time-limited PUT URL.
-        const signedUrl = fileUrl; 
-
-        return {
-          fileKey: fileKey,
-          fileUrl: fileUrl,
-          signedUrl: signedUrl,
-        };
+        try {
+          // Generate a real pre-signed URL for PUT operation
+          const { uploadUrl, fileUrl } = await s3Provider.getSignedUploadUrl(fileKey, contentType);
+          
+          console.log(`[getSignedUrl] Generated pre-signed URL for user ${userId}, key: ${fileKey}`);
+          
+          return {
+            fileKey: fileKey,
+            fileUrl: fileUrl,
+            signedUrl: uploadUrl, // This is the pre-signed PUT URL
+          };
+        } catch (error) {
+          console.error('[getSignedUrl] Failed to generate pre-signed URL:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to generate upload URL. Please try again.',
+          });
+        }
       }),
+
+    /**
+     * Legacy uploadToS3 mutation - now just returns pre-signed URL info
+     * Kept for backward compatibility with existing client code
+     */
     uploadToS3: protectedProcedure
       .input(z.object({
         fileKey: z.string(),
         contentType: z.string(),
       }))
       .mutation(async ({ ctx, input }) => {
-        // Generate a secure, user-scoped file key
         const userId = ctx.user.id;
         const timestamp = Date.now();
         const secureFileKey = `uploads/${userId}/${timestamp}_${input.fileKey.split('/').pop()}`;
         
-        // Return the secure URL and key
-        // In production, this would upload to actual S3
-        return { 
-          url: `https://disputestrike-uploads.s3.amazonaws.com/${secureFileKey}`, 
-          key: secureFileKey 
-        };
+        try {
+          // Generate a real pre-signed URL for PUT operation
+          const { uploadUrl, fileUrl } = await s3Provider.getSignedUploadUrl(secureFileKey, input.contentType);
+          
+          console.log(`[uploadToS3] Generated pre-signed URL for user ${userId}, key: ${secureFileKey}`);
+          
+          return { 
+            url: fileUrl,
+            key: secureFileKey,
+            uploadUrl: uploadUrl, // Client should use this to PUT the file
+          };
+        } catch (error) {
+          console.error('[uploadToS3] Failed to generate pre-signed URL:', error);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Could not secure file path. Please try again.',
+          });
+        }
       }),
   }),
   admin: router({
@@ -1023,9 +1049,17 @@ Be thorough and list every negative item found.`;
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { 
+      // Clear the cookie by setting it to expire immediately
+      // Use expires instead of maxAge for better browser compatibility
+      ctx.res.clearCookie(COOKIE_NAME, {
         ...cookieOptions,
-        maxAge: -1 
+        expires: new Date(0), // Expire immediately
+      });
+      // Also set the cookie to empty value with immediate expiration as backup
+      ctx.res.cookie(COOKIE_NAME, '', {
+        ...cookieOptions,
+        expires: new Date(0),
+        maxAge: 0,
       });
       return {
         success: true,

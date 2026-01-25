@@ -438,6 +438,17 @@ export async function getDisputeLetterById(letterId: number): Promise<DisputeLet
   return result[0];
 }
 
+export async function getLastDisputeLetter(userId: number): Promise<DisputeLetter | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const result = await db.select().from(disputeLetters)
+    .where(eq(disputeLetters.userId, userId))
+    .orderBy(desc(disputeLetters.createdAt))
+    .limit(1);
+  return result[0];
+}
+
 export async function updateDisputeLetterStatus(
   letterId: number,
   status: DisputeLetter["status"],

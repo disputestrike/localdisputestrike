@@ -307,18 +307,34 @@ export default function Dashboard() {
     toast.info(`Preparing ${bureau} upload...`);
     
     try {
-      // 1. Upload to S3 via mutation (server handles file key generation)
+      // 1. Get pre-signed URL from server
       const uploadResult = await uploadToS3.mutateAsync({
         fileKey: `credit-reports/${bureau}/${Date.now()}_${file.name}`,
         contentType: file.type as any,
       });
 
+      // 2. Upload file directly to S3 using the pre-signed URL
+      toast.info('Uploading file to secure storage...');
+      const s3Response = await fetch(uploadResult.uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+
+      if (!s3Response.ok) {
+        throw new Error(`S3 upload failed: ${s3Response.status} ${s3Response.statusText}`);
+      }
+
+      console.log('[handleFileUpload] File uploaded to S3 successfully:', uploadResult.url);
+
       if (bureau === 'combined') {
-        // 2a. For combined reports, trigger light analysis for the FREE preview
+        // 3a. For combined reports, trigger light analysis for the FREE preview
         setLightAnalysisResult({ fileUrl: uploadResult.url } as any);
         toast.info('File uploaded. Running light analysis...');
       } else {
-        // 2b. For individual reports, create the record and trigger full parsing
+        // 3b. For individual reports, create the record and trigger full parsing
         await uploadReport.mutateAsync({
           bureau: bureau as any,
           fileName: file.name,
@@ -329,7 +345,8 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      toast.error('Upload failed. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Upload failed. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setUploadingBureau(null);
     }
