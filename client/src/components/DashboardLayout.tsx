@@ -95,8 +95,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white hidden lg:flex flex-col sticky top-0 h-screen">
-        <div className="p-6">
+      <aside className="w-64 bg-sidebar text-sidebar-foreground hidden lg:flex flex-col sticky top-0 h-screen shadow-2xl">
+        <div className="p-6 border-b border-sidebar-border">
           <Link href="/dashboard">
             <a className="flex items-center gap-2">
               <img src="/logo.webp" alt="DisputeStrike" className="h-8" />
@@ -108,7 +108,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <nav className="flex-1 overflow-y-auto px-4 pb-8 space-y-6">
           {navSections.map((section) => (
             <div key={section.title}>
-              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 px-2">
+              <h4 className="text-[10px] font-bold text-sidebar-foreground/50 uppercase tracking-wider mb-2 px-2">
                 {section.title}
               </h4>
               <div className="space-y-1">
@@ -119,8 +119,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                       <a className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                         isActive 
-                          ? "bg-blue-600 text-white" 
-                          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-inner" 
+                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                       )}>
                         <item.icon className="w-4 h-4" />
                         {item.name}
@@ -133,14 +133,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-800">
+        <div className="p-4 border-t border-sidebar-border">
           <div className="flex items-center gap-3 px-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+            <div className="w-8 h-8 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold text-xs">
               {user?.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">{user?.name || 'User'}</p>
-              <p className="text-xs text-slate-500 truncate">{profile?.subscriptionTier || 'Essential'} Member</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{user?.name || 'User'}</p>
+              <p className="text-xs text-sidebar-foreground/60 truncate">{profile?.subscriptionTier || 'Essential'} Member</p>
             </div>
           </div>
         </div>

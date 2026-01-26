@@ -193,18 +193,18 @@ export default function Dashboard() {
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-900 text-white border-none">
+            <Card className="bg-primary text-primary-foreground border-none shadow-xl">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2 text-blue-100">
+                <CardTitle className="text-lg flex items-center gap-2 text-white">
                   <Bot className="w-5 h-5" />
                   AI Strategist
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-sm leading-relaxed text-blue-50">
-                  "We've identified <span className="font-bold text-blue-300">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+                <p className="text-sm leading-relaxed text-primary-foreground/90">
+                  "We've identified <span className="font-bold text-accent">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
                 </p>
-                <Button variant="secondary" className="w-full bg-blue-800 hover:bg-blue-700 text-white border-none">
+                <Button variant="secondary" className="w-full bg-accent hover:bg-accent/90 text-black font-bold border-none">
                   View Full Strategy
                 </Button>
               </CardContent>
