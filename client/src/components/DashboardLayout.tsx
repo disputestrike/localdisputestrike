@@ -32,10 +32,8 @@ import {
   Building2,
   FileWarning,
   Search,
-  UserCog,
   CreditCard,
   TrendingUp,
-  Users,
   MessageSquare,
   Settings,
   HelpCircle,
@@ -45,46 +43,47 @@ import {
   Bell,
   GraduationCap,
   Bot,
+  Upload,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 
-// Full navigation structure like CreditFixrr
+// Command Center nav (Blueprint v2.0): MISSION CONTROL, ADVANCED TACTICS, CREDIT BUILDING
+// Removed: Profile Optimizer, Referrals
 const navSections = [
   {
-    section: "Main",
+    section: "MISSION CONTROL",
     items: [
       { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", badge: null },
-      { icon: FileText, label: "Credit Reports", path: "/dashboard/reports", badge: null },
-      { icon: AlertTriangle, label: "Disputes", path: "/dashboard/disputes", badge: null },
+      { icon: FileText, label: "My Live Report", path: "/dashboard/reports", badge: null },
+      { icon: AlertTriangle, label: "Dispute Manager", path: "/dashboard/disputes", badge: null },
       { icon: Mail, label: "Letters", path: "/dashboard/letters", badge: null },
-      { icon: Bell, label: "Tracking", path: "/dashboard/tracking", badge: null },
+      { icon: Bell, label: "Mailing Tracker", path: "/dashboard/tracking", badge: null },
+      { icon: Upload, label: "Upload / Refresh reports", path: "/get-reports", badge: null },
     ],
   },
   {
-    section: "Dispute Tools",
+    section: "ADVANCED TACTICS",
     items: [
-      { icon: Building2, label: "Creditor Disputes", path: "/dashboard/creditor-disputes", badge: null },
-      { icon: FileWarning, label: "CFPB Complaints", path: "/dashboard/cfpb", badge: "New" },
       { icon: Search, label: "Inquiry Removal", path: "/dashboard/inquiries", badge: null },
       { icon: Shield, label: "Debt Validation", path: "/dashboard/debt-validation", badge: null },
+      { icon: FileWarning, label: "CFPB Complaints", path: "/dashboard/cfpb", badge: "Round 3" },
+      { icon: Building2, label: "Creditor Disputes", path: "/dashboard/creditor-disputes", badge: null },
+    ],
+  },
+  {
+    section: "CREDIT BUILDING",
+    items: [
       { icon: TrendingUp, label: "Score Simulator", path: "/dashboard/score-simulator", badge: null },
-    ],
-  },
-  {
-    section: "Credit Building",
-    items: [
-      { icon: UserCog, label: "Profile Optimizer", path: "/dashboard/profile", badge: null },
+      { icon: CreditCard, label: "Marketplace", path: "/dashboard/marketplace", badge: null },
       { icon: TrendingUp, label: "Credit Building", path: "/dashboard/credit-building", badge: null },
-      { icon: CreditCard, label: "Marketplace", path: "/dashboard/marketplace", badge: "Hot" },
     ],
   },
   {
-    section: "Earn & Learn",
+    section: "More",
     items: [
-      { icon: Users, label: "Referral Program", path: "/dashboard/referrals", badge: "$50" },
       { icon: GraduationCap, label: "Credit Education", path: "/credit-education", badge: null },
       { icon: Bot, label: "AI Assistant", path: "/ai-assistant", badge: null },
     ],
