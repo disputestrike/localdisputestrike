@@ -61,7 +61,15 @@ export default function Dashboard() {
   const getScore = (bureau: string) => {
     const report = creditReports?.find(r => r.bureau === bureau);
     if (report?.parsedData) {
-      const parsed = typeof report.parsedData === 'string' ? JSON.parse(report.parsedData) : report.parsedData;
+      let parsed = report.parsedData;
+      if (typeof report.parsedData === 'string') {
+        try {
+          parsed = JSON.parse(report.parsedData);
+        } catch (e) {
+          console.error("Failed to parse JSON for report:", report.bureau, report.parsedData, e);
+          return null;
+        }
+      }
       return parsed?.creditScore || null;
     }
     return null;
