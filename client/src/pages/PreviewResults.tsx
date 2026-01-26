@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertTriangle, CheckCircle2, Lock, TrendingUp, BarChart3, Calendar, Zap, ArrowRight, Shield } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { useLocation } from "wouter";
+import { useLocation } from "wouter";\nimport { safeJsonParse } from "@/lib/utils";
 
 interface PreviewResultsProps {
   analysis?: any;
@@ -13,7 +13,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   const [, setLocation] = useLocation();
   
   // Get analysis from props or session storage
-  const sessionAnalysis = JSON.parse(sessionStorage.getItem('previewAnalysis') || '{}');
+  const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), {});
   const analysis = propAnalysis || sessionAnalysis;
 
   const totalViolations = analysis.totalViolations || 0;

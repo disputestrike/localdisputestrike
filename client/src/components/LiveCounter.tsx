@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";\nimport { safeJsonParse } from "@/lib/utils";
 
 export function LiveCounter() {
   const [count, setCount] = useState(1247);
@@ -49,7 +49,7 @@ export function LiveCounter() {
 
       {/* Recent Activity Toast - CreditFixrr Style */}
       {recentActivity && (() => {
-        const activity = JSON.parse(recentActivity);
+        const activity = safeJsonParse(recentActivity, {});
         return (
           <div className="fixed bottom-4 right-4 z-50 bg-background border-2 border-green-500 px-4 py-3 rounded-lg shadow-lg max-w-sm animate-in slide-in-from-right">
             <div className="flex items-start gap-3">

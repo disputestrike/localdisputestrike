@@ -36,7 +36,7 @@ import { toast } from "sonner";
 import type { LightAnalysisResult } from "@shared/types";
 import { Link, useLocation } from "wouter";
 import PreviewResults from "./PreviewResults";
-import { cn } from "@/lib/utils";
+import { cn, safeJsonParse } from "@/lib/utils";
 
 const DashboardLayout = React.lazy(() => import("@/components/DashboardLayout"));
 import IdentityBridgeModal, { type IdentityBridgeData } from "@/components/IdentityBridgeModal";
@@ -61,16 +61,12 @@ export default function Dashboard() {
   const getScore = (bureau: string) => {
     const report = creditReports?.find(r => r.bureau === bureau);
     if (report?.parsedData) {
-      let parsed = report.parsedData;
-      if (typeof report.parsedData === 'string') {
-        try {
-          parsed = JSON.parse(report.parsedData);
-        } catch (e) {
-          console.error("Failed to parse JSON for report:", report.bureau, report.parsedData, e);
-          return null;
-        }
+      const parsedData = safeJsonParse(report.parsedData, null);
+      if (parsedData === null) {
+        console.error("Failed to parse JSON for report:", report.bureau, report.parsedData);
+        return null;
       }
-      return parsed?.creditScore || null;
+      return parsedData.creditScore || null;
     }
     return null;
   };

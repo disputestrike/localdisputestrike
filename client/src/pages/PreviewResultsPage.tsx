@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation } from "wouter";\nimport { safeJsonParse } from "@/lib/utils";
 import PreviewResults from "./PreviewResults";
 import type { LightAnalysisResult } from "@shared/types";
 
@@ -22,11 +22,11 @@ export default function PreviewResultsPage() {
       return;
     }
     try {
-      const data = JSON.parse(raw) as LightAnalysisResult & { fileUrl?: string };
+      const data = safeJsonParse(raw, null) as LightAnalysisResult & { fileUrl?: string };
       setAnalysis({ ...data, fileUrl: data.fileUrl ?? "" });
       // Keep preview in sessionStorage for post-payment hydrate (Phase 1 zero-friction).
       // Do NOT remove here; Dashboard clears after successful hydrate.
-    } catch {
+    } catch (e) {
       setLocation("/get-reports");
     }
   }, [setLocation]);

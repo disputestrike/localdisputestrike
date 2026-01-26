@@ -39,7 +39,7 @@ import {
   Info
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { trpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";\nimport { safeJsonParse } from "@/lib/utils";
 
 interface ProfileData {
   // Personal Info
@@ -321,7 +321,7 @@ export default function CompleteProfile() {
   useEffect(() => {
     const quizData = localStorage.getItem('onboardingQuiz');
     if (quizData) {
-      const parsed = JSON.parse(quizData);
+      const parsed = safeJsonParse(quizData, {});
       console.log('Loaded quiz data:', parsed);
     }
   }, []);

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 import { CreditScoreSimulator } from "@/components/CreditScoreSimulator";
-import { trpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";\nimport { safeJsonParse } from "@/lib/utils";
 import { Link } from "wouter";
 import {
   TrendingUp,
@@ -28,14 +28,12 @@ export default function ScoreSimulator() {
     creditReports.forEach(report => {
       if (report.parsedData) {
         let parsed = report.parsedData;
-        if (typeof report.parsedData === 'string') {
-          try {
-            parsed = JSON.parse(report.parsedData);
-          } catch (e) {
-            console.error("Failed to parse JSON for report in ScoreSimulator:", report.bureau, e);
-            return; // Skip this report
-          }
+        const parsedData = safeJsonParse(report.parsedData, null);
+        if (parsedData === null) {
+          console.error("Failed to parse JSON for report in ScoreSimulator:", report.bureau);
+          return; // Skip this report
         }
+        parsed = parsedData;
         if (parsed?.creditScore) {
           totalScore += parsed.creditScore;
           scoreCount++;

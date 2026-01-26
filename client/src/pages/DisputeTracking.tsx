@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";
+import { useState } from "react";\nimport { safeJsonParse } from "@/lib/utils";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {
@@ -693,7 +693,7 @@ export default function DisputeTracking() {
                       setIsGeneratingRound2(true);
                       // Get the original letter to find accounts
                       const originalLetter = letters?.find(l => l.id === round2Data.originalLetterId);
-                      const accountsDisputed = originalLetter?.accountsDisputed ? JSON.parse(originalLetter.accountsDisputed) : [];
+                      const accountsDisputed = safeJsonParse(originalLetter?.accountsDisputed, []);
                       
                       generateRound2Mutation.mutate({
                         originalLetterId: round2Data.originalLetterId,

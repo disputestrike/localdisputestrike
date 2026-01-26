@@ -28,7 +28,7 @@ import {
   Bot,
   Clock
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, safeJsonParse } from "@/lib/utils";
 
 export default function DashboardHome() {
   const [isIdentityModalOpen, setIsIdentityModalOpen] = useState(false);
@@ -43,7 +43,7 @@ export default function DashboardHome() {
   const getScore = (bureau: string) => {
     const report = creditReports?.find(r => r.bureau === bureau);
     if (report?.parsedData) {
-      const parsed = typeof report.parsedData === 'string' ? JSON.parse(report.parsedData) : report.parsedData;
+      const parsed = safeJsonParse(report.parsedData, null);
       return parsed?.creditScore || null;
     }
     return null;
