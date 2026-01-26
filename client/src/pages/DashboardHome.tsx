@@ -131,7 +131,11 @@ export default function DashboardHome() {
                 "We've identified {stats?.totalNegativeAccounts || 0} violations across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
               </p>
               <div className="mt-6">
-                <Button variant="outline" className="w-full border-blue-700 text-blue-100 hover:bg-blue-800 text-xs h-8">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-blue-700 text-blue-100 hover:bg-blue-800 text-xs h-8"
+                  onClick={() => window.location.href = '/dashboard/dispute-manager'}
+                >
                   View Full Strategy
                 </Button>
               </div>

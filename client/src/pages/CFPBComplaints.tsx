@@ -36,27 +36,15 @@ const bureaus = [
   { value: "experian", label: "Experian" },
 ];
 
-// Mock complaints data
-const mockComplaints = [
-  {
-    id: 1,
-    bureau: "TransUnion",
-    type: "Incorrect information on your report",
-    status: "submitted",
-    submittedDate: "2025-01-05",
-    responseDate: null,
-    caseNumber: "CFPB-2025-001234",
-  },
-  {
-    id: 2,
-    bureau: "Equifax",
-    type: "Problem with investigation",
-    status: "response_received",
-    submittedDate: "2024-12-20",
-    responseDate: "2025-01-03",
-    caseNumber: "CFPB-2024-098765",
-  },
-];
+interface Complaint {
+  id: number;
+  bureau: string;
+  type: string;
+  status: string;
+  submittedDate: string;
+  responseDate: string | null;
+  caseNumber: string;
+}
 
 export default function CFPBComplaints() {
   const [selectedBureau, setSelectedBureau] = useState("");
@@ -64,6 +52,7 @@ export default function CFPBComplaints() {
   const [description, setDescription] = useState("");
   const [desiredResolution, setDesiredResolution] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
 
   const handleSubmit = async () => {
     if (!selectedBureau || !complaintType || !description) {
@@ -229,14 +218,15 @@ export default function CFPBComplaints() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {mockComplaints.length === 0 ? (
-                <div className="text-center py-8">
-                  <FileWarning className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500">No complaints filed yet</p>
+              {complaints.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileWarning className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-lg font-medium text-gray-700">No complaints filed yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Fill out the form to generate your first CFPB complaint</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {mockComplaints.map((complaint) => (
+                  {complaints.map((complaint) => (
                     <div
                       key={complaint.id}
                       className="p-4 bg-gray-50 rounded-lg border border-gray-300"

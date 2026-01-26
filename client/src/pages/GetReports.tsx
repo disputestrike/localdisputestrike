@@ -243,13 +243,13 @@ export default function GetReports() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Combined Upload */}
               <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
-                <BureauUpload bureau="combined" label="Combined 3-Bureau Report (Recommended)" color="bg-purple-500" onDrop={onDrop} />
+                <BureauUpload bureau="combined" label="Combined 3-Bureau Report (Recommended)" color="bg-purple-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
               </div>
 
               {/* Individual Uploads */}
-              <BureauUpload bureau="transunion" label="TransUnion" color="bg-red-500" onDrop={onDrop} />
-              <BureauUpload bureau="equifax" label="Equifax" color="bg-yellow-500" onDrop={onDrop} />
-              <BureauUpload bureau="experian" label="Experian" color="bg-blue-500" onDrop={onDrop} />
+              <BureauUpload bureau="transunion" label="TransUnion" color="bg-red-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              <BureauUpload bureau="equifax" label="Equifax" color="bg-yellow-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              <BureauUpload bureau="experian" label="Experian" color="bg-blue-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
             </div>
 
             {error && (
@@ -348,7 +348,14 @@ export default function GetReports() {
   );
 }
 
-const BureauUpload = ({ bureau, label, color, onDrop }: { bureau: 'transunion' | 'equifax' | 'experian' | 'combined'; label: string; color: string; onDrop: (files: File[], bureau: 'transunion' | 'equifax' | 'experian' | 'combined') => void }) => {
+const BureauUpload = ({ bureau, label, color, onDrop, uploadedReports, removeFile }: { 
+  bureau: 'transunion' | 'equifax' | 'experian' | 'combined'; 
+  label: string; 
+  color: string; 
+  onDrop: (files: File[], bureau: 'transunion' | 'equifax' | 'experian' | 'combined') => void;
+  uploadedReports: UploadedReport[];
+  removeFile: (bureau: string) => void;
+}) => {
   const existingFile = uploadedReports.find(r => r.bureau === bureau);
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => onDrop(files, bureau),

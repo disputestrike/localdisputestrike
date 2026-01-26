@@ -18,37 +18,17 @@ import {
   Send,
   Plus,
 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
-// Mock debt data
-const mockDebts = [
-  {
-    id: 1,
-    collector: "Midland Credit Management",
-    originalCreditor: "Capital One",
-    amount: 3288,
-    dateReceived: "2024-12-01",
-    status: "pending_validation",
-    letterSent: null,
-  },
-  {
-    id: 2,
-    collector: "Portfolio Recovery Associates",
-    originalCreditor: "Discover",
-    amount: 5614,
-    dateReceived: "2024-11-15",
-    status: "validated",
-    letterSent: "2024-11-20",
-  },
-  {
-    id: 3,
-    collector: "LVNV Funding",
-    originalCreditor: "Synchrony Bank",
-    amount: 2100,
-    dateReceived: "2024-10-28",
-    status: "failed_validation",
-    letterSent: "2024-11-01",
-  },
-];
+interface Debt {
+  id: number;
+  collector: string;
+  originalCreditor: string;
+  amount: number;
+  dateReceived: string;
+  status: string;
+  letterSent: string | null;
+}
 
 export default function DebtValidation() {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -57,6 +37,7 @@ export default function DebtValidation() {
     originalCreditor: "",
     amount: "",
   });
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerateLetter = async (debtId: number) => {
@@ -71,6 +52,16 @@ export default function DebtValidation() {
       toast.error("Please fill in required fields");
       return;
     }
+    const debt: Debt = {
+      id: Date.now(),
+      collector: newDebt.collector,
+      originalCreditor: newDebt.originalCreditor,
+      amount: parseFloat(newDebt.amount) || 0,
+      dateReceived: new Date().toISOString().split('T')[0],
+      status: "pending_validation",
+      letterSent: null,
+    };
+    setDebts(prev => [...prev, debt]);
     toast.success("Debt added successfully!");
     setShowAddForm(false);
     setNewDebt({ collector: "", originalCreditor: "", amount: "" });
@@ -89,9 +80,9 @@ export default function DebtValidation() {
     }
   };
 
-  const pendingCount = mockDebts.filter((d) => d.status === "pending_validation").length;
-  const failedCount = mockDebts.filter((d) => d.status === "failed_validation").length;
-  const totalAmount = mockDebts.reduce((sum, d) => sum + d.amount, 0);
+  const pendingCount = debts.filter((d) => d.status === "pending_validation").length;
+  const failedCount = debts.filter((d) => d.status === "failed_validation").length;
+  const totalAmount = debts.reduce((sum, d) => sum + d.amount, 0);
 
   return (
     <DashboardLayout>
@@ -125,7 +116,7 @@ export default function DebtValidation() {
                   <Building2 className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-gray-900">{mockDebts.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{debts.length}</p>
                   <p className="text-xs text-gray-500">Total Debts</p>
                 </div>
               </div>
@@ -243,14 +234,22 @@ export default function DebtValidation() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {mockDebts.length === 0 ? (
-              <div className="text-center py-8">
-                <Shield className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-500">No debts added yet</p>
+            {debts.length === 0 ? (
+              <div className="text-center py-12">
+                <Shield className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-lg font-medium text-gray-700">No debts added yet</p>
+                <p className="text-sm text-gray-400 mt-1">Add a debt above to generate a validation letter</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => setShowAddForm(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" /> Add Your First Debt
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">
-                {mockDebts.map((debt) => (
+                {debts.map((debt) => (
                   <div
                     key={debt.id}
                     className="p-4 bg-gray-50 rounded-lg border border-gray-300"

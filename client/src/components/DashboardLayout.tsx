@@ -3,7 +3,12 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, Bell, User, LayoutDashboard, FileText, ShieldCheck, Mail, LineChart, Truck, Target, Gavel, Landmark, Calculator, Store } from "lucide-react";
+import { 
+  Menu, Bell, User, LayoutDashboard, FileText, ShieldCheck, Mail, 
+  LineChart, Truck, Target, Gavel, Landmark, Calculator, Store,
+  GraduationCap, Bot, Settings, LogOut
+} from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 const sidebarNav = [
   {
@@ -37,6 +42,13 @@ const sidebarNav = [
       { href: "/dashboard/marketplace", title: "Marketplace", icon: Store },
     ],
   },
+  {
+    title: "More",
+    items: [
+      { href: "/dashboard/education", title: "Credit Education", icon: GraduationCap },
+      { href: "/dashboard/ai-assistant", title: "AI Assistant", icon: Bot },
+    ],
+  },
 ];
 
 export default function DashboardLayout({ children }) {
@@ -61,7 +73,8 @@ function Sidebar() {
       <div className="flex h-full max-h-screen flex-col gap-2">
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
           <Link href="/" className="flex items-center gap-2 font-semibold">
-            <span className="">DisputeStrike</span>
+            <img src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
+            <span className="text-lg font-bold">DisputeStrike</span>
           </Link>
         </div>
         <div className="flex-1">
@@ -86,17 +99,27 @@ function Sidebar() {
 }
 
 function Header() {
+  const { logout } = useAuth();
+  
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
       <MobileSidebar />
       <div className="w-full flex-1"></div>
-      <Button variant="ghost" size="icon" className="rounded-full">
-        <Bell className="h-4 w-4" />
-        <span className="sr-only">Toggle notifications</span>
+      <Button variant="ghost" size="icon" className="rounded-full" asChild>
+        <Link href="/dashboard/settings">
+          <Settings className="h-4 w-4" />
+          <span className="sr-only">Settings</span>
+        </Link>
       </Button>
-      <Button variant="ghost" size="icon" className="rounded-full">
-        <User className="h-4 w-4" />
-        <span className="sr-only">Toggle user menu</span>
+      <Button variant="ghost" size="icon" className="rounded-full" asChild>
+        <Link href="/dashboard/profile">
+          <User className="h-4 w-4" />
+          <span className="sr-only">Profile</span>
+        </Link>
+      </Button>
+      <Button variant="ghost" size="icon" className="rounded-full" onClick={() => logout()}>
+        <LogOut className="h-4 w-4" />
+        <span className="sr-only">Sign Out</span>
       </Button>
     </header>
   );
@@ -117,7 +140,8 @@ function MobileSidebar() {
             href="/"
             className="flex items-center gap-2 text-lg font-semibold mb-4"
           >
-            <span className="">DisputeStrike</span>
+            <img src="/logo.webp" alt="DisputeStrike" className="h-8 w-8" />
+            <span className="font-bold">DisputeStrike</span>
           </Link>
           {sidebarNav.map((section) => (
             <div key={section.title} className="py-2">
