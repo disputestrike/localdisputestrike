@@ -1180,7 +1180,8 @@ export default function Home() {
               <div>
                 <p className="text-gray-400">Email: support@disputestrike.com</p>
                 <p className="text-gray-400">Phone: 202-858-9557</p>
-                <p className="text-gray-400"><Link href="/contact" className="text-orange-400 hover:text-orange-300">Contact Us →</Link></p>
+                <p className="text-gray-400"><Link href="/contact" className="text-gray-400 hover:text-white">Contact</Link>
+                <Link href="/blog" className="text-gray-400 hover:text-white">Blog</Link> Us →</Link></p>
               </div>
               <div>
                 <p className="text-gray-400">We are NOT affiliated with any credit bureau.</p>

@@ -1,4 +1,4 @@
-import { api } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc";
 import {
   Mail,
   Download,
@@ -16,9 +16,9 @@ import { Link } from "wouter";
 import { format } from "date-fns";
 
 export default function Letters() {
-  const { data: disputeLetters = [], isLoading: lettersLoading } = api.disputeLetters.list.useQuery();
-  const { data: creditReports = [], isLoading: reportsLoading } = api.creditReports.list.useQuery();
-  const downloadPdfMutation = api.disputeLetters.downloadPdf.useMutation();
+  const { data: disputeLetters = [], isLoading: lettersLoading } = trpc.disputeLetters.list.useQuery();
+  const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const downloadPdfMutation = trpc.disputeLetters.downloadPdf.useMutation();
 
   const handleDownload = async (letterId: number) => {
     try {

@@ -1,4 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
@@ -98,6 +100,8 @@ function Router() {
       <Route path="/blog/how-to-read-credit-report" component={BlogCreditReport} />
       <Route path="/blog/3-round-strategy" component={Blog3RoundStrategy} />
       <Route path="/blog/fcra-rights" component={BlogFCRARights} />
+      <Route path="/blog" component={Blog} />
+      <Route path="/blog/:slug" component={BlogPost} />
       <Route path="/quiz" component={Quiz} />
       
       {/* V3 - New Free Onboarding Flow */}
