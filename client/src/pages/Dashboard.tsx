@@ -368,21 +368,23 @@ export default function Dashboard() {
       formData.append('file', file);
       formData.append('bureau', bureau);
       formData.append('fileKey', uploadResult.key);
-      
-      // Ensure we use the absolute URL if provided, otherwise relative
-      const uploadUrl = uploadResult.uploadUrl.startsWith('http') 
-        ? uploadResult.uploadUrl 
-        : `${window.location.origin}${uploadResult.uploadUrl}`;
 
-      const uploadResponse = await fetch(uploadUrl, {
+      // Always POST to same-origin /api/upload to avoid BASE_URL/RAILWAY env mismatches
+      const uploadResponse = await fetch(`${window.location.origin}/api/upload`, {
         method: 'POST',
         body: formData,
-        credentials: 'include', // Include cookies for auth
+        credentials: 'include',
       });
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || `Upload failed: ${uploadResponse.status}`);
+        const msg = errorData.error || `Upload failed (${uploadResponse.status})`;
+        if (uploadResponse.status === 401) {
+          toast.error('Please sign in to upload reports.');
+          setLocation('/login');
+          return;
+        }
+        throw new Error(msg);
       }
 
       const uploadData = await uploadResponse.json();
