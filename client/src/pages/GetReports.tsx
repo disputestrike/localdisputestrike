@@ -1,9 +1,11 @@
 /**
  * Get Your Reports Screen (Step 5 in new onboarding flow)
  * 
- * Two options:
- * 1. SmartCredit Affiliate Link (recommended) - FREE analysis
- * 2. Direct Upload - FREE preview analysis
+ * Four options (Blueprint §1):
+ * 1. SmartCredit (RECOMMENDED) - $29.99/month
+ * 2. Credit Hero (NEW AFFILIATE) - One-time fee
+ * 3. AnnualCreditReport.com (FREE) - Government-mandated
+ * 4. I Already Have My Reports - Upload existing PDFs
  */
 
 import { useState, useCallback } from 'react';
@@ -34,11 +36,13 @@ import {
   Loader2,
   X,
   Info,
+  CreditCard,
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 
-// SmartCredit Affiliate Link
+// Affiliate Links
 const SMARTCREDIT_AFFILIATE_URL = 'https://www.smartcredit.com/?PID=87529';
+const CREDIT_HERO_AFFILIATE_URL = 'https://www.credithero.com/'; // TODO: Replace with actual affiliate link
 const ANNUAL_CREDIT_REPORT_URL = 'https://www.annualcreditreport.com/';
 
 // Initialize Stripe
@@ -49,7 +53,7 @@ interface UploadedReport {
 
 export default function GetReports() {
   const [, setLocation] = useLocation();
-  const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'annual' | 'upload' | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'smartcredit' | 'credithero' | 'annual' | 'upload' | null>(null);
   const [uploadedReports, setUploadedReports] = useState<UploadedReport[]>([]);
   const [showSmartCreditModal, setShowSmartCreditModal] = useState(false);
   const [smartCreditConfirmed, setSmartCreditConfirmed] = useState(false);
@@ -89,15 +93,29 @@ export default function GetReports() {
     setSelectedOption('smartcredit');
   };
 
+  const handleCreditHeroClick = async () => {
+    try {
+      await fetch('/api/affiliate/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: 'credithero' }),
+      });
+    } catch (e) {
+      console.error('Failed to track Credit Hero click:', e);
+    }
+    window.open(CREDIT_HERO_AFFILIATE_URL, '_blank');
+    setSelectedOption('credithero');
+  };
+
   const handleAnnualCreditReportClick = async () => {
     try {
       await fetch('/api/affiliate/track-click', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'direct_upload' }),
+        body: JSON.stringify({ source: 'annualcreditreport' }),
       });
     } catch (e) {
-      console.error('Failed to track direct upload click:', e);
+      console.error('Failed to track AnnualCreditReport click:', e);
     }
     window.open(ANNUAL_CREDIT_REPORT_URL, '_blank');
     setSelectedOption('annual');
@@ -257,9 +275,9 @@ export default function GetReports() {
           <Progress value={progress} className="h-2" />
         </div>
 
-        {/* Option Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Option A: SmartCredit (Recommended) */}
+        {/* Option Cards - 4 Options per Blueprint §1 */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {/* OPTION 1: SmartCredit (RECOMMENDED) */}
           <Card 
             className={`border-2 cursor-pointer transition-all ${
               selectedOption === 'smartcredit' 
@@ -270,55 +288,96 @@ export default function GetReports() {
           >
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Star className="w-5 h-5 text-yellow-500" />
-                  <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">RECOMMENDED</span>
-                </div>
-      
+                <Star className="w-5 h-5 text-yellow-500" />
+                <span className="text-xs font-semibold text-yellow-600 bg-yellow-100 px-2 py-0.5 rounded">RECOMMENDED</span>
               </div>
-              <CardTitle className="text-lg">Get Reports via SmartCredit</CardTitle>
-              <CardDescription>
-                Sign up for SmartCredit and get instant access to all 3 bureaus
+              <CardTitle className="text-base">Option 1: SmartCredit</CardTitle>
+              <CardDescription className="text-xs">
+                All 3 bureaus in one place
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm mb-4">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+            <CardContent className="pt-0">
+              <ul className="space-y-1 text-xs mb-3">
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
                   <span>All 3 bureau reports instantly</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Daily credit monitoring</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Score tracking & alerts</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>FREE AI analysis included</span>
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>Daily monitoring + Score tracking</span>
                 </li>
               </ul>
-              
+              <p className="text-xs text-muted-foreground mb-3">
+                💰 Cost: $29.99/month (billed separately)
+              </p>
               <Button 
+                size="sm"
                 className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSmartCreditClick();
                 }}
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Get SmartCredit
+                <ExternalLink className="w-3 h-3 mr-1.5" />
+                Get SmartCredit →
               </Button>
-              
-              <p className="text-xs text-center text-muted-foreground mt-2">
-                Opens in new tab. Return here after signup.
+              <p className="text-[10px] text-center text-muted-foreground mt-1.5">
+                Opens in new tab
               </p>
             </CardContent>
           </Card>
 
-          {/* Option B: AnnualCreditReport.com (FREE) */}
+          {/* OPTION 2: Credit Hero (NEW AFFILIATE) */}
+          <Card 
+            className={`border-2 cursor-pointer transition-all ${
+              selectedOption === 'credithero' 
+                ? 'border-primary ring-2 ring-primary/20' 
+                : 'border-border hover:border-primary/50'
+            }`}
+            onClick={() => setSelectedOption('credithero')}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CreditCard className="w-5 h-5 text-purple-500" />
+                <span className="text-xs font-semibold text-purple-600 bg-purple-100 px-2 py-0.5 rounded">NEW</span>
+              </div>
+              <CardTitle className="text-base">Option 2: Credit Hero</CardTitle>
+              <CardDescription className="text-xs">
+                1 combined file with all 3 bureaus
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <ul className="space-y-1 text-xs mb-3">
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>1 combined file with all 3 bureaus</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>Fast & easy upload</span>
+                </li>
+              </ul>
+              <p className="text-xs text-muted-foreground mb-3">
+                💰 Cost: One-time fee
+              </p>
+              <Button 
+                size="sm"
+                className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleCreditHeroClick();
+                }}
+              >
+                <ExternalLink className="w-3 h-3 mr-1.5" />
+                Get Credit Hero →
+              </Button>
+              <p className="text-[10px] text-center text-muted-foreground mt-1.5">
+                Opens in new tab
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* OPTION 3: AnnualCreditReport.com (FREE) */}
           <Card
             className={`border-2 cursor-pointer transition-all ${
               selectedOption === 'annual'
@@ -329,46 +388,46 @@ export default function GetReports() {
           >
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <ExternalLink className="w-5 h-5 text-emerald-500" />
-                </div>
-                <span className="text-2xl font-bold text-green-600">FREE</span>
+                <ExternalLink className="w-5 h-5 text-emerald-500" />
+                <span className="text-xs font-bold text-green-600">FREE</span>
               </div>
-              <CardTitle className="text-lg">Option 2: AnnualCreditReport.com</CardTitle>
-              <CardDescription>
-                Government-mandated free reports (once per year per bureau)
+              <CardTitle className="text-base">Option 3: AnnualCreditReport</CardTitle>
+              <CardDescription className="text-xs">
+                Government-mandated free reports
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm mb-4">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Free official reports from all 3 bureaus</span>
+            <CardContent className="pt-0">
+              <ul className="space-y-1 text-xs mb-3">
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>Government-mandated free reports</span>
                 </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Works with FREE preview analysis</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <span>Download PDFs and upload here</span>
+                <li className="flex items-center gap-1.5">
+                  <AlertCircle className="w-3 h-3 text-amber-500 shrink-0" />
+                  <span>Once per year per bureau</span>
                 </li>
               </ul>
-
+              <p className="text-xs text-muted-foreground mb-3">
+                💰 Cost: FREE
+              </p>
               <Button
+                size="sm"
                 className="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAnnualCreditReportClick();
                 }}
               >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Get Free Reports
+                <ExternalLink className="w-3 h-3 mr-1.5" />
+                Get Free Reports →
               </Button>
+              <p className="text-[10px] text-center text-muted-foreground mt-1.5">
+                Opens in new tab
+              </p>
             </CardContent>
           </Card>
 
-          {/* Option C: Direct Upload (FREE Preview) */}
+          {/* OPTION 4: I Already Have My Reports */}
           <Card 
             className={`border-2 cursor-pointer transition-all ${
               selectedOption === 'upload' 
@@ -379,45 +438,38 @@ export default function GetReports() {
           >
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Upload className="w-5 h-5 text-blue-500" />
-                </div>
-                <span className="text-2xl font-bold text-green-600">FREE</span>
+                <Upload className="w-5 h-5 text-blue-500" />
+                <span className="text-xs font-bold text-blue-600">UPLOAD</span>
               </div>
-              <CardTitle className="text-lg">Option 2: Already Have Reports?</CardTitle>
-              <CardDescription>
-                Upload your existing reports for FREE preview analysis
+              <CardTitle className="text-base">Option 4: Already Have Reports</CardTitle>
+              <CardDescription className="text-xs">
+                Upload PDF files you already have
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm mb-4">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-	                  <span>✅ FREE preview (violation count only)</span>
-	                </li>
-	                <li className="flex items-center gap-2">
-	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-	                  <span>✅ No credit card required</span>
-	                </li>
-	                <li className="flex items-center gap-2">
-	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-	                  <span>✅ Instant analysis</span>
-	                </li>
-	                <li className="flex items-center gap-2">
-	                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-	                  <span>✅ Upgrade to see full details</span>
+            <CardContent className="pt-0">
+              <ul className="space-y-1 text-xs mb-3">
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>FREE preview analysis</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3 h-3 text-green-500 shrink-0" />
+                  <span>Instant violation detection</span>
                 </li>
               </ul>
-              
+              <p className="text-xs text-muted-foreground mb-3">
+                📄 Upload PDF files you already have
+              </p>
               <Button 
-	                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+                size="sm"
+                className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
                 onClick={(e) => {
                   e.stopPropagation();
                   setSelectedOption('upload');
                 }}
               >
-                <Upload className="w-4 h-4 mr-2" />
-	                Upload Reports (FREE Preview)
+                <Upload className="w-3 h-3 mr-1.5" />
+                Browse Files →
               </Button>
             </CardContent>
           </Card>
@@ -450,6 +502,53 @@ export default function GetReports() {
                 
                 <Button 
                   className="w-full"
+                  onClick={handleStartAnalysis}
+                  disabled={uploadedReports.length === 0 || isAnalyzing}
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Analyzing Reports...
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 mr-2" />
+                      Start FREE AI Analysis
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Credit Hero Return Flow */}
+        {selectedOption === 'credithero' && (
+          <Card className="border-2 border-purple-200 bg-purple-50 mb-6">
+            <CardContent className="pt-6">
+              <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-purple-500" />
+                Got your Credit Hero report? Great!
+              </h3>
+              
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Credit Hero provides a single combined file with all 3 bureaus. Upload it below:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <BureauUpload bureau="transunion" label="TransUnion" />
+                  <BureauUpload bureau="equifax" label="Equifax" />
+                  <BureauUpload bureau="experian" label="Experian" />
+                </div>
+                
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white p-3 rounded-lg">
+                  <Info className="w-4 h-4 text-purple-500" />
+                  <span>Upload at least one report to continue. More reports = more violations found.</span>
+                </div>
+                
+                <Button 
+                  className="w-full bg-purple-600 hover:bg-purple-700"
                   onClick={handleStartAnalysis}
                   disabled={uploadedReports.length === 0 || isAnalyzing}
                 >
@@ -594,7 +693,11 @@ export default function GetReports() {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />
-                <span><strong>SmartCredit.com</strong> - Instant access to all 3 bureaus</span>
+                <span><strong>SmartCredit.com</strong> - Instant access to all 3 bureaus ($29.99/mo)</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-purple-500 mt-0.5" />
+                <span><strong>Credit Hero</strong> - 1 combined file with all 3 bureaus (one-time fee)</span>
               </li>
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5" />

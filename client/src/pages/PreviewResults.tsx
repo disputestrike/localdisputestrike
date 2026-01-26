@@ -14,7 +14,12 @@ import { Badge } from "@/components/ui/badge";
 
 interface PreviewResultsProps {
   analysis: LightAnalysisResult & { fileUrl?: string };
+  /** Legacy single upgrade handler - use onUpgradeEssential/onUpgradeComplete for direct Stripe */
   onUpgrade: () => void;
+  /** Direct to Stripe checkout for Essential plan (Blueprint §4) */
+  onUpgradeEssential?: () => void;
+  /** Direct to Stripe checkout for Complete plan (Blueprint §4) */
+  onUpgradeComplete?: () => void;
   /** Post-payment "revealed" view: hide upgrade CTA, show upload fallback. */
   revealed?: boolean;
   /** When revealed, called when user taps "Upload reports" / "Refresh data". */
@@ -31,7 +36,7 @@ const TIMELINE_STEPS = [
 const defaultSeverity = { critical: 0, high: 0, medium: 0, low: 0 };
 const defaultCategory = { collections: 0, latePayments: 0, chargeOffs: 0, judgments: 0, other: 0 };
 
-const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, revealed, onUpload }) => {
+const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, onUpgradeEssential, onUpgradeComplete, revealed, onUpload }) => {
   const severityBreakdown = analysis.severityBreakdown ?? defaultSeverity;
   const categoryBreakdown = analysis.categoryBreakdown ?? defaultCategory;
   const totalViolations = analysis.totalViolations ?? 0;
@@ -200,16 +205,17 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, re
             </ul>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
               <Button
-                onClick={onUpgrade}
+                onClick={onUpgradeEssential || onUpgrade}
                 className="w-full min-w-0 h-auto py-6 px-4 flex flex-col items-center justify-center text-center bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg whitespace-normal break-words"
               >
                 <span>Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)</span>
                 <span className="text-sm font-normal mt-1">Print & mail letters yourself.</span>
               </Button>
               <Button
-                onClick={onUpgrade}
-                className="w-full min-w-0 h-auto py-6 px-4 flex flex-col items-center justify-center text-center bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg whitespace-normal break-words"
+                onClick={onUpgradeComplete || onUpgrade}
+                className="w-full min-w-0 h-auto py-6 px-4 flex flex-col items-center justify-center text-center bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg whitespace-normal break-words relative"
               >
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-0.5 rounded">MOST POPULAR</span>
                 <span>Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)</span>
                 <span className="text-sm font-normal mt-1">We mail for you (5/month included).</span>
               </Button>

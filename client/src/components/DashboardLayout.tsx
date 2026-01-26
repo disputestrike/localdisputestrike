@@ -50,8 +50,7 @@ import { trpc } from "@/lib/trpc";
 import { Link, useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 
-// Command Center nav (Blueprint v2.0): MISSION CONTROL, ADVANCED TACTICS, CREDIT BUILDING
-// Removed: Profile Optimizer, Referrals
+// Sidebar Navigation (Blueprint §3) - 13 pages exactly as specified
 const navSections = [
   {
     section: "MISSION CONTROL",
@@ -60,8 +59,13 @@ const navSections = [
       { icon: FileText, label: "My Live Report", path: "/dashboard/reports", badge: null },
       { icon: AlertTriangle, label: "Dispute Manager", path: "/dashboard/disputes", badge: null },
       { icon: Mail, label: "Letters", path: "/dashboard/letters", badge: null },
+    ],
+  },
+  {
+    section: "TRACKING & RESULTS",
+    items: [
       { icon: Bell, label: "Mailing Tracker", path: "/dashboard/tracking", badge: null },
-      { icon: Upload, label: "Upload / Refresh reports", path: "/dashboard/reports", badge: null },
+      { icon: TrendingUp, label: "Score Tracker", path: "/dashboard/scores", badge: null },
     ],
   },
   {
@@ -70,28 +74,20 @@ const navSections = [
       { icon: Search, label: "Inquiry Removal", path: "/dashboard/inquiries", badge: null },
       { icon: Shield, label: "Debt Validation", path: "/dashboard/debt-validation", badge: null },
       { icon: FileWarning, label: "CFPB Complaints", path: "/dashboard/cfpb", badge: "Round 3" },
-      { icon: Building2, label: "Creditor Disputes", path: "/dashboard/creditor-disputes", badge: null },
     ],
   },
   {
     section: "CREDIT BUILDING",
     items: [
-      { icon: TrendingUp, label: "Score Simulator", path: "/dashboard/score-simulator", badge: null },
-      { icon: CreditCard, label: "Marketplace", path: "/dashboard/marketplace", badge: null },
-      { icon: TrendingUp, label: "Credit Building", path: "/dashboard/credit-building", badge: null },
+      { icon: CreditCard, label: "Score Simulator", path: "/dashboard/score-simulator", badge: null },
+      { icon: Building2, label: "Marketplace", path: "/dashboard/marketplace", badge: null },
     ],
   },
   {
-    section: "More",
+    section: "MORE",
     items: [
       { icon: GraduationCap, label: "Credit Education", path: "/credit-education", badge: null },
       { icon: Bot, label: "AI Assistant", path: "/ai-assistant", badge: null },
-    ],
-  },
-  {
-    section: "Agency",
-    items: [
-      { icon: Building2, label: "Agency Dashboard", path: "/agency", badge: "B2B" },
     ],
   },
 ];
@@ -500,11 +496,33 @@ function DashboardLayoutContent({
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
+                </div>
+                <DropdownMenuItem
+                  onClick={() => setLocation('/dashboard/settings')}
+                  className="cursor-pointer"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setLocation('/dashboard/profile')}
+                  className="cursor-pointer"
+                >
+                  <Avatar className="mr-2 h-4 w-4">
+                    <AvatarFallback className="bg-gray-200 text-gray-600 text-[10px]">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>Profile</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={async () => {
                     try {
-                      console.log('[Auth] Attempting logout...');
+                      console.log('[Auth] Attempting logout from sidebar...');
                       await logout();
                       
                       // Clear local storage as a backup
@@ -518,7 +536,7 @@ function DashboardLayoutContent({
                       window.location.href = "/login?logout=error";
                     }
                   }}
-                  className="cursor-pointer text-red-400 focus:text-red-400"
+                  className="cursor-pointer text-red-500 focus:text-red-500"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign out</span>
@@ -564,6 +582,65 @@ function DashboardLayoutContent({
                 AI Assistant
               </Button>
             </Link>
+            
+            {/* Profile Dropdown (Blueprint §4: Top-Right Header) */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors focus:outline-none">
+                  <Avatar className="h-8 w-8 border border-gray-200">
+                    <AvatarImage src={undefined} />
+                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-medium">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
+                    {user?.name?.split(' ')[0] || 'Account'}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-3 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
+                  <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
+                </div>
+                <DropdownMenuItem
+                  onClick={() => setLocation('/dashboard/settings')}
+                  className="cursor-pointer"
+                >
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => setLocation('/dashboard/profile')}
+                  className="cursor-pointer"
+                >
+                  <Avatar className="mr-2 h-4 w-4">
+                    <AvatarFallback className="bg-gray-200 text-gray-600 text-[10px]">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={async () => {
+                    try {
+                      console.log('[Auth] Attempting logout from header...');
+                      await logout();
+                      localStorage.removeItem('disputestrike-user-info');
+                      localStorage.removeItem('auth-token');
+                      window.location.href = "/login?logout=success";
+                    } catch (error) {
+                      console.error("Logout failed:", error);
+                      window.location.href = "/login?logout=error";
+                    }
+                  }}
+                  className="cursor-pointer text-red-500 focus:text-red-500"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 

@@ -34,6 +34,7 @@ const DashboardLayout = React.lazy(() => import("@/components/DashboardLayout"))
 import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
 import { CreditScoreChart } from "@/components/CreditScoreChart";
+import IdentityBridgeModal, { type IdentityBridgeData } from "@/components/IdentityBridgeModal";
 // CreditScoreSimulator moved to standalone page at /dashboard/score-simulator
 import { Building2, Calculator, Scale, LineChart, Target, Calendar, BarChart3, LayoutDashboard, Zap } from "lucide-react";
 import { DisputeSuccessPredictor } from "@/components/DisputeSuccessPredictor";
@@ -60,8 +61,18 @@ export default function Dashboard() {
   const { data: userProfile } = trpc.profile.get.useQuery();
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
 
+  // Blueprint §4: Direct to Stripe checkout (skip pricing page)
+  const handleUpgradeEssential = () => {
+    setLocation('/checkout?plan=essential');
+  };
+  
+  const handleUpgradeComplete = () => {
+    setLocation('/checkout?plan=complete');
+  };
+  
+  // Legacy handler for backward compatibility
   const handleUpgrade = () => {
-    setLocation('/pricing'); // Redirect to pricing page for upgrade
+    setLocation('/checkout?plan=essential'); // Default to Essential
   };
 
   // All hooks must run before any conditional return (Rules of Hooks)
@@ -102,11 +113,19 @@ export default function Dashboard() {
     },
   });
 
-  // Address modal state
-  const [showAddressModal, setShowAddressModal] = useState(false);
-  const [currentAddress, setCurrentAddress] = useState('');
-  const [previousAddress, setPreviousAddress] = useState('');
-  const [addressConfirmed, setAddressConfirmed] = useState(false);
+  // Identity Bridge Modal (Blueprint §2.2) - replaces address modal
+  const [showIdentityBridgeModal, setShowIdentityBridgeModal] = useState(false);
+  const completeIdentityBridgeMutation = trpc.userProfile.completeIdentityBridge.useMutation({
+    onSuccess: () => {
+      toast.success('Identity verification complete!');
+      setShowIdentityBridgeModal(false);
+      // Proceed to generate letters
+      submitGenerateLetters();
+    },
+    onError: (error) => {
+      toast.error(`Identity verification failed: ${error.message}`);
+    },
+  });
   const [addressChanged, setAddressChanged] = useState(false);
   
   // Parsed personal info from credit reports (PRIMARY source)
@@ -231,7 +250,12 @@ export default function Dashboard() {
     return (
       <React.Suspense fallback={<div>Loading Layout...</div>}>
         <DashboardLayout>
-          <PreviewResults analysis={lightAnalysisResult} onUpgrade={handleUpgrade} />
+          <PreviewResults 
+            analysis={lightAnalysisResult} 
+            onUpgrade={handleUpgrade}
+            onUpgradeEssential={handleUpgradeEssential}
+            onUpgradeComplete={handleUpgradeComplete}
+          />
         </DashboardLayout>
       </React.Suspense>
     );
@@ -249,8 +273,15 @@ export default function Dashboard() {
       setSelectedAccountIds(new Set(negativeAccounts.map(a => a.id)));
     }
     
-    // Show address modal to collect user's address
-    setShowAddressModal(true);
+    // Blueprint §2.2: Check if Identity Bridge is complete
+    // If not, show Identity Bridge Modal (blocking step)
+    if (!userProfile?.isComplete) {
+      setShowIdentityBridgeModal(true);
+      return;
+    }
+    
+    // If profile is complete, proceed directly to letter generation
+    submitGenerateLetters();
   };
   
   // Toggle account selection
@@ -293,22 +324,103 @@ export default function Dashboard() {
     return 0; // default order
   }) : [];
 
+  // Handle Identity Bridge completion (Blueprint §2.2)
+  const handleIdentityBridgeComplete = async (data: IdentityBridgeData) => {
+    try {
+      // Upload Exhibit A (ID photo)
+      let exhibitAKey: string | undefined;
+      if (data.exhibitAFile) {
+        const exhibitAUpload = await uploadToS3.mutateAsync({
+          fileKey: `exhibits/${user!.id}/exhibit-a-${Date.now()}.${data.exhibitAFile.name.split('.').pop()}`,
+          contentType: data.exhibitAFile.type,
+        });
+        
+        // Upload file to Railway storage
+        const formData = new FormData();
+        formData.append('file', data.exhibitAFile);
+        formData.append('fileKey', exhibitAUpload.key);
+        
+        await fetch(exhibitAUpload.uploadUrl, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        exhibitAKey = exhibitAUpload.key;
+      }
+      
+      // Upload Exhibit B (Utility Bill)
+      let exhibitBKey: string | undefined;
+      if (data.exhibitBFile) {
+        const exhibitBUpload = await uploadToS3.mutateAsync({
+          fileKey: `exhibits/${user!.id}/exhibit-b-${Date.now()}.${data.exhibitBFile.name.split('.').pop()}`,
+          contentType: data.exhibitBFile.type,
+        });
+        
+        // Upload file to Railway storage
+        const formData = new FormData();
+        formData.append('file', data.exhibitBFile);
+        formData.append('fileKey', exhibitBUpload.key);
+        
+        await fetch(exhibitBUpload.uploadUrl, {
+          method: 'POST',
+          body: formData,
+        });
+        
+        exhibitBKey = exhibitBUpload.key;
+      }
+      
+      // Save Identity Bridge data to user profile
+      await completeIdentityBridgeMutation.mutateAsync({
+        fullName: data.fullName,
+        currentAddress: data.currentAddress,
+        currentCity: data.currentCity,
+        currentState: data.currentState,
+        currentZip: data.currentZip,
+        dateOfBirth: data.dateOfBirth,
+        ssnFull: data.ssnFull,
+        exhibitAKey,
+        exhibitBKey,
+      });
+      
+      // Mutation's onSuccess will close modal and proceed to letter generation
+    } catch (error: any) {
+      throw new Error(error.message || 'Failed to save identity information');
+    }
+  };
+
   const submitGenerateLetters = async () => {
-    if (!currentAddress.trim()) {
-      toast.error('Please enter your current address');
+    if (!userProfile?.currentAddress) {
+      toast.error('Identity verification required. Please complete your profile.');
+      setShowIdentityBridgeModal(true);
       return;
     }
     
-    setShowAddressModal(false);
     setIsGeneratingLetters(true);
     
     try {
       // Pass selected account IDs if any are selected
       const accountIds = selectedAccountIds.size > 0 ? Array.from(selectedAccountIds) : undefined;
       
+      // Use user profile data (from Identity Bridge)
+      const currentAddress = [
+        userProfile.currentAddress,
+        userProfile.currentCity,
+        userProfile.currentState,
+        userProfile.currentZip
+      ].filter(Boolean).join(', ');
+      
+      const previousAddress = userProfile.previousAddress 
+        ? [
+            userProfile.previousAddress,
+            userProfile.previousCity,
+            userProfile.previousState,
+            userProfile.previousZip
+          ].filter(Boolean).join(', ')
+        : undefined;
+      
       await generateLettersMutation.mutateAsync({
         currentAddress,
-        previousAddress: previousAddress || undefined,
+        previousAddress,
         bureaus: ['transunion', 'equifax', 'experian'],
         accountIds,
       });
@@ -317,6 +429,8 @@ export default function Dashboard() {
       setSelectedAccountIds(new Set());
     } catch (error) {
       console.error('Letter generation failed:', error);
+    } finally {
+      setIsGeneratingLetters(false);
     }
   };
 
@@ -608,6 +722,40 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* PRIMARY CTA: Generate My Round 1 Dispute Letters (Blueprint §2) */}
+        {hasAccounts && (
+          <Card className="border-2 border-orange-500 bg-gradient-to-r from-orange-50 to-amber-50 shadow-lg">
+            <CardContent className="py-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="text-center md:text-left">
+                  <h3 className="text-xl font-bold text-orange-800 mb-1">Ready to Fight Back?</h3>
+                  <p className="text-sm text-orange-700">
+                    We found {negativeAccounts?.length || 0} negative accounts. Generate your Round 1 dispute letters now.
+                  </p>
+                </div>
+                <Button 
+                  size="lg"
+                  onClick={handleGenerateLetters}
+                  disabled={isGeneratingLetters}
+                  className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-8 py-6 text-lg shadow-lg whitespace-nowrap"
+                >
+                  {isGeneratingLetters ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-5 w-5 mr-2" />
+                      Generate My Round 1 Dispute Letters
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Content Tabs — Mission default (Blueprint: don't lead with upload) */}
         <Tabs value={dashboardTab} onValueChange={setDashboardTab} className="space-y-6">
@@ -1537,154 +1685,19 @@ export default function Dashboard() {
       )}
 
       {/* Address Verification Modal for Letter Generation */}
-      {showAddressModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="w-full max-w-lg mx-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-orange-500" />
-                Verify Your Information
-              </CardTitle>
-              <CardDescription>
-                Your personal information is pulled from your credit reports. Please verify it's correct.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Show parsed info from credit report */}
-              {userProfile && (
-                <Alert className="bg-blue-50 border-blue-200">
-                  <AlertDescription className="text-sm">
-                    <strong>From Your Credit Reports:</strong>
-                    <div className="mt-2 space-y-1">
-                      <div><span className="text-gray-500">Name:</span> {userProfile.fullName || 'Not found'}</div>
-                      <div><span className="text-gray-500">DOB:</span> {userProfile.dateOfBirth || 'Not found'}</div>
-                      <div><span className="text-gray-500">SSN:</span> {userProfile.ssnLast4 ? `XXX-XX-${userProfile.ssnLast4}` : 'Not found'}</div>
-                    </div>
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              {/* Address verification */}
-              <div>
-                <label className="text-sm font-medium flex items-center gap-2">
-                  Current Address *
-                  {!addressChanged && userProfile?.currentAddress && (
-                    <Badge variant="outline" className="text-xs bg-green-50 text-green-700">From Credit Report</Badge>
-                  )}
-                </label>
-                <textarea
-                  className="w-full mt-1 p-3 border rounded-md text-sm"
-                  rows={3}
-                  placeholder="123 Main Street&#10;City, State 12345"
-                  value={currentAddress}
-                  onChange={(e) => {
-                    setCurrentAddress(e.target.value);
-                    if (userProfile?.currentAddress && e.target.value !== userProfile.currentAddress) {
-                      setAddressChanged(true);
-                    }
-                  }}
-                />
-                {!currentAddress && userProfile?.currentAddress && (
-                  <Button
-                    variant="link"
-                    className="text-xs p-0 h-auto text-orange-600"
-                    onClick={() => {
-                      const fullAddr = [userProfile.currentAddress, userProfile.currentCity, userProfile.currentState, userProfile.currentZip].filter(Boolean).join(', ');
-                      setCurrentAddress(fullAddr || '');
-                    }}
-                  >
-                    Use address from credit report
-                  </Button>
-                )}
-              </div>
-              
-              {/* Address change warning */}
-              {addressChanged && (
-                <Alert className="bg-yellow-50 border-yellow-200">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription className="text-sm text-yellow-800">
-                    <strong>Address Changed:</strong> If you've moved, include a utility bill as proof of your new address. The letter will include an "ADDRESS CORRECTION" section.
-                  </AlertDescription>
-                </Alert>
-              )}
-              
-              <div>
-                <label className="text-sm font-medium">Previous Address (if moved in last 2 years)</label>
-                <textarea
-                  className="w-full mt-1 p-3 border rounded-md text-sm"
-                  rows={2}
-                  placeholder="Previous address for bureau verification"
-                  value={previousAddress}
-                  onChange={(e) => setPreviousAddress(e.target.value)}
-                />
-              </div>
-              
-              {/* Phone & Email - only fields user needs to provide */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-sm font-medium">Phone (optional)</label>
-                  <input
-                    type="tel"
-                    className="w-full mt-1 p-2 border rounded-md text-sm"
-                    placeholder="(555) 123-4567"
-                    defaultValue={userProfile?.phone || ''}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Email (optional)</label>
-                  <input
-                    type="email"
-                    className="w-full mt-1 p-2 border rounded-md text-sm"
-                    placeholder="you@email.com"
-                    defaultValue={userProfile?.email || user?.email || ''}
-                  />
-                </div>
-              </div>
-              
-              <div className="flex gap-3 pt-2">
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    setShowAddressModal(false);
-                    setAddressChanged(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    if (!currentAddress.trim()) {
-                      toast.error('Please enter your address first');
-                      return;
-                    }
-                    setIsLoadingPreview(true);
-                    previewLetterMutation.mutate({
-                      currentAddress,
-                      previousAddress: previousAddress || undefined,
-                      bureau: 'transunion',
-                      accountIds: selectedAccountIds.size > 0 ? Array.from(selectedAccountIds) : undefined,
-                    });
-                  }}
-                  disabled={!currentAddress.trim() || isLoadingPreview}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  {isLoadingPreview ? 'Loading...' : 'Preview'}
-                </Button>
-                <Button
-                  className="flex-1 bg-orange-500 hover:bg-orange-600"
-                  onClick={submitGenerateLetters}
-                  disabled={!currentAddress.trim()}
-                >
-                  Generate Letters
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      {/* Identity Bridge Modal (Blueprint §2.2) - replaces address modal */}
+      <IdentityBridgeModal
+        isOpen={showIdentityBridgeModal}
+        onClose={() => setShowIdentityBridgeModal(false)}
+        onComplete={handleIdentityBridgeComplete}
+        prefillData={{
+          fullName: userProfile?.fullName,
+          address: userProfile?.currentAddress,
+          city: userProfile?.currentCity,
+          state: userProfile?.currentState,
+          zip: userProfile?.currentZip,
+        }}
+      />
 
       {/* Preview Modal */}
       {showPreviewModal && previewContent && (
