@@ -80,34 +80,38 @@ export default function Letters() {
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900">Dispute Letters History</h1>
-        <p className="text-lg text-gray-600">View, download, and print all generated dispute letters.</p>
+        <div>
+          <h1 className="text-3xl font-black text-gray-900">Dispute Letters History</h1>
+          <p className="text-base text-gray-600 font-medium mt-1">View, download, and print all generated dispute letters.</p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Generated Letters ({disputeLetters.length})</CardTitle>
+        <Card className="border-2 border-gray-300 shadow-lg">
+          <CardHeader className="border-b-2 border-gray-200">
+            <CardTitle className="text-xl font-black">Generated Letters ({disputeLetters.length})</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <div className="space-y-4">
               {disputeLetters.map((letter) => (
-                <div key={letter.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                <div key={letter.id} className="flex items-center justify-between p-4 border-2 border-blue-200 rounded-lg bg-blue-50 hover:bg-blue-100 transition-colors">
                   <div className="flex items-center gap-4">
-                    <Mail className="w-6 h-6 text-blue-600" />
-                    <div className="space-y-0.5">
-                      <p className="font-bold text-gray-900">Round {letter.roundNumber} - {letter.bureau}</p>
-                      <div className="flex items-center gap-3 text-xs text-gray-500">
-                        <Badge variant="secondary">{letter.type}</Badge>
-                        <span>Generated: {format(new Date(letter.createdAt), 'MMM dd, yyyy')}</span>
+                    <div className="p-3 bg-white border-2 border-blue-300 rounded-lg">
+                      <Mail className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div className="space-y-1">
+                      <p className="font-black text-gray-900">Round {letter.roundNumber} - {letter.bureau}</p>
+                      <div className="flex items-center gap-3 text-xs">
+                        <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300 font-bold">{letter.type}</Badge>
+                        <span className="text-gray-600 font-medium">Generated: {format(new Date(letter.createdAt), 'MMM dd, yyyy')}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" asChild>
+                    <Button variant="outline" size="sm" asChild className="border-2 border-gray-400 font-bold">
                       <Link href={`/letter/${letter.id}`}>
                         <FileText className="w-4 h-4 mr-2" /> View PDF
                       </Link>
                     </Button>
-                    <Button variant="secondary" size="sm" onClick={() => handleDownload(letter.id)} disabled={downloadPdfMutation.isLoading}>
+                    <Button size="sm" onClick={() => handleDownload(letter.id)} disabled={downloadPdfMutation.isLoading} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
                       <Printer className="w-4 h-4 mr-2" /> Print
                     </Button>
                   </div>

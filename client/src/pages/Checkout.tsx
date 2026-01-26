@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
+import { cn } from "@/lib/utils";
 
 const PLANS = {
   essential: {
@@ -97,51 +98,55 @@ export default function Checkout() {
 
       <div className="container mx-auto px-4 py-12 max-w-2xl">
         <div className="space-y-8">
-          <h1 className="text-3xl font-bold text-center">Complete Your Upgrade</h1>
+          <h1 className="text-3xl font-black text-center text-gray-900">Complete Your Upgrade</h1>
           
-          {/* Order Summary */}
-          <div className="bg-white p-8 rounded-xl border shadow-sm">
-            <div className="flex justify-between items-center mb-6 pb-4 border-b">
+          {/* Order Summary - STRONG BORDERS */}
+          <div className="bg-white p-8 rounded-xl border-2 border-gray-300 shadow-lg">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
               <div>
-                <span className="font-bold text-xl text-gray-900">{plan.name}</span>
-                <p className="text-sm text-gray-500">Monthly subscription</p>
+                <span className="font-black text-xl text-gray-900">{plan.name}</span>
+                <p className="text-sm text-gray-600 font-medium">Monthly subscription</p>
               </div>
-              <div className="text-right">
-                <span className="font-bold text-2xl text-gray-900">{plan.price}</span>
-                <span className="text-gray-500">{plan.period}</span>
+              <div className="text-right bg-orange-50 p-3 rounded-lg border-2 border-orange-300">
+                <span className="font-black text-2xl text-orange-600">{plan.price}</span>
+                <span className="text-gray-600 font-medium">{plan.period}</span>
               </div>
             </div>
             
             <ul className="space-y-3 mb-8">
               {plan.features.map((feature, i) => (
-                <li key={i} className="flex items-center gap-3 text-gray-700">
+                <li key={i} className="flex items-center gap-3 text-gray-700 p-2 rounded-lg hover:bg-gray-50">
                   {selectedTier === 'complete' && i === 1 ? (
-                    <Zap className="w-5 h-5 text-orange-500 shrink-0" />
+                    <div className="p-1 bg-orange-100 rounded-full">
+                      <Zap className="w-5 h-5 text-orange-600 shrink-0" />
+                    </div>
                   ) : (
-                    <Check className="w-5 h-5 text-green-500 shrink-0" />
+                    <div className="p-1 bg-green-100 rounded-full">
+                      <Check className="w-5 h-5 text-green-600 shrink-0" />
+                    </div>
                   )}
-                  <span className={selectedTier === 'complete' && i === 1 ? 'font-bold text-orange-600' : ''}>
+                  <span className={cn("font-medium", selectedTier === 'complete' && i === 1 ? 'font-bold text-orange-700' : '')}>
                     {feature}
                   </span>
                 </li>
               ))}
             </ul>
 
-            <div className="border-t pt-6">
-              <div className="flex justify-between items-center mb-6">
-                <span className="font-bold text-lg">Total Due Today</span>
-                <span className="font-bold text-2xl text-gray-900">{plan.price}</span>
+            <div className="border-t-2 border-gray-200 pt-6">
+              <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                <span className="font-black text-lg text-gray-900">Total Due Today</span>
+                <span className="font-black text-3xl text-gray-900">{plan.price}</span>
               </div>
 
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">
+                <div className="bg-red-100 border-2 border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4 text-sm font-medium">
                   {error}
                 </div>
               )}
 
               <Button 
                 onClick={handleCheckout}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white py-6 text-lg font-bold"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white py-7 text-lg font-black shadow-lg"
                 disabled={isProcessing}
               >
                 {isProcessing ? (
@@ -151,20 +156,20 @@ export default function Checkout() {
                 )}
               </Button>
 
-              <p className="text-center text-xs text-gray-400 mt-4">
+              <p className="text-center text-sm text-gray-500 mt-4 font-medium">
                 You'll be redirected to Stripe's secure checkout to complete your payment.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center gap-6 text-xs text-gray-500">
-            <div className="flex items-center gap-1"><Shield className="w-4 h-4" /> Secure SSL</div>
-            <div className="flex items-center gap-1"><Lock className="w-4 h-4" /> 256-bit Encryption</div>
-            <div className="flex items-center gap-1"><CreditCard className="w-4 h-4" /> Powered by Stripe</div>
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-600 bg-white p-4 rounded-lg border-2 border-gray-200">
+            <div className="flex items-center gap-2"><Shield className="w-5 h-5 text-green-600" /> <span className="font-medium">Secure SSL</span></div>
+            <div className="flex items-center gap-2"><Lock className="w-5 h-5 text-green-600" /> <span className="font-medium">256-bit Encryption</span></div>
+            <div className="flex items-center gap-2"><CreditCard className="w-5 h-5 text-blue-600" /> <span className="font-medium">Powered by Stripe</span></div>
           </div>
 
-          <p className="text-center text-xs text-gray-400">
-            By continuing, you agree to our <a href="/terms" className="underline">Terms of Service</a> and authorize the monthly subscription charge. Cancel anytime.
+          <p className="text-center text-sm text-gray-500 font-medium">
+            By continuing, you agree to our <a href="/terms" className="underline text-orange-600 hover:text-orange-700">Terms of Service</a> and authorize the monthly subscription charge. Cancel anytime.
           </p>
         </div>
       </div>

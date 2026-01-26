@@ -83,57 +83,66 @@ export default function DashboardHome() {
           </Badge>
         </div>
 
-        {/* SCOREBOARD ROW (Blueprint §2.1) */}
+        {/* SCOREBOARD ROW (Blueprint §2.1) - STRONG BORDERS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Real-Time Scores */}
-          <Card className="lg:col-span-2 bg-white border-2 border-gray-100 shadow-sm">
+          <Card className="lg:col-span-2 bg-white border-2 border-gray-300 shadow-lg">
             <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Live Credit Scores</h3>
-                <span className="text-[10px] text-green-500 font-bold flex items-center gap-1">
+              <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
+                <h3 className="text-sm font-black text-gray-700 uppercase tracking-widest">Live Credit Scores</h3>
+                <span className="text-xs text-green-600 font-bold flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
                   <Clock className="w-3 h-3" /> UPDATED FROM REPORT
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-4">
-                {Object.entries(scores).map(([bureau, score]) => (
-                  <div key={bureau} className="text-center">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">{bureau}</p>
-                    <p className={cn(
-                      "text-3xl font-black",
-                      score ? "text-gray-900" : "text-gray-300"
-                    )}>
-                      {score || "---"}
-                    </p>
-                  </div>
-                ))}
+                {Object.entries(scores).map(([bureau, score]) => {
+                  const colors: Record<string, { bg: string; border: string; text: string }> = {
+                    transunion: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700' },
+                    equifax: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700' },
+                    experian: { bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700' },
+                  };
+                  const c = colors[bureau] || colors.transunion;
+                  return (
+                    <div key={bureau} className={cn("text-center p-4 rounded-lg border-2", c.bg, c.border)}>
+                      <p className="text-xs font-black text-gray-600 uppercase mb-2">{bureau}</p>
+                      <p className={cn(
+                        "text-4xl font-black",
+                        score ? c.text : "text-gray-300"
+                      )}>
+                        {score || "---"}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
-              <div className="mt-6 pt-6 border-t flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">Potential Delta</p>
-                  <p className="text-xl font-black text-green-600">+{potentialDelta} Points</p>
+              <div className="mt-6 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
+                <div className="p-3 bg-green-50 rounded-lg border-2 border-green-300">
+                  <p className="text-xs font-bold text-green-700 uppercase">Potential Delta</p>
+                  <p className="text-2xl font-black text-green-600">+{potentialDelta} Points</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-bold text-gray-400 uppercase">AI Target Score</p>
-                  <p className="text-xl font-black text-blue-600">{targetScore}</p>
+                <div className="p-3 bg-blue-50 rounded-lg border-2 border-blue-300 text-right">
+                  <p className="text-xs font-bold text-blue-700 uppercase">AI Target Score</p>
+                  <p className="text-2xl font-black text-blue-600">{targetScore}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* AI Strategist Widget */}
-          <Card className="bg-blue-900 text-white border-none shadow-lg">
+          <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-2 border-orange-400 shadow-xl">
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Bot className="w-5 h-5 text-blue-300" />
-                <h3 className="text-xs font-bold uppercase tracking-widest">AI Strategist</h3>
+              <div className="flex items-center gap-2 mb-4 pb-3 border-b border-orange-400/50">
+                <div className="p-2 bg-white/20 rounded-lg">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-sm font-black uppercase tracking-widest">AI Strategist</h3>
               </div>
-              <p className="text-sm leading-relaxed text-blue-100 italic">
-                "We've identified {stats?.totalNegativeAccounts || 0} violations across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+              <p className="text-sm leading-relaxed text-white/95">
+                "We've identified <span className="font-black text-yellow-200">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
               </p>
               <div className="mt-6">
                 <Button 
-                  variant="outline" 
-                  className="w-full border-blue-700 text-blue-100 hover:bg-blue-800 text-xs h-8"
+                  className="w-full bg-white hover:bg-gray-100 text-orange-600 font-bold h-10 shadow-md border-2 border-white"
                   onClick={() => window.location.href = '/dashboard/dispute-manager'}
                 >
                   View Full Strategy
@@ -143,43 +152,45 @@ export default function DashboardHome() {
           </Card>
         </div>
 
-        {/* PROGRESS BAR (Blueprint §2.2) */}
-        <Card className="bg-white border-2 border-gray-100">
+        {/* PROGRESS BAR (Blueprint §2.2) - STRONG BORDERS */}
+        <Card className="bg-white border-2 border-gray-300 shadow-md">
           <CardContent className="p-6">
             <div className="flex justify-between mb-4">
               {['Analyze', 'Generate', 'Send', 'Track'].map((step, i) => (
                 <div key={step} className="flex flex-col items-center gap-2">
                   <div className={cn(
-                    "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                    i === 0 ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"
+                    "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2",
+                    i === 0 ? "bg-green-500 text-white border-green-600" : "bg-gray-100 text-gray-500 border-gray-300"
                   )}>
-                    {i === 0 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                    {i === 0 ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
                   </div>
-                  <span className={cn("text-[10px] font-bold uppercase", i === 0 ? "text-gray-900" : "text-gray-400")}>{step}</span>
+                  <span className={cn("text-xs font-bold uppercase", i === 0 ? "text-gray-900" : "text-gray-500")}>{step}</span>
                 </div>
               ))}
             </div>
-            <Progress value={25} className="h-2 bg-gray-100" />
+            <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style={{ width: '25%' }} />
+            </div>
           </CardContent>
         </Card>
 
-        {/* 4 METRIC BOXES (Blueprint §2.3) */}
+        {/* 4 METRIC BOXES (Blueprint §2.3) - COLOR CODED WITH STRONG BORDERS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Violations', value: stats?.totalNegativeAccounts || 0, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50' },
-            { label: 'Estimated Deletions', value: Math.round((stats?.totalNegativeAccounts || 0) * 0.8), icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50' },
-            { label: 'Letters Sent', value: stats?.totalLetters || 0, icon: Send, color: 'text-orange-600', bg: 'bg-orange-50' },
-            { label: 'Items Deleted', value: stats?.deletedAccounts || 0, icon: CheckCircle2, color: 'text-green-600', bg: 'bg-green-50' },
+            { label: 'Total Violations', value: stats?.totalNegativeAccounts || 0, icon: AlertTriangle, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-300' },
+            { label: 'Estimated Deletions', value: Math.round((stats?.totalNegativeAccounts || 0) * 0.8), icon: TrendingUp, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-300' },
+            { label: 'Letters Sent', value: stats?.totalLetters || 0, icon: Send, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-300' },
+            { label: 'Items Deleted', value: stats?.deletedAccounts || 0, icon: CheckCircle2, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-300' },
           ].map((m) => (
-            <Card key={m.label} className="border-none shadow-sm">
+            <Card key={m.label} className={cn("border-2 shadow-md", m.bg, m.border)}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <div className={cn("p-2 rounded-lg", m.bg)}>
-                    <m.icon className={cn("w-4 h-4", m.color)} />
+                  <div className={cn("p-3 rounded-lg bg-white border-2", m.border)}>
+                    <m.icon className={cn("w-5 h-5", m.color)} />
                   </div>
                   <div>
-                    <p className="text-xl font-black text-gray-900">{m.value}</p>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase">{m.label}</p>
+                    <p className={cn("text-3xl font-black", m.color)}>{m.value}</p>
+                    <p className="text-xs font-bold text-gray-600 uppercase">{m.label}</p>
                   </div>
                 </div>
               </CardContent>
