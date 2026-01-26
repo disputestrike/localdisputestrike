@@ -8,6 +8,11 @@ import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
+import MyLiveReport from "@/pages/MyLiveReport";
+import DisputeManager from "@/pages/DisputeManager";
+import Letters from "@/pages/Letters";
+import MailingTracker from "@/pages/MailingTracker";
+import ScoreTracker from "@/pages/ScoreTracker";
 import PreviewResults from "@/pages/PreviewResults";
 import PreviewResultsPage from "@/pages/PreviewResultsPage";
 import AIAssistant from "@/pages/AIAssistant";
@@ -118,12 +123,12 @@ function Router() {
       <Route path="/dashboard/home" component={DashboardHome} />
       <Route path="/dashboard/v2" component={DashboardHomeV2} />
       
-      {/* Dashboard Sidebar Routes - Pointing to main Dashboard component for tab/view handling */}
-      <Route path="/dashboard/report" component={Dashboard} />
-      <Route path="/dashboard/dispute-manager" component={Dashboard} />
-      <Route path="/dashboard/letters" component={Dashboard} />
-      <Route path="/dashboard/mailing-tracker" component={Dashboard} />
-      <Route path="/dashboard/score-tracker" component={Dashboard} />
+      {/* Dashboard Sidebar Routes - Pointing to dedicated components */}
+      <Route path="/dashboard/report" component={MyLiveReport} />
+      <Route path="/dashboard/dispute-manager" component={DisputeManager} />
+      <Route path="/dashboard/letters" component={Letters} />
+      <Route path="/dashboard/mailing-tracker" component={MailingTracker} />
+      <Route path="/dashboard/score-tracker" component={ScoreTracker} />
       
       {/* Legacy Dashboard Routes */}
       <Route path="/dashboard/reports" component={Dashboard} />
