@@ -35,7 +35,7 @@ import { FurnisherLetterModal } from "@/components/FurnisherLetterModal";
 import { LetterComparison } from "@/components/LetterComparison";
 import { CreditScoreChart } from "@/components/CreditScoreChart";
 // CreditScoreSimulator moved to standalone page at /dashboard/score-simulator
-import { Building2, Calculator, Scale, LineChart, Target, Calendar, BarChart3 } from "lucide-react";
+import { Building2, Calculator, Scale, LineChart, Target, Calendar, BarChart3, LayoutDashboard, Zap } from "lucide-react";
 import { DisputeSuccessPredictor } from "@/components/DisputeSuccessPredictor";
 import { SmartLetterScheduler } from "@/components/SmartLetterScheduler";
 import { BureauResponseAnalyzer } from "@/components/BureauResponseAnalyzer";
@@ -49,6 +49,7 @@ export default function Dashboard() {
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
   const [hydratedFromPreview, setHydratedFromPreview] = useState(false);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
+  const [dashboardTab, setDashboardTab] = useState<string>('mission');
   const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);
   
   // Bulk account selection state
@@ -493,6 +494,39 @@ export default function Dashboard() {
     <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <DashboardLayout>
       <div className="space-y-6">
+        {/* Identity Header (Blueprint: Command Center scoreboard) */}
+        <Card className="border-2 border-orange-200 bg-gradient-to-r from-orange-50 to-amber-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Zap className="h-5 w-5 text-orange-500" />
+              Command Center
+            </CardTitle>
+            <CardDescription>Your financial war room — scores, potential impact, and next steps</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="rounded-lg bg-white/80 p-3 border border-orange-100">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Scores (TU / EQ / EX)</p>
+              <p className="text-lg font-bold text-orange-700 mt-1">— / — / —</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Upload reports or SmartCredit when connected</p>
+            </div>
+            <div className="rounded-lg bg-white/80 p-3 border border-orange-100">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Potential delta</p>
+              <p className="text-lg font-bold text-orange-700 mt-1">
+                {hasAccounts ? "Based on your disputes" : "—"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">Current → AI-predicted range</p>
+            </div>
+            <div className="rounded-lg bg-white/80 p-3 border border-orange-100">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Strategist</p>
+              <p className="text-sm font-medium text-gray-800 mt-1">
+                {hasAccounts
+                  ? `Focus on ${negativeAccounts?.length ?? 0} accounts. Round 1: cross-bureau conflicts.`
+                  : "Upload reports or use Get Reports → Preview to unlock your strategy."}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Progress Section */}
         <Card>
           <CardHeader>
@@ -518,10 +552,14 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="upload" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="upload">
+        {/* Main Content Tabs — Mission default (Blueprint: don't lead with upload) */}
+        <Tabs value={dashboardTab} onValueChange={setDashboardTab} className="space-y-6">
+          <TabsList className="flex flex-wrap gap-1">
+            <TabsTrigger value="mission" className="gap-1.5">
+              <LayoutDashboard className="h-4 w-4" />
+              Mission
+            </TabsTrigger>
+            <TabsTrigger value="upload" className="gap-1.5">
               <Upload className="h-4 w-4 mr-2" />
               Upload
             </TabsTrigger>
@@ -560,6 +598,58 @@ export default function Dashboard() {
               Documents
             </TabsTrigger>
           </TabsList>
+
+          {/* Mission tab (Blueprint: Command Center overview, upload as secondary) */}
+          <TabsContent value="mission" className="space-y-6">
+            <Card className="border-orange-200 bg-orange-50/50">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-orange-600" />
+                  Your mission
+                </CardTitle>
+                <CardDescription>
+                  Use Mission Control in the sidebar: Dashboard, My Live Report, Dispute Manager, Mailing Tracker. Upload or refresh reports anytime.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex-col gap-2 border-orange-200 hover:bg-orange-50"
+                  onClick={() => setDashboardTab('upload')}
+                >
+                  <Upload className="h-6 w-6" />
+                  <span className="font-semibold">Upload / Refresh reports</span>
+                  <span className="text-xs font-normal text-muted-foreground">3 separate or 1 combined file</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex-col gap-2"
+                  onClick={() => setLocation('/dashboard/reports')}
+                >
+                  <FileText className="h-6 w-6" />
+                  <span className="font-semibold">My Live Report</span>
+                  <span className="text-xs font-normal text-muted-foreground">View parsed report & violations</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex-col gap-2"
+                  onClick={() => setLocation('/dashboard/disputes')}
+                >
+                  <AlertTriangle className="h-6 w-6" />
+                  <span className="font-semibold">Dispute Manager</span>
+                  <span className="text-xs font-normal text-muted-foreground">Accounts & generate letters</span>
+                </Button>
+              </CardContent>
+            </Card>
+            <Alert>
+              <Bot className="h-4 w-4" />
+              <AlertDescription>
+                <strong>AI Strategist:</strong> {hasAccounts
+                  ? `We've identified ${negativeAccounts?.length ?? 0} negative accounts. Round 1 strategy: cross-bureau conflicts. Go to Dispute Manager to generate letters.`
+                  : 'Upload credit reports (or use Get Reports → Preview) to unlock your personalized dispute strategy.'}
+              </AlertDescription>
+            </Alert>
+          </TabsContent>
 
           {/* Upload Reports Tab */}
           <TabsContent value="upload" className="space-y-6">
