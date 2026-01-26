@@ -44,7 +44,7 @@ import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
   const [hydratedFromPreview, setHydratedFromPreview] = useState(false);
@@ -171,20 +171,40 @@ export default function Dashboard() {
     if (!raw) return;
     try {
       const data = JSON.parse(raw) as LightAnalysisResult & { fileUrl?: string };
+      const sv = data?.severityBreakdown;
+      const cat = data?.categoryBreakdown;
+      if (
+        typeof data?.totalViolations !== 'number' ||
+        !sv || typeof sv.critical !== 'number' || typeof sv.high !== 'number' ||
+        typeof sv.medium !== 'number' || typeof sv.low !== 'number' ||
+        !cat || typeof cat.collections !== 'number' || typeof cat.latePayments !== 'number' ||
+        typeof cat.chargeOffs !== 'number' || typeof cat.judgments !== 'number' || typeof cat.other !== 'number'
+      ) {
+        sessionStorage.removeItem('previewAnalysis');
+        return;
+      }
       setLightAnalysisResult({ ...data, fileUrl: data?.fileUrl ?? '' });
       setHydratedFromPreview(true);
       sessionStorage.removeItem('previewAnalysis');
       const u = new URL(window.location.href);
       u.searchParams.delete('payment');
-      window.history.replaceState({}, '', u.pathname + (u.search ? `?${u.searchParams.toString()}` : ''));
+      const q = u.searchParams.toString();
+      window.history.replaceState({}, '', u.pathname + (q ? `?${q}` : ''));
     } catch {
       sessionStorage.removeItem('previewAnalysis');
     }
   }, []);
 
   // Early returns only after all hooks (Rules of Hooks)
-  if (!user) {
+  if (authLoading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  if (!user) {
+    return (
+      <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+        <DashboardLayout><div /></DashboardLayout>
+      </React.Suspense>
+    );
   }
 
   const isFreeUser = !userProfile?.subscriptionTier || userProfile.subscriptionTier === 'none';
@@ -201,7 +221,7 @@ export default function Dashboard() {
             analysis={lightAnalysisResult}
             onUpgrade={handleUpgrade}
             revealed
-            onUpload={() => setLocation('/get-reports')}
+            onUpload={() => setLocation('/dashboard/reports')}
           />
         </DashboardLayout>
       </React.Suspense>

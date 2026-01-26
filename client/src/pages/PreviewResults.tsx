@@ -28,8 +28,14 @@ const TIMELINE_STEPS = [
   { week: "Day 30+", action: "Score Updates", explanation: "If items deleted, credit card companies update within 1-3 billing cycles" },
 ] as const;
 
+const defaultSeverity = { critical: 0, high: 0, medium: 0, low: 0 };
+const defaultCategory = { collections: 0, latePayments: 0, chargeOffs: 0, judgments: 0, other: 0 };
+
 const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, revealed, onUpload }) => {
-  const { totalViolations, severityBreakdown, categoryBreakdown, accountPreviews, creditScore } = analysis;
+  const severityBreakdown = analysis.severityBreakdown ?? defaultSeverity;
+  const categoryBreakdown = analysis.categoryBreakdown ?? defaultCategory;
+  const totalViolations = analysis.totalViolations ?? 0;
+  const { accountPreviews, creditScore } = analysis;
 
   const totalSeverity = severityBreakdown.critical + severityBreakdown.high + severityBreakdown.medium + severityBreakdown.low;
   const isZero = totalSeverity === 0;

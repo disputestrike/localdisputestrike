@@ -61,7 +61,7 @@ const navSections = [
       { icon: AlertTriangle, label: "Dispute Manager", path: "/dashboard/disputes", badge: null },
       { icon: Mail, label: "Letters", path: "/dashboard/letters", badge: null },
       { icon: Bell, label: "Mailing Tracker", path: "/dashboard/tracking", badge: null },
-      { icon: Upload, label: "Upload / Refresh reports", path: "/get-reports", badge: null },
+      { icon: Upload, label: "Upload / Refresh reports", path: "/dashboard/reports", badge: null },
     ],
   },
   {
