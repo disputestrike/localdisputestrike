@@ -27,7 +27,15 @@ export default function ScoreSimulator() {
     
     creditReports.forEach(report => {
       if (report.parsedData) {
-        const parsed = typeof report.parsedData === 'string' ? JSON.parse(report.parsedData) : report.parsedData;
+        let parsed = report.parsedData;
+        if (typeof report.parsedData === 'string') {
+          try {
+            parsed = JSON.parse(report.parsedData);
+          } catch (e) {
+            console.error("Failed to parse JSON for report in ScoreSimulator:", report.bureau, e);
+            return; // Skip this report
+          }
+        }
         if (parsed?.creditScore) {
           totalScore += parsed.creditScore;
           scoreCount++;
