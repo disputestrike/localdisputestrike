@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,7 +28,8 @@ import {
   Target,
   BarChart3,
   LayoutDashboard,
-  Info
+  Info,
+  Search
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -114,103 +114,89 @@ export default function Dashboard() {
   return (
     <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <DashboardLayout>
-        <div className="space-y-8 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
+        <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pt-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-white fill-white" />
-                </div>
-                <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Financial War Room</h1>
-              </div>
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Strategic Credit Restoration in Progress</p>
+              <h1 className="text-3xl font-bold text-gray-900">Financial War Room</h1>
+              <p className="text-muted-foreground">Strategic Credit Restoration in Progress</p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge className="bg-blue-50 text-blue-600 border-blue-100 px-3 py-1 text-[10px] font-black uppercase tracking-wider">
-                {userProfile?.subscriptionTier === 'complete' ? 'COMPLETE TIER' : 'ESSENTIAL TIER'}
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                {userProfile?.subscriptionTier === 'complete' ? 'Complete Tier' : 'Essential Tier'}
               </Badge>
-              <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden">
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs">
-                  {userProfile?.fullName?.charAt(0) || 'U'}
-                </div>
-              </div>
+              <Button 
+                onClick={handleGenerateLetters}
+                disabled={isGeneratingLetters}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              >
+                {isGeneratingLetters ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Generate Letters
+                  </>
+                )}
+              </Button>
             </div>
           </div>
 
           {/* SCOREBOARD ROW (Blueprint §2.1) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 bg-white border border-gray-100 shadow-sm rounded-2xl overflow-hidden">
-              <CardContent className="p-8">
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-2">
-                    <BarChart3 className="w-4 h-4 text-blue-500" />
-                    <h3 className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">Live Credit Scores</h3>
-                  </div>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 rounded-full">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[10px] text-green-600 font-black uppercase tracking-wider">Live from Report</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-8">
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  Live Credit Scores
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-center">
                   {[
-                    { name: 'TransUnion', score: scores.transunion, color: 'text-blue-600', dot: 'bg-blue-500' },
-                    { name: 'Equifax', score: scores.equifax, color: 'text-red-600', dot: 'bg-red-500' },
-                    { name: 'Experian', score: scores.experian, color: 'text-purple-600', dot: 'bg-purple-500' }
+                    { name: 'TransUnion', score: scores.transunion, color: 'text-blue-600' },
+                    { name: 'Equifax', score: scores.equifax, color: 'text-red-600' },
+                    { name: 'Experian', score: scores.experian, color: 'text-purple-600' }
                   ].map((b) => (
-                    <div key={b.name} className="flex flex-col items-center">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <div className={cn("w-1.5 h-1.5 rounded-full", b.dot)} />
-                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{b.name}</p>
-                      </div>
-                      <p className={cn("text-4xl font-black tracking-tighter", b.score ? "text-gray-900" : "text-gray-200")}>
+                    <div key={b.name} className="space-y-1">
+                      <p className="text-xs font-medium text-muted-foreground uppercase">{b.name}</p>
+                      <p className={cn("text-3xl font-bold", b.score ? b.color : "text-gray-300")}>
                         {b.score || "---"}
                       </p>
                     </div>
                   ))}
                 </div>
-
-                <div className="mt-10 pt-8 border-t border-gray-50 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-green-50 rounded-xl">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
+                <div className="mt-6 pt-6 border-t flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-green-600" />
                     <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Potential Delta</p>
-                      <p className="text-2xl font-black text-green-600">+{potentialDelta} Points</p>
+                      <p className="text-xs text-muted-foreground">Potential Delta</p>
+                      <p className="text-xl font-bold text-green-600">+{potentialDelta} Points</p>
                     </div>
                   </div>
-                  <div className="text-right flex items-center gap-4 flex-row-reverse">
-                    <div className="p-3 bg-blue-50 rounded-xl">
-                      <Target className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">AI Target Score</p>
-                      <p className="text-2xl font-black text-blue-600">{targetScore}</p>
-                    </div>
+                  <div className="text-right">
+                    <p className="text-xs text-muted-foreground">AI Target Score</p>
+                    <p className="text-xl font-bold text-blue-600">{targetScore}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-[#002b5c] text-white border-none shadow-xl rounded-2xl overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Bot className="w-32 h-32" />
-              </div>
-              <CardContent className="p-8 relative z-10 h-full flex flex-col">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-blue-300" />
-                  </div>
-                  <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-blue-200">AI Strategist</h3>
-                </div>
-                <div className="flex-1">
-                  <p className="text-base leading-relaxed text-blue-50 font-medium italic mb-6">
-                    "We've identified <span className="text-blue-300 font-black">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
-                  </p>
-                </div>
-                <Button className="w-full bg-blue-600 hover:bg-blue-500 text-white border-none font-black text-[11px] uppercase tracking-widest h-11 rounded-xl shadow-lg shadow-blue-900/50">
+            <Card className="bg-blue-900 text-white border-none">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2 text-blue-100">
+                  <Bot className="w-5 h-5" />
+                  AI Strategist
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-relaxed text-blue-50">
+                  "We've identified <span className="font-bold text-blue-300">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+                </p>
+                <Button variant="secondary" className="w-full bg-blue-800 hover:bg-blue-700 text-white border-none">
                   View Full Strategy
                 </Button>
               </CardContent>
@@ -218,115 +204,249 @@ export default function Dashboard() {
           </div>
 
           {/* PROGRESS BAR (Blueprint §2.2) */}
-          <Card className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
-            <CardContent className="p-8">
-              <div className="flex justify-between mb-6">
-                {[
-                  { name: 'Analyze', icon: Search },
-                  { name: 'Generate', icon: FileText },
-                  { name: 'Send', icon: Send },
-                  { name: 'Track', icon: Target }
-                ].map((step, i) => (
-                  <div key={step.name} className="flex flex-col items-center gap-3 relative z-10">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-between mb-4">
+                {['Analyze', 'Generate', 'Send', 'Track'].map((step, i) => (
+                  <div key={step} className="flex flex-col items-center gap-2">
                     <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center text-xs font-black transition-all duration-500",
-                      i === 0 ? "bg-green-500 text-white shadow-lg shadow-green-100" : "bg-gray-50 text-gray-300 border border-gray-100"
+                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
+                      i === 0 ? "bg-green-600 text-white" : "bg-gray-100 text-gray-400"
                     )}>
-                      {i === 0 ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
+                      {i === 0 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
                     </div>
-                    <span className={cn("text-[10px] font-black uppercase tracking-widest", i === 0 ? "text-gray-900" : "text-gray-300")}>{step.name}</span>
+                    <span className="text-xs font-medium">{step}</span>
                   </div>
                 ))}
               </div>
-              <div className="relative h-1.5 bg-gray-50 rounded-full overflow-hidden">
-                <div className="absolute top-0 left-0 h-full bg-green-500 rounded-full transition-all duration-1000" style={{ width: '25%' }} />
-              </div>
+              <Progress value={25} className="h-2" />
             </CardContent>
           </Card>
 
           {/* 4 METRIC BOXES (Blueprint §2.3) */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { label: 'Total Violations', value: stats?.totalNegativeAccounts || 0, icon: AlertTriangle, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-100' },
-              { label: 'Estimated Deletions', value: Math.round((stats?.totalNegativeAccounts || 0) * 0.8), icon: TrendingUp, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-100' },
-              { label: 'Letters Sent', value: stats?.totalLettersSent || 0, icon: Mail, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100' },
-              { label: 'Items Deleted', value: stats?.totalDeletions || 0, icon: Trash2, color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-100' },
-            ].map((m) => (
-              <Card key={m.label} className={cn("border shadow-sm rounded-2xl overflow-hidden", m.border)}>
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-4">
-                    <div className={cn("p-3 rounded-xl", m.bg)}>
-                      <m.icon className={cn("w-5 h-5", m.color)} />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-red-600 mb-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase">Negative Items</span>
+                </div>
+                <p className="text-3xl font-bold">{stats?.totalNegativeAccounts || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Found in AI analysis</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-blue-600 mb-2">
+                  <Mail className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase">Letters Sent</span>
+                </div>
+                <p className="text-3xl font-bold">{stats?.totalLettersSent || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Total dispute letters</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-green-600 mb-2">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase">Deletions</span>
+                </div>
+                <p className="text-3xl font-bold">{stats?.totalDeletions || 0}</p>
+                <p className="text-xs text-muted-foreground mt-1">Items removed</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex items-center gap-2 text-purple-600 mb-2">
+                  <Clock className="w-4 h-4" />
+                  <span className="text-xs font-bold uppercase">Avg. Time</span>
+                </div>
+                <p className="text-3xl font-bold">34</p>
+                <p className="text-xs text-muted-foreground mt-1">Days to first result</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Main Content Tabs */}
+          <Tabs defaultValue="overview" className="space-y-4">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="letters">Dispute Letters</TabsTrigger>
+              <TabsTrigger value="reports">Credit Reports</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {disputeLetters?.slice(0, 3).map((letter) => (
+                        <div key={letter.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-white rounded border">
+                              <FileText className="w-4 h-4 text-gray-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{letter.bureau.toUpperCase()} Dispute Letter</p>
+                              <p className="text-xs text-muted-foreground">{new Date(letter.createdAt!).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary">{letter.status}</Badge>
+                        </div>
+                      ))}
+                      {(!disputeLetters || disputeLetters.length === 0) && (
+                        <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+                      )}
                     </div>
-                    <div>
-                      <p className="text-2xl font-black text-gray-900 tracking-tight">{m.value}</p>
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{m.label}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Next Steps</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                      <div>
+                        <p className="text-sm font-medium">Generate your dispute letters</p>
+                        <p className="text-xs text-muted-foreground">Our AI will create custom letters for each bureau.</p>
+                      </div>
                     </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0">2</div>
+                      <div>
+                        <p className="text-sm font-medium">Review and send</p>
+                        <p className="text-xs text-muted-foreground">Download and mail your letters to the bureaus.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="letters">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Dispute Letters</CardTitle>
+                    <CardDescription>Manage and track your generated dispute letters</CardDescription>
+                  </div>
+                  <Button onClick={handleGenerateLetters} disabled={isGeneratingLetters}>
+                    {isGeneratingLetters ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate New Letters"}
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {disputeLetters?.map((letter) => (
+                      <div key={letter.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-blue-50 rounded-lg">
+                            <FileText className="w-6 h-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{letter.bureau.toUpperCase()} Dispute Letter</p>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                              <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(letter.createdAt!).toLocaleDateString()}</span>
+                              <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> Round {letter.round}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Badge variant={letter.status === 'sent' ? 'default' : 'secondary'}>
+                            {letter.status.toUpperCase()}
+                          </Badge>
+                          <Button variant="ghost" size="sm">
+                            <Download className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {(!disputeLetters || disputeLetters.length === 0) && (
+                      <div className="text-center py-12">
+                        <FileText className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                        <p className="text-gray-500">No letters generated yet</p>
+                        <Button variant="outline" className="mt-4" onClick={handleGenerateLetters}>
+                          Generate Your First Letters
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </TabsContent>
 
-          {/* PRIMARY CTA (Blueprint §2.4) */}
-          <div className="flex flex-col items-center gap-4 pt-8">
-            <Button 
-              className="bg-[#ff6b00] hover:bg-[#e66000] text-white px-16 py-10 text-xl font-black rounded-2xl shadow-2xl shadow-orange-200 group transition-all hover:scale-[1.02] active:scale-[0.98]"
-              onClick={handleGenerateLetters}
-              disabled={isGeneratingLetters}
-            >
-              {isGeneratingLetters ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <>
-                  GENERATE MY ROUND 1 DISPUTE LETTERS
-                  <ArrowRight className="w-6 h-6 ml-4 group-hover:translate-x-2 transition-transform" />
-                </>
-              )}
-            </Button>
-            <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-              <Shield className="w-3 h-3" />
-              Secure AI Generation • 256-Bit Encryption
-            </div>
-          </div>
-
-          {/* Identity Bridge Modal */}
-          <IdentityBridgeModal 
-            isOpen={showIdentityBridgeModal}
-            onClose={() => setShowIdentityBridgeModal(false)}
-            onComplete={handleIdentityBridgeComplete}
-            prefillData={{
-              fullName: userProfile?.fullName || '',
-              address: userProfile?.currentAddress || '',
-              city: userProfile?.currentCity || '',
-              state: userProfile?.currentState || '',
-              zip: userProfile?.currentZip || '',
-              dateOfBirth: userProfile?.dateOfBirth || '',
-              phone: userProfile?.phone || '',
-            }}
-          />
+            <TabsContent value="reports">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Credit Reports</CardTitle>
+                    <CardDescription>Your uploaded credit report files</CardDescription>
+                  </div>
+                  <Button variant="outline" onClick={() => setLocation('/get-reports')}>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload New
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {creditReports?.map((report) => (
+                      <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-4">
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <FileText className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="font-bold text-gray-900">{report.bureau.toUpperCase()} Report</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Uploaded on {new Date(report.createdAt!).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                    {(!creditReports || creditReports.length === 0) && (
+                      <div className="text-center py-12">
+                        <Upload className="w-12 h-12 text-gray-200 mx-auto mb-4" />
+                        <p className="text-gray-500">No reports uploaded yet</p>
+                        <Button variant="outline" className="mt-4" onClick={() => setLocation('/get-reports')}>
+                          Upload Your Reports
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
+
+        <IdentityBridgeModal 
+          isOpen={showIdentityBridgeModal}
+          onClose={() => setShowIdentityBridgeModal(false)}
+          onComplete={handleIdentityBridgeComplete}
+          prefillData={{
+            fullName: userProfile?.fullName,
+            address: userProfile?.address,
+            city: userProfile?.city,
+            state: userProfile?.state,
+            zip: userProfile?.zip,
+            dateOfBirth: userProfile?.dateOfBirth,
+            phone: userProfile?.phone,
+          }}
+        />
       </DashboardLayout>
     </React.Suspense>
   );
-}
-
-function Search(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
 }
