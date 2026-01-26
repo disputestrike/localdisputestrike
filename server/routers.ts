@@ -8,6 +8,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { generatePdfFromLetter } from './letterToPdf';
 import { safeJsonParse } from "./utils/json";
 import * as db from "./db";
 import { COOKIE_NAME } from "@shared/const";
@@ -29,23 +30,7 @@ const agencyProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 });
 
 // Paid user procedure - requires completed payment
-const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
-  const payment = await db.getUserLatestPayment(ctx.user.id);
-  
-  if (!payment || payment.status !== 'completed') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Payment required to access this feature. Please purchase a package to continue.'
-    });
-  }
-  
-  return next({ 
-    ctx: { 
-      ...ctx, 
-      userTier: payment.tier 
-    } 
-  });
-});
+
 
 // System prompt for AI letter generation - UPDATED with real-world success learnings
 const LETTER_GENERATION_SYSTEM_PROMPT = `You are an expert credit dispute attorney specializing in FCRA litigation. You generate A+ (98/100) FCRA-compliant dispute letters that achieve 70-85% deletion rates.
@@ -579,32 +564,7 @@ export const appRouter = router({
         
         return await getRecentParserComparisons(input.limit || 50);
       }),
-    // Method Analytics - 43 Dispute Detection Methods
-    getMethodAnalytics: adminProcedure.query(async ({ ctx }) => {
-      const { 
-        getMethodStats, 
-        getMethodStatsByCategory, 
-        getTopTriggeredMethods, 
-        getMethodTriggerTrends,
-        getMethodAnalyticsSummary 
-      } = await import('./db');
-      
-      const [stats, byCategory, topMethods, trends, summary] = await Promise.all([
-        getMethodStats(),
-        getMethodStatsByCategory(),
-        getTopTriggeredMethods(15),
-        getMethodTriggerTrends(30),
-        getMethodAnalyticsSummary()
-      ]);
-      
-      return {
-        stats,
-        byCategory,
-        topMethods,
-        trends,
-        summary
-      };
-    }),
+
     
     getMethodDetails: adminProcedure
       .input(z.object({ methodNumber: z.number().min(1).max(43) }))
@@ -620,18 +580,7 @@ export const appRouter = router({
         return methodStats;
       }),
 
-    // Cleanup user data for master test
-    cleanupUserData: protectedProcedure
-      .input(z.object({ userId: z.number() }))
-      .mutation(async ({ ctx, input }) => {
-        // Only allow users to cleanup their own data, or admins to cleanup any
-        if (ctx.user.id !== input.userId && ctx.user.role !== 'admin') {
-          throw new TRPCError({ code: 'FORBIDDEN', message: 'Cannot cleanup other user data' });
-        }
-        
-        const { cleanupUserData } = await import('./cleanupUserData');
-        return await cleanupUserData(input.userId);
-      }),
+
 
     // ============================================================================
     // COMPREHENSIVE ADMIN PANEL ENDPOINTS
@@ -1545,6 +1494,19 @@ Be thorough and list every negative item found.`;
   }),
 
   disputeLetters: router({
+    downloadPdf: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const letter = await db.getDisputeLetterById(input.id);
+        if (!letter || letter.userId !== ctx.user.id) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Letter not found' });
+        }
+        const pdfBuffer = await generatePdfFromLetter(letter.letterContent);
+        return {
+          pdf: pdfBuffer.toString('base64'),
+          fileName: `DisputeLetter_${letter.bureau}_${letter.id}.pdf`,
+        };
+      }),
     /**
      * Generate dispute letters (placeholder - will implement AI generation later)
      */

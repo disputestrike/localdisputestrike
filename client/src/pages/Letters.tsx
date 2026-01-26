@@ -1,4 +1,4 @@
-import { trpc } from "@/lib/trpc";
+import { api } from "@/lib/trpc";
 import {
   Mail,
   Download,
@@ -16,8 +16,30 @@ import { Link } from "wouter";
 import { format } from "date-fns";
 
 export default function Letters() {
-  const { data: disputeLetters = [], isLoading: lettersLoading } = trpc.disputeLetters.list.useQuery();
-  const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const { data: disputeLetters = [], isLoading: lettersLoading } = api.disputeLetters.list.useQuery();
+  const { data: creditReports = [], isLoading: reportsLoading } = api.creditReports.list.useQuery();
+  const downloadPdfMutation = api.disputeLetters.downloadPdf.useMutation();
+
+  const handleDownload = async (letterId: number) => {
+    try {
+      const result = await downloadPdfMutation.mutateAsync({ id: letterId });
+      const byteCharacters = atob(result.pdf);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = result.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Failed to download PDF', error);
+    }
+  };
 
   const isLoading = lettersLoading || reportsLoading;
 
@@ -85,7 +107,7 @@ export default function Letters() {
                         <FileText className="w-4 h-4 mr-2" /> View PDF
                       </Link>
                     </Button>
-                    <Button variant="secondary" size="sm">
+                    <Button variant="secondary" size="sm" onClick={() => handleDownload(letter.id)} disabled={downloadPdfMutation.isLoading}>
                       <Printer className="w-4 h-4 mr-2" /> Print
                     </Button>
                   </div>

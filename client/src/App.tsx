@@ -102,17 +102,17 @@ function Router() {
       
       {/* V3 - New Free Onboarding Flow */}
       <Route path="/start" component={OnboardingQuiz} />
-      <Route path="/get-started" component={OnboardingQuiz} />
+
       <Route path="/complete-profile" component={CompleteProfile} />
       <Route path="/get-reports" component={GetReports} />
       <Route path="/fcra-rights" component={FCRARights} />
-      <Route path="/your-rights" component={FCRARights} />
+
       
       {/* V2 - Flow Routes */}
       <Route path="/preview-results" component={PreviewResultsPage} />
       <Route path="/trial-checkout">{() => { window.location.href = '/pricing'; return null; }}</Route>
       <Route path="/checkout" component={Checkout} />
-      <Route path="/trial-success" component={CreditAnalysis} />
+
       <Route path="/credit-analysis" component={CreditAnalysis} />
       <Route path="/onboarding" component={OnboardingWizard} />
       <Route path="/responses/:roundId" component={ResponseUpload} />
@@ -130,10 +130,7 @@ function Router() {
       <Route path="/dashboard/mailing-tracker" component={MailingTracker} />
       <Route path="/dashboard/score-tracker" component={ScoreTracker} />
       
-      {/* Legacy Dashboard Routes */}
-      <Route path="/dashboard/reports" component={Dashboard} />
-      <Route path="/dashboard/disputes" component={Dashboard} />
-      <Route path="/dashboard/creditor-disputes" component={Dashboard} />
+
       
       {/* Dedicated Dashboard Pages */}
       <Route path="/dashboard/cfpb" component={CFPBComplaints} />
@@ -149,7 +146,7 @@ function Router() {
       <Route path="/dashboard/simulator" component={ScoreSimulator} />
       <Route path="/dashboard/education" component={CreditEducation} />
       <Route path="/dashboard/ai-assistant" component={AIAssistant} />
-      <Route path="/ai-assistant" component={AIAssistant} />
+
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminPanel} />
       <Route path="/admin/user/:id" component={AdminUserDetails} />
