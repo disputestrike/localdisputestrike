@@ -23,8 +23,9 @@ export default function PreviewResultsPage() {
     }
     try {
       const data = JSON.parse(raw) as LightAnalysisResult & { fileUrl?: string };
-      sessionStorage.removeItem(STORAGE_KEY);
       setAnalysis({ ...data, fileUrl: data.fileUrl ?? "" });
+      // Keep preview in sessionStorage for post-payment hydrate (Phase 1 zero-friction).
+      // Do NOT remove here; Dashboard clears after successful hydrate.
     } catch {
       setLocation("/get-reports");
     }

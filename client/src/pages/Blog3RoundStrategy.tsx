@@ -101,7 +101,7 @@ export default function Blog3RoundStrategy() {
               <li><strong>MOV request:</strong> Demand documentation showing how they verified the information</li>
               <li><strong>FCRA § 611(a)(7) citation:</strong> This section requires bureaus to provide you with the method of verification</li>
               <li><strong>Specific questions:</strong> "What documents did the furnisher provide?" "Who verified this information?"</li>
-              <li><strong>Deadline:</strong> Request a response within 15 days</li>
+              <li><strong>Deadline:</strong> Request a response within 30 days</li>
             </ul>
 
             <Card className="mb-8 border-2 border-orange-200 bg-orange-50">

@@ -1896,7 +1896,7 @@ Generate an AGGRESSIVE escalation letter that:
 3. **Cites legal consequences:**
    - FCRA § 1681n - Willful noncompliance penalties ($100-$1,000 per violation)
    - FCRA § 1681o - Negligent noncompliance (actual damages)
-   - Potential lawsuit if MOV is not provided within 15 days
+   - Potential lawsuit if MOV is not provided within 30 days
 
 4. **References statute of limitations:**
    - Notes that old debts may be past statute of limitations
@@ -1904,7 +1904,7 @@ Generate an AGGRESSIVE escalation letter that:
    - Emphasizes this is a credit reporting dispute, not debt validation
 
 5. **Demands specific action:**
-   - Provide complete MOV within 15 days
+   - Provide complete MOV within 30 days
    - Delete accounts if MOV cannot be provided
    - Cease reporting accounts as accurate pending MOV
 

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { LightAnalysisResult } from "@shared/types";
 import {
   calculateImpactPrediction,
@@ -8,13 +8,17 @@ import {
   rangeToRatingLabel,
 } from "@/lib/analysisUtils";
 import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
-import { AlertTriangle, CheckCircle2, Lock, TrendingUp, BarChart3, Calendar } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Lock, TrendingUp, BarChart3, Calendar, Upload } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 
 interface PreviewResultsProps {
   analysis: LightAnalysisResult & { fileUrl?: string };
   onUpgrade: () => void;
+  /** Post-payment "revealed" view: hide upgrade CTA, show upload fallback. */
+  revealed?: boolean;
+  /** When revealed, called when user taps "Upload reports" / "Refresh data". */
+  onUpload?: () => void;
 }
 
 const TIMELINE_STEPS = [
@@ -24,7 +28,7 @@ const TIMELINE_STEPS = [
   { week: "Day 30+", action: "Score Updates", explanation: "If items deleted, credit card companies update within 1-3 billing cycles" },
 ] as const;
 
-const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) => {
+const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, revealed, onUpload }) => {
   const { totalViolations, severityBreakdown, categoryBreakdown, accountPreviews, creditScore } = analysis;
 
   const totalSeverity = severityBreakdown.critical + severityBreakdown.high + severityBreakdown.medium + severityBreakdown.low;
@@ -170,35 +174,58 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) 
         </div>
       </div>
 
-      {/* Unlock Full Report */}
-      <Card className="border-2 border-blue-500 bg-blue-50 max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl flex items-center text-blue-700">
-            <Lock className="w-6 h-6 mr-2" />
-            Unlock Full Report Details & Dispute Letters
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <p className="text-lg font-semibold text-gray-700">
-            The following critical details are currently blurred to protect our proprietary analysis and your privacy:
-          </p>
-          <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
-            <li><span className="font-bold">Specific Account Names</span> (e.g., Chase Bank, Portfolio Recovery)</li>
-            <li><span className="font-bold">Advanced FCRA Analysis</span> (Our dispute analysis and violation checks)</li>
-            <li><span className="font-bold">Full Report Analysis</span> (Required to generate legal dispute letters)</li>
-          </ul>
-          <div className="flex flex-col md:flex-row gap-4 pt-4">
-            <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg">
-              Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)
-              <span className="text-sm font-normal block mt-1">Print & mail letters yourself.</span>
+      {/* Unlock Full Report (hidden when revealed) */}
+      {!revealed && (
+        <Card className="border-2 border-blue-500 bg-blue-50 max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center text-blue-700">
+              <Lock className="w-6 h-6 mr-2" />
+              Unlock Full Report Details & Dispute Letters
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <p className="text-lg font-semibold text-gray-700">
+              The following critical details are currently blurred to protect our proprietary analysis and your privacy:
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-4 text-gray-700">
+              <li><span className="font-bold">Specific Account Names</span> (e.g., Chase Bank, Portfolio Recovery)</li>
+              <li><span className="font-bold">Advanced FCRA Analysis</span> (Our dispute analysis and violation checks)</li>
+              <li><span className="font-bold">Full Report Analysis</span> (Required to generate legal dispute letters)</li>
+            </ul>
+            <div className="flex flex-col md:flex-row gap-4 pt-4">
+              <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg">
+                Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)
+                <span className="text-sm font-normal block mt-1">Print & mail letters yourself.</span>
+              </Button>
+              <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg">
+                Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)
+                <span className="text-sm font-normal block mt-1">We mail for you (5/month included).</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Revealed: upload fallback (Phase 1 zero-friction) */}
+      {revealed && onUpload && (
+        <Card className="border-2 border-green-200 bg-green-50 max-w-4xl mx-auto">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center text-green-800">
+              <CheckCircle2 className="w-5 h-5 mr-2" />
+              Your preview is unlocked
+            </CardTitle>
+            <CardDescription>
+              Upload full reports to generate dispute letters, or refresh data with new reports.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={onUpload} variant="outline" className="w-full sm:w-auto border-green-300 bg-white hover:bg-green-50">
+              <Upload className="w-4 h-4 mr-2" />
+              Upload reports / Refresh data
             </Button>
-            <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg">
-              Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)
-              <span className="text-sm font-normal block mt-1">We mail for you (5/month included).</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Accounts Found (Partial Preview) */}
       <Card className="max-w-4xl mx-auto border-2 border-gray-300">
@@ -211,7 +238,9 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) 
           {topAccounts.length > 0 ? (
             <>
               <p className="text-sm text-muted-foreground mb-4">
-                Below is a sample of accounts we found. Upgrade to see all {totalViolations} accounts and generate dispute letters.
+                {revealed
+                  ? `Below is a sample of accounts we found. Upload full reports to generate dispute letters for all ${totalViolations} accounts.`
+                  : `Below is a sample of accounts we found. Upgrade to see all ${totalViolations} accounts and generate dispute letters.`}
               </p>
               {topAccounts.map((a, i) => (
                 <div key={i} className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex justify-between items-center">
@@ -227,7 +256,9 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade }) 
               ))}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
                 <p className="text-sm text-blue-700 font-bold">+ {remainingCount} more accounts found</p>
-                <p className="text-xs text-blue-600 mt-1">Upgrade to see all accounts and generate dispute letters</p>
+                <p className="text-xs text-blue-600 mt-1">
+                  {revealed ? "Upload full reports to generate letters for all accounts." : "Upgrade to see all accounts and generate dispute letters"}
+                </p>
               </div>
             </>
           ) : (

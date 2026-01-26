@@ -230,7 +230,7 @@ Generate a professional Estoppel by Silence letter that:
 5. Demands immediate deletion of all disputed items
 6. Cites FCRA § 1681i(a)(5)(A) requiring deletion of unverified information
 7. Warns of FCRA § 1681n damages for willful non-compliance
-8. Sets a 15-day deadline for deletion confirmation
+8. Sets a 30-day deadline for deletion confirmation
 9. States intent to file CFPB complaint and/or lawsuit if not resolved
 
 Make the letter authoritative and emphasize that the bureau's silence constitutes admission that the information cannot be verified.`;

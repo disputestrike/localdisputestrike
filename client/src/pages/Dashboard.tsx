@@ -24,7 +24,7 @@ import {
   Printer,
   ArrowUpDown
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import type { LightAnalysisResult } from "@shared/types";
 import { Link, useLocation } from "wouter";
@@ -47,6 +47,7 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
+  const [hydratedFromPreview, setHydratedFromPreview] = useState(false);
   const [uploadMode, setUploadMode] = useState<'separate' | 'combined'>('separate');
   const [furnisherModalAccount, setFurnisherModalAccount] = useState<any>(null);
   
@@ -162,6 +163,25 @@ export default function Dashboard() {
     }
   );
 
+  // Phase 1 zero-friction: hydrate from stored preview after payment success
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') !== 'success') return;
+    const raw = sessionStorage.getItem('previewAnalysis');
+    if (!raw) return;
+    try {
+      const data = JSON.parse(raw) as LightAnalysisResult & { fileUrl?: string };
+      setLightAnalysisResult({ ...data, fileUrl: data?.fileUrl ?? '' });
+      setHydratedFromPreview(true);
+      sessionStorage.removeItem('previewAnalysis');
+      const u = new URL(window.location.href);
+      u.searchParams.delete('payment');
+      window.history.replaceState({}, '', u.pathname + (u.search ? `?${u.searchParams.toString()}` : ''));
+    } catch {
+      sessionStorage.removeItem('previewAnalysis');
+    }
+  }, []);
+
   // Early returns only after all hooks (Rules of Hooks)
   if (!user) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -171,6 +191,22 @@ export default function Dashboard() {
   const isAgencyUser = user?.accountType === 'agency';
   const isPaidUser = userProfile?.subscriptionTier && userProfile.subscriptionTier !== 'none';
   const hasUploadedReport = creditReports && creditReports.length > 0;
+
+  // Phase 1 zero-friction: post-payment "revealed" view (no re-upload)
+  if (hydratedFromPreview && lightAnalysisResult) {
+    return (
+      <React.Suspense fallback={<div>Loading Layout...</div>}>
+        <DashboardLayout>
+          <PreviewResults
+            analysis={lightAnalysisResult}
+            onUpgrade={handleUpgrade}
+            revealed
+            onUpload={() => setLocation('/get-reports')}
+          />
+        </DashboardLayout>
+      </React.Suspense>
+    );
+  }
 
   if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
     return (
