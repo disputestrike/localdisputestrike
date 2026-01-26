@@ -118,11 +118,19 @@ function Router() {
       <Route path="/dashboard/home" component={DashboardHome} />
       <Route path="/dashboard/v2" component={DashboardHomeV2} />
       
+      {/* Dashboard Sidebar Routes - Pointing to main Dashboard component for tab/view handling */}
+      <Route path="/dashboard/report" component={Dashboard} />
+      <Route path="/dashboard/dispute-manager" component={Dashboard} />
+      <Route path="/dashboard/letters" component={Dashboard} />
+      <Route path="/dashboard/mailing-tracker" component={Dashboard} />
+      <Route path="/dashboard/score-tracker" component={Dashboard} />
+      
       {/* Legacy Dashboard Routes */}
       <Route path="/dashboard/reports" component={Dashboard} />
       <Route path="/dashboard/disputes" component={Dashboard} />
-      <Route path="/dashboard/letters" component={Dashboard} />
       <Route path="/dashboard/creditor-disputes" component={Dashboard} />
+      
+      {/* Dedicated Dashboard Pages */}
       <Route path="/dashboard/cfpb" component={CFPBComplaints} />
       <Route path="/dashboard/inquiries" component={InquiryRemoval} />
       <Route path="/dashboard/debt-validation" component={DebtValidation} />
@@ -133,7 +141,9 @@ function Router() {
       <Route path="/dashboard/settings" component={DashboardSettings} />
       <Route path="/dashboard/support" component={DashboardSupport} />
       <Route path="/dashboard/tracking" component={DisputeTracking} />
-      <Route path="/dashboard/score-simulator" component={ScoreSimulator} />
+      <Route path="/dashboard/simulator" component={ScoreSimulator} />
+      <Route path="/dashboard/education" component={CreditEducation} />
+      <Route path="/dashboard/ai-assistant" component={AIAssistant} />
       <Route path="/ai-assistant" component={AIAssistant} />
       <Route path="/admin/login" component={AdminLogin} />
       <Route path="/admin" component={AdminPanel} />
