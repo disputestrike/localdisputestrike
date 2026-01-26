@@ -110,8 +110,8 @@ export default function Checkout() {
       // For now, simulate success
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      // Redirect to dashboard on success
-      setLocation('/dashboard');
+      // Blueprint: redirect with ?payment=success so Dashboard hydrates preview → Command Center
+      setLocation('/dashboard?payment=success');
     } catch (err) {
       setError('Payment failed. Please try again.');
       setIsProcessing(false);

@@ -213,21 +213,8 @@ export default function Dashboard() {
   const isPaidUser = userProfile?.subscriptionTier && userProfile.subscriptionTier !== 'none';
   const hasUploadedReport = creditReports && creditReports.length > 0;
 
-  // Phase 1 zero-friction: post-payment "revealed" view (no re-upload)
-  if (hydratedFromPreview && lightAnalysisResult) {
-    return (
-      <React.Suspense fallback={<div>Loading Layout...</div>}>
-        <DashboardLayout>
-          <PreviewResults
-            analysis={lightAnalysisResult}
-            onUpgrade={handleUpgrade}
-            revealed
-            onUpload={() => setLocation('/dashboard/reports')}
-          />
-        </DashboardLayout>
-      </React.Suspense>
-    );
-  }
+  // Blueprint v2.0: Post-payment → Command Center (Dashboard), NOT PreviewResults.
+  // We use hydrated preview data in Identity Header / AI Strategist below; no short-circuit to PreviewResults.
 
   if (!isAgencyUser && !isPaidUser && isFreeUser && hasUploadedReport && lightAnalysisResult && lightAnalysisResult.totalViolations !== undefined) {
     return (
@@ -512,7 +499,11 @@ export default function Dashboard() {
             <div className="rounded-lg bg-white/80 p-3 border border-orange-100">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Potential delta</p>
               <p className="text-lg font-bold text-orange-700 mt-1">
-                {hasAccounts ? "Based on your disputes" : "—"}
+                {hasAccounts
+                  ? "Based on your disputes"
+                  : lightAnalysisResult?.totalViolations != null
+                    ? "Based on your preview"
+                    : "—"}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">Current → AI-predicted range</p>
             </div>
@@ -521,7 +512,9 @@ export default function Dashboard() {
               <p className="text-sm font-medium text-gray-800 mt-1">
                 {hasAccounts
                   ? `Focus on ${negativeAccounts?.length ?? 0} accounts. Round 1: cross-bureau conflicts.`
-                  : "Upload reports or use Get Reports → Preview to unlock your strategy."}
+                  : lightAnalysisResult?.totalViolations != null
+                    ? `I've identified ${lightAnalysisResult.totalViolations} violations from your preview. Round 1: cross-bureau conflicts. Upload reports to generate letters.`
+                    : "Upload reports or use Get Reports → Preview to unlock your strategy."}
               </p>
             </div>
           </CardContent>
@@ -646,7 +639,9 @@ export default function Dashboard() {
               <AlertDescription>
                 <strong>AI Strategist:</strong> {hasAccounts
                   ? `We've identified ${negativeAccounts?.length ?? 0} negative accounts. Round 1 strategy: cross-bureau conflicts. Go to Dispute Manager to generate letters.`
-                  : 'Upload credit reports (or use Get Reports → Preview) to unlock your personalized dispute strategy.'}
+                  : lightAnalysisResult?.totalViolations != null
+                    ? `I've identified ${lightAnalysisResult.totalViolations} violations from your preview. Round 1: cross-bureau conflicts. Upload reports to generate letters.`
+                    : 'Upload credit reports (or use Get Reports → Preview) to unlock your personalized dispute strategy.'}
               </AlertDescription>
             </Alert>
           </TabsContent>

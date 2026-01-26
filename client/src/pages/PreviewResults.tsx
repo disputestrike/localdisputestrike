@@ -160,7 +160,7 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, re
       </div>
 
       {/* Timeline Section (static FCRA) */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg p-6 max-w-4xl mx-auto">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-500 rounded-lg p-6 max-w-4xl mx-auto">
         <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Calendar className="h-5 w-5 text-blue-600" />
           Your Dispute Timeline
@@ -198,14 +198,20 @@ const PreviewResults: React.FC<PreviewResultsProps> = ({ analysis, onUpgrade, re
               <li><span className="font-bold">Advanced FCRA Analysis</span> (Our dispute analysis and violation checks)</li>
               <li><span className="font-bold">Full Report Analysis</span> (Required to generate legal dispute letters)</li>
             </ul>
-            <div className="flex flex-col md:flex-row gap-4 pt-4">
-              <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg">
-                Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)
-                <span className="text-sm font-normal block mt-1">Print & mail letters yourself.</span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+              <Button
+                onClick={onUpgrade}
+                className="w-full min-w-0 h-auto py-6 px-4 flex flex-col items-center justify-center text-center bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-lg whitespace-normal break-words"
+              >
+                <span>Upgrade to Essential ({CONSUMER_PRICE_LABELS.essential}/mo)</span>
+                <span className="text-sm font-normal mt-1">Print & mail letters yourself.</span>
               </Button>
-              <Button onClick={onUpgrade} className="flex-1 h-auto py-6 bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg">
-                Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)
-                <span className="text-sm font-normal block mt-1">We mail for you (5/month included).</span>
+              <Button
+                onClick={onUpgrade}
+                className="w-full min-w-0 h-auto py-6 px-4 flex flex-col items-center justify-center text-center bg-indigo-600 hover:bg-indigo-700 text-white text-lg font-bold shadow-lg whitespace-normal break-words"
+              >
+                <span>Upgrade to Complete ({CONSUMER_PRICE_LABELS.complete}/mo)</span>
+                <span className="text-sm font-normal mt-1">We mail for you (5/month included).</span>
               </Button>
             </div>
           </CardContent>
