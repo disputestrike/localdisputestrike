@@ -65,7 +65,8 @@ export default function GetReports() {
   const progress = (currentStep / totalSteps) * 100;
 
   // Handle SmartCredit link click
-  const handleSmartCreditClick = () => {
+  const handleSmartCreditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowSmartCreditModal(true);
   };
 
@@ -79,12 +80,14 @@ export default function GetReports() {
     setSelectedOption('smartcredit');
   };
 
-  const handleCreditHeroClick = () => {
+  const handleCreditHeroClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(CREDIT_SCORE_HERO_URL, '_blank');
     setSelectedOption('credithero');
   };
 
-  const handleAnnualCreditReportClick = () => {
+  const handleAnnualCreditReportClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     window.open(ANNUAL_CREDIT_REPORT_URL, '_blank');
     setSelectedOption('annual');
   };
@@ -123,9 +126,22 @@ export default function GetReports() {
     
     try {
       const formData = new FormData();
-      reportsToUpload.forEach(report => {
-        formData.append(report.bureau, report.file);
-      });
+      
+      // Check if we have a combined file
+      const combinedReport = reportsToUpload.find(r => r.bureau === 'combined');
+      
+      if (combinedReport) {
+        // If combined, we send it as 'transunion' to satisfy the backend's requirement for at least one bureau
+        // The backend parser will handle the combined content
+        formData.append('transunion', combinedReport.file);
+      } else {
+        // Otherwise send individual files
+        reportsToUpload.forEach(report => {
+          if (report.bureau !== 'combined') {
+            formData.append(report.bureau, report.file);
+          }
+        });
+      }
       
       const response = await fetch('/api/credit-reports/upload-and-analyze', {
         method: 'POST',
@@ -164,7 +180,7 @@ export default function GetReports() {
               <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
               <span className="text-xs font-medium truncate">{existingFile.file.name}</span>
             </div>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeFile(bureau)}>
+            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={(e) => { e.stopPropagation(); removeFile(bureau); }}>
               <X className="w-3 h-3" />
             </Button>
           </div>
@@ -211,7 +227,7 @@ export default function GetReports() {
             )}
             onClick={() => setSelectedOption('smartcredit')}
           >
-            <div className="absolute -top-3 left-4">
+            <div className="absolute -top-3 left-4 z-10">
               <Badge className="bg-orange-500 text-white">RECOMMENDED</Badge>
             </div>
             <CardHeader>
@@ -332,7 +348,7 @@ export default function GetReports() {
                     <Button 
                       className="w-full mt-4" 
                       size="sm"
-                      disabled={uploadedReports.filter(r => r.bureau !== 'combined').length < 3 || isAnalyzing}
+                      disabled={uploadedReports.filter(r => r.bureau !== 'combined').length < 1 || isAnalyzing}
                       onClick={() => handleStartAnalysis()}
                     >
                       {isAnalyzing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Start FREE AI Analysis"}
