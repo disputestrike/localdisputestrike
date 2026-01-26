@@ -174,9 +174,73 @@ export default function GetReports() {
           <Progress value={progress} className="h-1.5 bg-gray-100" />
         </div>
 
-        {/* 2x2 GRID LAYOUT */}
+        {/* 2x2 GRID LAYOUT - All 4 Options */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Option 1: AnnualCreditReport */}
+          {/* Option 1: SmartCredit (RECOMMENDED) */}
+          <Card 
+            className={cn(
+              "relative border cursor-pointer transition-all shadow-sm",
+              selectedOption === 'smartcredit' ? "border-orange-500 ring-2 ring-orange-500" : "hover:border-orange-300"
+            )}
+            onClick={() => setSelectedOption('smartcredit')}
+          >
+            <div className="absolute -top-3 left-4 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+              Recommended
+            </div>
+            <CardHeader className="pb-2 pt-6">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                    <Star className="w-3 h-3 text-white fill-white" />
+                  </div>
+                  <CardTitle className="text-base font-bold">SmartCredit</CardTitle>
+                </div>
+                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">$29.99/mo</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-xs text-gray-500 mb-4 space-y-1">
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> All 3 bureaus in one place</li>
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Daily monitoring + Score tracking</li>
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Easy PDF export for upload</li>
+              </ul>
+              <Button className="w-full h-9 text-xs font-bold bg-orange-500 hover:bg-orange-600" onClick={handleSmartCreditClick}>
+                Get SmartCredit <ExternalLink className="w-3 h-3 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option 2: Credit Hero */}
+          <Card 
+            className={cn(
+              "relative border cursor-pointer transition-all shadow-sm",
+              selectedOption === 'credithero' ? "border-purple-500 ring-1 ring-purple-500" : "hover:border-gray-300"
+            )}
+            onClick={() => setSelectedOption('credithero')}
+          >
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full border border-purple-500 flex items-center justify-center">
+                    <Zap className="w-3 h-3 text-purple-500" />
+                  </div>
+                  <CardTitle className="text-base font-bold">Credit Hero</CardTitle>
+                </div>
+                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">One-Time Fee</span>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="text-xs text-gray-500 mb-4 space-y-1">
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> 1 combined file with all 3 bureaus</li>
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Fast & easy upload</li>
+              </ul>
+              <Button variant="outline" className="w-full h-9 text-xs font-bold border-purple-300 text-purple-700 hover:bg-purple-50" onClick={handleCreditHeroClick}>
+                Get Credit Hero <ExternalLink className="w-3 h-3 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Option 3: AnnualCreditReport (FREE) */}
           <Card 
             className={cn(
               "relative border cursor-pointer transition-all shadow-sm",
@@ -192,18 +256,21 @@ export default function GetReports() {
                   </div>
                   <CardTitle className="text-base font-bold">AnnualCreditReport</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">FREE • Government Mandated</span>
+                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">FREE • Government</span>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-500 mb-4">Get your free annual reports as required by law. Requires manual PDF download.</p>
+              <ul className="text-xs text-gray-500 mb-4 space-y-1">
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Government-mandated free reports</li>
+                <li className="flex items-center gap-1"><AlertCircle className="w-3 h-3 text-yellow-500" /> Once per year per bureau</li>
+              </ul>
               <Button variant="outline" className="w-full h-9 text-xs font-bold" onClick={handleAnnualCreditReportClick}>
                 Visit Site <ExternalLink className="w-3 h-3 ml-2" />
               </Button>
             </CardContent>
           </Card>
 
-          {/* Option 2: I Have My Reports */}
+          {/* Option 4: I Already Have My Reports */}
           <Card 
             className={cn(
               "relative border cursor-pointer transition-all shadow-sm",
@@ -219,17 +286,16 @@ export default function GetReports() {
                   </div>
                   <CardTitle className="text-base font-bold">I Have My Reports</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">UPLOAD PDF OR HTML</span>
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Upload PDF/HTML</span>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-gray-500 mb-4">Already have your reports? Upload them directly to start your free AI analysis.</p>
-              <Button className="w-full h-9 text-xs font-bold" onClick={() => handleStartAnalysis()}>
-                {isAnalyzing ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</>
-                ) : (
-                  <>Upload Now <Upload className="w-3 h-3 ml-2" /></>
-                )}
+              <ul className="text-xs text-gray-500 mb-4 space-y-1">
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Upload files you already have</li>
+                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Start free AI analysis instantly</li>
+              </ul>
+              <Button className="w-full h-9 text-xs font-bold" onClick={() => setSelectedOption('upload')}>
+                Upload Now <Upload className="w-3 h-3 ml-2" />
               </Button>
             </CardContent>
           </Card>
