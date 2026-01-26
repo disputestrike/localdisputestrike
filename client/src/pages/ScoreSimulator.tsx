@@ -2,7 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import DashboardLayout from "@/components/DashboardLayout";
 import { CreditScoreSimulator } from "@/components/CreditScoreSimulator";
-import { trpc } from "@/lib/trpc";\nimport { safeJsonParse } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
+import { safeJsonParse } from "@/lib/utils";
 import { Link } from "wouter";
 import {
   TrendingUp,

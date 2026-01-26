@@ -3,7 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { useState } from "react";\nimport { safeJsonParse } from "@/lib/utils";
+import { useState } from "react";
+import { safeJsonParse } from "@/lib/utils";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import {

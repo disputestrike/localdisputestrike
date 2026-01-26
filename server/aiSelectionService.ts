@@ -10,7 +10,8 @@
  * - Previous dispute outcomes
  */
 
-import { eq, and, not, inArray } from 'drizzle-orm';\nimport { safeJsonParse } from './utils/json';
+import { eq, and, not, inArray } from 'drizzle-orm';
+import { safeJsonParse } from './utils/json';
 
 // Maximum items to select per round
 const MAX_ITEMS_PER_ROUND = 5;

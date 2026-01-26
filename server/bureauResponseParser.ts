@@ -8,7 +8,8 @@
  * - Score changes (if mentioned)
  */
 
-import { invokeLLM } from "./_core/llm";\nimport { safeJsonParse } from "./utils/json";
+import { invokeLLM } from "./_core/llm";
+import { safeJsonParse } from "./utils/json";
 
 export interface ParsedBureauResponse {
   bureau: 'transunion' | 'equifax' | 'experian';

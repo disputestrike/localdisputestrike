@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { TrendingUp } from "lucide-react";\nimport { safeJsonParse } from "@/lib/utils";
+import { TrendingUp } from "lucide-react";
+import { safeJsonParse } from "@/lib/utils";
 
 export function LiveCounter() {
   const [count, setCount] = useState(1247);

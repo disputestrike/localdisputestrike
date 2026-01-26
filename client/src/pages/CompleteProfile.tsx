@@ -39,7 +39,8 @@ import {
   Info
 } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
-import { trpc } from "@/lib/trpc";\nimport { safeJsonParse } from "@/lib/utils";
+import { trpc } from "@/lib/trpc";
+import { safeJsonParse } from "@/lib/utils";
 
 interface ProfileData {
   // Personal Info

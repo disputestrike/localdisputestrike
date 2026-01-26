@@ -6,7 +6,8 @@
  * Uses Vision AI (Gemini) for PDF parsing
  */
 
-import type { LightAnalysisResult } from '../../shared/types';\nimport { safeJsonParse } from "./utils/json";
+import type { CreditReportResult } from '../../shared/types';
+import { safeJsonParse } from './utils/json';
 
 export type { LightAnalysisResult };
 

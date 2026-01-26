@@ -5,7 +5,8 @@
  */
 
 import { useEffect, useState } from "react";
-import { useLocation } from "wouter";\nimport { safeJsonParse } from "@/lib/utils";
+import { useLocation } from "wouter";
+import { safeJsonParse } from "@/lib/utils";
 import PreviewResults from "./PreviewResults";
 import type { LightAnalysisResult } from "@shared/types";
 
