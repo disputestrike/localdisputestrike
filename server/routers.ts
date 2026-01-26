@@ -8,7 +8,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { generatePdfFromLetter } from './letterToPdf';
+// import { generatePdfFromLetter } from './letterToPdf'; // Removed due to dependency issues
 import { safeJsonParse } from "./utils/json";
 import * as db from "./db";
 import { COOKIE_NAME } from "@shared/const";
@@ -1501,7 +1501,7 @@ Be thorough and list every negative item found.`;
         if (!letter || letter.userId !== ctx.user.id) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Letter not found' });
         }
-        const pdfBuffer = await generatePdfFromLetter(letter.letterContent);
+        // const pdfBuffer = await generatePdfFromLetter(letter.letterContent); // Removed due to dependency issues
         return {
           pdf: pdfBuffer.toString('base64'),
           fileName: `DisputeLetter_${letter.bureau}_${letter.id}.pdf`,
