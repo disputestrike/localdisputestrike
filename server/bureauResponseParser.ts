@@ -8,7 +8,7 @@
  * - Score changes (if mentioned)
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM } from "./_core/llm";\nimport { safeJsonParse } from "./utils/json";
 
 export interface ParsedBureauResponse {
   bureau: 'transunion' | 'equifax' | 'experian';
@@ -173,7 +173,7 @@ IMPORTANT:
       throw new Error('Failed to parse bureau response');
     }
 
-    const parsed: ParsedBureauResponse = JSON.parse(rawContent);
+    const parsed: ParsedBureauResponse = safeJsonParse(rawContent, {} as ParsedBureauResponse);
     return parsed;
   } catch (error) {
     console.error('Error parsing bureau response:', error);

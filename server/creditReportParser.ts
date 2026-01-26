@@ -6,7 +6,7 @@
  * Uses Vision AI (Gemini) for PDF parsing
  */
 
-import type { LightAnalysisResult } from '../../shared/types';
+import type { LightAnalysisResult } from '../../shared/types';\nimport { safeJsonParse } from "./utils/json";
 
 export type { LightAnalysisResult };
 
@@ -198,7 +198,7 @@ CRITICAL INSTRUCTIONS:
     const content = response.choices[0]?.message?.content;
     console.log(`[Vision AI] Raw response length:`, content?.length || 0);
     
-    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    const parsed = safeJsonParse(content, content);
     console.log(`[Vision AI] Parsed ${parsed.accounts?.length || 0} accounts from ${bureau}`);
     
     const accounts = parsed.accounts.map((acc: any) => ({
@@ -328,7 +328,7 @@ Expected output: 30-50+ account entries across all bureaus`;
     const content = response.choices[0]?.message?.content;
     console.log(`[Vision AI Combined] Raw response length:`, content?.length || 0);
     
-    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    const parsed = safeJsonParse(content, content);
     console.log(`[Vision AI Combined] Parsed ${parsed.accounts?.length || 0} total accounts`);
     
     // Count by bureau
@@ -714,7 +714,7 @@ IMPORTANT:
     });
 
     const content = response.choices[0]?.message?.content;
-    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    const parsed = safeJsonParse(content, content);
     
     return {
       fullName: parsed.fullName || '',
@@ -871,7 +871,7 @@ For EACH account, extract:
     });
 
     const content = response.choices[0]?.message?.content;
-    const parsed = typeof content === 'string' ? JSON.parse(content) : content;
+    const parsed = safeJsonParse(content, content);
     
     return parsed.accounts.map((acc: any) => ({
       ...acc,

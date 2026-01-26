@@ -1,4 +1,4 @@
-import { db } from '../db';
+import { db } from '../db';\nimport { safeJsonParse } from '../utils/json';
 import { disputeRounds, negativeAccounts } from '../../drizzle/schema';
 import { eq, and, gt } from 'drizzle-orm';
 
@@ -36,8 +36,8 @@ export async function canDisputeAccount(
     for (const dispute of recentDisputes) {
       if (!dispute.disputedItemIds) continue;
 
-      try {
-        const itemIds = JSON.parse(dispute.disputedItemIds);
+      const itemIds = safeJsonParse(dispute.disputedItemIds, null);
+      if (itemIds === null) continue;
         if (itemIds.includes(accountId) && dispute.mailedAt) {
           // This account was disputed recently
           if (dispute.mailedAt > thirtyDaysAgo) {
@@ -93,8 +93,8 @@ export async function getLockedAccounts(userId: number): Promise<
 
     for (const dispute of recentDisputes) {
       if (dispute.disputedItemIds) {
-        try {
-          const itemIds = JSON.parse(dispute.disputedItemIds);
+        const itemIds = safeJsonParse(dispute.disputedItemIds, null);
+        if (itemIds === null) continue;
           for (const itemId of itemIds) {
             const unlocksAt = new Date(
               dispute.mailedAt!.getTime() + 30 * 24 * 60 * 60 * 1000

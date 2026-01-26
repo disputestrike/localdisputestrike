@@ -7,6 +7,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { safeJsonParse } from './utils/json';
 import OpenAI from 'openai';
 
 const anthropic: Anthropic | null = process.env.ANTHROPIC_API_KEY
@@ -147,7 +148,7 @@ export async function runPreviewAnalysis(
       if (text.includes('```')) {
         text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
       }
-      const result = JSON.parse(text) as PreviewAnalysisResult;
+      const result = safeJsonParse(text, {} as PreviewAnalysisResult);
       return normalizePreviewResult(result);
     }
 
@@ -175,7 +176,7 @@ export async function runPreviewAnalysis(
     if (content.includes('```')) {
       content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
     }
-    const result = JSON.parse(content) as PreviewAnalysisResult;
+    const result = safeJsonParse(content, {} as PreviewAnalysisResult);
     return normalizePreviewResult(result);
   } catch (error) {
     console.error('Preview analysis error:', error);

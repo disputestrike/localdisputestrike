@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { z } from "zod";
+import { z } from "zod";\nimport { safeJsonParse } from "./utils/json";
 import * as db from "./db";
 import { COOKIE_NAME } from "@shared/const";
 // File storage is now handled via /api/upload endpoint in index.ts
@@ -1607,7 +1607,7 @@ Be thorough and list every negative item found.`;
           const related = existingLetters.filter(letter => {
             if (!letter.accountsDisputed) return false;
             try {
-              const ids = JSON.parse(letter.accountsDisputed) as number[];
+              const ids = safeJsonParse(letter.accountsDisputed, []) as number[];
               return Array.isArray(ids) && ids.includes(account.id);
             } catch {
               return false;

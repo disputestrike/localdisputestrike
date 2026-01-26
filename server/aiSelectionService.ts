@@ -10,7 +10,7 @@
  * - Previous dispute outcomes
  */
 
-import { eq, and, not, inArray } from 'drizzle-orm';
+import { eq, and, not, inArray } from 'drizzle-orm';\nimport { safeJsonParse } from './utils/json';
 
 // Maximum items to select per round
 const MAX_ITEMS_PER_ROUND = 5;
@@ -332,8 +332,8 @@ export async function getRecommendations(
     priority: rec.priority,
     winProbability: rec.winProbability,
     recommendationReason: rec.recommendationReason,
-    factors: JSON.parse(rec.factors || '[]'),
-    methodsTriggered: JSON.parse(rec.methodsTriggered || '[]'),
+    factors: safeJsonParse(rec.factors, []),
+    methodsTriggered: safeJsonParse(rec.methodsTriggered, []),
   }));
 }
 
