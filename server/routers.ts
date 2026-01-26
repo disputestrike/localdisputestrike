@@ -2746,6 +2746,89 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
       }),
 
     /**
+     * Create subscription for embedded checkout (Stripe Elements)
+     * Returns clientSecret for PaymentElement
+     */
+    createSubscription: protectedProcedure
+      .input(z.object({
+        tier: z.enum(['essential', 'complete']),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const Stripe = (await import('stripe')).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+          apiVersion: '2025-12-15.clover',
+        });
+        
+        // Get product pricing
+        const prices = {
+          essential: 7999,  // $79.99/month
+          complete: 12999,  // $129.99/month
+        };
+        const amount = prices[input.tier];
+        const productName = input.tier === 'essential' ? 'Essential Plan' : 'Complete Plan';
+        
+        // Create or get customer
+        let customerId: string;
+        const existingCustomers = await stripe.customers.list({
+          email: ctx.user.email || undefined,
+          limit: 1,
+        });
+        
+        if (existingCustomers.data.length > 0) {
+          customerId = existingCustomers.data[0].id;
+        } else {
+          const customer = await stripe.customers.create({
+            email: ctx.user.email || undefined,
+            name: ctx.user.name || undefined,
+            metadata: {
+              user_id: ctx.user.id.toString(),
+            },
+          });
+          customerId = customer.id;
+        }
+        
+        // Create a subscription with payment_behavior: default_incomplete
+        // This allows us to collect payment via embedded checkout
+        const subscription = await stripe.subscriptions.create({
+          customer: customerId,
+          items: [{
+            price_data: {
+              currency: 'usd',
+              product_data: {
+                name: productName,
+              },
+              unit_amount: amount,
+              recurring: {
+                interval: 'month',
+              },
+            },
+          }],
+          payment_behavior: 'default_incomplete',
+          payment_settings: {
+            save_default_payment_method: 'on_subscription',
+          },
+          expand: ['latest_invoice.payment_intent'],
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            tier: input.tier,
+          },
+        });
+        
+        const invoice = subscription.latest_invoice as any;
+        const paymentIntent = invoice?.payment_intent as any;
+        
+        if (!paymentIntent?.client_secret) {
+          throw new Error('Failed to create subscription payment intent');
+        }
+        
+        return {
+          subscriptionId: subscription.id,
+          clientSecret: paymentIntent.client_secret,
+          customerId,
+        };
+      }),
+
+    /**
      * List all payments for user
      */
     list: protectedProcedure.query(async ({ ctx }) => {
