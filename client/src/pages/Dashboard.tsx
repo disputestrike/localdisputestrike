@@ -43,7 +43,8 @@ import { MobileUploadZone } from "@/components/MobileUploadZone";
 import DocumentVault from "@/components/DocumentVault";
 
 export default function Dashboard() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const pathname = location || "";
   const { user, loading: authLoading } = useAuth();
   const [uploadingBureau, setUploadingBureau] = useState<'transunion' | 'equifax' | 'experian' | 'combined' | null>(null);
   const [lightAnalysisResult, setLightAnalysisResult] = useState<LightAnalysisResult & { fileUrl: string } | null>(null);
@@ -195,6 +196,16 @@ export default function Dashboard() {
       sessionStorage.removeItem('previewAnalysis');
     }
   }, []);
+
+  // Blueprint: sync tab to route so /disputes shows Dispute Manager, /letters shows Letters (no "repeating" same content)
+  useEffect(() => {
+    if (pathname === "/dashboard/disputes") setDashboardTab("accounts");
+    else if (pathname === "/dashboard/letters") setDashboardTab("letters");
+    else if (pathname === "/dashboard" || pathname === "/dashboard/creditor-disputes") {
+      const tab = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("tab") : null;
+      setDashboardTab(tab === "upload" ? "upload" : "mission");
+    }
+  }, [pathname]);
 
   // Early returns only after all hooks (Rules of Hooks)
   if (authLoading) {
@@ -520,6 +531,59 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Blueprint: /dashboard/reports = Live Report only (no Progress/Tabs). Else = overview + tabs. */}
+        {pathname === "/dashboard/reports" ? (
+          /* My Live Report — dedicated view (Blueprint 1.B). Placeholder until JSON-to-HTML renderer. */
+          <>
+          <Alert className="bg-green-100 border-green-500">
+            <CheckCircle2 className="h-4 w-4 text-green-700" />
+            <AlertDescription className="text-green-800 font-semibold">
+              ✅ Live Report view (Blueprint v2.0) — This is the dedicated My Live Report page. No Mission tab duplication.
+            </AlertDescription>
+          </Alert>
+          <Card className="border-2 border-blue-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-blue-600" />
+                My Live Report
+              </CardTitle>
+              <CardDescription>
+                Parsed credit report with AI-highlighted violations. Click a violation for Source Bible method and FCRA citation.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {creditReports?.length ? (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    You have {creditReports.length} report(s) uploaded. Full interactive view (violations, &quot;Why&quot; tooltips) is in progress.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" onClick={() => setLocation("/dashboard?tab=upload")}>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload / Refresh reports
+                    </Button>
+                    <Button variant="outline" onClick={() => setLocation("/dashboard/disputes")}>
+                      <AlertTriangle className="h-4 w-4 mr-2" />
+                      View Dispute Manager
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    Upload credit reports to see your live report. We parse and highlight violations; you can click for Source Bible method and FCRA citation.
+                  </p>
+                  <Button onClick={() => setLocation("/dashboard?tab=upload")}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload reports
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+          </>
+        ) : (
+          <>
         {/* Progress Section */}
         <Card>
           <CardHeader>
@@ -1456,6 +1520,8 @@ export default function Dashboard() {
           </TabsContent>
 
         </Tabs>
+          </>
+        )}
       </div>
 
       {/* Furnisher Letter Modal */}

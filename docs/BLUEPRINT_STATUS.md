@@ -12,7 +12,7 @@ Reference: **DisputeStrike: The Ultimate Implementation Blueprint (v2.0)** (Comm
 | **Triple scores (real)** | ❌ Not done | Requires SmartCredit API (Complete tier). |
 | **Potential delta (real)** | ❌ Not done | Same; currently "Based on your preview" when we have analysis. |
 | **AI Strategist** | ✅ Done | Uses violation count from preview or accounts; "Round 1: cross-bureau conflicts." |
-| **B. Live Credit Report** | ❌ Not done | Interactive view, AI-highlighted violations, "Why" tooltip (Source Bible + FCRA), "Refresh Data" button. |
+| **B. Live Credit Report** | ⚠️ Partial | `/dashboard/reports` = **dedicated** Live Report view (no Progress/Tabs). Placeholder until JSON-to-HTML renderer; "Upload / Refresh" → `/dashboard?tab=upload`. |
 | **C. Sidebar** | ✅ Done | MISSION CONTROL, ADVANCED TACTICS, CREDIT BUILDING. Profile Optimizer & Referrals removed. Upload / Refresh in nav. |
 
 ---
@@ -67,5 +67,5 @@ Reference: **DisputeStrike: The Ultimate Implementation Blueprint (v2.0)** (Comm
 
 ## Summary
 
-- **Done:** Sidebar, Identity Header (with preview data), Mission default, Upload secondary, **post-payment → Command Center** (no PreviewResults), Checkout redirect `?payment=success`, 30-day demands.
-- **Not done:** Live Report, real triple scores, SmartCredit, Lob, Identity Bridge, User-level preview persistence, multi-round lifecycle UI.
+- **Done:** Sidebar, Identity Header (with preview data), Mission default, Upload secondary, **post-payment → Command Center** (no PreviewResults), Checkout redirect `?payment=success`, 30-day demands. **Route-aware content:** `/dashboard/reports` = Live Report only; `/dashboard/disputes` = Dispute Manager (Accounts tab); `/dashboard/letters` = Letters tab. No more "repeating same content" on every page.
+- **Not done:** Full Live Report (JSON-to-HTML, violations, "Why" tooltip), real triple scores, SmartCredit, Lob, Identity Bridge, User-level preview persistence, multi-round lifecycle UI.
