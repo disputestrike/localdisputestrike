@@ -50,12 +50,12 @@ export function verifyToken(token: string): { userId: number; email: string } | 
 }
 
 // Hash password
-async function hashPassword(password: string): Promise<string> {
+export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, SALT_ROUNDS);
 }
 
 // Compare password with hash
-async function comparePassword(password: string, hash: string): Promise<boolean> {
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
   return bcrypt.compare(password, hash);
 }
 

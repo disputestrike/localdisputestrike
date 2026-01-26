@@ -1,652 +1,205 @@
-import { useAuth } from "@/_core/hooks/useAuth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+/**
+ * Dashboard Layout (Blueprint §4 & §6)
+ * 
+ * Features:
+ * - 13 Sidebar Pages organized by category
+ * - Tier-based visibility (Mailing Tracker only for Complete tier)
+ * - Global Header: User Profile, Settings, Sign Out
+ */
+
+import { ReactNode } from 'react';
+import { Link, useLocation } from 'wouter';
+import { 
+  LayoutDashboard, 
+  FileText, 
+  ShieldCheck, 
+  History, 
+  Truck, 
+  TrendingUp, 
+  Search, 
+  Scale, 
+  Gavel, 
+  LineChart, 
+  ShoppingBag, 
+  GraduationCap, 
+  Bot,
+  User,
+  Settings,
+  LogOut,
+  Bell,
+  Menu
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { trpc } from '@/lib/trpc';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  LayoutDashboard,
-  FileText,
-  AlertTriangle,
-  Mail,
-  Building2,
-  FileWarning,
-  Search,
-  CreditCard,
-  TrendingUp,
-  MessageSquare,
-  Settings,
-  HelpCircle,
-  LogOut,
-  PanelLeft,
-  Shield,
-  Bell,
-  GraduationCap,
-  Bot,
-  Upload,
-} from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
-import { trpc } from "@/lib/trpc";
-import { Link, useLocation } from "wouter";
-import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 
-// Sidebar Navigation (Blueprint §3) - 13 pages exactly as specified
-const navSections = [
-  {
-    section: "MISSION CONTROL",
-    items: [
-      { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", badge: null },
-      { icon: FileText, label: "My Live Report", path: "/dashboard/reports", badge: null },
-      { icon: AlertTriangle, label: "Dispute Manager", path: "/dashboard/disputes", badge: null },
-      { icon: Mail, label: "Letters", path: "/dashboard/letters", badge: null },
-    ],
-  },
-  {
-    section: "TRACKING & RESULTS",
-    items: [
-      { icon: Bell, label: "Mailing Tracker", path: "/dashboard/tracking", badge: null },
-      { icon: TrendingUp, label: "Score Tracker", path: "/dashboard/scores", badge: null },
-    ],
-  },
-  {
-    section: "ADVANCED TACTICS",
-    items: [
-      { icon: Search, label: "Inquiry Removal", path: "/dashboard/inquiries", badge: null },
-      { icon: Shield, label: "Debt Validation", path: "/dashboard/debt-validation", badge: null },
-      { icon: FileWarning, label: "CFPB Complaints", path: "/dashboard/cfpb", badge: "Round 3" },
-    ],
-  },
-  {
-    section: "CREDIT BUILDING",
-    items: [
-      { icon: CreditCard, label: "Score Simulator", path: "/dashboard/score-simulator", badge: null },
-      { icon: Building2, label: "Marketplace", path: "/dashboard/marketplace", badge: null },
-    ],
-  },
-  {
-    section: "MORE",
-    items: [
-      { icon: GraduationCap, label: "Credit Education", path: "/credit-education", badge: null },
-      { icon: Bot, label: "AI Assistant", path: "/ai-assistant", badge: null },
-    ],
-  },
-];
-
-const bottomNavItems = [
-  { icon: Settings, label: "Settings", path: "/dashboard/settings" },
-  { icon: HelpCircle, label: "Support", path: "/dashboard/support" },
-];
-
-const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 280;
-const MIN_WIDTH = 200;
-const MAX_WIDTH = 480;
-
-// Notification type interface
-interface Notification {
-  id: number;
-  type: string;
-  title: string;
-  message: string;
-  priority: string;
-  isRead: boolean;
-  createdAt: Date;
+interface DashboardLayoutProps {
+  children: ReactNode;
 }
 
-// Dynamic Notification Bell Component
-function NotificationBell() {
+export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [location] = useLocation();
+  const { data: user } = trpc.auth.me.useQuery();
+  const { data: profile } = trpc.profile.get.useQuery();
   const utils = trpc.useUtils();
-  const { data: notifications } = trpc.notifications.list.useQuery(
-    { unreadOnly: false, limit: 10 },
-    { refetchInterval: 60000 }
-  );
-  const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, {
-    refetchInterval: 60000,
-  });
-  
-  const markAsRead = trpc.notifications.markAsRead.useMutation({
-    onSuccess: () => {
-      utils.notifications.list.invalidate();
-      utils.notifications.unreadCount.invalidate();
+
+  const isCompleteTier = profile?.subscriptionTier === 'complete';
+
+  const navSections = [
+    {
+      title: "Mission Control",
+      items: [
+        { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+        { name: "My Live Report", href: "/dashboard/report", icon: ShieldCheck },
+        { name: "Dispute Manager", href: "/dashboard/dispute-manager", icon: FileText },
+        { name: "Letters", href: "/dashboard/letters", icon: History },
+      ]
     },
-  });
-  
-  const markAllAsRead = trpc.notifications.markAllAsRead.useMutation({
-    onSuccess: () => {
-      utils.notifications.list.invalidate();
-      utils.notifications.unreadCount.invalidate();
+    {
+      title: "Tracking & Results",
+      items: [
+        // Blueprint §4: Mailing Tracker ONLY for Complete tier
+        ...(isCompleteTier ? [{ name: "Mailing Tracker", href: "/dashboard/mailing-tracker", icon: Truck }] : []),
+        { name: "Score Tracker", href: "/dashboard/score-tracker", icon: TrendingUp },
+      ]
     },
-  });
-  
-  const hasNotifications = unreadCount && unreadCount > 0;
-  
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'normal': return 'bg-blue-500';
-      default: return 'bg-gray-400';
+    {
+      title: "Advanced Tactics",
+      items: [
+        { name: "Inquiry Removal", href: "/dashboard/inquiries", icon: Search },
+        { name: "Debt Validation", href: "/dashboard/debt-validation", icon: Scale },
+        { name: "CFPB Complaints", href: "/dashboard/cfpb", icon: Gavel },
+      ]
+    },
+    {
+      title: "Credit Building",
+      items: [
+        { name: "Score Simulator", href: "/dashboard/simulator", icon: LineChart },
+        { name: "Marketplace", href: "/dashboard/marketplace", icon: ShoppingBag },
+      ]
+    },
+    {
+      title: "More",
+      items: [
+        { name: "Credit Education", href: "/dashboard/education", icon: GraduationCap },
+        { name: "AI Assistant", href: "/dashboard/ai-assistant", icon: Bot },
+      ]
     }
+  ];
+
+  const handleLogout = async () => {
+    await utils.auth.logout.mutateAsync();
+    window.location.href = '/';
   };
-  
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'deadline_reminder': return '⏰';
-      case 'response_received': return '📬';
-      case 'letter_generated': return '📄';
-      case 'payment_confirmed': return '✅';
-      case 'account_deleted': return '🎉';
-      default: return '🔔';
-    }
-  };
-  
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-gray-500 hover:text-gray-900 relative"
-        >
-          <Bell className="h-5 w-5" />
-          {hasNotifications && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-red-500 rounded-full text-white text-xs flex items-center justify-center font-medium">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96">
-        <div className="flex items-center justify-between px-4 py-2 border-b">
-          <span className="font-semibold">Notifications</span>
-          {hasNotifications && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-blue-600 hover:text-blue-800"
-              onClick={() => markAllAsRead.mutate()}
-            >
-              Mark all read
-            </Button>
-          )}
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside className="w-64 bg-white border-r border-gray-200 hidden lg:flex flex-col sticky top-0 h-screen">
+        <div className="p-6 border-b">
+          <Link href="/dashboard">
+            <a className="flex items-center gap-2">
+              <img src="/logo.webp" alt="DisputeStrike" className="h-8" />
+              <span className="font-black text-xl tracking-tighter uppercase">DisputeStrike</span>
+            </a>
+          </Link>
         </div>
-        {!notifications || notifications.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            <Bell className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm font-medium">No notifications yet</p>
-            <p className="text-xs text-gray-400 mt-1">We'll notify you about important updates</p>
-          </div>
-        ) : (
-          <div className="max-h-96 overflow-y-auto">
-            {notifications.map((notification: Notification) => (
-              <DropdownMenuItem
-                key={notification.id}
-                className={`flex flex-col items-start p-4 cursor-pointer border-b last:border-0 ${!notification.isRead ? 'bg-blue-50/50' : ''}`}
-                onClick={() => {
-                  if (!notification.isRead) {
-                    markAsRead.mutate({ notificationId: notification.id });
-                  }
-                }}
-              >
-                <div className="flex items-start gap-3 w-full">
-                  <span className="text-lg">{getTypeIcon(notification.type)}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${getPriorityColor(notification.priority)}`} />
-                      <span className="font-medium text-sm truncate">{notification.title}</span>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {new Date(notification.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {!notification.isRead && (
-                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
-                  )}
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </div>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-    return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
-  });
-  const { loading, user } = useAuth();
-
-  useEffect(() => {
-    localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
-  }, [sidebarWidth]);
-
-  if (loading) {
-    return <DashboardLayoutSkeleton />;
-  }
-
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="flex flex-col items-center gap-8 p-8 max-w-md w-full bg-white rounded-2xl shadow-lg">
-          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-white" />
-          </div>
-          <div className="flex flex-col items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 text-center">
-              Welcome to DisputeStrike
-            </h1>
-            <p className="text-sm text-gray-600 text-center max-w-sm">
-              Sign in to access your credit dispute dashboard and start improving your credit score.
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              window.location.href = "/login";
-            }}
-            size="lg"
-            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all"
-          >
-            Sign in to Continue
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": `${sidebarWidth}px`,
-        } as CSSProperties
-      }
-    >
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
-        {children}
-      </DashboardLayoutContent>
-    </SidebarProvider>
-  );
-}
-
-type DashboardLayoutContentProps = {
-  children: React.ReactNode;
-  setSidebarWidth: (width: number) => void;
-};
-
-function DashboardLayoutContent({
-  children,
-  setSidebarWidth,
-}: DashboardLayoutContentProps) {
-  const { user, logout } = useAuth();
-  const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
-
-  // Find active menu item
-  const allItems = [...navSections.flatMap((s) => s.items), ...bottomNavItems];
-  const activeMenuItem = allItems.find((item) => {
-    if (item.path === "/dashboard") {
-      return location === "/dashboard";
-    }
-    return location.startsWith(item.path);
-  });
-
-  useEffect(() => {
-    if (isCollapsed) {
-      setIsResizing(false);
-    }
-  }, [isCollapsed]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-
-      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
-      const newWidth = e.clientX - sidebarLeft;
-      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) {
-        setSidebarWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    }
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, [isResizing, setSidebarWidth]);
-
-  const isActive = (path: string) => {
-    if (path === "/dashboard") {
-      return location === "/dashboard";
-    }
-    return location.startsWith(path);
-  };
-
-  return (
-    <>
-      <div className="relative" ref={sidebarRef}>
-        <Sidebar
-          collapsible="icon"
-          className="border-r border-gray-200 bg-white"
-          disableTransition={isResizing}
-        >
-          {/* Logo Header */}
-          <SidebarHeader className="h-16 justify-center border-b border-gray-200">
-            <div className="flex items-center gap-3 px-2 transition-all w-full">
-                <button
-                  onClick={toggleSidebar}
-                  className="h-8 w-8 flex items-center justify-center hover:bg-gray-100 rounded-lg transition-colors focus:outline-none shrink-0"
-                  aria-label="Toggle navigation"
-                >
-                  <PanelLeft className="h-4 w-4 text-gray-500" />
-                </button>
-              {!isCollapsed && (
-                <Link href="/">
-                  <a className="flex items-center gap-2">
-                    <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="w-8 h-8" />
-                    <span className="font-bold text-gray-900">DisputeStrike</span>
-                  </a>
-                </Link>
-              )}
-            </div>
-          </SidebarHeader>
-
-          {/* Main Navigation */}
-          <SidebarContent className="gap-0 py-4">
-            {navSections.map((section) => (
-              <div key={section.section} className="mb-4">
-                {!isCollapsed && (
-                  <h3 className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                    {section.section}
-                  </h3>
-                )}
-                <SidebarMenu className="px-2">
-                  {section.items.map((item) => {
-                    const active = isActive(item.path);
-                    return (
-                      <SidebarMenuItem key={item.path}>
-                        <SidebarMenuButton
-                          isActive={active}
-                          onClick={() => setLocation(item.path)}
-                          tooltip={item.label}
-                          className={cn(
-                            "h-10 transition-all font-normal",
-                            active
-                              ? "bg-orange-50 text-orange-600 border border-orange-200"
-                              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                          )}
-                        >
-                          <item.icon className={cn("h-4 w-4", active && "text-orange-600")} />
-                          <span className="flex-1">{item.label}</span>
-                          {!isCollapsed && item.badge && (
-                            <Badge
-                              variant="secondary"
-                              className={cn(
-                                "text-xs ml-auto",
-                                item.badge === "New" &&
-                                  "bg-green-100 text-green-600 border-green-200",
-                                item.badge === "Hot" &&
-                                  "bg-orange-100 text-orange-600 border-orange-200",
-                                item.badge === "$50" &&
-                                  "bg-blue-100 text-blue-600 border-blue-200"
-                              )}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    );
-                  })}
-                </SidebarMenu>
+        <nav className="flex-1 overflow-y-auto p-4 space-y-8">
+          {navSections.map((section) => (
+            <div key={section.title}>
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 px-2">
+                {section.title}
+              </h4>
+              <div className="space-y-1">
+                {section.items.map((item) => (
+                  <Link key={item.name} href={item.href}>
+                    <a className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition-colors",
+                      location === item.href 
+                        ? "bg-orange-50 text-orange-600" 
+                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    )}>
+                      <item.icon className={cn("w-4 h-4", location === item.href ? "text-orange-600" : "text-gray-400")} />
+                      {item.name}
+                    </a>
+                  </Link>
+                ))}
               </div>
-            ))}
-
-            {/* Bottom Nav Items */}
-            <div className="mt-auto pt-4 border-t border-gray-200">
-              <SidebarMenu className="px-2">
-                {bottomNavItems.map((item) => {
-                  const active = isActive(item.path);
-                  return (
-                    <SidebarMenuItem key={item.path}>
-                      <SidebarMenuButton
-                        isActive={active}
-                        onClick={() => setLocation(item.path)}
-                        tooltip={item.label}
-                        className={cn(
-                          "h-10 transition-all font-normal",
-                          active
-                            ? "bg-orange-50 text-orange-600"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        )}
-                      >
-                        <item.icon className={cn("h-4 w-4", active && "text-orange-600")} />
-                        <span>{item.label}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
-              </SidebarMenu>
             </div>
-          </SidebarContent>
+          ))}
+        </nav>
 
-          {/* User Profile Footer */}
-          <SidebarFooter className="p-3 border-t border-gray-200">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-gray-100 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none">
-                  <Avatar className="h-9 w-9 border border-gray-200 shrink-0">
-                    <AvatarImage src={undefined} />
-                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-medium">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate leading-none">
-                        {user?.name || "-"}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate mt-1.5">
-                        {user?.email || "-"}
-                      </p>
-                    </div>
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-3 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
-                </div>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/dashboard/settings')}
-                  className="cursor-pointer"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/dashboard/profile')}
-                  className="cursor-pointer"
-                >
-                  <Avatar className="mr-2 h-4 w-4">
-                    <AvatarFallback className="bg-gray-200 text-gray-600 text-[10px]">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={async () => {
-                    try {
-                      console.log('[Auth] Attempting logout from sidebar...');
-                      await logout();
-                      
-                      // Clear local storage as a backup
-                      localStorage.removeItem('disputestrike-user-info');
-                      localStorage.removeItem('auth-token');
-                      
-                      // Force a full page reload to the login page to clear all states
-                      window.location.href = "/login?logout=success";
-                    } catch (error) {
-                      console.error("Logout failed:", error);
-                      window.location.href = "/login?logout=error";
-                    }
-                  }}
-                  className="cursor-pointer text-red-500 focus:text-red-500"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
-        </Sidebar>
-
-        {/* Resize Handle */}
-        <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-orange-200 transition-colors ${
-            isCollapsed ? "hidden" : ""
-          }`}
-          onMouseDown={() => {
-            if (isCollapsed) return;
-            setIsResizing(true);
-          }}
-          style={{ zIndex: 50 }}
-        />
-      </div>
-
-      <SidebarInset className="bg-gray-50">
-        {/* Top Header Bar */}
-        <div className="flex border-b border-gray-200 h-16 items-center justify-between bg-white/80 backdrop-blur-sm px-4 sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            {isMobile && (
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-gray-100 text-gray-600" />
-            )}
-            <h1 className="text-lg font-semibold text-gray-900">
-              {activeMenuItem?.label ?? "Dashboard"}
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-            <Link href="/ai-assistant">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-orange-300 text-orange-600 hover:bg-orange-50 hidden sm:flex"
-              >
-                <Bot className="h-4 w-4 mr-2" />
-                AI Assistant
-              </Button>
-            </Link>
-            
-            {/* Profile Dropdown (Blueprint §4: Top-Right Header) */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-gray-100 transition-colors focus:outline-none">
-                  <Avatar className="h-8 w-8 border border-gray-200">
-                    <AvatarImage src={undefined} />
-                    <AvatarFallback className="bg-orange-100 text-orange-600 text-xs font-medium">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium text-gray-700 hidden sm:inline">
-                    {user?.name?.split(' ')[0] || 'Account'}
-                  </span>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-3 py-2 border-b border-gray-100">
-                  <p className="text-sm font-medium text-gray-900">{user?.name || 'User'}</p>
-                  <p className="text-xs text-gray-500 truncate">{user?.email || ''}</p>
-                </div>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/dashboard/settings')}
-                  className="cursor-pointer"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setLocation('/dashboard/profile')}
-                  className="cursor-pointer"
-                >
-                  <Avatar className="mr-2 h-4 w-4">
-                    <AvatarFallback className="bg-gray-200 text-gray-600 text-[10px]">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={async () => {
-                    try {
-                      console.log('[Auth] Attempting logout from header...');
-                      await logout();
-                      localStorage.removeItem('disputestrike-user-info');
-                      localStorage.removeItem('auth-token');
-                      window.location.href = "/login?logout=success";
-                    } catch (error) {
-                      console.error("Logout failed:", error);
-                      window.location.href = "/login?logout=error";
-                    }
-                  }}
-                  className="cursor-pointer text-red-500 focus:text-red-500"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="p-4 border-t bg-gray-50">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center text-white font-bold text-xs">
+              {user?.name?.charAt(0) || 'U'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-bold text-gray-900 truncate">{user?.name || 'User'}</p>
+              <p className="text-[10px] text-gray-500 truncate">{user?.email}</p>
+            </div>
           </div>
         </div>
+      </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 p-6">{children}</main>
-      </SidebarInset>
-    </>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* GLOBAL HEADER (Blueprint §6) */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-10">
+          <div className="flex items-center lg:hidden">
+            <Button variant="ghost" size="icon">
+              <Menu className="w-5 h-5" />
+            </Button>
+          </div>
+
+          <div className="flex-1 hidden lg:block">
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="text-gray-400">
+              <Bell className="w-5 h-5" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-gray-50">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <User className="w-4 h-4 text-gray-500" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-700 hidden sm:inline-block">Account</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer">
+                  <User className="w-4 h-4 mr-2" /> Profile Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Settings className="w-4 h-4 mr-2" /> Subscription
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600 cursor-pointer" onClick={handleLogout}>
+                  <LogOut className="w-4 h-4 mr-2" /> Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <main className="flex-1 p-4 lg:p-8 max-w-7xl mx-auto w-full">
+          {children}
+        </main>
+      </div>
+    </div>
   );
 }
