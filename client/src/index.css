@@ -121,34 +121,182 @@
   }
 }
 
-/* Enhanced Card Styles for better visibility */
-.card-enhanced {
-  border: 1px solid hsl(220 13% 75%);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+/* ============================================
+   ENHANCED VISUAL SEPARATION SYSTEM
+   Strong borders, clear sections, color coding
+   ============================================ */
+
+/* Base card with strong visible border and shadow */
+[data-slot="card"] {
+  border: 1px solid hsl(220 20% 88%) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08), 0 4px 12px -4px rgba(0, 0, 0, 0.05) !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-/* Stronger borders for all cards globally */
-[class*="border"] {
-  border-color: hsl(220 13% 80%);
+[data-slot="card"]:hover {
+  border-color: hsl(220 20% 82%) !important;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 6px 16px -4px rgba(0, 0, 0, 0.08) !important;
 }
 
-/* Make dividers more visible */
-.divide-y > * + * {
-  border-top-color: hsl(220 13% 80%);
-}
-
-/* Sidebar section dividers */
+/* Section separators - more visible */
 .border-b {
-  border-bottom-color: hsl(220 13% 75%);
+  border-bottom: 1px solid hsl(220 20% 88%) !important;
 }
 
-/* Input field borders */
+.border-t {
+  border-top: 1px solid hsl(220 20% 88%) !important;
+}
+
+.divide-y > * + * {
+  border-top: 1px solid hsl(220 20% 88%) !important;
+}
+
+/* Card internal dividers */
+[data-slot="card"] .border-t,
+[data-slot="card"] .border-b {
+  border-color: hsl(220 15% 90%) !important;
+}
+
+/* Input fields - clear boundaries */
 input, textarea, select {
-  border-color: hsl(220 13% 75%) !important;
+  border: 1px solid hsl(220 20% 85%) !important;
+  background-color: white !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:hover, textarea:hover, select:hover {
+  border-color: hsl(220 20% 75%) !important;
 }
 
 input:focus, textarea:focus, select:focus {
   border-color: hsl(24 100% 50%) !important;
+  box-shadow: 0 0 0 3px hsla(24, 100%, 50%, 0.15) !important;
+  outline: none !important;
+}
+
+/* Color-coded severity cards */
+.severity-critical {
+  border-left: 4px solid hsl(0 84% 60%) !important;
+  background: linear-gradient(to right, hsla(0, 84%, 60%, 0.05), transparent) !important;
+}
+
+.severity-high {
+  border-left: 4px solid hsl(25 95% 53%) !important;
+  background: linear-gradient(to right, hsla(25, 95%, 53%, 0.05), transparent) !important;
+}
+
+.severity-medium {
+  border-left: 4px solid hsl(48 96% 53%) !important;
+  background: linear-gradient(to right, hsla(48, 96%, 53%, 0.05), transparent) !important;
+}
+
+.severity-low {
+  border-left: 4px solid hsl(142 71% 45%) !important;
+  background: linear-gradient(to right, hsla(142, 71%, 45%, 0.05), transparent) !important;
+}
+
+/* Section headers - clear visual break */
+.section-header {
+  border-bottom: 2px solid hsl(220 20% 90%);
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+/* Metric/stat cards with colored tops */
+.metric-card {
+  border-top: 3px solid hsl(220 20% 85%);
+}
+
+.metric-card-red {
+  border-top: 3px solid hsl(0 84% 60%) !important;
+}
+
+.metric-card-orange {
+  border-top: 3px solid hsl(25 95% 53%) !important;
+}
+
+.metric-card-green {
+  border-top: 3px solid hsl(142 71% 45%) !important;
+}
+
+.metric-card-blue {
+  border-top: 3px solid hsl(217 91% 60%) !important;
+}
+
+.metric-card-purple {
+  border-top: 3px solid hsl(271 81% 56%) !important;
+}
+
+/* Timeline/progress connectors */
+.timeline-connector {
+  border-left: 2px solid hsl(220 20% 85%);
+}
+
+/* Table row separators */
+table tbody tr {
+  border-bottom: 1px solid hsl(220 20% 92%);
+}
+
+table tbody tr:hover {
+  background-color: hsl(220 20% 98%);
+}
+
+/* List item separators */
+.list-separated > * + * {
+  border-top: 1px solid hsl(220 20% 90%);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* Badge with visible borders */
+[data-slot="badge"] {
+  border: 1px solid currentColor !important;
+  border-opacity: 0.3;
+}
+
+/* Tabs - clear active state */
+[data-state="active"][role="tab"] {
+  border-bottom: 2px solid hsl(24 100% 50%) !important;
+  font-weight: 600;
+}
+
+/* Sidebar navigation item borders */
+nav a, nav button {
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+nav a:hover, nav button:hover {
+  background-color: hsl(220 20% 96%);
+}
+
+nav a[data-active="true"], nav button[data-active="true"] {
+  background-color: hsl(24 100% 97%);
+  border-left: 3px solid hsl(24 100% 50%);
+}
+
+/* Alert boxes with strong left border */
+[role="alert"] {
+  border-left: 4px solid currentColor !important;
+}
+
+/* Modal/dialog separation */
+[role="dialog"] {
+  border: 1px solid hsl(220 20% 85%);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress bars */
+[role="progressbar"] {
+  background-color: hsl(220 20% 92%) !important;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+/* Dropdown menus */
+[role="menu"], [role="listbox"] {
+  border: 1px solid hsl(220 20% 85%) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Animation utilities */

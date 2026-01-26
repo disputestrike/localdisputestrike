@@ -149,60 +149,63 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* SCOREBOARD ROW (Blueprint §2.1) */}
+          {/* SCOREBOARD ROW (Blueprint §2.1) - Strong borders and visual separation */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
+            <Card className="lg:col-span-2 border-2 border-gray-300 shadow-lg">
+              <CardHeader className="pb-2 border-b-2 border-gray-200">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                  </div>
                   Live Credit Scores
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="pt-4">
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {[
-                    { name: 'TransUnion', score: scores.transunion, color: 'text-blue-600' },
-                    { name: 'Equifax', score: scores.equifax, color: 'text-red-600' },
-                    { name: 'Experian', score: scores.experian, color: 'text-purple-600' }
+                    { name: 'TransUnion', score: scores.transunion, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+                    { name: 'Equifax', score: scores.equifax, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
+                    { name: 'Experian', score: scores.experian, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' }
                   ].map((b) => (
-                    <div key={b.name} className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground uppercase">{b.name}</p>
-                      <p className={cn("text-3xl font-bold", b.score ? b.color : "text-gray-300")}>
+                    <div key={b.name} className={cn("p-4 rounded-lg border-2", b.bg, b.border)}>
+                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">{b.name}</p>
+                      <p className={cn("text-4xl font-black mt-1", b.score ? b.color : "text-gray-300")}>
                         {b.score || "---"}
                       </p>
                     </div>
                   ))}
                 </div>
-                <div className="mt-6 pt-6 border-t flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-green-600" />
+                <div className="mt-6 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
+                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border-2 border-green-200">
+                    <TrendingUp className="w-6 h-6 text-green-600" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Potential Delta</p>
-                      <p className="text-xl font-bold text-green-600">+{potentialDelta} Points</p>
+                      <p className="text-xs text-green-700 font-medium">Potential Delta</p>
+                      <p className="text-2xl font-black text-green-600">+{potentialDelta} Points</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-muted-foreground">AI Target Score</p>
-                    <p className="text-xl font-bold text-blue-600">{targetScore}</p>
+                  <div className="text-right p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
+                    <p className="text-xs text-blue-700 font-medium">AI Target Score</p>
+                    <p className="text-2xl font-black text-blue-600">{targetScore}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-primary text-primary-foreground border-none shadow-xl">
-              <CardHeader>
+            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-2 border-orange-400 shadow-xl">
+              <CardHeader className="border-b border-orange-400/50">
                 <CardTitle className="text-lg flex items-center gap-2 text-white">
-                  <Bot className="w-5 h-5" />
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <Bot className="w-5 h-5" />
+                  </div>
                   AI Strategist
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm leading-relaxed text-primary-foreground/90">
-                  "We've identified <span className="font-bold text-accent">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+              <CardContent className="space-y-4 pt-4">
+                <p className="text-sm leading-relaxed text-white/95">
+                  "We've identified <span className="font-bold text-yellow-200">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
                 </p>
                 <Button 
-                  variant="secondary" 
-                  className="w-full bg-accent hover:bg-accent/90 text-black font-bold border-none"
+                  className="w-full bg-white hover:bg-gray-100 text-orange-600 font-bold shadow-md border-2 border-white"
                   onClick={() => setLocation('/dashboard/dispute-manager')}
                 >
                   View Full Strategy
@@ -231,46 +234,46 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* 4 METRIC BOXES (Blueprint §2.3) */}
+          {/* 4 METRIC BOXES (Blueprint §2.3) - Strong borders and color-coded */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card>
+            <Card className="border-2 border-red-200 bg-red-50 shadow-md metric-card-red">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-red-600 mb-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase">Negative Items</span>
+                <div className="flex items-center gap-2 text-red-700 mb-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="text-xs font-bold uppercase tracking-wide">Negative Items</span>
                 </div>
-                <p className="text-3xl font-bold">{stats?.totalNegativeAccounts || 0}</p>
-                <p className="text-xs text-muted-foreground mt-1">Found in AI analysis</p>
+                <p className="text-4xl font-black text-red-600">{stats?.totalNegativeAccounts || 0}</p>
+                <p className="text-xs text-red-600 mt-1 font-medium">Found in AI analysis</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-2 border-blue-200 bg-blue-50 shadow-md metric-card-blue">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-blue-600 mb-2">
-                  <Mail className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase">Letters Sent</span>
+                <div className="flex items-center gap-2 text-blue-700 mb-2">
+                  <Mail className="w-5 h-5" />
+                  <span className="text-xs font-bold uppercase tracking-wide">Letters Sent</span>
                 </div>
-                <p className="text-3xl font-bold">{stats?.totalLettersSent || 0}</p>
-                <p className="text-xs text-muted-foreground mt-1">Total dispute letters</p>
+                <p className="text-4xl font-black text-blue-600">{stats?.totalLettersSent || 0}</p>
+                <p className="text-xs text-blue-600 mt-1 font-medium">Total dispute letters</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-2 border-green-200 bg-green-50 shadow-md metric-card-green">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-green-600 mb-2">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase">Deletions</span>
+                <div className="flex items-center gap-2 text-green-700 mb-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span className="text-xs font-bold uppercase tracking-wide">Deletions</span>
                 </div>
-                <p className="text-3xl font-bold">{stats?.totalDeletions || 0}</p>
-                <p className="text-xs text-muted-foreground mt-1">Items removed</p>
+                <p className="text-4xl font-black text-green-600">{stats?.totalDeletions || 0}</p>
+                <p className="text-xs text-green-600 mt-1 font-medium">Items removed</p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-2 border-purple-200 bg-purple-50 shadow-md metric-card-purple">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-purple-600 mb-2">
-                  <Clock className="w-4 h-4" />
-                  <span className="text-xs font-bold uppercase">Avg. Time</span>
+                <div className="flex items-center gap-2 text-purple-700 mb-2">
+                  <Clock className="w-5 h-5" />
+                  <span className="text-xs font-bold uppercase tracking-wide">Avg. Time</span>
                 </div>
-                <p className="text-3xl font-bold">34</p>
-                <p className="text-xs text-muted-foreground mt-1">Days to first result</p>
+                <p className="text-4xl font-black text-purple-600">34</p>
+                <p className="text-xs text-purple-600 mt-1 font-medium">Days to first result</p>
               </CardContent>
             </Card>
           </div>

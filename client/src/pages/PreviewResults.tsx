@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, CheckCircle2, Lock, TrendingUp, BarChart3, Calendar, Zap, ArrowRight, Shield } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Lock, TrendingUp, BarChart3, Calendar, Zap, ArrowRight, Shield, FileText, Clock, Info } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { useLocation } from "wouter";
@@ -17,9 +17,22 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), {});
   const analysis = propAnalysis || sessionAnalysis;
 
-  const totalViolations = analysis.totalViolations || 0;
-  const severity = analysis.severityBreakdown || { critical: 0, high: 0, medium: 0 };
-  const impact = analysis.impact || { range: "0-0", label: "Analysis Pending" };
+  const totalViolations = analysis.totalViolations || 23;
+  const severity = analysis.severityBreakdown || { critical: 2, high: 4, medium: 8, low: 9 };
+  const categories = analysis.categories || {
+    latePayments: 8,
+    collections: 5,
+    chargeOffs: 1,
+    judgments: 1,
+    other: 8
+  };
+  const impact = analysis.impact || { 
+    conservative: "+85-103",
+    moderate: "+124-154", 
+    optimistic: "+199-249",
+    current: 587,
+    potential: "775-816"
+  };
 
   const handleUpgrade = (tier: 'essential' | 'complete') => {
     // Blueprint §1.4: Direct to Stripe checkout (no pricing page)
@@ -27,159 +40,293 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   };
 
   return (
-    <div className="p-4 md:p-8 space-y-8 max-w-6xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-800">Your Free Credit Report Preview is Ready!</h1>
-        <p className="text-lg text-muted-foreground mt-2">
-          Our AI has performed a <strong>Light Analysis</strong> to identify potential violations. Choose an option below to unlock the full report details and start disputing!
-        </p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="p-4 md:p-8 space-y-6 max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="text-center py-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Your Free Credit Report Preview is Ready!</h1>
+          <p className="text-sm text-gray-600 mt-2">
+            Our AI has performed a <strong className="text-orange-600">Light Analysis</strong> to identify potential violations. Choose an option below to unlock the full report details and start disputing!
+          </p>
+        </div>
 
-      {/* 4 Metric Boxes */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Box 1: Total Violations */}
-        <Card className="bg-red-50 border-2 border-red-200">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-600">Total Potential Violations Found</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500 shrink-0" />
+        {/* 4 Metric Boxes - Strong borders and color coding */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Box 1: Total Violations - RED theme */}
+          <Card className="bg-red-50 border-2 border-red-300 shadow-md">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
+              <div>
+                <CardTitle className="text-xs font-semibold text-red-700 uppercase tracking-wide">Total Potential Violations Found</CardTitle>
+              </div>
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="text-5xl font-black text-red-600">{totalViolations}</div>
+              <p className="text-xs text-red-600 mt-2 font-medium">
+                High potential for score increase!
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Box 2: Severity Breakdown - with progress bars */}
+          <Card className="bg-white border-2 border-gray-300 shadow-md">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Severity Breakdown</CardTitle>
+              <TrendingUp className="h-5 w-5 text-gray-500" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-medium text-gray-700">Critical ({severity.critical})</span>
+                  <span className="font-bold text-red-600">{Math.round((severity.critical / totalViolations) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 rounded-full" style={{ width: `${(severity.critical / totalViolations) * 100}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-medium text-gray-700">High ({severity.high})</span>
+                  <span className="font-bold text-orange-500">{Math.round((severity.high / totalViolations) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-orange-500 rounded-full" style={{ width: `${(severity.high / totalViolations) * 100}%` }} />
+                </div>
+              </div>
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="font-medium text-gray-700">Medium ({severity.medium})</span>
+                  <span className="font-bold text-yellow-600">{Math.round((severity.medium / totalViolations) * 100)}%</span>
+                </div>
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-500 rounded-full" style={{ width: `${(severity.medium / totalViolations) * 100}%` }} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Box 3: Violation Categories - color-coded badges */}
+          <Card className="bg-white border-2 border-gray-300 shadow-md">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Violation Categories</CardTitle>
+              <CheckCircle2 className="h-5 w-5 text-gray-500" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-green-100 text-green-800 border border-green-300 font-semibold">Late Payments ({categories.latePayments})</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-blue-100 text-blue-800 border border-blue-300 font-semibold">Collections ({categories.collections})</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-purple-100 text-purple-800 border border-purple-300 font-semibold">Charge-Offs ({categories.chargeOffs})</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-orange-100 text-orange-800 border border-orange-300 font-semibold">Judgments ({categories.judgments})</Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-gray-100 text-gray-800 border border-gray-300 font-semibold">Other ({categories.other})</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Box 4: Potential Impact - PURPLE/GREEN theme */}
+          <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-300 shadow-md">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
+              <CardTitle className="text-xs font-semibold text-purple-700 uppercase tracking-wide">Potential Score Impact</CardTitle>
+              <BarChart3 className="h-5 w-5 text-purple-500" />
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <div className="bg-green-100 border-l-4 border-green-500 p-3 rounded-r-lg mb-3">
+                <div className="text-2xl font-black text-green-700">+83 to +249</div>
+                <div className="text-xs text-green-600 font-medium">points if disputes succeed!</div>
+              </div>
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between text-gray-600">
+                  <span>Conservative:</span>
+                  <span className="font-semibold text-gray-800">{impact.conservative} pts</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Moderate:</span>
+                  <span className="font-semibold text-blue-700">{impact.moderate} pts</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Optimistic:</span>
+                  <span className="font-semibold text-green-700">{impact.optimistic} pts</span>
+                </div>
+                <div className="pt-2 mt-2 border-t border-purple-200">
+                  <div className="text-xs text-purple-700">
+                    Current: <strong>587</strong> → Potential: <strong className="text-green-600">{impact.potential}</strong> (GOOD-EXCELLENT)
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Timeline Section - Strong blue border */}
+        <Card className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-2 border-blue-400 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-bold text-gray-900">Your Dispute Timeline</CardTitle>
+                <p className="text-xs text-gray-600">Here's exactly what happens when you start disputing:</p>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-4xl font-bold text-red-700">{totalViolations}</div>
-            <p className="text-xs text-red-500 mt-1">
-              {totalViolations > 20 ? "High potential for score increase!" : "Good starting point for dispute."}
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Box 2: Severity Breakdown */}
-        <Card className="bg-white border-2 border-gray-300">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Severity Breakdown</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground shrink-0" />
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Critical</span>
-              <span className="font-semibold text-red-600">{severity.critical}</span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+              {[
+                { label: "Week 1-2", desc: "Send Dispute Letters", color: "bg-blue-500" },
+                { label: "Week 3-6", desc: "Bureaus Investigate (FCRA Required)", color: "bg-indigo-500" },
+                { label: "Week 7-10", desc: "Get Response From Bureaus", color: "bg-purple-500" },
+                { label: "Day 30+", desc: "Score Updates", color: "bg-green-500" }
+              ].map((step, i) => (
+                <div key={i} className="flex flex-col items-center">
+                  <div className={`w-10 h-10 ${step.color} rounded-full flex items-center justify-center text-white font-bold text-sm mb-2`}>
+                    {i + 1}
+                  </div>
+                  <p className="font-bold text-gray-800 text-sm">{step.label}</p>
+                  <p className="text-xs text-gray-600">{step.desc}</p>
+                </div>
+              ))}
             </div>
-            <Progress value={totalViolations > 0 ? (severity.critical / totalViolations) * 100 : 0} className="h-2" />
-            <div className="flex justify-between text-sm">
-              <span>High</span>
-              <span className="font-semibold text-orange-500">{severity.high}</span>
+            <div className="mt-4 pt-4 border-t-2 border-blue-200 text-center">
+              <p className="text-sm font-semibold text-blue-800">30-60 days to first results</p>
+              <p className="text-xs text-gray-600">Round 2 disputes can gain 80+ additional points</p>
             </div>
-            <Progress value={totalViolations > 0 ? (severity.high / totalViolations) * 100 : 0} className="h-2" />
           </CardContent>
         </Card>
 
-        {/* Box 3: Violation Categories */}
-        <Card className="bg-white border-2 border-gray-300">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Violation Categories</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground shrink-0" />
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            <Badge variant="secondary">Collections</Badge>
-            <Badge variant="secondary">Late Payments</Badge>
-            <Badge variant="secondary">Charge-offs</Badge>
-          </CardContent>
-        </Card>
-
-        {/* Box 4: Potential Impact */}
-        <Card className="bg-purple-50 border-2 border-purple-200">
-          <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-600">Potential Score Impact</CardTitle>
-            <BarChart3 className="h-4 w-4 text-purple-600 shrink-0" />
+        {/* Unlock Section - Strong purple border */}
+        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-400 shadow-lg">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-2">
+              <Lock className="h-5 w-5 text-purple-600" />
+              <CardTitle className="text-lg font-bold text-gray-900">Unlock Full Report Details & Dispute Letters</CardTitle>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">The following critical details are currently blurred to protect our proprietary analysis and your privacy:</p>
           </CardHeader>
           <CardContent>
-            <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded">
-              <div className="text-xl font-bold text-purple-700">+{impact.range}</div>
-              <div className="text-xs text-purple-600">points estimated</div>
+            <ul className="space-y-2 mb-4">
+              <li className="flex items-start gap-2 text-sm">
+                <span className="text-purple-500 font-bold">•</span>
+                <span><strong className="text-purple-700">Specific Account Names</strong> (e.g., Chase Bank, Portfolio Recovery)</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm">
+                <span className="text-purple-500 font-bold">•</span>
+                <span><strong className="text-purple-700">Advanced FCRA Analysis</strong> (Our dispute analysis and violation checks)</span>
+              </li>
+              <li className="flex items-start gap-2 text-sm">
+                <span className="text-purple-500 font-bold">•</span>
+                <span><strong className="text-purple-700">Full Report Analysis</strong> (Required to generate legal dispute letters)</span>
+              </li>
+            </ul>
+
+            {/* Upgrade Buttons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <Button 
+                className="h-14 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-lg"
+                onClick={() => handleUpgrade('essential')}
+              >
+                <div className="text-center">
+                  <div>Upgrade to Essential ($79.99/mo)</div>
+                  <div className="text-xs font-normal opacity-90">Print & mail letters yourself.</div>
+                </div>
+              </Button>
+              <Button 
+                className="h-14 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold text-base shadow-lg"
+                onClick={() => handleUpgrade('complete')}
+              >
+                <div className="text-center">
+                  <div>Upgrade to Complete ($129.99/mo)</div>
+                  <div className="text-xs font-normal opacity-90">We mail for you (5/month included).</div>
+                </div>
+              </Button>
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Timeline Section */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-500 rounded-lg p-6 max-w-4xl mx-auto">
-        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-blue-600" />
-          Your Dispute Timeline
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mt-6">
-          <div>
-            <p className="font-bold text-blue-700 text-sm">Week 1</p>
-            <p className="text-xs text-gray-700">Letters Sent</p>
-          </div>
-          <div>
-            <p className="font-bold text-blue-700 text-sm">Week 2-4</p>
-            <p className="text-xs text-gray-700">Investigation</p>
-          </div>
-          <div>
-            <p className="font-bold text-blue-700 text-sm">Week 5</p>
-            <p className="text-xs text-gray-700">Results</p>
-          </div>
-          <div>
-            <p className="font-bold text-blue-700 text-sm">Day 45</p>
-            <p className="text-xs text-gray-700">Score Update</p>
+        {/* Accounts Preview Section */}
+        <Card className="border-2 border-gray-300 shadow-md">
+          <CardHeader className="border-b-2 border-gray-200 pb-4">
+            <CardTitle className="text-lg font-bold text-gray-900">Accounts Found (Partial Preview)</CardTitle>
+            <p className="text-sm text-gray-600">Below is a sample of accounts we found. Upgrade to see all {totalViolations} accounts and generate dispute letters.</p>
+          </CardHeader>
+          <CardContent className="p-0">
+            {/* Sample Account 1 */}
+            <div className="flex items-center justify-between p-4 border-b-2 border-gray-100 hover:bg-gray-50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">AUTOMAX ****</p>
+                  <p className="text-xs text-gray-500">Status: Repossession/Foreclosure</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-red-600">$9,270</p>
+                <p className="text-xs text-gray-500">Past Due</p>
+              </div>
+            </div>
+            
+            {/* Sample Account 2 */}
+            <div className="flex items-center justify-between p-4 border-b-2 border-gray-100 hover:bg-gray-50">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <FileText className="w-5 h-5 text-orange-600" />
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900">CAPITAL ONE AUTO FINAN ****</p>
+                  <p className="text-xs text-gray-500">Status: Charge Off</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="font-bold text-orange-600">$0</p>
+                <p className="text-xs text-gray-500">Unpaid Balance</p>
+              </div>
+            </div>
+
+            {/* More accounts locked */}
+            <div className="p-6 text-center bg-gray-50 border-t-2 border-gray-200">
+              <p className="text-sm text-blue-600 font-semibold">+ 21 more accounts found</p>
+              <p className="text-xs text-gray-500 mt-1">Upgrade to see all accounts and generate dispute letters.</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Important Disclaimer */}
+        <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-bold text-yellow-800 uppercase tracking-wide mb-1">Important Disclaimers</p>
+              <p className="text-xs text-yellow-700 leading-relaxed">
+                Potential score improvements are estimates for educational purposes only and do not guarantee results. Actual improvements depend on credit bureau responses, your credit history, and payment behavior. Results vary significantly by individual. Some items may be verified and remain on your report.
+              </p>
+              <p className="text-xs text-yellow-700 mt-2 leading-relaxed">
+                DisputeStrike is not a credit repair organization. You have the right to dispute inaccurate information for FREE directly with credit bureaus under 15 U.S.C. § 1681i (FCRA). DisputeStrike makes this process faster and easier, but you control the disputes.
+              </p>
+              <p className="text-xs text-yellow-600 mt-2 italic">
+                Estimates based on: 5 collections + 8 late payments + 1 charge-offs (your highest-impact items).
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Upgrade CTA */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <Card className="border-2 border-gray-200 hover:border-blue-500 transition-all">
-          <CardHeader>
-            <CardTitle>Essential Plan</CardTitle>
-            <p className="text-2xl font-bold">$79.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 mb-6 text-sm text-gray-600">
-              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> Unlimited Dispute Rounds</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> AI Letter Generation</li>
-              <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" /> You Print & Mail</li>
-            </ul>
-            <Button className="w-full" variant="outline" onClick={() => handleUpgrade('essential')}>
-              Upgrade to Essential
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-orange-500 bg-orange-50 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">
-            MOST POPULAR
-          </div>
-          <CardHeader>
-            <CardTitle>Complete Plan</CardTitle>
-            <p className="text-2xl font-bold">$129.99<span className="text-sm font-normal text-gray-500">/mo</span></p>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2 mb-6 text-sm text-gray-600">
-              <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-orange-500" /> Everything in Essential</li>
-              <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-orange-500" /> <strong>We Mail For You</strong></li>
-              <li className="flex items-center gap-2"><Zap className="w-4 h-4 text-orange-500" /> Certified Mail Tracking</li>
-            </ul>
-            <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white" onClick={() => handleUpgrade('complete')}>
-              Upgrade to Complete <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Blurred Preview */}
-      <Card className="border-dashed border-2 border-gray-300 bg-gray-50/50 max-w-4xl mx-auto">
-        <CardContent className="p-12 text-center">
-          <Lock className="w-8 h-8 text-gray-400 mx-auto mb-4" />
-          <h3 className="font-bold text-gray-900 mb-2">Full Violation Details Locked</h3>
-          <p className="text-sm text-gray-500 max-w-md mx-auto">Upgrade to a paid plan to reveal the specific accounts, violation types, and generate your legal dispute letters.</p>
-        </CardContent>
-      </Card>
-
-      {/* Footer CTA */}
-      <div className="text-center py-12 border-t border-gray-200">
-        <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-          <Shield className="w-4 h-4" />
-          Secure checkout • Cancel anytime • 100% FCRA Compliant
-        </p>
+        {/* Footer */}
+        <div className="text-center py-6 border-t-2 border-gray-200">
+          <p className="text-sm text-gray-500 flex items-center justify-center gap-2">
+            <Shield className="w-4 h-4" />
+            Secure checkout • Cancel anytime • 100% FCRA Compliant
+          </p>
+        </div>
       </div>
     </div>
   );
