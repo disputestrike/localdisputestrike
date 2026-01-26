@@ -153,59 +153,66 @@ export default function GetReports() {
   };
 
   return (
-    <div className="min-h-screen bg-white py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
-              <Zap className="w-5 h-5 text-white fill-white" />
+            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
+              <Zap className="w-6 h-6 text-white fill-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900">DisputeStrike</span>
+            <span className="text-2xl font-black text-gray-900">DisputeStrike</span>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Get Your Credit Reports</h1>
-          <p className="text-gray-500 text-sm">We need your 3-bureau credit report to analyze for violations</p>
+          <h1 className="text-3xl font-black text-gray-900 mb-2">Get Your Credit Reports</h1>
+          <p className="text-gray-600 text-sm font-medium">We need your 3-bureau credit report to analyze for violations</p>
         </div>
 
-        <div className="mb-12">
-          <div className="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
+        <div className="mb-12 bg-white border-2 border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="flex justify-between text-xs font-bold text-gray-600 mb-2 uppercase tracking-wider">
             <span>Step {currentStep} of {totalSteps}</span>
             <span>{Math.round(progress)}% Complete</span>
           </div>
-          <Progress value={progress} className="h-1.5 bg-gray-100" />
+          <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
-        {/* 2x2 GRID LAYOUT - All 4 Options */}
+        {/* 2x2 GRID LAYOUT - All 4 Options - STRONG BORDERS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Option 1: SmartCredit (RECOMMENDED) */}
           <Card 
             className={cn(
-              "relative border cursor-pointer transition-all shadow-sm",
-              selectedOption === 'smartcredit' ? "border-orange-500 ring-2 ring-orange-500" : "hover:border-orange-300"
+              "relative cursor-pointer transition-all shadow-lg",
+              selectedOption === 'smartcredit' 
+                ? "border-[3px] border-orange-500 ring-4 ring-orange-100 bg-orange-50" 
+                : "border-2 border-gray-300 hover:border-orange-400 hover:shadow-xl bg-white"
             )}
             onClick={() => setSelectedOption('smartcredit')}
           >
-            <div className="absolute -top-3 left-4 bg-orange-500 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase">
+            <div className="absolute -top-3 left-4 bg-orange-500 text-white text-[11px] font-black px-4 py-1.5 rounded-full uppercase shadow-md">
               Recommended
             </div>
-            <CardHeader className="pb-2 pt-6">
+            <CardHeader className="pb-2 pt-7">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
-                    <Star className="w-3 h-3 text-white fill-white" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center shadow-md">
+                    <Star className="w-4 h-4 text-white fill-white" />
                   </div>
-                  <CardTitle className="text-base font-bold">SmartCredit</CardTitle>
+                  <CardTitle className="text-lg font-black text-gray-900">SmartCredit</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">$29.99/mo</span>
+                <span className="text-xs font-black text-orange-600 bg-orange-100 px-2 py-1 rounded uppercase">$29.99/mo</span>
               </div>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs text-gray-500 mb-4 space-y-1">
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> All 3 bureaus in one place</li>
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Daily monitoring + Score tracking</li>
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Easy PDF export for upload</li>
+              <ul className="text-sm text-gray-700 mb-4 space-y-2">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">All 3 bureaus in one place</span></li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Daily monitoring + Score tracking</span></li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Easy PDF export for upload</span></li>
               </ul>
-              <Button className="w-full h-9 text-xs font-bold bg-orange-500 hover:bg-orange-600" onClick={handleSmartCreditClick}>
-                Get SmartCredit <ExternalLink className="w-3 h-3 ml-2" />
+              <Button className="w-full h-11 text-sm font-bold bg-orange-500 hover:bg-orange-600 shadow-md" onClick={handleSmartCreditClick}>
+                Get SmartCredit <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
@@ -213,29 +220,31 @@ export default function GetReports() {
           {/* Option 2: Credit Hero */}
           <Card 
             className={cn(
-              "relative border cursor-pointer transition-all shadow-sm",
-              selectedOption === 'credithero' ? "border-purple-500 ring-1 ring-purple-500" : "hover:border-gray-300"
+              "relative cursor-pointer transition-all shadow-lg",
+              selectedOption === 'credithero' 
+                ? "border-[3px] border-purple-500 ring-4 ring-purple-100 bg-purple-50" 
+                : "border-2 border-gray-300 hover:border-purple-400 hover:shadow-xl bg-white"
             )}
             onClick={() => setSelectedOption('credithero')}
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 pt-4">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full border border-purple-500 flex items-center justify-center">
-                    <Zap className="w-3 h-3 text-purple-500" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-purple-100 border-2 border-purple-500 flex items-center justify-center">
+                    <Zap className="w-4 h-4 text-purple-600" />
                   </div>
-                  <CardTitle className="text-base font-bold">Credit Hero</CardTitle>
+                  <CardTitle className="text-lg font-black text-gray-900">Credit Hero</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">One-Time Fee</span>
+                <span className="text-xs font-black text-purple-600 bg-purple-100 px-2 py-1 rounded uppercase">One-Time Fee</span>
               </div>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs text-gray-500 mb-4 space-y-1">
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> 1 combined file with all 3 bureaus</li>
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Fast & easy upload</li>
+              <ul className="text-sm text-gray-700 mb-4 space-y-2">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">1 combined file with all 3 bureaus</span></li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Fast & easy upload</span></li>
               </ul>
-              <Button variant="outline" className="w-full h-9 text-xs font-bold border-purple-300 text-purple-700 hover:bg-purple-50" onClick={handleCreditHeroClick}>
-                Get Credit Hero <ExternalLink className="w-3 h-3 ml-2" />
+              <Button variant="outline" className="w-full h-11 text-sm font-bold border-2 border-purple-400 text-purple-700 hover:bg-purple-100" onClick={handleCreditHeroClick}>
+                Get Credit Hero <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
@@ -243,29 +252,31 @@ export default function GetReports() {
           {/* Option 3: AnnualCreditReport (FREE) */}
           <Card 
             className={cn(
-              "relative border cursor-pointer transition-all shadow-sm",
-              selectedOption === 'annual' ? "border-green-500 ring-1 ring-green-500" : "hover:border-gray-300"
+              "relative cursor-pointer transition-all shadow-lg",
+              selectedOption === 'annual' 
+                ? "border-[3px] border-green-500 ring-4 ring-green-100 bg-green-50" 
+                : "border-2 border-gray-300 hover:border-green-400 hover:shadow-xl bg-white"
             )}
             onClick={() => setSelectedOption('annual')}
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 pt-4">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full border border-green-500 flex items-center justify-center">
-                    <CheckCircle2 className="w-3 h-3 text-green-500" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-green-100 border-2 border-green-500 flex items-center justify-center">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
                   </div>
-                  <CardTitle className="text-base font-bold">AnnualCreditReport</CardTitle>
+                  <CardTitle className="text-lg font-black text-gray-900">AnnualCreditReport</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">FREE • Government</span>
+                <span className="text-xs font-black text-green-700 bg-green-100 px-2 py-1 rounded uppercase">FREE • Government</span>
               </div>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs text-gray-500 mb-4 space-y-1">
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Government-mandated free reports</li>
-                <li className="flex items-center gap-1"><AlertCircle className="w-3 h-3 text-yellow-500" /> Once per year per bureau</li>
+              <ul className="text-sm text-gray-700 mb-4 space-y-2">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Government-mandated free reports</span></li>
+                <li className="flex items-center gap-2"><AlertCircle className="w-4 h-4 text-yellow-600" /> <span className="font-medium">Once per year per bureau</span></li>
               </ul>
-              <Button variant="outline" className="w-full h-9 text-xs font-bold" onClick={handleAnnualCreditReportClick}>
-                Visit Site <ExternalLink className="w-3 h-3 ml-2" />
+              <Button variant="outline" className="w-full h-11 text-sm font-bold border-2 border-gray-400 text-gray-700 hover:bg-gray-100" onClick={handleAnnualCreditReportClick}>
+                Visit Site <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
@@ -273,55 +284,63 @@ export default function GetReports() {
           {/* Option 4: I Already Have My Reports */}
           <Card 
             className={cn(
-              "relative border cursor-pointer transition-all shadow-sm",
-              selectedOption === 'upload' ? "border-blue-500 ring-1 ring-blue-500" : "hover:border-gray-300"
+              "relative cursor-pointer transition-all shadow-lg",
+              selectedOption === 'upload' 
+                ? "border-[3px] border-blue-500 ring-4 ring-blue-100 bg-blue-50" 
+                : "border-2 border-gray-300 hover:border-blue-400 hover:shadow-xl bg-white"
             )}
             onClick={() => setSelectedOption('upload')}
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-2 pt-4">
               <div className="flex justify-between items-start">
-                <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full border border-blue-500 flex items-center justify-center">
-                    <Upload className="w-3 h-3 text-blue-500" />
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 border-2 border-blue-500 flex items-center justify-center">
+                    <Upload className="w-4 h-4 text-blue-600" />
                   </div>
-                  <CardTitle className="text-base font-bold">I Have My Reports</CardTitle>
+                  <CardTitle className="text-lg font-black text-gray-900">I Have My Reports</CardTitle>
                 </div>
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Upload PDF/HTML</span>
+                <span className="text-xs font-black text-blue-600 bg-blue-100 px-2 py-1 rounded uppercase">Upload PDF/HTML</span>
               </div>
             </CardHeader>
             <CardContent>
-              <ul className="text-xs text-gray-500 mb-4 space-y-1">
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Upload files you already have</li>
-                <li className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3 text-green-500" /> Start free AI analysis instantly</li>
+              <ul className="text-sm text-gray-700 mb-4 space-y-2">
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Upload files you already have</span></li>
+                <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-600" /> <span className="font-medium">Start free AI analysis instantly</span></li>
               </ul>
-              <Button className="w-full h-9 text-xs font-bold" onClick={() => setSelectedOption('upload')}>
-                Upload Now <Upload className="w-3 h-3 ml-2" />
+              <Button className="w-full h-11 text-sm font-bold bg-orange-500 hover:bg-orange-600 shadow-md" onClick={() => setSelectedOption('upload')}>
+                Upload Now <Upload className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
         </div>
 
         {selectedOption === 'upload' && (
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-1">Upload Your Reports</h3>
-            <p className="text-sm text-gray-500 mb-6">You can upload a combined 3-bureau report, or individual reports for each bureau.</p>
+          <div className="bg-white border-2 border-gray-300 rounded-xl p-6 mb-8 shadow-lg">
+            <h3 className="text-xl font-black text-gray-900 mb-1">Upload Your Reports</h3>
+            <p className="text-sm text-gray-600 font-medium mb-6">You can upload a combined 3-bureau report, or individual reports for each bureau.</p>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Combined Upload */}
-              <div className="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-4">
-                <BureauUpload bureau="combined" label="Combined 3-Bureau Report (Recommended)" color="bg-purple-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              <div className="lg:col-span-2 bg-purple-50 border-2 border-purple-300 rounded-lg p-4">
+                <BureauUpload bureau="combined" label="Combined 3-Bureau Report (Recommended)" color="bg-purple-600" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
               </div>
 
               {/* Individual Uploads */}
-              <BureauUpload bureau="transunion" label="TransUnion" color="bg-red-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
-              <BureauUpload bureau="equifax" label="Equifax" color="bg-yellow-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
-              <BureauUpload bureau="experian" label="Experian" color="bg-blue-500" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              <div className="bg-red-50 border-2 border-red-300 rounded-lg p-4">
+                <BureauUpload bureau="transunion" label="TransUnion" color="bg-red-600" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              </div>
+              <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4">
+                <BureauUpload bureau="equifax" label="Equifax" color="bg-yellow-600" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              </div>
+              <div className="lg:col-span-2 bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                <BureauUpload bureau="experian" label="Experian" color="bg-blue-600" onDrop={onDrop} uploadedReports={uploadedReports} removeFile={removeFile} />
+              </div>
             </div>
 
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg p-3 flex items-center gap-2 mb-4">
-                <AlertCircle className="w-4 h-4" />
-                {error}
+              <div className="bg-red-100 border-2 border-red-400 text-red-800 text-sm rounded-lg p-4 flex items-center gap-3 mb-4">
+                <AlertCircle className="w-5 h-5" />
+                <span className="font-medium">{error}</span>
               </div>
             )}
 
@@ -329,12 +348,12 @@ export default function GetReports() {
               <Button 
                 onClick={() => handleStartAnalysis()}
                 disabled={isAnalyzing || uploadedReports.length === 0}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-orange-500 hover:bg-orange-600 shadow-lg"
               >
                 {isAnalyzing ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Analyzing...</>
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analyzing...</>
                 ) : (
-                  <>Start Analysis <ArrowRight className="w-4 h-4 ml-2" /></>
+                  <>Start Analysis <ArrowRight className="w-5 h-5 ml-2" /></>
                 )}
               </Button>
             </div>
@@ -431,25 +450,25 @@ const BureauUpload = ({ bureau, label, color, onDrop, uploadedReports, removeFil
 
   return (
     <div className="flex-1 min-w-0">
-      <div className="flex items-center gap-2 mb-2">
-        <div className={cn("w-2 h-2 rounded-full", color)} />
-        <span className="text-xs font-medium text-gray-700">{label}</span>
+      <div className="flex items-center gap-2 mb-3">
+        <div className={cn("w-3 h-3 rounded-full shadow-sm", color)} />
+        <span className="text-sm font-bold text-gray-800">{label}</span>
       </div>
       {existingFile ? (
         <div className="relative group">
-          <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-lg p-3 h-[60px]">
-            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4 text-blue-500" />
+          <div className="flex items-center gap-3 bg-white border-2 border-green-400 rounded-lg p-4 h-[70px] shadow-sm">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-bold text-gray-900 truncate">{existingFile.file.name}</p>
-              <p className="text-[10px] text-gray-500">{(existingFile.file.size / (1024 * 1024)).toFixed(2)} MB</p>
+              <p className="text-sm font-bold text-gray-900 truncate">{existingFile.file.name}</p>
+              <p className="text-xs text-gray-600">{(existingFile.file.size / (1024 * 1024)).toFixed(2)} MB</p>
             </div>
             <button 
               onClick={(e) => { e.stopPropagation(); removeFile(bureau); }}
-              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+              className="p-2 hover:bg-red-100 rounded-full transition-colors border border-gray-300"
             >
-              <X className="w-3 h-3 text-gray-400" />
+              <X className="w-4 h-4 text-red-500" />
             </button>
           </div>
         </div>
@@ -457,13 +476,15 @@ const BureauUpload = ({ bureau, label, color, onDrop, uploadedReports, removeFil
         <div
           {...getRootProps()}
           className={cn(
-            "border border-dashed rounded-lg h-[60px] flex flex-col items-center justify-center cursor-pointer transition-all",
-            isDragActive ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-blue-300 bg-gray-50/30"
+            "border-2 border-dashed rounded-lg h-[70px] flex flex-col items-center justify-center cursor-pointer transition-all",
+            isDragActive 
+              ? "border-blue-500 bg-blue-100 shadow-inner" 
+              : "border-gray-400 hover:border-blue-500 hover:bg-blue-50 bg-white"
           )}
         >
           <input {...getInputProps()} />
-          <Upload className="w-4 h-4 text-gray-400 mb-1" />
-          <p className="text-[9px] text-gray-400 uppercase font-bold">Drop PDF/HTML</p>
+          <Upload className="w-5 h-5 text-gray-500 mb-1" />
+          <p className="text-xs text-gray-600 uppercase font-bold tracking-wide">Drop PDF/HTML</p>
         </div>
       )}
     </div>
