@@ -20,8 +20,9 @@
   --color-accent-foreground: hsl(220.9 39.3% 11%);
   --color-destructive: hsl(0 84.2% 60.2%);
   --color-destructive-foreground: hsl(210 20% 98%);
-  --color-border: hsl(220 13% 91%);
-  --color-input: hsl(220 13% 91%);
+  /* FIXED: Stronger border color for better visibility (was 91% - too faint) */
+  --color-border: hsl(220 13% 80%);
+  --color-input: hsl(220 13% 85%);
   --color-ring: hsl(24 100% 50%);
   --color-chart-1: hsl(12 76% 61%);
   --color-chart-2: hsl(173 58% 39%);
@@ -67,8 +68,9 @@
     --accent-foreground: 220.9 39.3% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
+    /* FIXED: Stronger borders for better card/element separation */
+    --border: 220 13% 80%;
+    --input: 220 13% 85%;
     --ring: 24 100% 50%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
@@ -117,6 +119,36 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Enhanced Card Styles for better visibility */
+.card-enhanced {
+  border: 1px solid hsl(220 13% 75%);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Stronger borders for all cards globally */
+[class*="border"] {
+  border-color: hsl(220 13% 80%);
+}
+
+/* Make dividers more visible */
+.divide-y > * + * {
+  border-top-color: hsl(220 13% 80%);
+}
+
+/* Sidebar section dividers */
+.border-b {
+  border-bottom-color: hsl(220 13% 75%);
+}
+
+/* Input field borders */
+input, textarea, select {
+  border-color: hsl(220 13% 75%) !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: hsl(24 100% 50%) !important;
 }
 
 /* Animation utilities */

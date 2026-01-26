@@ -200,7 +200,11 @@ export default function Dashboard() {
                 <p className="text-sm leading-relaxed text-primary-foreground/90">
                   "We've identified <span className="font-bold text-accent">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
                 </p>
-                <Button variant="secondary" className="w-full bg-accent hover:bg-accent/90 text-black font-bold border-none">
+                <Button 
+                  variant="secondary" 
+                  className="w-full bg-accent hover:bg-accent/90 text-black font-bold border-none"
+                  onClick={() => setLocation('/dashboard/dispute-manager')}
+                >
                   View Full Strategy
                 </Button>
               </CardContent>
