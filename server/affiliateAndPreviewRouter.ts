@@ -247,13 +247,22 @@ router.post(
 
       try {
         const preview = await runPreviewAnalysis(trimmedText, isTextBasedPDF);
-        if (preview.totalViolations === 0) {
+        
+        // Check if AI actually ran and found results
+        // If totalViolations is 0 AND no accountPreviews, AI likely failed
+        // But if text was extracted successfully (>1000 chars), allow 0 violations (clean report)
+        if (preview.totalViolations === 0 && !preview.accountPreviews?.length && trimmedText.length < 1000) {
+          console.log('[Preview] Suspicious: 0 violations, no accounts, and low text length');
           return res.status(422).json({
             error: 'Could not extract violations from this report',
-            message: 'This PDF may be corrupted, image-only, or not a credit report.',
+            message: 'We could not analyze your credit report. The file may be corrupted or not a valid credit report.',
             suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
           });
         }
+        
+        // If we got here, either:
+        // 1. AI found violations (good)
+        // 2. AI found 0 violations but report is clean (also good - allow it)
         const light = toLightAnalysisResult(preview);
         return res.status(200).json(light);
       } catch (e: unknown) {

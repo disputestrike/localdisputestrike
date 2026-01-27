@@ -219,24 +219,32 @@ export async function runPreviewAnalysis(
         if (content.includes('```')) {
           content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
         }
-        aiResult = safeJsonParse(content, {} as PreviewAnalysisResult);
-        console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
+        const parsed = safeJsonParse(content, null);
+        if (parsed && typeof parsed === 'object' && 'totalViolations' in parsed) {
+          aiResult = parsed as PreviewAnalysisResult;
+          console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
+        } else {
+          console.error('[Preview] OpenAI returned invalid JSON structure:', content.substring(0, 500));
+        }
+      } else {
+        console.error('[Preview] OpenAI returned empty response');
       }
     }
     
-    // Use AI results directly - keyword counting is too aggressive (counts every word mention)
-    // The AI analyzes actual accounts and counts real violations, not word matches
+    // Use AI results ONLY - no keyword counting
+    // The AI analyzes actual accounts and counts real violations
     if (aiResult) {
-      console.log(`[Preview] Using AI result: ${aiResult.totalViolations} violations (keyword count ${keywordCounts.total} was too aggressive)`);
+      console.log(`[Preview] Using AI result: ${aiResult.totalViolations} violations`);
       return normalizePreviewResult(aiResult);
     }
     
-    // Fallback to keyword-only if AI failed
-    return normalizePreviewResult(keywordPreviewFallback(reportText));
+    // AI failed - return minimal result (we ONLY use AI, no fallback keyword counting)
+    console.error('[Preview] AI analysis failed - no result returned');
+    return normalizePreviewResult(minimalFallback());
   } catch (error) {
     console.error('Preview analysis error:', error);
-    // On error, still return keyword-based results
-    return normalizePreviewResult(keywordPreviewFallback(reportText));
+    // On error, return minimal result (we ONLY use AI)
+    return normalizePreviewResult(minimalFallback());
   }
 }
 
