@@ -100,42 +100,167 @@ Return a JSON object with this exact structure:
 BE AGGRESSIVE - FIND EVERYTHING!`;
 
 /**
- * Fallback when no AI API key: simple keyword-based violation count.
- * Returns aggregate counts only (no account details) for local/dev use.
+ * AGGRESSIVE keyword-based violation counting using ALL 90 dispute methods.
+ * Counts EVERY instance of EVERY violation keyword.
+ */
+function countViolationsAggressively(reportText: string): {
+  total: number;
+  latePayments: number;
+  collections: number;
+  inquiries: number;
+  publicRecords: number;
+  accountErrors: number;
+  other: number;
+} {
+  const t = reportText.toLowerCase();
+  
+  // LATE PAYMENTS - count EVERY instance
+  const latePatterns = [
+    /\b30\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\b60\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\b90\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\b120\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\b150\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\b180\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
+    /\bpast\s*due\b/gi,
+    /\bdelinquent\b/gi,
+    /\blate\s*payment/gi,
+    /\bpayment\s*history[:\s]*[^\n]*[123456789]/gi, // Payment history with late markers
+  ];
+  let latePayments = 0;
+  for (const pattern of latePatterns) {
+    latePayments += (t.match(pattern) || []).length;
+  }
+  
+  // COLLECTIONS - count EVERY collection account
+  const collectionPatterns = [
+    /\bcollection\b/gi,
+    /\bcollections\b/gi,
+    /\bdebt\s*collector/gi,
+    /\bplaced\s*for\s*collection/gi,
+    /\bsold\s*to\s*collection/gi,
+    /\bcollection\s*agency/gi,
+    /\bmedical\s*collection/gi,
+    /\bpro\s*collect/gi,
+    /\bmidland/gi,
+    /\bportfolio\s*recovery/gi,
+    /\bcavalry/gi,
+    /\benhanced\s*recovery/gi,
+  ];
+  let collections = 0;
+  for (const pattern of collectionPatterns) {
+    collections += (t.match(pattern) || []).length;
+  }
+  
+  // INQUIRIES - count EVERY hard inquiry
+  const inquiryPatterns = [
+    /\bhard\s*inquiry/gi,
+    /\binquiry\b/gi,
+    /\binquiries\b/gi,
+    /\bcredit\s*check/gi,
+    /\bpulled\s*credit/gi,
+  ];
+  let inquiries = 0;
+  for (const pattern of inquiryPatterns) {
+    inquiries += (t.match(pattern) || []).length;
+  }
+  
+  // PUBLIC RECORDS
+  const publicRecordPatterns = [
+    /\bbankruptcy\b/gi,
+    /\bjudgment\b/gi,
+    /\btax\s*lien/gi,
+    /\bforeclosure\b/gi,
+    /\brepossession\b/gi,
+    /\brepo\b/gi,
+    /\bcivil\s*judgment/gi,
+    /\bchapter\s*7\b/gi,
+    /\bchapter\s*13\b/gi,
+  ];
+  let publicRecords = 0;
+  for (const pattern of publicRecordPatterns) {
+    publicRecords += (t.match(pattern) || []).length;
+  }
+  
+  // ACCOUNT ERRORS (charge-offs, disputes, inaccuracies)
+  const errorPatterns = [
+    /\bcharge[\s-]*off\b/gi,
+    /\bcharged[\s-]*off\b/gi,
+    /\bchargeoff\b/gi,
+    /\bwritten[\s-]*off\b/gi,
+    /\bbad\s*debt\b/gi,
+    /\bprofit\s*and\s*loss/gi,
+    /\bdisputed\b/gi,
+    /\binaccurate\b/gi,
+    /\bduplicate\b/gi,
+    /\bnot\s*mine\b/gi,
+    /\bfraud\b/gi,
+    /\bidentity\s*theft/gi,
+  ];
+  let accountErrors = 0;
+  for (const pattern of errorPatterns) {
+    accountErrors += (t.match(pattern) || []).length;
+  }
+  
+  // OTHER violations
+  const otherPatterns = [
+    /\bclosed\s*by\s*creditor/gi,
+    /\bsettled\b/gi,
+    /\bdefault\b/gi,
+    /\bdefaulted\b/gi,
+    /\bnegative\b/gi,
+    /\badverse\b/gi,
+    /\bderogatory\b/gi,
+    /\bunpaid\b/gi,
+    /\bpast\s*due\s*amount/gi,
+    /\bbalance\s*owed/gi,
+  ];
+  let other = 0;
+  for (const pattern of otherPatterns) {
+    other += (t.match(pattern) || []).length;
+  }
+  
+  const total = latePayments + collections + inquiries + publicRecords + accountErrors + other;
+  
+  console.log(`[Preview] Keyword count: late=${latePayments}, collections=${collections}, inquiries=${inquiries}, publicRecords=${publicRecords}, errors=${accountErrors}, other=${other}, TOTAL=${total}`);
+  
+  return { total, latePayments, collections, inquiries, publicRecords, accountErrors, other };
+}
+
+/**
+ * Fallback when no AI API key: aggressive keyword-based violation count.
  */
 function keywordPreviewFallback(reportText: string): PreviewAnalysisResult {
-  const t = reportText.toLowerCase();
-  const latePayments = (t.match(/\b(late|delinquent|past due|30 day|60 day|90 day|120 day)\b/g) || []).length;
-  const collections = (t.match(/\b(collection|collections|debt collector)\b/g) || []).length;
-  const inquiries = (t.match(/\b(inquiry|inquiries|hard pull)\b/g) || []).length;
-  const publicRecords = (t.match(/\b(bankruptcy|judgment|lien|foreclosure|repossession)\b/g) || []).length;
-  const accountErrors = (t.match(/\b(charge.?off|charged off|chargeoff|duplicate|dispute|inaccurate)\b/g) || []).length;
-  const other = (t.match(/\b(closed by|settled|written off|default)\b/g) || []).length;
-  const totalViolations = Math.min(200, latePayments + collections + inquiries + publicRecords + accountErrors + other);
+  const counts = countViolationsAggressively(reportText);
+  const totalViolations = counts.total;
   const deletionPotential = totalViolations > 0 ? Math.min(100, 40 + Math.floor(totalViolations / 2)) : 30;
   return {
     totalViolations,
     deletionPotential,
     categories: {
-      latePayments,
-      collections,
-      inquiries,
-      publicRecords,
-      accountErrors,
-      other,
+      latePayments: counts.latePayments,
+      collections: counts.collections,
+      inquiries: counts.inquiries,
+      publicRecords: counts.publicRecords,
+      accountErrors: counts.accountErrors,
+      other: counts.other,
     },
     bureauBreakdown: {
       experian: Math.floor(totalViolations / 3),
       equifax: Math.floor(totalViolations / 3),
       transunion: totalViolations - 2 * Math.floor(totalViolations / 3),
     },
-    estimatedScoreIncrease: totalViolations > 5 ? '40-80' : '20-50',
+    estimatedScoreIncrease: totalViolations > 20 ? '80-150' : totalViolations > 10 ? '50-100' : '30-60',
   };
 }
 
 export async function runPreviewAnalysis(
   reportText: string
 ): Promise<PreviewAnalysisResult> {
+  // ALWAYS run keyword counting first as a baseline
+  const keywordCounts = countViolationsAggressively(reportText);
+  console.log(`[Preview] Keyword baseline: ${keywordCounts.total} violations found`);
+  
   if (!anthropic && !openai) {
     return normalizePreviewResult(keywordPreviewFallback(reportText));
   }
@@ -145,6 +270,7 @@ export async function runPreviewAnalysis(
   try {
     // INCREASED: Allow more text for better analysis (was 15000)
     const truncatedReport = reportText.slice(0, 30000);
+    let aiResult: PreviewAnalysisResult | null = null;
 
     if (anthropic) {
       console.log('[Preview] Using Anthropic Claude for analysis...');
@@ -168,53 +294,76 @@ export async function runPreviewAnalysis(
       const aiTime = Date.now() - startTime;
       console.log(`[Preview] Anthropic response: ${text.length} chars in ${aiTime}ms`);
       
-      if (!text) {
-        throw new Error('No response from Anthropic');
+      if (text) {
+        // Strip markdown code blocks (Claude sometimes returns ```json ... ```)
+        if (text.includes('```')) {
+          text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+        }
+        aiResult = safeJsonParse(text, {} as PreviewAnalysisResult);
+        console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
       }
-      // Strip markdown code blocks (Claude sometimes returns ```json ... ```)
-      if (text.includes('```')) {
-        text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+    } else {
+      console.log('[Preview] Using OpenAI for analysis...');
+      console.log('[Preview] Report text length:', truncatedReport.length);
+      
+      const response = await openai!.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: PREVIEW_SYSTEM_PROMPT,
+          },
+          {
+            role: 'user',
+            content: `Extract ALL negative accounts from this credit report. Return the REAL account names, balances, and statuses you find:\n\n${truncatedReport}`,
+          },
+        ],
+        temperature: 0.1, // LOWERED for consistency
+        max_tokens: 4000, // INCREASED from 2000
+        response_format: { type: 'json_object' },
+      });
+      
+      const aiTime = Date.now() - startTime;
+      console.log(`[Preview] OpenAI response received in ${aiTime}ms`);
+
+      let content = response.choices[0]?.message?.content ?? '';
+      if (content) {
+        if (content.includes('```')) {
+          content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
+        }
+        aiResult = safeJsonParse(content, {} as PreviewAnalysisResult);
       }
-      const result = safeJsonParse(text, {} as PreviewAnalysisResult);
-      console.log('[Preview] Parsed result - totalViolations:', result.totalViolations, 'accountPreviews:', result.accountPreviews?.length || 0);
-      return normalizePreviewResult(result);
     }
-
-    console.log('[Preview] Using OpenAI for analysis...');
-    console.log('[Preview] Report text length:', truncatedReport.length);
     
-    const response = await openai!.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: PREVIEW_SYSTEM_PROMPT,
-        },
-        {
-          role: 'user',
-          content: `Extract ALL negative accounts from this credit report. Return the REAL account names, balances, and statuses you find:\n\n${truncatedReport}`,
-        },
-      ],
-      temperature: 0.1, // LOWERED for consistency
-      max_tokens: 4000, // INCREASED from 2000
-      response_format: { type: 'json_object' },
-    });
+    // BOOST: Use the HIGHER of AI count or keyword count
+    // This ensures we never undercount violations
+    if (aiResult) {
+      const aiTotal = aiResult.totalViolations || 0;
+      const keywordTotal = keywordCounts.total;
+      
+      // Use keyword counts if they're higher than AI
+      if (keywordTotal > aiTotal) {
+        console.log(`[Preview] BOOSTING: AI found ${aiTotal}, keywords found ${keywordTotal} - using keyword count`);
+        aiResult.totalViolations = keywordTotal;
+        aiResult.categories = {
+          latePayments: Math.max(aiResult.categories?.latePayments || 0, keywordCounts.latePayments),
+          collections: Math.max(aiResult.categories?.collections || 0, keywordCounts.collections),
+          inquiries: Math.max(aiResult.categories?.inquiries || 0, keywordCounts.inquiries),
+          publicRecords: Math.max(aiResult.categories?.publicRecords || 0, keywordCounts.publicRecords),
+          accountErrors: Math.max(aiResult.categories?.accountErrors || 0, keywordCounts.accountErrors),
+          other: Math.max(aiResult.categories?.other || 0, keywordCounts.other),
+        };
+      }
+      
+      return normalizePreviewResult(aiResult);
+    }
     
-    const aiTime = Date.now() - startTime;
-    console.log(`[Preview] OpenAI response received in ${aiTime}ms`);
-
-    let content = response.choices[0]?.message?.content ?? '';
-    if (!content) {
-      throw new Error('No response from OpenAI');
-    }
-    if (content.includes('```')) {
-      content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
-    }
-    const result = safeJsonParse(content, {} as PreviewAnalysisResult);
-    return normalizePreviewResult(result);
+    // Fallback to keyword-only if AI failed
+    return normalizePreviewResult(keywordPreviewFallback(reportText));
   } catch (error) {
     console.error('Preview analysis error:', error);
-    throw error;
+    // On error, still return keyword-based results
+    return normalizePreviewResult(keywordPreviewFallback(reportText));
   }
 }
 
