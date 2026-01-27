@@ -2796,11 +2796,11 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         });
         
         // Get product pricing
-        const prices = {
+        const tierPrices = {
           essential: 7999,  // $79.99/month
           complete: 12999,  // $129.99/month
         };
-        const amount = prices[input.tier];
+        const amount = tierPrices[input.tier];
         const productName = input.tier === 'essential' ? 'Essential Plan' : 'Complete Plan';
         
         // Create or get customer
@@ -2835,8 +2835,8 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         }
         
         // Create or get price for this product
-        const prices = await stripe.prices.list({ product: stripeProduct.id, limit: 100 });
-        let price = prices.data.find(p => 
+        const stripePrices = await stripe.prices.list({ product: stripeProduct.id, limit: 100 });
+        let price = stripePrices.data.find(p => 
           p.unit_amount === amount && 
           p.recurring?.interval === 'month'
         );
