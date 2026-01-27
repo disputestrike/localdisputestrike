@@ -49,20 +49,20 @@ export interface PreviewAnalysisResult {
   accountPreviews?: AccountPreviewItem[];
 }
 
-const PREVIEW_SYSTEM_PROMPT = `You are an AGGRESSIVE credit report violation detector. Your job is to find EVERY SINGLE negative item.
+const PREVIEW_SYSTEM_PROMPT = `You are a credit report analyst. Count ACTUAL negative items, not word mentions.
 
-**CRITICAL: Count EVERY negative item across ALL bureaus. If an account appears on 3 bureaus, count it 3 times.**
+**CRITICAL: Count REAL negative accounts and violations, not every mention of words like "late" or "collection" in the text.**
 
 Return a JSON object with this exact structure:
 {
-  "totalViolations": <number - COUNT EVERY NEGATIVE ITEM>,
+  "totalViolations": <number - COUNT ACTUAL NEGATIVE ITEMS>,
   "deletionPotential": <number 0-100>,
   "categories": {
-    "latePayments": <number - count EVERY late payment marker>,
-    "collections": <number - count EVERY collection>,
-    "inquiries": <number - count EVERY hard inquiry>,
+    "latePayments": <number - count accounts WITH late payments>,
+    "collections": <number - count ACTUAL collection accounts>,
+    "inquiries": <number - count hard inquiries>,
     "publicRecords": <number>,
-    "accountErrors": <number - count charge-offs here>,
+    "accountErrors": <number - count charge-offs, errors>,
     "other": <number>
   },
   "bureauBreakdown": {
@@ -77,28 +77,31 @@ Return a JSON object with this exact structure:
   "creditScore": <number if found>
 }
 
-**COUNTING RULES - BE AGGRESSIVE:**
-1. totalViolations = SUM of ALL negative items across ALL bureaus
-2. If same account is negative on 3 bureaus = 3 violations
-3. If account has 12 late payment markers = 12 violations
-4. Count EVERY "30 day late", "60 day late", "90 day late" as separate violations
-5. Count EVERY collection account
-6. Count EVERY charge-off
-7. Count EVERY hard inquiry
-8. accountPreviews: Extract up to 20 REAL accounts with EXACT names
+**COUNTING RULES - COUNT ACTUAL ITEMS:**
+1. Each COLLECTION ACCOUNT = 1 violation (per bureau if appears on multiple)
+2. Each CHARGE-OFF ACCOUNT = 1 violation (per bureau)
+3. Each account WITH late payments = count the late payment instances in payment history
+4. Each HARD INQUIRY = 1 violation
+5. Each PUBLIC RECORD = 1 violation (per bureau)
+6. Each REPOSSESSION = 1 violation (per bureau)
+7. If same account on 3 bureaus = count as 3 violations (one per bureau)
 
-**WHAT COUNTS AS A VIOLATION:**
-- Each late payment marker (30/60/90/120 days) = 1 violation
-- Each collection account = 1 violation per bureau
-- Each charge-off = 1 violation per bureau  
-- Each hard inquiry = 1 violation
-- Each public record = 1 violation per bureau
-- Each repossession = 1 violation per bureau
-- Payment history showing "1" "2" "3" etc = count each as late payment
+**WHAT COUNTS:**
+- A collection account = 1 violation (even if word "collection" appears 10 times in its description)
+- An account with 6 late payments in history = 6 violations for that account
+- A charge-off = 1 violation per bureau it appears on
 
-**EXAMPLE:** If you see an account with payment history "111111222233" that's 6 30-day lates, 4 60-day lates, 2 90-day lates = 12 violations just from that one account.
+**DO NOT:**
+- Count every mention of the word "late" as a violation
+- Count every mention of "collection" as a violation
+- Inflate numbers by counting words
 
-BE AGGRESSIVE - FIND EVERYTHING!`;
+**EXAMPLE:** 
+- If you see "OAG CHILD SU - Collection - $2,552" = 1 collection violation
+- If you see payment history showing "30, 60, 90, 90" = 4 late payment violations for that account
+- If same account on TransUnion AND Equifax = 2 violations (one per bureau)
+
+Count REAL items, not word frequency!`;
 
 /**
  * AGGRESSIVE keyword-based violation counting using ALL 90 dispute methods from registry.
@@ -310,12 +313,10 @@ export async function runPreviewAnalysis(
   reportText: string,
   isTextBasedPDF: boolean = true // true = text-based PDF (use Claude), false = image-based PDF (use OpenAI)
 ): Promise<PreviewAnalysisResult> {
-  // ALWAYS run keyword counting first as a baseline
-  const keywordCounts = countViolationsAggressively(reportText);
-  console.log(`[Preview] Keyword baseline: ${keywordCounts.total} violations found`);
   console.log(`[Preview] PDF type: ${isTextBasedPDF ? 'TEXT-BASED (using Claude)' : 'IMAGE-BASED (using OpenAI)'}`);
   
   if (!anthropic && !openai) {
+    // Fallback: simple keyword counting (not used for boost, just fallback)
     return normalizePreviewResult(keywordPreviewFallback(reportText));
   }
   
@@ -403,26 +404,10 @@ export async function runPreviewAnalysis(
       }
     }
     
-    // BOOST: Use the HIGHER of AI count or keyword count
-    // This ensures we never undercount violations
+    // Use AI results directly - keyword counting is too aggressive (counts every word mention)
+    // The AI analyzes actual accounts and counts real violations, not word matches
     if (aiResult) {
-      const aiTotal = aiResult.totalViolations || 0;
-      const keywordTotal = keywordCounts.total;
-      
-      // Use keyword counts if they're higher than AI
-      if (keywordTotal > aiTotal) {
-        console.log(`[Preview] BOOSTING: AI found ${aiTotal}, keywords found ${keywordTotal} - using keyword count`);
-        aiResult.totalViolations = keywordTotal;
-        aiResult.categories = {
-          latePayments: Math.max(aiResult.categories?.latePayments || 0, keywordCounts.latePayments),
-          collections: Math.max(aiResult.categories?.collections || 0, keywordCounts.collections),
-          inquiries: Math.max(aiResult.categories?.inquiries || 0, keywordCounts.inquiries),
-          publicRecords: Math.max(aiResult.categories?.publicRecords || 0, keywordCounts.publicRecords),
-          accountErrors: Math.max(aiResult.categories?.accountErrors || 0, keywordCounts.accountErrors),
-          other: Math.max(aiResult.categories?.other || 0, keywordCounts.other),
-        };
-      }
-      
+      console.log(`[Preview] Using AI result: ${aiResult.totalViolations} violations (keyword count ${keywordCounts.total} was too aggressive)`);
       return normalizePreviewResult(aiResult);
     }
     
