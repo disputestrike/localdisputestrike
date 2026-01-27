@@ -48,7 +48,9 @@ export interface PreviewAnalysisResult {
   accountPreviews?: AccountPreviewItem[];
 }
 
-const PREVIEW_SYSTEM_PROMPT = `You are a credit report analyzer. Your job is to count violations, categorize them, and return up to 10 partial account previews.
+const PREVIEW_SYSTEM_PROMPT = `You are an expert credit report analyzer. Your PRIMARY job is to extract REAL account names and details from the credit report text.
+
+**CRITICAL: You MUST extract the ACTUAL creditor/account names from the report. DO NOT use placeholders like "AUTOMAX" or "CAPITAL ONE AUTO". Extract the REAL names you see in the text.**
 
 Return a JSON object with this exact structure:
 {
@@ -69,18 +71,31 @@ Return a JSON object with this exact structure:
   },
   "estimatedScoreIncrease": "<range like 50-80>",
   "accountPreviews": [
-    { "name": "<creditor>", "last4": "<last 4 digits>", "balance": "<e.g. 2769 or $2,769>", "status": "<e.g. Collection, Charge-off>", "amountType": "Unpaid Balance" }
+    { "name": "<REAL creditor name from report>", "last4": "<last 4 digits of account#>", "balance": "<actual balance>", "status": "<Collection, Charge-off, Late, etc>", "amountType": "Unpaid Balance" }
   ],
-  "creditScore": 587
+  "creditScore": <number if found>
 }
 
-RULES:
-- Count violations: late payments, collections, inquiries, public records, account errors, other FCRA issues.
-- accountPreviews: List up to 10 negative accounts. Use ONLY: creditor name, last 4 digits, balance, status, amountType (Unpaid Balance or Past Due). Do NOT include full account numbers, addresses, or collection agency details.
-- creditScore: If the report includes a credit score, extract it as a number. Otherwise omit the field.
-- amountType: Use "Unpaid Balance" or "Past Due" per account.
-- If you cannot extract meaningful accountPreviews, use an empty array [].
-- Deletion potential and score increase: base on typical improvements from removing negative items.`;
+**EXTRACTION RULES:**
+1. accountPreviews is REQUIRED - extract up to 10 REAL negative accounts you find in the text
+2. Use the EXACT creditor names from the report (e.g., "MIDLAND CREDIT", "PORTFOLIO RECOVERY", "DISCOVER BANK")
+3. Extract actual account numbers (last 4 digits only)
+4. Extract actual balances as numbers
+5. Status should be: Collection, Charge-off, Late Payment, Repossession, Foreclosure, etc.
+6. If you see "TRANSUNION", "EQUIFAX", "EXPERIAN" sections, count items per bureau
+7. creditScore: Extract if visible in the report
+
+**NEGATIVE ITEMS TO LOOK FOR:**
+- Collections (any collection agency)
+- Charge-offs
+- Late payments (30/60/90/120 days)
+- Repossessions
+- Foreclosures
+- Bankruptcies
+- Judgments
+- Tax liens
+
+DO NOT return empty accountPreviews unless the report truly has no negative items.`;
 
 /**
  * Fallback when no AI API key: simple keyword-based violation count.
@@ -126,21 +141,26 @@ export async function runPreviewAnalysis(
     const truncatedReport = reportText.slice(0, 15000);
 
     if (anthropic) {
+      console.log('[Preview] Using Anthropic Claude for analysis...');
+      console.log('[Preview] Report text length:', truncatedReport.length);
+      
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 700,
-        temperature: 0.3,
+        max_tokens: 2000,
+        temperature: 0.2,
         system: PREVIEW_SYSTEM_PROMPT,
         messages: [
           {
             role: 'user',
-            content: `Analyze this credit report and return ONLY aggregate violation counts:\n\n${truncatedReport}`,
+            content: `Extract ALL negative accounts from this credit report. Return the REAL account names, balances, and statuses you find:\n\n${truncatedReport}`,
           },
         ],
       });
 
       const content = response.content?.[0] as { text?: string } | undefined;
       let text = typeof content?.text === 'string' ? content.text : '';
+      console.log('[Preview] Anthropic response length:', text.length);
+      
       if (!text) {
         throw new Error('No response from Anthropic');
       }
@@ -149,11 +169,15 @@ export async function runPreviewAnalysis(
         text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
       }
       const result = safeJsonParse(text, {} as PreviewAnalysisResult);
+      console.log('[Preview] Parsed result - totalViolations:', result.totalViolations, 'accountPreviews:', result.accountPreviews?.length || 0);
       return normalizePreviewResult(result);
     }
 
+    console.log('[Preview] Using OpenAI for analysis...');
+    console.log('[Preview] Report text length:', truncatedReport.length);
+    
     const response = await openai!.chat.completions.create({
-      model: 'gpt-4.1-nano',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -161,13 +185,15 @@ export async function runPreviewAnalysis(
         },
         {
           role: 'user',
-          content: `Analyze this credit report and return ONLY aggregate violation counts:\n\n${truncatedReport}`,
+          content: `Extract ALL negative accounts from this credit report. Return the REAL account names, balances, and statuses you find:\n\n${truncatedReport}`,
         },
       ],
-      temperature: 0.3,
-      max_tokens: 500,
+      temperature: 0.2,
+      max_tokens: 2000,
       response_format: { type: 'json_object' },
     });
+    
+    console.log('[Preview] OpenAI response received');
 
     let content = response.choices[0]?.message?.content ?? '';
     if (!content) {
@@ -186,16 +212,21 @@ export async function runPreviewAnalysis(
 
 function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisResult {
   const raw = result.accountPreviews ?? [];
+  console.log('[Preview] Raw accountPreviews from AI:', JSON.stringify(raw, null, 2));
+  
+  // More lenient filter - only require name OR last4
   const accountPreviews: AccountPreviewItem[] = raw
-    .filter((a): a is AccountPreviewItem => Boolean(a?.name && a?.last4))
+    .filter((a): a is AccountPreviewItem => Boolean(a?.name || a?.last4 || a?.balance))
     .slice(0, 10)
     .map((a) => ({
-      name: String(a.name).slice(0, 80),
-      last4: String(a.last4).replace(/\D/g, '').slice(-4),
+      name: String(a.name || 'Unknown Account').slice(0, 80),
+      last4: String(a.last4 || '****').replace(/\D/g, '').slice(-4) || '****',
       balance: String(a.balance ?? '0').slice(0, 24),
-      status: String(a.status ?? 'Unknown').slice(0, 40),
-      amountType: a.amountType ? String(a.amountType).slice(0, 24) : undefined,
+      status: String(a.status ?? 'Negative').slice(0, 40),
+      amountType: a.amountType ? String(a.amountType).slice(0, 24) : 'Balance',
     }));
+  
+  console.log('[Preview] Normalized accountPreviews:', accountPreviews.length);
   const creditScore = result.creditScore != null && Number.isFinite(result.creditScore)
     ? Math.max(300, Math.min(850, Math.round(result.creditScore)))
     : undefined;

@@ -65,7 +65,11 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
   creditScore?: number;
 } {
   const t = Math.max(1, p.totalViolations);
-  return {
+  
+  console.log('[toLightAnalysisResult] Input accountPreviews:', p.accountPreviews?.length || 0);
+  console.log('[toLightAnalysisResult] Input totalViolations:', p.totalViolations);
+  
+  const result = {
     totalViolations: p.totalViolations,
     severityBreakdown: {
       critical: Math.floor(t * 0.1),
@@ -83,6 +87,10 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
     accountPreviews: p.accountPreviews?.length ? p.accountPreviews : undefined,
     creditScore: p.creditScore,
   };
+  
+  console.log('[toLightAnalysisResult] Output accountPreviews:', result.accountPreviews?.length || 0);
+  
+  return result;
 }
 
 /**
