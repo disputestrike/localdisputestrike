@@ -2895,13 +2895,61 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           }
           
           console.log('[Checkout] Invoice ID:', invoice.id);
+          console.log('[Checkout] Invoice status:', invoice.status);
+          console.log('[Checkout] Invoice collection_method:', invoice.collection_method);
           console.log('[Checkout] Payment intent type:', typeof invoice.payment_intent);
           console.log('[Checkout] Payment intent:', invoice.payment_intent);
           
-          const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+          // If invoice is draft, finalize it first
+          if (invoice.status === 'draft') {
+            console.log('[Checkout] Invoice is draft, finalizing...');
+            try {
+              invoice = await stripe.invoices.finalizeInvoice(invoice.id, {
+                expand: ['payment_intent'],
+              });
+              console.log('[Checkout] Invoice finalized:', invoice.id, 'status:', invoice.status);
+            } catch (finalizeError: any) {
+              console.error('[Checkout] Invoice finalization error:', finalizeError.message);
+              throw new Error(`Failed to finalize invoice: ${finalizeError.message}`);
+            }
+          }
+          
+          // Get payment intent from invoice
+          let paymentIntent: Stripe.PaymentIntent | string | null = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+          
+          // If still no payment intent, try to create one
+          if (!paymentIntent) {
+            console.log('[Checkout] No payment intent in invoice, creating one...');
+            // Update invoice to create payment intent
+            try {
+              invoice = await stripe.invoices.pay(invoice.id, {
+                expand: ['payment_intent'],
+              });
+              paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+            } catch (payError: any) {
+              console.error('[Checkout] Invoice pay error:', payError.message);
+              // If pay fails, try to create payment intent manually
+              console.log('[Checkout] Attempting to create payment intent manually...');
+              const amount = invoice.amount_due || invoice.total || 0;
+              const newPaymentIntent = await stripe.paymentIntents.create({
+                amount,
+                currency: invoice.currency || 'usd',
+                customer: customer.id,
+                setup_future_usage: 'off_session',
+                metadata: {
+                  subscription_id: subscription.id,
+                  invoice_id: invoice.id,
+                  user_id: ctx.user.id.toString(),
+                  tier: input.tier,
+                },
+              });
+              paymentIntent = newPaymentIntent;
+              console.log('[Checkout] Created payment intent manually:', newPaymentIntent.id);
+            }
+          }
           
           if (!paymentIntent) {
-            console.error('[Checkout] No payment intent in invoice');
+            console.error('[Checkout] No payment intent after all attempts');
             throw new Error('Failed to create subscription payment intent - no payment intent found');
           }
           
