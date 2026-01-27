@@ -56,6 +56,34 @@ export default function Dashboard() {
   
   const completeIdentityBridgeMutation = trpc.userProfile.completeIdentityBridge.useMutation();
   const generateLettersMutation = trpc.disputeLetters.generate.useMutation();
+  const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
+  
+  // Save preview analysis if it exists in sessionStorage but not in database
+  useEffect(() => {
+    const savePreviewIfNeeded = async () => {
+      // Only save if user has no credit reports yet
+      if (creditReports && creditReports.length === 0) {
+        const previewData = sessionStorage.getItem('previewAnalysis');
+        if (previewData) {
+          try {
+            const analysis = JSON.parse(previewData);
+            console.log('[Dashboard] Found preview analysis in sessionStorage, saving to database...');
+            await savePreviewAnalysisMutation.mutateAsync({ analysis });
+            console.log('[Dashboard] Preview analysis saved successfully');
+            // Clear session storage and refetch
+            sessionStorage.removeItem('previewAnalysis');
+            refetchReports();
+          } catch (err) {
+            console.error('[Dashboard] Failed to save preview analysis:', err);
+          }
+        }
+      }
+    };
+    
+    if (creditReports !== undefined) {
+      savePreviewIfNeeded();
+    }
+  }, [creditReports, savePreviewAnalysisMutation, refetchReports]);
 
   // Scoreboard Row Logic (Blueprint §2.1)
   const getScore = (bureau: string) => {
