@@ -1041,6 +1041,149 @@ Be thorough and list every negative item found.`;
 
   creditReports: router({
     /**
+     * Save preview analysis to database (called after successful payment)
+     */
+    savePreviewAnalysis: protectedProcedure
+      .input(z.object({
+        analysis: z.object({
+          totalViolations: z.number(),
+          severityBreakdown: z.object({
+            critical: z.number(),
+            high: z.number(),
+            medium: z.number(),
+            low: z.number(),
+          }),
+          categoryBreakdown: z.object({
+            collections: z.number(),
+            latePayments: z.number(),
+            chargeOffs: z.number(),
+            judgments: z.number(),
+            other: z.number(),
+          }),
+          accountPreviews: z.array(z.object({
+            name: z.string(),
+            last4: z.string(),
+            balance: z.string(),
+            status: z.string(),
+            amountType: z.string().optional(),
+          })).optional(),
+          creditScore: z.number().optional(),
+        }),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const { analysis } = input;
+        
+        console.log('[SavePreview] Saving preview analysis for user:', userId, 'violations:', analysis.totalViolations);
+        
+        // Create placeholder credit reports for each bureau with the analysis data
+        const bureaus: Array<'transunion' | 'equifax' | 'experian'> = ['transunion', 'equifax', 'experian'];
+        const reportIds: number[] = [];
+        
+        for (const bureau of bureaus) {
+          // Check if report already exists
+          const existing = await db.getCreditReportsByUserId(userId);
+          const existingReport = existing.find(r => r.bureau === bureau);
+          
+          if (existingReport) {
+            reportIds.push(existingReport.id);
+            // Update with parsed data if not already set
+            if (!existingReport.parsedData) {
+              await db.updateCreditReportParsedData(
+                existingReport.id,
+                JSON.stringify({
+                  creditScore: analysis.creditScore || null,
+                  totalViolations: analysis.totalViolations,
+                  severityBreakdown: analysis.severityBreakdown,
+                  categoryBreakdown: analysis.categoryBreakdown,
+                }),
+                analysis.creditScore || null,
+                'FICO'
+              );
+            }
+          } else {
+            // Create new placeholder report
+            const report = await db.createCreditReport({
+              userId,
+              bureau,
+              fileUrl: 'preview-analysis', // Placeholder
+              fileKey: 'preview-analysis',
+              fileName: `Preview Analysis - ${bureau}`,
+              isParsed: true,
+            });
+            
+            // Save parsed data
+            await db.updateCreditReportParsedData(
+              report.id,
+              JSON.stringify({
+                creditScore: analysis.creditScore || null,
+                totalViolations: analysis.totalViolations,
+                severityBreakdown: analysis.severityBreakdown,
+                categoryBreakdown: analysis.categoryBreakdown,
+              }),
+              analysis.creditScore || null,
+              'FICO'
+            );
+            
+            reportIds.push(report.id);
+          }
+        }
+        
+        // Save account previews as negative accounts
+        if (analysis.accountPreviews && analysis.accountPreviews.length > 0) {
+          console.log('[SavePreview] Saving', analysis.accountPreviews.length, 'account previews');
+          
+          for (const preview of analysis.accountPreviews) {
+            // Try to determine account type from status/name
+            let accountType = 'Collection';
+            if (preview.status?.toLowerCase().includes('charge')) accountType = 'Charge-off';
+            if (preview.status?.toLowerCase().includes('late')) accountType = 'Late Payment';
+            if (preview.status?.toLowerCase().includes('judgment')) accountType = 'Judgment';
+            
+            // Extract balance number
+            const balanceMatch = preview.balance?.replace(/[^0-9.]/g, '');
+            const balance = balanceMatch ? parseFloat(balanceMatch) : 0;
+            
+            // Save to each bureau (since preview doesn't specify bureau)
+            for (const bureau of bureaus) {
+              const reportId = reportIds[bureaus.indexOf(bureau)];
+              
+              await db.createNegativeAccountIfNotExists({
+                userId,
+                creditReportId: reportId,
+                accountName: preview.name,
+                accountNumber: preview.last4 ? `****${preview.last4}` : null,
+                balance: balance.toString(),
+                status: preview.status || 'Unknown',
+                accountType,
+                bureau,
+                rawData: JSON.stringify(preview),
+                negativeReason: preview.amountType || 'Negative item',
+              });
+            }
+          }
+        }
+        
+        // Save credit score to history if available
+        if (analysis.creditScore) {
+          for (const bureau of bureaus) {
+            const reportId = reportIds[bureaus.indexOf(bureau)];
+            await db.recordCreditScore({
+              userId,
+              bureau,
+              score: analysis.creditScore,
+              scoreModel: 'FICO',
+              creditReportId: reportId,
+              event: 'preview_analysis',
+            });
+          }
+        }
+        
+        console.log('[SavePreview] Preview analysis saved successfully');
+        return { success: true, reportIds };
+      }),
+    
+    /**
      * Perform a light analysis on a credit report for the FREE preview flow
      */
     lightAnalysis: protectedProcedure

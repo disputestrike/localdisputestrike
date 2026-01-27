@@ -218,7 +218,26 @@ export default function Checkout() {
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
 
-  const handleSuccess = () => {
+  // Save preview analysis after payment
+  const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
+
+  const handleSuccess = async () => {
+    // Try to save preview analysis from sessionStorage
+    try {
+      const previewData = sessionStorage.getItem('previewAnalysis');
+      if (previewData) {
+        const analysis = JSON.parse(previewData);
+        console.log('[Checkout] Saving preview analysis to database...');
+        await savePreviewAnalysisMutation.mutateAsync({ analysis });
+        console.log('[Checkout] Preview analysis saved successfully');
+        // Clear session storage after saving
+        sessionStorage.removeItem('previewAnalysis');
+      }
+    } catch (err) {
+      console.error('[Checkout] Failed to save preview analysis:', err);
+      // Continue to dashboard even if save fails
+    }
+    
     setLocation('/dashboard?payment=success');
   };
 
