@@ -54,7 +54,7 @@ export default function Dashboard() {
   const { data: stats } = trpc.dashboardStats.get.useQuery();
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
   
-  const completeIdentityBridgeMutation = trpc.userProfile.completeIdentityBridge.useMutation();
+  const completeIdentityBridgeMutation = trpc.profile.completeIdentityBridge.useMutation();
   const generateLettersMutation = trpc.disputeLetters.generate.useMutation();
   const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
   

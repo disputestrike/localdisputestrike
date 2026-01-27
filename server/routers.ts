@@ -3536,6 +3536,71 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         return profile;
       }),
 
+    // Complete Identity Bridge (collects SSN, DOB, address for letter generation)
+    completeIdentityBridge: protectedProcedure
+      .input(z.object({
+        fullName: z.string(),
+        dateOfBirth: z.string(), // YYYY-MM-DD or MM/DD/YYYY format
+        ssnLast4: z.string().length(4),
+        phone: z.string().optional(),
+        currentAddress: z.string(),
+        currentCity: z.string(),
+        currentState: z.string(),
+        currentZip: z.string(),
+        previousAddress: z.string().optional(),
+        previousCity: z.string().optional(),
+        previousState: z.string().optional(),
+        previousZip: z.string().optional(),
+        signature: z.boolean().optional(),
+        authorize: z.boolean().optional(),
+        noGuarantee: z.boolean().optional(),
+        terms: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Convert date format if needed (MM/DD/YYYY to YYYY-MM-DD)
+        let dateOfBirth = input.dateOfBirth;
+        if (dateOfBirth.includes('/')) {
+          const [month, day, year] = dateOfBirth.split('/');
+          dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+        }
+        
+        const profile = await db.upsertUserProfile(ctx.user.id, {
+          fullName: input.fullName,
+          dateOfBirth,
+          ssnLast4: input.ssnLast4,
+          phone: input.phone,
+          currentAddress: input.currentAddress,
+          currentCity: input.currentCity,
+          currentState: input.currentState,
+          currentZip: input.currentZip,
+          previousAddress: input.previousAddress,
+          previousCity: input.previousCity,
+          previousState: input.previousState,
+          previousZip: input.previousZip,
+        });
+        
+        // Mark profile as complete
+        const { getDb } = await import('./db');
+        const dbInstance = await getDb();
+        if (dbInstance) {
+          const { users } = await import('../drizzle/schema');
+          const { eq } = await import('drizzle-orm');
+          await dbInstance
+            .update(users)
+            .set({ isComplete: true, completedAt: new Date() })
+            .where(eq(users.id, ctx.user.id));
+        }
+        
+        // Log activity
+        await db.logActivity({
+          userId: ctx.user.id,
+          activityType: 'identity_bridge_completed',
+          description: 'Completed Identity Bridge - profile information collected',
+        });
+        
+        return profile;
+      }),
+
     // Get formatted address for letters
     getFormattedAddress: protectedProcedure.query(async ({ ctx }) => {
       const profile = await db.getUserProfile(ctx.user.id);
