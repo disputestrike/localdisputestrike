@@ -17,6 +17,12 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), null);
   const analysis = propAnalysis || sessionAnalysis;
 
+  // DEBUG: Log what we received
+  console.log('[PreviewResults] propAnalysis:', propAnalysis);
+  console.log('[PreviewResults] sessionAnalysis:', sessionAnalysis);
+  console.log('[PreviewResults] final analysis:', analysis);
+  console.log('[PreviewResults] accountPreviews:', analysis?.accountPreviews);
+
   // If no real analysis data, show error state
   if (!analysis || !analysis.totalViolations) {
     return (

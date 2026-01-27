@@ -126,7 +126,12 @@ router.post(
   async (req: Request, res: Response) => {
     try {
       const files = req.files as { [k: string]: Express.Multer.File[] } | undefined;
+      
+      console.log('[Preview] === INDIVIDUAL FILE UPLOAD ===');
+      console.log('[Preview] Files received:', Object.keys(files || {}));
+      
       if (!files || !Object.keys(files).length) {
+        console.log('[Preview] ERROR: No files in request');
         return res.status(400).json({ error: 'No files uploaded' });
       }
 
@@ -136,48 +141,71 @@ router.post(
       for (const key of ['transunion', 'equifax', 'experian']) {
         const arr = files[key];
         const file = arr?.[0];
-        if (!file?.buffer) continue;
+        if (!file?.buffer) {
+          console.log(`[Preview] No file for ${key}`);
+          continue;
+        }
+        
+        console.log(`[Preview] Processing ${key}: ${file.originalname}, size: ${file.buffer.length} bytes, mime: ${file.mimetype}`);
+        
         const name = (file.originalname || '').toLowerCase();
         const isHtml =
           file.mimetype?.includes('text/html') || name.endsWith('.html') || name.endsWith('.htm');
         if (!isHtml) fallbackCandidates.push({ key, file });
         try {
           if (isHtml) {
-            combinedText += `\n\n--- ${key} (html) ---\n\n` + file.buffer.toString('utf8');
+            const htmlText = file.buffer.toString('utf8');
+            console.log(`[Preview] ${key} HTML text length: ${htmlText.length}`);
+            combinedText += `\n\n--- ${key.toUpperCase()} BUREAU ---\n\n` + htmlText;
           } else {
             const text = await extractTextFromPDFBuffer(file.buffer);
-            if (text) combinedText += `\n\n--- ${key} ---\n\n` + text;
+            console.log(`[Preview] ${key} PDF text extracted: ${text?.length || 0} chars`);
+            if (text && text.length > 0) {
+              combinedText += `\n\n--- ${key.toUpperCase()} BUREAU ---\n\n` + text;
+            } else {
+              console.log(`[Preview] WARNING: ${key} PDF returned no text (may be image-based)`);
+            }
           }
         } catch (e) {
           console.warn(`[Preview] parse ${key} failed:`, e);
         }
       }
 
-      const trimmedText = combinedText.trim();
+      let trimmedText = combinedText.trim();
+      console.log(`[Preview] Total combined text length: ${trimmedText.length} chars`);
 
-      // Vision path disabled: forge.manus.im unreachable. Image-only PDFs → 422.
-      if (!trimmedText && fallbackCandidates.length) {
-        return res.status(422).json({
-          error: 'Image-only PDFs temporarily unsupported. Use PDFs with selectable text.',
-          message: 'We could not extract any text from your PDFs.',
-          suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
-        });
+      // If text extraction failed but we have PDF files, try OCR/Vision extraction
+      if (trimmedText.length < 100 && fallbackCandidates.length > 0) {
+        console.log('[Preview] Text extraction insufficient, trying OCR for image-based PDFs...');
+        
+        // Dynamic import to avoid circular dependencies
+        const { extractTextWithOCR } = await import('./_core/services/pdfParsingService');
+        
+        for (const { key, file } of fallbackCandidates) {
+          try {
+            console.log(`[Preview] OCR extraction for ${key}...`);
+            const ocrText = await extractTextWithOCR(file.buffer);
+            if (ocrText && ocrText.length > 100) {
+              console.log(`[Preview] OCR ${key} succeeded: ${ocrText.length} chars`);
+              trimmedText += `\n\n--- ${key.toUpperCase()} BUREAU (OCR) ---\n\n` + ocrText;
+            } else {
+              console.log(`[Preview] OCR ${key} returned insufficient text`);
+            }
+          } catch (e) {
+            console.warn(`[Preview] OCR ${key} failed:`, e);
+          }
+        }
+        
+        trimmedText = trimmedText.trim();
+        console.log(`[Preview] After OCR, total text length: ${trimmedText.length} chars`);
       }
 
-      if (!trimmedText) {
+      if (!trimmedText || trimmedText.length < 100) {
+        console.log('[Preview] ERROR: Could not extract text from any PDF');
         return res.status(422).json({
           error: 'Could not read text from your PDFs.',
-          message: 'Use PDFs with selectable text.',
-          suggestion: 'Try a different file or use AnnualCreditReport.com.',
-        });
-      }
-
-      // Validate PDF quality: too little text → likely empty or corrupt
-      if (trimmedText.length < 100) {
-        return res.status(422).json({
-          error: 'PDF appears empty or corrupt',
-          message: 'This PDF may be corrupted, image-only, or not a credit report.',
-          suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
+          message: 'We tried both text extraction and OCR but could not read your files.',
+          suggestion: 'Try uploading a different PDF format or use AnnualCreditReport.com.',
         });
       }
 
