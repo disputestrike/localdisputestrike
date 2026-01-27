@@ -48,20 +48,20 @@ export interface PreviewAnalysisResult {
   accountPreviews?: AccountPreviewItem[];
 }
 
-const PREVIEW_SYSTEM_PROMPT = `You are an expert credit report analyzer. Your PRIMARY job is to extract REAL account names and details from the credit report text.
+const PREVIEW_SYSTEM_PROMPT = `You are an AGGRESSIVE credit report violation detector. Your job is to find EVERY SINGLE negative item.
 
-**CRITICAL: You MUST extract the ACTUAL creditor/account names from the report. DO NOT use placeholders like "AUTOMAX" or "CAPITAL ONE AUTO". Extract the REAL names you see in the text.**
+**CRITICAL: Count EVERY negative item across ALL bureaus. If an account appears on 3 bureaus, count it 3 times.**
 
 Return a JSON object with this exact structure:
 {
-  "totalViolations": <number>,
+  "totalViolations": <number - COUNT EVERY NEGATIVE ITEM>,
   "deletionPotential": <number 0-100>,
   "categories": {
-    "latePayments": <number>,
-    "collections": <number>,
-    "inquiries": <number>,
+    "latePayments": <number - count EVERY late payment marker>,
+    "collections": <number - count EVERY collection>,
+    "inquiries": <number - count EVERY hard inquiry>,
     "publicRecords": <number>,
-    "accountErrors": <number>,
+    "accountErrors": <number - count charge-offs here>,
     "other": <number>
   },
   "bureauBreakdown": {
@@ -69,33 +69,35 @@ Return a JSON object with this exact structure:
     "equifax": <number>,
     "transunion": <number>
   },
-  "estimatedScoreIncrease": "<range like 50-80>",
+  "estimatedScoreIncrease": "<range like 50-150>",
   "accountPreviews": [
-    { "name": "<REAL creditor name from report>", "last4": "<last 4 digits of account#>", "balance": "<actual balance>", "status": "<Collection, Charge-off, Late, etc>", "amountType": "Unpaid Balance" }
+    { "name": "<EXACT creditor name>", "last4": "<last 4 digits>", "balance": "<balance>", "status": "<status>", "amountType": "Unpaid Balance" }
   ],
   "creditScore": <number if found>
 }
 
-**EXTRACTION RULES:**
-1. accountPreviews is REQUIRED - extract up to 10 REAL negative accounts you find in the text
-2. Use the EXACT creditor names from the report (e.g., "MIDLAND CREDIT", "PORTFOLIO RECOVERY", "DISCOVER BANK")
-3. Extract actual account numbers (last 4 digits only)
-4. Extract actual balances as numbers
-5. Status should be: Collection, Charge-off, Late Payment, Repossession, Foreclosure, etc.
-6. If you see "TRANSUNION", "EQUIFAX", "EXPERIAN" sections, count items per bureau
-7. creditScore: Extract if visible in the report
+**COUNTING RULES - BE AGGRESSIVE:**
+1. totalViolations = SUM of ALL negative items across ALL bureaus
+2. If same account is negative on 3 bureaus = 3 violations
+3. If account has 12 late payment markers = 12 violations
+4. Count EVERY "30 day late", "60 day late", "90 day late" as separate violations
+5. Count EVERY collection account
+6. Count EVERY charge-off
+7. Count EVERY hard inquiry
+8. accountPreviews: Extract up to 20 REAL accounts with EXACT names
 
-**NEGATIVE ITEMS TO LOOK FOR:**
-- Collections (any collection agency)
-- Charge-offs
-- Late payments (30/60/90/120 days)
-- Repossessions
-- Foreclosures
-- Bankruptcies
-- Judgments
-- Tax liens
+**WHAT COUNTS AS A VIOLATION:**
+- Each late payment marker (30/60/90/120 days) = 1 violation
+- Each collection account = 1 violation per bureau
+- Each charge-off = 1 violation per bureau  
+- Each hard inquiry = 1 violation
+- Each public record = 1 violation per bureau
+- Each repossession = 1 violation per bureau
+- Payment history showing "1" "2" "3" etc = count each as late payment
 
-DO NOT return empty accountPreviews unless the report truly has no negative items.`;
+**EXAMPLE:** If you see an account with payment history "111111222233" that's 6 30-day lates, 4 60-day lates, 2 90-day lates = 12 violations just from that one account.
+
+BE AGGRESSIVE - FIND EVERYTHING!`;
 
 /**
  * Fallback when no AI API key: simple keyword-based violation count.
