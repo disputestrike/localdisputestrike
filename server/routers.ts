@@ -2803,7 +2803,10 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           throw new Error(`Stripe Price ID not configured for tier: ${input.tier}`);
         }
         
-        const origin = ctx.req?.headers?.origin || 'http://localhost:3001';
+        // Get origin from request headers
+        const req = ctx.req as any;
+        const origin = req?.headers?.origin || req?.headers?.referer?.split('/').slice(0, 3).join('/') || 'http://localhost:3001';
+        console.log('[Checkout] Creating Stripe session for tier:', input.tier, 'origin:', origin);
         
         // Use simple checkout session (the working approach from subscriptionService.ts)
         const session = await stripe.checkout.sessions.create({
@@ -2829,8 +2832,12 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         });
         
         // Return checkout URL instead of clientSecret (redirect to Stripe)
+        console.log('[Checkout] Stripe session created:', session.id, 'URL:', session.url);
+        if (!session.url) {
+          throw new Error('Stripe checkout session created but no URL returned');
+        }
         return {
-          checkoutUrl: session.url || '',
+          checkoutUrl: session.url,
           sessionId: session.id,
         };
       }),
