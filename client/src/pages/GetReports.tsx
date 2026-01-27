@@ -191,9 +191,7 @@ export default function GetReports() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center shadow-md">
-              <Zap className="w-6 h-6 text-white fill-white" />
-            </div>
+            <img loading="lazy" src="/logo.webp" alt="DisputeStrike" className="h-10 w-10" />
             <span className="text-2xl font-black text-gray-900">DisputeStrike</span>
           </div>
           <h1 className="text-3xl font-black text-gray-900 mb-2">Get Your Credit Reports</h1>

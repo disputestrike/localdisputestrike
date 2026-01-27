@@ -9,7 +9,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { safeJsonParse } from './utils/json';
 import OpenAI from 'openai';
-import { DISPUTE_METHODS } from './disputeMethodsRegistry';
 
 const anthropic: Anthropic | null = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -104,208 +103,28 @@ Return a JSON object with this exact structure:
 Count REAL items, not word frequency!`;
 
 /**
- * AGGRESSIVE keyword-based violation counting using ALL 90 dispute methods from registry.
- * Counts EVERY instance of EVERY violation keyword from ALL methods.
+ * Minimal fallback when AI is unavailable - returns empty result
+ * We ONLY use AI analysis, no keyword counting
  */
-function countViolationsAggressively(reportText: string): {
-  total: number;
-  latePayments: number;
-  collections: number;
-  inquiries: number;
-  publicRecords: number;
-  accountErrors: number;
-  other: number;
-} {
-  const t = reportText.toLowerCase();
-  
-  // Collect ALL keywords from ALL 90 dispute methods
-  const allKeywords = new Set<string>();
-  for (const method of DISPUTE_METHODS) {
-    const keywords = method.keywords || [];
-    for (const keyword of keywords) {
-      allKeywords.add(keyword.toLowerCase());
-    }
-  }
-  
-  console.log(`[Preview] Using ${DISPUTE_METHODS.length} dispute methods with ${allKeywords.size} total keywords`);
-  
-  // Add base patterns that are always checked
-  const baseLatePatterns = [
-    /\b30\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\b60\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\b90\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\b120\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\b150\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\b180\s*(?:day|days)\s*(?:late|past\s*due|delinquent)\b/gi,
-    /\bpast\s*due\b/gi,
-    /\bdelinquent\b/gi,
-    /\blate\s*payment/gi,
-    /\bpayment\s*history[:\s]*[^\n]*[123456789]/gi,
-  ];
-  
-  const baseCollectionPatterns = [
-    /\bcollection\b/gi,
-    /\bcollections\b/gi,
-    /\bdebt\s*collector/gi,
-    /\bplaced\s*for\s*collection/gi,
-    /\bsold\s*to\s*collection/gi,
-    /\bcollection\s*agency/gi,
-    /\bmedical\s*collection/gi,
-    /\bpro\s*collect/gi,
-    /\bmidland/gi,
-    /\bportfolio\s*recovery/gi,
-    /\bcavalry/gi,
-    /\benhanced\s*recovery/gi,
-  ];
-  
-  const baseInquiryPatterns = [
-    /\bhard\s*inquiry/gi,
-    /\binquiry\b/gi,
-    /\binquiries\b/gi,
-    /\bcredit\s*check/gi,
-    /\bpulled\s*credit/gi,
-  ];
-  
-  const basePublicRecordPatterns = [
-    /\bbankruptcy\b/gi,
-    /\bjudgment\b/gi,
-    /\btax\s*lien/gi,
-    /\bforeclosure\b/gi,
-    /\brepossession\b/gi,
-    /\brepo\b/gi,
-    /\bcivil\s*judgment/gi,
-    /\bchapter\s*7\b/gi,
-    /\bchapter\s*13\b/gi,
-  ];
-  
-  const baseErrorPatterns = [
-    /\bcharge[\s-]*off\b/gi,
-    /\bcharged[\s-]*off\b/gi,
-    /\bchargeoff\b/gi,
-    /\bwritten[\s-]*off\b/gi,
-    /\bbad\s*debt\b/gi,
-    /\bprofit\s*and\s*loss/gi,
-    /\bdisputed\b/gi,
-    /\binaccurate\b/gi,
-    /\bduplicate\b/gi,
-    /\bnot\s*mine\b/gi,
-    /\bfraud\b/gi,
-    /\bidentity\s*theft/gi,
-  ];
-  
-  const baseOtherPatterns = [
-    /\bclosed\s*by\s*creditor/gi,
-    /\bsettled\b/gi,
-    /\bdefault\b/gi,
-    /\bdefaulted\b/gi,
-    /\bnegative\b/gi,
-    /\badverse\b/gi,
-    /\bderogatory\b/gi,
-    /\bunpaid\b/gi,
-    /\bpast\s*due\s*amount/gi,
-    /\bbalance\s*owed/gi,
-  ];
-  
-  // Count using base patterns + all keywords from ALL 90 methods
-  let latePayments = 0;
-  for (const pattern of baseLatePatterns) {
-    latePayments += (t.match(pattern) || []).length;
-  }
-  // Count ALL keywords that match late payment patterns
-  for (const keyword of allKeywords) {
-    if (/late|delinquent|past\s*due|30|60|90|120|150|180|payment/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      latePayments += (t.match(regex) || []).length;
-    }
-  }
-  
-  let collections = 0;
-  for (const pattern of baseCollectionPatterns) {
-    collections += (t.match(pattern) || []).length;
-  }
-  for (const keyword of allKeywords) {
-    if (/collection|collector|debt\s*collector|midland|portfolio|cavalry|enhanced/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      collections += (t.match(regex) || []).length;
-    }
-  }
-  
-  let inquiries = 0;
-  for (const pattern of baseInquiryPatterns) {
-    inquiries += (t.match(pattern) || []).length;
-  }
-  for (const keyword of allKeywords) {
-    if (/inquiry|inquiries|hard\s*pull|credit\s*check/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      inquiries += (t.match(regex) || []).length;
-    }
-  }
-  
-  let publicRecords = 0;
-  for (const pattern of basePublicRecordPatterns) {
-    publicRecords += (t.match(pattern) || []).length;
-  }
-  for (const keyword of allKeywords) {
-    if (/bankruptcy|judgment|lien|foreclosure|repossession|chapter|repo/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      publicRecords += (t.match(regex) || []).length;
-    }
-  }
-  
-  let accountErrors = 0;
-  for (const pattern of baseErrorPatterns) {
-    accountErrors += (t.match(pattern) || []).length;
-  }
-  for (const keyword of allKeywords) {
-    if (/charge[\s-]*off|charged[\s-]*off|written[\s-]*off|bad\s*debt|disputed|inaccurate|duplicate|fraud|identity\s*theft/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      accountErrors += (t.match(regex) || []).length;
-    }
-  }
-  
-  let other = 0;
-  for (const pattern of baseOtherPatterns) {
-    other += (t.match(pattern) || []).length;
-  }
-  // Count remaining keywords that don't match above categories
-  for (const keyword of allKeywords) {
-    if (!/late|delinquent|past\s*due|30|60|90|120|150|180|payment|collection|collector|inquiry|bankruptcy|judgment|lien|foreclosure|repossession|charge[\s-]*off|charged[\s-]*off|written[\s-]*off|bad\s*debt|disputed|inaccurate|duplicate|fraud|identity\s*theft/i.test(keyword)) {
-      const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'gi');
-      other += (t.match(regex) || []).length;
-    }
-  }
-  
-  const total = latePayments + collections + inquiries + publicRecords + accountErrors + other;
-  
-  console.log(`[Preview] Keyword count (using ALL 90 methods): late=${latePayments}, collections=${collections}, inquiries=${inquiries}, publicRecords=${publicRecords}, errors=${accountErrors}, other=${other}, TOTAL=${total}`);
-  
-  return { total, latePayments, collections, inquiries, publicRecords, accountErrors, other };
-}
-
-/**
- * Fallback when no AI API key: aggressive keyword-based violation count.
- */
-function keywordPreviewFallback(reportText: string): PreviewAnalysisResult {
-  const counts = countViolationsAggressively(reportText);
-  const totalViolations = counts.total;
-  const deletionPotential = totalViolations > 0 ? Math.min(100, 40 + Math.floor(totalViolations / 2)) : 30;
+function minimalFallback(): PreviewAnalysisResult {
+  console.log('[Preview] AI unavailable - returning minimal result');
   return {
-    totalViolations,
-    deletionPotential,
+    totalViolations: 0,
+    deletionPotential: 0,
     categories: {
-      latePayments: counts.latePayments,
-      collections: counts.collections,
-      inquiries: counts.inquiries,
-      publicRecords: counts.publicRecords,
-      accountErrors: counts.accountErrors,
-      other: counts.other,
+      latePayments: 0,
+      collections: 0,
+      inquiries: 0,
+      publicRecords: 0,
+      accountErrors: 0,
+      other: 0,
     },
     bureauBreakdown: {
-      experian: Math.floor(totalViolations / 3),
-      equifax: Math.floor(totalViolations / 3),
-      transunion: totalViolations - 2 * Math.floor(totalViolations / 3),
+      experian: 0,
+      equifax: 0,
+      transunion: 0,
     },
-    estimatedScoreIncrease: totalViolations > 20 ? '80-150' : totalViolations > 10 ? '50-100' : '30-60',
+    estimatedScoreIncrease: '0-0',
   };
 }
 
@@ -316,8 +135,9 @@ export async function runPreviewAnalysis(
   console.log(`[Preview] PDF type: ${isTextBasedPDF ? 'TEXT-BASED (using Claude)' : 'IMAGE-BASED (using OpenAI)'}`);
   
   if (!anthropic && !openai) {
-    // Fallback: simple keyword counting (not used for boost, just fallback)
-    return normalizePreviewResult(keywordPreviewFallback(reportText));
+    // NO AI available - return minimal result (we ONLY use AI, no keyword counting)
+    console.error('[Preview] ERROR: No AI API keys available. Analysis requires AI.');
+    return normalizePreviewResult(minimalFallback());
   }
   
   const startTime = Date.now();
