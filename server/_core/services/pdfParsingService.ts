@@ -132,7 +132,7 @@ Just output all the text you can extract, organized by section:
             ],
           },
         ],
-        max_tokens: 32000, // INCREASED from 16000
+        max_tokens: 16000, // Max allowed by GPT-4o
         temperature: 0, // Deterministic for accuracy
       });
 
@@ -161,88 +161,89 @@ Just output all the text you can extract, organized by section:
 }
 
 /**
- * Alternative: Use OpenAI Vision with base64 PDF
- * AGGRESSIVE extraction for image-based PDFs
+ * Alternative: Use Anthropic Claude for PDF extraction
+ * Claude can handle PDFs natively via base64
  */
-async function extractWithOpenAIVision(buffer: Buffer): Promise<string> {
-  if (!process.env.OPENAI_API_KEY) {
-    console.warn('[pdfParsingService] OpenAI API key not configured');
+async function extractWithClaude(buffer: Buffer): Promise<string> {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY;
+  if (!anthropicKey) {
+    console.warn('[pdfParsingService] Anthropic API key not configured');
     return '';
   }
 
   try {
-    console.log('[pdfParsingService] Starting OpenAI Vision extraction (AGGRESSIVE)...');
+    console.log('[pdfParsingService] Starting Claude PDF extraction (AGGRESSIVE)...');
     const startTime = Date.now();
     
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-
     // Convert PDF buffer to base64
     const base64Pdf = buffer.toString('base64');
-    const dataUrl = `data:application/pdf;base64,${base64Pdf}`;
 
-    // GPT-4o with AGGRESSIVE extraction
-    const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: `You are an EXPERT credit report OCR system. Extract EVERY SINGLE piece of text from this PDF.
-
-**CRITICAL: Extract ALL accounts - there may be 30, 50, or 100+ accounts!**
-
-For EACH account extract:
-- Creditor/Account Name (EXACT spelling)
-- Account Number
-- Account Type
-- Date Opened
-- Last Activity Date
-- Credit Limit / High Balance
-- Current Balance
-- Payment Status
-- Payment History (30/60/90/120 day lates)
-- Any remarks
-
-Also extract:
-- Personal info (name, address, SSN, DOB)
-- Credit scores from each bureau
-- ALL collections with amounts
-- ALL charge-offs
-- Public records
-- Inquiries
-
-**OUTPUT ALL TEXT - DO NOT SUMMARIZE!**
-**THERE IS NO LIMIT - EXTRACT EVERYTHING!**`
-        },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: dataUrl,
-                detail: 'high', // High detail for better OCR
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 16000,
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'document',
+                source: {
+                  type: 'base64',
+                  media_type: 'application/pdf',
+                  data: base64Pdf,
+                },
               },
-            },
-            {
-              type: 'text',
-              text: 'OCR this ENTIRE credit report. Extract EVERY account, EVERY balance, EVERY date. Output ALL text you can see. Do not summarize - I need complete raw data for ALL 50+ accounts.',
-            },
-          ],
-        },
-      ],
-      max_tokens: 32000, // INCREASED
-      temperature: 0, // Deterministic
+              {
+                type: 'text',
+                text: `You are an EXPERT credit report OCR system. Extract EVERY SINGLE piece of text from this credit report PDF.
+
+**CRITICAL INSTRUCTIONS:**
+1. Extract EVERY account - there may be 30, 50, or even 100+ accounts
+2. Extract EVERY line of text you can see
+3. Do NOT summarize - output the RAW TEXT
+4. Include ALL numbers, dates, balances, account numbers
+5. Extract EVERY negative item: collections, charge-offs, late payments, repos, foreclosures
+6. Include payment history grids/patterns if visible
+7. Extract ALL creditor names EXACTLY as shown
+
+**OUTPUT FORMAT:**
+Just output all the text you can extract, organized by section:
+- PERSONAL INFO
+- CREDIT SCORES  
+- ACCOUNTS (list EVERY account with ALL details)
+- COLLECTIONS
+- PUBLIC RECORDS
+- INQUIRIES
+
+**THERE IS NO LIMIT - EXTRACT EVERYTHING YOU CAN SEE!**`,
+              },
+            ],
+          },
+        ],
+      }),
     });
 
-    const extractedText = response.choices[0]?.message?.content || '';
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[pdfParsingService] Claude API error:', response.status, errorText);
+      return '';
+    }
+
+    const data = await response.json() as { content?: Array<{ type: string; text?: string }> };
+    const extractedText = data.content?.[0]?.text || '';
     const elapsed = Date.now() - startTime;
-    console.log(`[pdfParsingService] OpenAI Vision extracted ${extractedText.length} chars in ${elapsed}ms`);
+    console.log(`[pdfParsingService] Claude extracted ${extractedText.length} chars in ${elapsed}ms`);
     return extractedText;
 
   } catch (e) {
-    console.error('[pdfParsingService] OpenAI Vision extraction failed:', e);
+    console.error('[pdfParsingService] Claude extraction failed:', e);
     return '';
   }
 }
@@ -274,7 +275,8 @@ function isValidCreditReportText(text: string): boolean {
  * Strategy:
  * 1. Try pdf-parse first (fastest)
  * 2. If little/no text, try pdfjs-dist
- * 3. If still no valid text, use OpenAI (for scanned/image PDFs)
+ * 3. If still no valid text, use Claude (best for image-based PDFs)
+ * 4. Fallback to OpenAI file upload
  */
 export async function extractTextFromPDFBuffer(buffer: Buffer): Promise<string> {
   console.log('[pdfParsingService] Starting PDF text extraction...');
@@ -294,37 +296,42 @@ export async function extractTextFromPDFBuffer(buffer: Buffer): Promise<string> 
   }
   
   // Step 3: Text extraction failed - this is likely an image-based PDF
-  // Use OpenAI to extract text
-  console.log('[pdfParsingService] Text extraction returned no valid content - attempting OpenAI extraction...');
+  // Try Claude first (best for PDFs)
+  console.log('[pdfParsingService] Text extraction returned no valid content - attempting Claude extraction...');
   
-  // Try file upload method first
-  let fromOpenAI = await extractWithOpenAI(buffer);
-  
-  // If file upload fails, try vision method
-  if (!fromOpenAI || fromOpenAI.length < 100) {
-    console.log('[pdfParsingService] File upload method failed, trying Vision method...');
-    fromOpenAI = await extractWithOpenAIVision(buffer);
+  let fromClaude = await extractWithClaude(buffer);
+  if (fromClaude && fromClaude.length > 500) {
+    console.log(`[pdfParsingService] Claude extraction succeeded (${fromClaude.length} chars)`);
+    return fromClaude;
   }
   
-  if (fromOpenAI && fromOpenAI.length > 100) {
+  // Step 4: Fallback to OpenAI file upload
+  console.log('[pdfParsingService] Claude failed, trying OpenAI file upload...');
+  let fromOpenAI = await extractWithOpenAI(buffer);
+  
+  if (fromOpenAI && fromOpenAI.length > 500) {
     console.log(`[pdfParsingService] OpenAI extraction succeeded (${fromOpenAI.length} chars)`);
     return fromOpenAI;
   }
   
   // Return whatever we got (might be empty)
   console.warn('[pdfParsingService] All extraction methods returned minimal content');
-  const best = [fromParse, fromPdfJs, fromOpenAI].sort((a, b) => b.length - a.length)[0];
+  const best = [fromParse, fromPdfJs, fromClaude, fromOpenAI].sort((a, b) => b.length - a.length)[0];
   return best || '';
 }
 
 /**
- * Force OpenAI extraction
+ * Force AI extraction (Claude first, then OpenAI)
  * Use this when you know the PDF is image-based
  */
 export async function extractTextWithOCR(buffer: Buffer): Promise<string> {
-  let result = await extractWithOpenAI(buffer);
-  if (!result || result.length < 100) {
-    result = await extractWithOpenAIVision(buffer);
+  // Try Claude first - best for PDFs
+  let result = await extractWithClaude(buffer);
+  if (result && result.length > 500) {
+    return result;
   }
-  return result;
+  
+  // Fallback to OpenAI
+  result = await extractWithOpenAI(buffer);
+  return result || '';
 }
