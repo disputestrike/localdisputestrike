@@ -255,11 +255,13 @@ function keywordPreviewFallback(reportText: string): PreviewAnalysisResult {
 }
 
 export async function runPreviewAnalysis(
-  reportText: string
+  reportText: string,
+  isTextBasedPDF: boolean = true // true = text-based PDF (use Claude), false = image-based PDF (use OpenAI)
 ): Promise<PreviewAnalysisResult> {
   // ALWAYS run keyword counting first as a baseline
   const keywordCounts = countViolationsAggressively(reportText);
   console.log(`[Preview] Keyword baseline: ${keywordCounts.total} violations found`);
+  console.log(`[Preview] PDF type: ${isTextBasedPDF ? 'TEXT-BASED (using Claude)' : 'IMAGE-BASED (using OpenAI)'}`);
   
   if (!anthropic && !openai) {
     return normalizePreviewResult(keywordPreviewFallback(reportText));
@@ -272,8 +274,21 @@ export async function runPreviewAnalysis(
     const truncatedReport = reportText.slice(0, 30000);
     let aiResult: PreviewAnalysisResult | null = null;
 
-    if (anthropic) {
-      console.log('[Preview] Using Anthropic Claude for analysis...');
+    // ROUTING: Text-based PDFs → Claude, Image-based PDFs → OpenAI
+    const useClaude = isTextBasedPDF && anthropic;
+    const useOpenAI = !isTextBasedPDF && openai;
+    
+    // Fallback: if preferred AI not available, use the other
+    if (useClaude && !anthropic) {
+      console.log('[Preview] Claude not available, falling back to OpenAI for text-based PDF');
+    }
+    if (useOpenAI && !openai) {
+      console.log('[Preview] OpenAI not available, falling back to Claude for image-based PDF');
+    }
+
+    // Try preferred AI first, then fallback
+    if (useClaude || (!useOpenAI && anthropic)) {
+      console.log('[Preview] Using Anthropic Claude for analysis (TEXT-BASED PDF)...');
       console.log('[Preview] Report text length:', truncatedReport.length);
       
       const response = await anthropic.messages.create({
@@ -302,8 +317,8 @@ export async function runPreviewAnalysis(
         aiResult = safeJsonParse(text, {} as PreviewAnalysisResult);
         console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
       }
-    } else {
-      console.log('[Preview] Using OpenAI for analysis...');
+    } else if (useOpenAI || (!useClaude && openai)) {
+      console.log('[Preview] Using OpenAI for analysis (IMAGE-BASED PDF)...');
       console.log('[Preview] Report text length:', truncatedReport.length);
       
       const response = await openai!.chat.completions.create({
@@ -332,6 +347,7 @@ export async function runPreviewAnalysis(
           content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
         }
         aiResult = safeJsonParse(content, {} as PreviewAnalysisResult);
+        console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
       }
     }
     

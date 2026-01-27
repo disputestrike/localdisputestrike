@@ -159,20 +159,34 @@ router.post(
       console.log(`[Preview] Starting PARALLEL extraction for ${filesToProcess.length} files...`);
       const startTime = Date.now();
       
+      // Track if PDFs are text-based (pdf-parse succeeded) or image-based (needed OCR)
+      let isTextBasedPDF = true; // Default to true, will be set to false if OCR is needed
+      
       const extractionPromises = filesToProcess.map(async ({ key, file, isHtml }) => {
         try {
           if (isHtml) {
             const htmlText = file.buffer.toString('utf8');
             console.log(`[Preview] ${key} HTML: ${htmlText.length} chars`);
-            return { key, text: htmlText, success: true };
+            return { key, text: htmlText, success: true, isTextBased: true };
           } else {
+            // Check if pdf-parse can extract text (text-based PDF)
+            const { extractTextFromPDFBuffer } = await import('./_core/services/pdfParsingService');
             const text = await extractTextFromPDFBuffer(file.buffer);
-            console.log(`[Preview] ${key} PDF: ${text?.length || 0} chars`);
-            return { key, text: text || '', success: !!text && text.length > 0 };
+            const textLength = text?.length || 0;
+            console.log(`[Preview] ${key} PDF: ${textLength} chars`);
+            
+            // If we got good text (>1000 chars), it's likely text-based
+            // If we got little text (<1000), it needed OCR (image-based)
+            const isTextBased = textLength > 1000;
+            if (!isTextBased) {
+              isTextBasedPDF = false; // At least one PDF needed OCR
+            }
+            
+            return { key, text: text || '', success: textLength > 0, isTextBased };
           }
         } catch (e) {
           console.warn(`[Preview] ${key} extraction failed:`, e);
-          return { key, text: '', success: false };
+          return { key, text: '', success: false, isTextBased: false };
         }
       });
 
@@ -186,6 +200,10 @@ router.post(
         if (result.text && result.text.length > 0) {
           combinedText += `\n\n--- ${result.key.toUpperCase()} BUREAU ---\n\n` + result.text;
         }
+        // If any PDF needed OCR, mark as image-based
+        if (!result.isTextBased) {
+          isTextBasedPDF = false;
+        }
       }
 
       let trimmedText = combinedText.trim();
@@ -194,6 +212,7 @@ router.post(
       // If text extraction failed but we have PDF files, try OCR/Vision extraction
       if (trimmedText.length < 100 && fallbackCandidates.length > 0) {
         console.log('[Preview] Text extraction insufficient, trying OCR for image-based PDFs...');
+        isTextBasedPDF = false; // Definitely image-based if we need OCR
         
         // Dynamic import to avoid circular dependencies
         const { extractTextWithOCR } = await import('./_core/services/pdfParsingService');
@@ -227,7 +246,7 @@ router.post(
       }
 
       try {
-        const preview = await runPreviewAnalysis(trimmedText);
+        const preview = await runPreviewAnalysis(trimmedText, isTextBasedPDF);
         if (preview.totalViolations === 0) {
           return res.status(422).json({
             error: 'Could not extract violations from this report',
