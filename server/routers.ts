@@ -2823,21 +2823,41 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           customerId = customer.id;
         }
         
+        // Create or get Stripe product first (required for subscriptions)
+        const products = await stripe.products.list({ limit: 100 });
+        let stripeProduct = products.data.find(p => p.name === productName);
+        
+        if (!stripeProduct) {
+          stripeProduct = await stripe.products.create({
+            name: productName,
+            description: `DisputeStrike ${productName}`,
+          });
+        }
+        
+        // Create or get price for this product
+        const prices = await stripe.prices.list({ product: stripeProduct.id, limit: 100 });
+        let price = prices.data.find(p => 
+          p.unit_amount === amount && 
+          p.recurring?.interval === 'month'
+        );
+        
+        if (!price) {
+          price = await stripe.prices.create({
+            product: stripeProduct.id,
+            currency: 'usd',
+            unit_amount: amount,
+            recurring: {
+              interval: 'month',
+            },
+          });
+        }
+        
         // Create a subscription with payment_behavior: default_incomplete
         // This allows us to collect payment via embedded checkout
         const subscription = await stripe.subscriptions.create({
           customer: customerId,
           items: [{
-            price_data: {
-              currency: 'usd',
-              product_data: {
-                name: productName,
-              },
-              unit_amount: amount,
-              recurring: {
-                interval: 'month',
-              },
-            },
+            price: price.id,
           }],
           payment_behavior: 'default_incomplete',
           payment_settings: {
