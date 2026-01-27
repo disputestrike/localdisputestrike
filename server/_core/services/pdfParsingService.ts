@@ -57,6 +57,7 @@ async function extractWithPdfJsDist(buffer: Buffer): Promise<string> {
 /**
  * Extract text from PDF using OpenAI's file upload and GPT-4
  * This handles image-based/scanned PDFs that have no text layer
+ * OPTIMIZED: Uses maximum tokens and aggressive extraction prompts
  */
 async function extractWithOpenAI(buffer: Buffer): Promise<string> {
   if (!process.env.OPENAI_API_KEY) {
@@ -65,7 +66,8 @@ async function extractWithOpenAI(buffer: Buffer): Promise<string> {
   }
 
   try {
-    console.log('[pdfParsingService] Starting OpenAI PDF extraction...');
+    console.log('[pdfParsingService] Starting OpenAI PDF extraction (AGGRESSIVE MODE)...');
+    const startTime = Date.now();
     
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -86,33 +88,33 @@ async function extractWithOpenAI(buffer: Buffer): Promise<string> {
       
       console.log(`[pdfParsingService] File uploaded: ${file.id}`);
 
-      // Use GPT-4 with the file to extract text
+      // Use GPT-4o with AGGRESSIVE extraction prompt
       const response = await openai.chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content: `You are an expert credit report data extractor. Your job is to extract ALL text and data from credit report PDFs with perfect accuracy.
+            content: `You are an EXPERT credit report OCR system. Your ONLY job is to extract EVERY SINGLE piece of text from this credit report PDF.
 
-Extract and format the following information:
-1. Personal Information (name, address, SSN, DOB)
-2. Credit Scores (from each bureau if shown)
-3. ALL Account Information including:
-   - Creditor/Account Name
-   - Account Number (full or partial)
-   - Account Type
-   - Date Opened
-   - Credit Limit / Original Amount
-   - Current Balance
-   - Payment Status
-   - Payment History
-   - Any remarks or notes
-4. Collections and Charge-offs
-5. Public Records
-6. Inquiries
-7. Any negative items or derogatory marks
+**CRITICAL INSTRUCTIONS:**
+1. Extract EVERY account - there may be 30, 50, or even 100+ accounts
+2. Extract EVERY line of text you can see
+3. Do NOT summarize - output the RAW TEXT
+4. Include ALL numbers, dates, balances, account numbers
+5. Extract EVERY negative item: collections, charge-offs, late payments, repos, foreclosures
+6. Include payment history grids/patterns if visible
+7. Extract ALL creditor names EXACTLY as shown
 
-Format the output as structured text that preserves all data. Do NOT summarize - extract EVERYTHING.`
+**OUTPUT FORMAT:**
+Just output all the text you can extract, organized by section:
+- PERSONAL INFO
+- CREDIT SCORES  
+- ACCOUNTS (list EVERY account with ALL details)
+- COLLECTIONS
+- PUBLIC RECORDS
+- INQUIRIES
+
+**THERE IS NO LIMIT - EXTRACT EVERYTHING YOU CAN SEE!**`
           },
           {
             role: 'user',
@@ -125,23 +127,21 @@ Format the output as structured text that preserves all data. Do NOT summarize -
               } as any,
               {
                 type: 'text',
-                text: 'Extract ALL text and data from this credit report PDF. Include every account, every detail, every date, and every balance. Do not summarize - I need the complete raw data.',
+                text: 'OCR this entire credit report. Extract EVERY account, EVERY balance, EVERY date, EVERY creditor name. Output ALL text - do not summarize. I need the complete raw data for ALL accounts.',
               },
             ],
           },
         ],
-        max_tokens: 16000,
+        max_tokens: 32000, // INCREASED from 16000
+        temperature: 0, // Deterministic for accuracy
       });
 
       const extractedText = response.choices[0]?.message?.content || '';
-      console.log(`[pdfParsingService] OpenAI extracted ${extractedText.length} chars`);
+      const elapsed = Date.now() - startTime;
+      console.log(`[pdfParsingService] OpenAI extracted ${extractedText.length} chars in ${elapsed}ms`);
 
-      // Clean up: delete the uploaded file
-      try {
-        await openai.files.del(file.id);
-      } catch (e) {
-        console.warn('[pdfParsingService] Failed to delete temp file from OpenAI:', e);
-      }
+      // Clean up: delete the uploaded file (ignore errors)
+      openai.files.delete(file.id).catch(() => {});
 
       return extractedText;
 
@@ -161,8 +161,8 @@ Format the output as structured text that preserves all data. Do NOT summarize -
 }
 
 /**
- * Alternative: Use OpenAI Vision with base64 PDF pages rendered as images
- * Fallback if file upload doesn't work
+ * Alternative: Use OpenAI Vision with base64 PDF
+ * AGGRESSIVE extraction for image-based PDFs
  */
 async function extractWithOpenAIVision(buffer: Buffer): Promise<string> {
   if (!process.env.OPENAI_API_KEY) {
@@ -171,7 +171,8 @@ async function extractWithOpenAIVision(buffer: Buffer): Promise<string> {
   }
 
   try {
-    console.log('[pdfParsingService] Starting OpenAI Vision extraction...');
+    console.log('[pdfParsingService] Starting OpenAI Vision extraction (AGGRESSIVE)...');
+    const startTime = Date.now();
     
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
@@ -181,20 +182,38 @@ async function extractWithOpenAIVision(buffer: Buffer): Promise<string> {
     const base64Pdf = buffer.toString('base64');
     const dataUrl = `data:application/pdf;base64,${base64Pdf}`;
 
-    // GPT-4o can process PDFs directly via base64
+    // GPT-4o with AGGRESSIVE extraction
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are an expert credit report data extractor. Extract ALL text and data from this credit report with perfect accuracy. Include:
-- Personal info (name, address, SSN)
-- Credit scores
-- ALL accounts with full details (creditor, account number, type, dates, balances, status, payment history)
-- Collections and charge-offs
+          content: `You are an EXPERT credit report OCR system. Extract EVERY SINGLE piece of text from this PDF.
+
+**CRITICAL: Extract ALL accounts - there may be 30, 50, or 100+ accounts!**
+
+For EACH account extract:
+- Creditor/Account Name (EXACT spelling)
+- Account Number
+- Account Type
+- Date Opened
+- Last Activity Date
+- Credit Limit / High Balance
+- Current Balance
+- Payment Status
+- Payment History (30/60/90/120 day lates)
+- Any remarks
+
+Also extract:
+- Personal info (name, address, SSN, DOB)
+- Credit scores from each bureau
+- ALL collections with amounts
+- ALL charge-offs
 - Public records
 - Inquiries
-Do NOT summarize - extract the complete raw data.`
+
+**OUTPUT ALL TEXT - DO NOT SUMMARIZE!**
+**THERE IS NO LIMIT - EXTRACT EVERYTHING!**`
         },
         {
           role: 'user',
@@ -203,20 +222,23 @@ Do NOT summarize - extract the complete raw data.`
               type: 'image_url',
               image_url: {
                 url: dataUrl,
+                detail: 'high', // High detail for better OCR
               },
             },
             {
               type: 'text',
-              text: 'Extract ALL text and data from this credit report. Include every account, every detail, every date, and every balance.',
+              text: 'OCR this ENTIRE credit report. Extract EVERY account, EVERY balance, EVERY date. Output ALL text you can see. Do not summarize - I need complete raw data for ALL 50+ accounts.',
             },
           ],
         },
       ],
-      max_tokens: 16000,
+      max_tokens: 32000, // INCREASED
+      temperature: 0, // Deterministic
     });
 
     const extractedText = response.choices[0]?.message?.content || '';
-    console.log(`[pdfParsingService] OpenAI Vision extracted ${extractedText.length} chars`);
+    const elapsed = Date.now() - startTime;
+    console.log(`[pdfParsingService] OpenAI Vision extracted ${extractedText.length} chars in ${elapsed}ms`);
     return extractedText;
 
   } catch (e) {
