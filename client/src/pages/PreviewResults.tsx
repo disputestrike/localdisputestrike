@@ -13,25 +13,73 @@ interface PreviewResultsProps {
 export default function PreviewResults({ analysis: propAnalysis }: PreviewResultsProps) {
   const [, setLocation] = useLocation();
   
-  // Get analysis from props or session storage
-  const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), {});
+  // Get analysis from props or session storage - NO FALLBACK PLACEHOLDERS
+  const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), null);
   const analysis = propAnalysis || sessionAnalysis;
 
-  const totalViolations = analysis.totalViolations || 23;
-  const severity = analysis.severityBreakdown || { critical: 2, high: 4, medium: 8, low: 9 };
-  const categories = analysis.categories || {
-    latePayments: 8,
-    collections: 5,
-    chargeOffs: 1,
-    judgments: 1,
-    other: 8
+  // If no real analysis data, show error state
+  if (!analysis || !analysis.totalViolations) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full border-2 border-red-300">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              No Analysis Data Found
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              We couldn't find your credit report analysis. This could mean:
+            </p>
+            <ul className="list-disc list-inside text-sm text-gray-500 space-y-1 mb-4">
+              <li>Your session expired</li>
+              <li>The report hasn't been uploaded yet</li>
+              <li>There was an error during parsing</li>
+            </ul>
+            <Button 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              onClick={() => setLocation('/upload')}
+            >
+              Upload Credit Report
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Use REAL data from analysis - no placeholders
+  const totalViolations = analysis.totalViolations;
+  const severity = analysis.severityBreakdown || { critical: 0, high: 0, medium: 0, low: 0 };
+  const categories = analysis.categoryBreakdown || analysis.categories || {
+    latePayments: 0,
+    collections: 0,
+    chargeOffs: 0,
+    judgments: 0,
+    other: 0
   };
+  
+  // Get real accounts from analysis - check multiple possible field names
+  // API returns accountPreviews with: name, last4, balance, status, amountType
+  const rawAccounts = analysis.accountPreviews || analysis.sampleAccounts || analysis.accounts || [];
+  const sampleAccounts = rawAccounts.map((acc: any) => ({
+    accountName: acc.name || acc.accountName || 'Unknown',
+    accountNumber: acc.last4 || acc.accountNumber || '****',
+    balance: acc.balance || 0,
+    status: acc.status || 'Negative',
+    accountType: acc.amountType || acc.accountType || 'Account',
+    negativeReason: acc.status || acc.negativeReason || 'Negative item'
+  }));
+  
+  // Calculate impact based on real data
+  const baseIncrease = Math.min(200, totalViolations * 5);
   const impact = analysis.impact || { 
-    conservative: "+85-103",
-    moderate: "+124-154", 
-    optimistic: "+199-249",
-    current: 587,
-    potential: "775-816"
+    conservative: `+${Math.floor(baseIncrease * 0.4)}-${Math.floor(baseIncrease * 0.6)}`,
+    moderate: `+${Math.floor(baseIncrease * 0.6)}-${Math.floor(baseIncrease * 0.8)}`, 
+    optimistic: `+${Math.floor(baseIncrease * 0.8)}-${baseIncrease}`,
+    current: analysis.creditScore || 0,
+    potential: analysis.creditScore ? `${analysis.creditScore + Math.floor(baseIncrease * 0.5)}-${analysis.creditScore + baseIncrease}` : "Unknown"
   };
 
   const handleUpgrade = (tier: 'essential' | 'complete') => {
@@ -252,50 +300,44 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
           </CardContent>
         </Card>
 
-        {/* Accounts Preview Section */}
+        {/* Accounts Preview Section - REAL DATA */}
         <Card className="border-2 border-gray-300 shadow-md">
           <CardHeader className="border-b-2 border-gray-200 pb-4">
             <CardTitle className="text-lg font-bold text-gray-900">Accounts Found (Partial Preview)</CardTitle>
             <p className="text-sm text-gray-600">Below is a sample of accounts we found. Upgrade to see all {totalViolations} accounts and generate dispute letters.</p>
           </CardHeader>
           <CardContent className="p-0">
-            {/* Sample Account 1 */}
-            <div className="flex items-center justify-between p-4 border-b-2 border-gray-100 hover:bg-gray-50">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-red-600" />
+            {/* Show first 2 REAL accounts from analysis */}
+            {sampleAccounts.slice(0, 2).map((account: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-4 border-b-2 border-gray-100 hover:bg-gray-50">
+                <div className="flex items-center gap-4">
+                  <div className={`w-10 h-10 ${index === 0 ? 'bg-red-100' : 'bg-orange-100'} rounded-lg flex items-center justify-center`}>
+                    <FileText className={`w-5 h-5 ${index === 0 ? 'text-red-600' : 'text-orange-600'}`} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900">{account.accountName || 'Unknown Account'} ****</p>
+                    <p className="text-xs text-gray-500">Status: {account.status || account.negativeReason || 'Negative'}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-gray-900">AUTOMAX ****</p>
-                  <p className="text-xs text-gray-500">Status: Repossession/Foreclosure</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-red-600">$9,270</p>
-                <p className="text-xs text-gray-500">Past Due</p>
-              </div>
-            </div>
-            
-            {/* Sample Account 2 */}
-            <div className="flex items-center justify-between p-4 border-b-2 border-gray-100 hover:bg-gray-50">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-5 h-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="font-bold text-gray-900">CAPITAL ONE AUTO FINAN ****</p>
-                  <p className="text-xs text-gray-500">Status: Charge Off</p>
+                <div className="text-right">
+                  <p className={`font-bold ${index === 0 ? 'text-red-600' : 'text-orange-600'}`}>
+                    ${typeof account.balance === 'number' ? account.balance.toLocaleString() : account.balance || '0'}
+                  </p>
+                  <p className="text-xs text-gray-500">{account.accountType || 'Balance'}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-bold text-orange-600">$0</p>
-                <p className="text-xs text-gray-500">Unpaid Balance</p>
+            ))}
+
+            {/* If no sample accounts, show placeholder message */}
+            {sampleAccounts.length === 0 && (
+              <div className="p-4 text-center text-gray-500">
+                <p className="text-sm">Account details are being processed...</p>
               </div>
-            </div>
+            )}
 
             {/* More accounts locked */}
             <div className="p-6 text-center bg-gray-50 border-t-2 border-gray-200">
-              <p className="text-sm text-blue-600 font-semibold">+ 21 more accounts found</p>
+              <p className="text-sm text-blue-600 font-semibold">+ {Math.max(0, totalViolations - 2)} more accounts found</p>
               <p className="text-xs text-gray-500 mt-1">Upgrade to see all accounts and generate dispute letters.</p>
             </div>
           </CardContent>
