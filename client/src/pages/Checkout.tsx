@@ -213,13 +213,14 @@ export default function Checkout() {
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
     onSuccess: (data) => {
       console.log('[Checkout] Success response:', data);
-      // Redirect to Stripe checkout (the working approach)
-      if (data?.checkoutUrl) {
-        console.log('[Checkout] Redirecting to:', data.checkoutUrl);
-        window.location.href = data.checkoutUrl;
+      // Use clientSecret for embedded checkout
+      if (data?.clientSecret) {
+        console.log('[Checkout] Got clientSecret, setting up embedded checkout');
+        setClientSecret(data.clientSecret);
+        setIsLoading(false);
       } else {
-        console.error('[Checkout] No checkoutUrl in response:', data);
-        setInitError('Failed to get checkout URL. Please try again.');
+        console.error('[Checkout] No clientSecret in response:', data);
+        setInitError('Failed to initialize checkout. Please try again.');
         setIsLoading(false);
       }
     },
@@ -231,20 +232,9 @@ export default function Checkout() {
   });
 
   useEffect(() => {
-    console.log('[Checkout] Creating checkout session for tier:', selectedTier);
-    // Create checkout session on mount and redirect
+    console.log('[Checkout] Creating subscription for tier:', selectedTier);
+    // Create subscription on mount to get clientSecret
     createSubscriptionMutation.mutate({ tier: selectedTier });
-    
-    // Fallback timeout - if redirect doesn't happen in 10 seconds, show error
-    const timeout = setTimeout(() => {
-      if (isLoading && !initError) {
-        console.error('[Checkout] Timeout - redirect did not happen');
-        setInitError('Checkout is taking longer than expected. Please try again.');
-        setIsLoading(false);
-      }
-    }, 10000);
-    
-    return () => clearTimeout(timeout);
   }, [selectedTier]);
 
   const handleSuccess = () => {
@@ -314,13 +304,15 @@ export default function Checkout() {
                   Try Again
                 </Button>
               </div>
-            ) : (
-              <div className="text-center py-12">
-                <Loader2 className="w-12 h-12 animate-spin mx-auto text-orange-500 mb-4" />
-                <p className="text-gray-600 font-medium">Redirecting to secure checkout...</p>
-                <p className="text-xs text-gray-500 mt-2">If you are not redirected automatically, please check the browser console for errors.</p>
-              </div>
-            )}
+            ) : clientSecret ? (
+              <Elements stripe={stripePromise} options={stripeOptions}>
+                <CheckoutForm 
+                  plan={plan} 
+                  selectedTier={selectedTier}
+                  onSuccess={handleSuccess}
+                />
+              </Elements>
+            ) : null}
           </div>
 
           {/* Trust Badges */}

@@ -2803,42 +2803,56 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           throw new Error(`Stripe Price ID not configured for tier: ${input.tier}`);
         }
         
-        // Get origin from request headers
-        const req = ctx.req as any;
-        const origin = req?.headers?.origin || req?.headers?.referer?.split('/').slice(0, 3).join('/') || 'http://localhost:3001';
-        console.log('[Checkout] Creating Stripe session for tier:', input.tier, 'origin:', origin);
+        console.log('[Checkout] Creating embedded subscription for tier:', input.tier);
         
-        // Use simple checkout session (the working approach from subscriptionService.ts)
-        const session = await stripe.checkout.sessions.create({
-          mode: 'subscription',
-          payment_method_types: ['card'],
-          line_items: [
-            {
-              price: priceId,
-              quantity: 1,
-            },
-          ],
-          success_url: `${origin}/dashboard?payment=success`,
-          cancel_url: `${origin}/checkout?tier=${input.tier}&payment=cancelled`,
-          customer_email: ctx.user.email || undefined,
-          client_reference_id: ctx.user.id.toString(),
-          metadata: {
-            user_id: ctx.user.id.toString(),
-            customer_email: ctx.user.email || '',
-            customer_name: ctx.user.name || '',
-            tier: input.tier,
-          },
-          allow_promotion_codes: true,
+        // Create or get customer
+        let customer: Stripe.Customer;
+        const existingCustomers = await stripe.customers.list({
+          email: ctx.user.email || undefined,
+          limit: 1,
         });
         
-        // Return checkout URL instead of clientSecret (redirect to Stripe)
-        console.log('[Checkout] Stripe session created:', session.id, 'URL:', session.url);
-        if (!session.url) {
-          throw new Error('Stripe checkout session created but no URL returned');
+        if (existingCustomers.data.length > 0) {
+          customer = existingCustomers.data[0];
+        } else {
+          customer = await stripe.customers.create({
+            email: ctx.user.email || undefined,
+            name: ctx.user.name || undefined,
+            metadata: {
+              userId: ctx.user.id.toString(),
+            },
+          });
         }
+        
+        // Create subscription with payment_behavior: default_incomplete for embedded checkout
+        const subscription = await stripe.subscriptions.create({
+          customer: customer.id,
+          items: [{ price: priceId }],
+          payment_behavior: 'default_incomplete',
+          payment_settings: {
+            save_default_payment_method: 'on_subscription',
+            payment_method_types: ['card'],
+          },
+          expand: ['latest_invoice.payment_intent'],
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            tier: input.tier,
+          },
+        });
+        
+        const invoice = subscription.latest_invoice as Stripe.Invoice;
+        const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
+        
+        if (!paymentIntent?.client_secret) {
+          throw new Error('Failed to create subscription payment intent');
+        }
+        
+        console.log('[Checkout] Subscription created:', subscription.id, 'clientSecret ready');
+        
         return {
-          checkoutUrl: session.url,
-          sessionId: session.id,
+          clientSecret: paymentIntent.client_secret,
+          subscriptionId: subscription.id,
+          customerId: customer.id,
         };
       }),
 
