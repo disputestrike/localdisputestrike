@@ -59,31 +59,49 @@ export default function Dashboard() {
   const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
   
   // Save preview analysis if it exists in sessionStorage but not in database
+  const [hasTriedSave, setHasTriedSave] = useState(false);
   useEffect(() => {
     const savePreviewIfNeeded = async () => {
-      // Only save if user has no credit reports yet
-      if (creditReports && creditReports.length === 0) {
+      // Only save if user has no credit reports yet and we haven't tried yet
+      if (creditReports !== undefined && !hasTriedSave) {
+        setHasTriedSave(true);
+        
         const previewData = sessionStorage.getItem('previewAnalysis');
-        if (previewData) {
+        console.log('[Dashboard] Checking for preview analysis...', {
+          hasPreviewData: !!previewData,
+          creditReportsCount: creditReports?.length || 0
+        });
+        
+        if (previewData && (!creditReports || creditReports.length === 0)) {
           try {
             const analysis = JSON.parse(previewData);
-            console.log('[Dashboard] Found preview analysis in sessionStorage, saving to database...');
-            await savePreviewAnalysisMutation.mutateAsync({ analysis });
-            console.log('[Dashboard] Preview analysis saved successfully');
+            console.log('[Dashboard] Found preview analysis, saving to database...', {
+              totalViolations: analysis.totalViolations,
+              accountPreviews: analysis.accountPreviews?.length || 0
+            });
+            
+            const result = await savePreviewAnalysisMutation.mutateAsync({ analysis });
+            console.log('[Dashboard] Preview analysis saved successfully:', result);
+            
             // Clear session storage and refetch
             sessionStorage.removeItem('previewAnalysis');
-            refetchReports();
-          } catch (err) {
+            await refetchReports();
+            
+            toast.success('Analysis data loaded successfully!');
+          } catch (err: any) {
             console.error('[Dashboard] Failed to save preview analysis:', err);
+            toast.error(`Failed to save analysis: ${err.message || 'Unknown error'}`);
           }
+        } else if (previewData && creditReports && creditReports.length > 0) {
+          // Data already exists, just clear session storage
+          console.log('[Dashboard] Credit reports already exist, clearing session storage');
+          sessionStorage.removeItem('previewAnalysis');
         }
       }
     };
     
-    if (creditReports !== undefined) {
-      savePreviewIfNeeded();
-    }
-  }, [creditReports, savePreviewAnalysisMutation, refetchReports]);
+    savePreviewIfNeeded();
+  }, [creditReports, hasTriedSave, savePreviewAnalysisMutation, refetchReports]);
 
   // Scoreboard Row Logic (Blueprint §2.1)
   const getScore = (bureau: string) => {
@@ -143,10 +161,49 @@ export default function Dashboard() {
     submitGenerateLetters();
   };
 
+  // Manual save function for debugging
+  const handleManualSave = async () => {
+    const previewData = sessionStorage.getItem('previewAnalysis');
+    if (!previewData) {
+      toast.error('No preview analysis found in session storage');
+      return;
+    }
+    
+    try {
+      const analysis = JSON.parse(previewData);
+      console.log('[Dashboard] Manual save triggered', analysis);
+      await savePreviewAnalysisMutation.mutateAsync({ analysis });
+      sessionStorage.removeItem('previewAnalysis');
+      await refetchReports();
+      toast.success('Analysis saved successfully!');
+    } catch (err: any) {
+      console.error('[Dashboard] Manual save failed:', err);
+      toast.error(`Save failed: ${err.message || 'Unknown error'}`);
+    }
+  };
+
   return (
     <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
       <DashboardLayout>
         <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+          {/* Debug: Show if preview data exists */}
+          {sessionStorage.getItem('previewAnalysis') && (!creditReports || creditReports.length === 0) && (
+            <Alert className="mb-4 border-orange-300 bg-orange-50">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="flex items-center justify-between">
+                <span>Preview analysis found but not saved. Click to save:</span>
+                <Button 
+                  size="sm" 
+                  onClick={handleManualSave}
+                  disabled={savePreviewAnalysisMutation.isPending}
+                  className="ml-4"
+                >
+                  {savePreviewAnalysisMutation.isPending ? 'Saving...' : 'Save Analysis'}
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
