@@ -2800,105 +2800,141 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         const priceId = STRIPE_PRICE_IDS[input.tier];
         
         if (!priceId) {
+          console.error('[Checkout] Price ID not configured for tier:', input.tier);
           throw new Error(`Stripe Price ID not configured for tier: ${input.tier}`);
         }
         
-        console.log('[Checkout] Creating embedded subscription for tier:', input.tier);
+        console.log('[Checkout] Creating embedded subscription for tier:', input.tier, 'priceId:', priceId);
         
-        // Create or get customer
-        let customer: Stripe.Customer;
-        const existingCustomers = await stripe.customers.list({
-          email: ctx.user.email || undefined,
-          limit: 1,
-        });
-        
-        if (existingCustomers.data.length > 0) {
-          customer = existingCustomers.data[0];
-        } else {
-          customer = await stripe.customers.create({
-            email: ctx.user.email || undefined,
-            name: ctx.user.name || undefined,
-            metadata: {
-              userId: ctx.user.id.toString(),
-            },
-          });
-        }
-        
-        // Create subscription with payment_behavior: default_incomplete for embedded checkout
-        console.log('[Checkout] Creating subscription with priceId:', priceId, 'for customer:', customer.id);
-        const subscription = await stripe.subscriptions.create({
-          customer: customer.id,
-          items: [{ price: priceId }],
-          payment_behavior: 'default_incomplete',
-          payment_settings: {
-            save_default_payment_method: 'on_subscription',
-            payment_method_types: ['card'],
-          },
-          expand: ['latest_invoice.payment_intent'],
-          metadata: {
-            user_id: ctx.user.id.toString(),
-            tier: input.tier,
-          },
-        });
-        
-        console.log('[Checkout] Subscription created:', subscription.id);
-        console.log('[Checkout] Latest invoice type:', typeof subscription.latest_invoice);
-        console.log('[Checkout] Latest invoice:', JSON.stringify(subscription.latest_invoice, null, 2));
-        
-        // Handle latest_invoice - it might be a string ID or an expanded Invoice object
-        let invoice: Stripe.Invoice;
-        if (typeof subscription.latest_invoice === 'string') {
-          // It's a string ID, retrieve it
-          invoice = await stripe.invoices.retrieve(subscription.latest_invoice, {
-            expand: ['payment_intent'],
-          });
-        } else if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
-          // It's already expanded
-          invoice = subscription.latest_invoice as Stripe.Invoice;
-          // Ensure payment_intent is expanded
-          if (typeof invoice.payment_intent === 'string') {
-            invoice = await stripe.invoices.retrieve(invoice.id, {
-              expand: ['payment_intent'],
+        try {
+          // Create or get customer
+          let customer: Stripe.Customer;
+          try {
+            const existingCustomers = await stripe.customers.list({
+              email: ctx.user.email || undefined,
+              limit: 1,
             });
+            
+            if (existingCustomers.data.length > 0) {
+              customer = existingCustomers.data[0];
+              console.log('[Checkout] Using existing customer:', customer.id);
+            } else {
+              customer = await stripe.customers.create({
+                email: ctx.user.email || undefined,
+                name: ctx.user.name || undefined,
+                metadata: {
+                  userId: ctx.user.id.toString(),
+                },
+              });
+              console.log('[Checkout] Created new customer:', customer.id);
+            }
+          } catch (customerError: any) {
+            console.error('[Checkout] Customer creation error:', customerError.message);
+            throw new Error(`Failed to create customer: ${customerError.message}`);
           }
-        } else {
-          console.error('[Checkout] No invoice in subscription:', subscription.latest_invoice);
-          throw new Error('Failed to create subscription invoice - no invoice found');
+          
+          // Create subscription with payment_behavior: default_incomplete for embedded checkout
+          console.log('[Checkout] Creating subscription with priceId:', priceId, 'for customer:', customer.id);
+          let subscription: Stripe.Subscription;
+          try {
+            subscription = await stripe.subscriptions.create({
+              customer: customer.id,
+              items: [{ price: priceId }],
+              payment_behavior: 'default_incomplete',
+              payment_settings: {
+                save_default_payment_method: 'on_subscription',
+                payment_method_types: ['card'],
+              },
+              expand: ['latest_invoice.payment_intent'],
+              metadata: {
+                user_id: ctx.user.id.toString(),
+                tier: input.tier,
+              },
+            });
+            console.log('[Checkout] Subscription created:', subscription.id);
+          } catch (subError: any) {
+            console.error('[Checkout] Subscription creation error:', subError.message);
+            console.error('[Checkout] Stripe error details:', JSON.stringify(subError, null, 2));
+            throw new Error(`Failed to create subscription: ${subError.message}`);
+          }
+          
+          console.log('[Checkout] Latest invoice type:', typeof subscription.latest_invoice);
+          console.log('[Checkout] Latest invoice value:', subscription.latest_invoice);
+          
+          // Handle latest_invoice - it might be a string ID or an expanded Invoice object
+          let invoice: Stripe.Invoice;
+          if (!subscription.latest_invoice) {
+            console.error('[Checkout] Subscription has no latest_invoice field');
+            throw new Error('Subscription created but no invoice was generated. Please try again.');
+          } else if (typeof subscription.latest_invoice === 'string') {
+            // It's a string ID, retrieve it
+            console.log('[Checkout] Retrieving invoice by ID:', subscription.latest_invoice);
+            try {
+              invoice = await stripe.invoices.retrieve(subscription.latest_invoice, {
+                expand: ['payment_intent'],
+              });
+              console.log('[Checkout] Invoice retrieved:', invoice.id);
+            } catch (invoiceError: any) {
+              console.error('[Checkout] Invoice retrieval error:', invoiceError.message);
+              throw new Error(`Failed to retrieve invoice: ${invoiceError.message}`);
+            }
+          } else if (typeof subscription.latest_invoice === 'object') {
+            // It's already expanded
+            invoice = subscription.latest_invoice as Stripe.Invoice;
+            console.log('[Checkout] Using expanded invoice:', invoice.id);
+            // Ensure payment_intent is expanded
+            if (typeof invoice.payment_intent === 'string') {
+              console.log('[Checkout] Payment intent is string, retrieving...');
+              invoice = await stripe.invoices.retrieve(invoice.id, {
+                expand: ['payment_intent'],
+              });
+            }
+          } else {
+            console.error('[Checkout] Unexpected invoice type:', typeof subscription.latest_invoice);
+            throw new Error('Failed to process subscription invoice - unexpected format');
+          }
+          
+          console.log('[Checkout] Invoice ID:', invoice.id);
+          console.log('[Checkout] Payment intent type:', typeof invoice.payment_intent);
+          console.log('[Checkout] Payment intent:', invoice.payment_intent);
+          
+          const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+          
+          if (!paymentIntent) {
+            console.error('[Checkout] No payment intent in invoice');
+            throw new Error('Failed to create subscription payment intent - no payment intent found');
+          }
+          
+          // Handle if payment_intent is a string ID (not expanded)
+          let clientSecret: string;
+          if (typeof paymentIntent === 'string') {
+            console.log('[Checkout] Payment intent is string ID, retrieving...');
+            const pi = await stripe.paymentIntents.retrieve(paymentIntent);
+            clientSecret = pi.client_secret || '';
+          } else {
+            clientSecret = paymentIntent.client_secret || '';
+          }
+          
+          if (!clientSecret) {
+            console.error('[Checkout] No client_secret in payment intent');
+            throw new Error('Failed to create subscription payment intent - no client secret');
+          }
+          
+          console.log('[Checkout] Subscription created successfully:', subscription.id, 'clientSecret ready');
+          
+          return {
+            clientSecret,
+            subscriptionId: subscription.id,
+            customerId: customer.id,
+          };
+        } catch (error: any) {
+          console.error('[Checkout] Unexpected error:', error);
+          const errorMessage = error.message || 'Unknown error occurred';
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: `Checkout failed: ${errorMessage}`,
+          });
         }
-        
-        console.log('[Checkout] Invoice ID:', invoice.id);
-        console.log('[Checkout] Payment intent type:', typeof invoice.payment_intent);
-        console.log('[Checkout] Payment intent:', invoice.payment_intent);
-        
-        const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
-        
-        if (!paymentIntent) {
-          console.error('[Checkout] No payment intent in invoice');
-          throw new Error('Failed to create subscription payment intent - no payment intent found');
-        }
-        
-        // Handle if payment_intent is a string ID (not expanded)
-        let clientSecret: string;
-        if (typeof paymentIntent === 'string') {
-          console.log('[Checkout] Payment intent is string ID, retrieving...');
-          const pi = await stripe.paymentIntents.retrieve(paymentIntent);
-          clientSecret = pi.client_secret || '';
-        } else {
-          clientSecret = paymentIntent.client_secret || '';
-        }
-        
-        if (!clientSecret) {
-          console.error('[Checkout] No client_secret in payment intent');
-          throw new Error('Failed to create subscription payment intent - no client secret');
-        }
-        
-        console.log('[Checkout] Subscription created successfully:', subscription.id, 'clientSecret ready');
-        
-        return {
-          clientSecret,
-          subscriptionId: subscription.id,
-          customerId: customer.id,
-        };
       }),
 
     /**
