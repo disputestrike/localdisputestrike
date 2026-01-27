@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
   Shield, 
   Check, 
@@ -50,13 +51,139 @@ const PLANS = {
   }
 };
 
+// Initialize Stripe
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
+
+// Payment Form Component (inside Elements provider)
+function PaymentForm({ 
+  plan, 
+  selectedTier,
+  clientSecret,
+  onSuccess 
+}: { 
+  plan: typeof PLANS.essential;
+  selectedTier: 'essential' | 'complete';
+  clientSecret: string;
+  onSuccess: () => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsProcessing(true);
+
+    if (!stripe || !elements) {
+      setError('Payment system is loading. Please wait a moment and try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setError('Card element not found. Please refresh and try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      // Confirm payment with card element
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+        },
+      });
+
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed. Please try again.');
+        setIsProcessing(false);
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Payment successful - redirect to dashboard
+        onSuccess();
+      } else {
+        setError('Payment is being processed. Please wait...');
+        setIsProcessing(false);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Payment failed. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Card Details
+        </label>
+        <div className="border border-gray-300 rounded-lg p-3 bg-white">
+          <CardElement
+            options={{
+              style: {
+                base: {
+                  fontSize: '16px',
+                  color: '#1f2937',
+                  '::placeholder': {
+                    color: '#9ca3af',
+                  },
+                },
+                invalid: {
+                  color: '#ef4444',
+                },
+              },
+            }}
+          />
+        </div>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-gray-50 rounded-lg p-4 mt-4">
+        <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+          <span>{plan.name} Plan</span>
+          <span>{plan.price}{plan.period}</span>
+        </div>
+        <div className="flex justify-between items-center font-bold text-gray-900 pt-2 border-t">
+          <span>Total Today</span>
+          <span>{plan.price}</span>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={isProcessing || !stripe || !elements}
+        className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+      >
+        {isProcessing ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin" />
+            Processing...
+          </>
+        ) : (
+          <>
+            <Lock className="w-5 h-5" />
+            Choose {plan.name} - {plan.price}/mo
+          </>
+        )}
+      </button>
+
+      <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
+        <Shield className="w-4 h-4" />
+        <span>256-bit SSL encrypted • Cancel anytime</span>
+      </div>
+    </form>
+  );
+}
+
 export default function Checkout() {
   const [, setLocation] = useLocation();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvc, setCvc] = useState('');
-  const [error, setError] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [initError, setInitError] = useState('');
@@ -69,12 +196,6 @@ export default function Checkout() {
   );
 
   const plan = PLANS[selectedTier];
-
-  // Initialize Stripe
-  const [stripe, setStripe] = useState<any>(null);
-  useEffect(() => {
-    loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder').then(setStripe);
-  }, []);
 
   // Create subscription to get clientSecret
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
@@ -97,102 +218,8 @@ export default function Checkout() {
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
 
-  const formatCardNumber = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    const matches = v.match(/\d{4,16}/g);
-    const match = (matches && matches[0]) || '';
-    const parts = [];
-    for (let i = 0, len = match.length; i < len; i += 4) {
-      parts.push(match.substring(i, i + 4));
-    }
-    return parts.length ? parts.join(' ') : value;
-  };
-
-  const formatExpiry = (value: string) => {
-    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-    if (v.length >= 2) {
-      return v.substring(0, 2) + '/' + v.substring(2, 4);
-    }
-    return v;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsProcessing(true);
-
-    if (!stripe) {
-      setError('Payment system is loading. Please wait a moment and try again.');
-      setIsProcessing(false);
-      return;
-    }
-
-    if (!clientSecret) {
-      setError('Checkout not ready. Please refresh and try again.');
-      setIsProcessing(false);
-      return;
-    }
-
-    // Validate
-    const cardNumberClean = cardNumber.replace(/\s/g, '');
-    if (!cardNumberClean || cardNumberClean.length < 16) {
-      setError('Please enter a valid card number');
-      setIsProcessing(false);
-      return;
-    }
-    if (!expiry || expiry.length < 5) {
-      setError('Please enter a valid expiry date');
-      setIsProcessing(false);
-      return;
-    }
-    if (!cvc || cvc.length < 3) {
-      setError('Please enter a valid CVC');
-      setIsProcessing(false);
-      return;
-    }
-
-    try {
-      // Parse expiry
-      const [month, year] = expiry.split('/');
-      const expMonth = parseInt(month, 10);
-      const expYear = 2000 + parseInt(year, 10);
-
-      // Create payment method from card details
-      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: {
-          number: cardNumberClean,
-          exp_month: expMonth,
-          exp_year: expYear,
-          cvc: cvc,
-        },
-      });
-
-      if (pmError) {
-        setError(pmError.message || 'Invalid card details. Please check and try again.');
-        setIsProcessing(false);
-        return;
-      }
-
-      // Confirm payment with payment method
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethod.id,
-      });
-
-      if (confirmError) {
-        setError(confirmError.message || 'Payment failed. Please try again.');
-        setIsProcessing(false);
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Payment successful - redirect to dashboard
-        setLocation('/dashboard?payment=success');
-      } else {
-        setError('Payment is being processed. Please wait...');
-        setIsProcessing(false);
-      }
-    } catch (err: any) {
-      setError(err.message || 'Payment failed. Please try again.');
-      setIsProcessing(false);
-    }
+  const handleSuccess = () => {
+    setLocation('/dashboard?payment=success');
   };
 
   if (isLoading) {
@@ -306,93 +333,37 @@ export default function Checkout() {
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Details</h2>
               
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Card Number
-                  </label>
-                  <div className="relative">
-                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                      type="text"
-                      value={cardNumber}
-                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                      maxLength={19}
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      value={expiry}
-                      onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                      maxLength={5}
-                      placeholder="MM/YY"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      value={cvc}
-                      onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      maxLength={4}
-                      placeholder="123"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  </div>
-                </div>
-
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                    {error}
-                  </div>
-                )}
-
-                <div className="bg-gray-50 rounded-lg p-4 mt-4">
-                  <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
-                    <span>{plan.name} Plan</span>
-                    <span>{plan.price}{plan.period}</span>
-                  </div>
-                  <div className="flex justify-between items-center font-bold text-gray-900 pt-2 border-t">
-                    <span>Total Today</span>
-                    <span>{plan.price}</span>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isProcessing || !stripe || !clientSecret}
-                  className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+              {clientSecret ? (
+                <Elements 
+                  stripe={stripePromise} 
+                  options={{
+                    clientSecret,
+                    appearance: {
+                      theme: 'stripe' as const,
+                      variables: {
+                        colorPrimary: '#f97316',
+                        colorBackground: '#ffffff',
+                        colorText: '#1f2937',
+                        colorDanger: '#ef4444',
+                        fontFamily: 'system-ui, sans-serif',
+                        borderRadius: '8px',
+                      },
+                    },
+                  }}
                 >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-5 h-5" />
-                      Choose {plan.name} - {plan.price}/mo
-                    </>
-                  )}
-                </button>
-
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
-                  <Shield className="w-4 h-4" />
-                  <span>256-bit SSL encrypted • Cancel anytime</span>
+                  <PaymentForm 
+                    plan={plan}
+                    selectedTier={selectedTier}
+                    clientSecret={clientSecret}
+                    onSuccess={handleSuccess}
+                  />
+                </Elements>
+              ) : (
+                <div className="text-center py-8">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-orange-500 mb-4" />
+                  <p className="text-gray-600">Loading payment form...</p>
                 </div>
-              </form>
+              )}
             </div>
           </div>
         </div>
