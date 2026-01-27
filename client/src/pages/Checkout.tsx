@@ -1,205 +1,62 @@
 /**
- * Checkout Page - Embedded Stripe Checkout
- * 
- * Features embedded Stripe Elements for on-site payment collection.
- * No redirect to stripe.com - better conversion and brand consistency.
+ * Checkout Page - For upgrading from trial to paid subscription
+ * Handles /checkout?tier=essential or /checkout?tier=complete
  */
 
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { loadStripe } from '@stripe/stripe-js';
 import { 
-  Elements, 
-  PaymentElement, 
-  useStripe, 
-  useElements 
-} from '@stripe/react-stripe-js';
-import { 
   Shield, 
   Check, 
   Lock, 
   CreditCard,
   ArrowLeft,
-  Loader2,
-  Zap,
-  CheckCircle2
+  Star,
+  Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
-import { cn } from "@/lib/utils";
-
-// Initialize Stripe - use your publishable key from env
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
 
 const PLANS = {
   essential: {
     id: 'essential',
-    name: 'Essential Plan',
+    name: 'Essential',
     price: '$79.99',
-    priceNum: 79.99,
+    priceAmount: 7999,
     period: '/month',
     features: [
-      'Unlimited Dispute Rounds',
-      'AI-Powered Letter Generation',
-      'You Print & Mail',
-      'Secure Document Storage',
+      'Unlimited dispute rounds',
+      '30-day intervals',
+      'AI letter generation',
+      'FCRA-compliant letters',
+      'You print & mail letters'
     ]
   },
   complete: {
     id: 'complete',
-    name: 'Complete Plan',
+    name: 'Complete',
     price: '$129.99',
-    priceNum: 129.99,
+    priceAmount: 12999,
     period: '/month',
+    popular: true,
     features: [
-      'Everything in Essential',
-      'We Mail For You (Certified)',
-      'Real-Time USPS Tracking',
-      'Priority Support',
+      'Everything in Essential, plus:',
+      'We mail letters for you',
+      '5 mailings/month included',
+      'CFPB complaint filing',
+      'Furnisher disputes'
     ]
   }
 };
 
-// Payment Form Component (inside Elements provider)
-function CheckoutForm({ 
-  plan, 
-  selectedTier,
-  onSuccess 
-}: { 
-  plan: typeof PLANS.essential;
-  selectedTier: 'essential' | 'complete';
-  onSuccess: () => void;
-}) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [error, setError] = useState('');
-  const [succeeded, setSucceeded] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!stripe || !elements) {
-      return;
-    }
-
-    setIsProcessing(true);
-    setError('');
-
-    const { error: submitError, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/dashboard?payment=success`,
-      },
-      redirect: 'if_required',
-    });
-
-    if (submitError) {
-      setError(submitError.message || 'Payment failed. Please try again.');
-      setIsProcessing(false);
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      setSucceeded(true);
-      onSuccess();
-    } else {
-      // Payment requires additional action or redirect happened
-      setIsProcessing(false);
-    }
-  };
-
-  if (succeeded) {
-    return (
-      <div className="text-center py-8">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle2 className="w-10 h-10 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-black text-gray-900 mb-2">Payment Successful!</h2>
-        <p className="text-gray-600 mb-6">Redirecting to your dashboard...</p>
-        <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-500" />
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit}>
-      {/* Order Summary */}
-      <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-200">
-        <div>
-          <span className="font-black text-xl text-gray-900">{plan.name}</span>
-          <p className="text-sm text-gray-600 font-medium">Monthly subscription</p>
-        </div>
-        <div className="text-right bg-orange-50 p-3 rounded-lg border-2 border-orange-300">
-          <span className="font-black text-2xl text-orange-600">{plan.price}</span>
-          <span className="text-gray-600 font-medium">{plan.period}</span>
-        </div>
-      </div>
-      
-      {/* Features */}
-      <ul className="space-y-3 mb-6">
-        {plan.features.map((feature, i) => (
-          <li key={i} className="flex items-center gap-3 text-gray-700 p-2 rounded-lg hover:bg-gray-50">
-            {selectedTier === 'complete' && i === 1 ? (
-              <div className="p-1 bg-orange-100 rounded-full">
-                <Zap className="w-5 h-5 text-orange-600 shrink-0" />
-              </div>
-            ) : (
-              <div className="p-1 bg-green-100 rounded-full">
-                <Check className="w-5 h-5 text-green-600 shrink-0" />
-              </div>
-            )}
-            <span className={cn("font-medium", selectedTier === 'complete' && i === 1 ? 'font-bold text-orange-700' : '')}>
-              {feature}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      {/* Payment Element */}
-      <div className="border-t-2 border-gray-200 pt-6">
-        <div className="mb-4">
-          <label className="block text-sm font-bold text-gray-700 mb-3">Payment Details</label>
-          <div className="bg-white border-2 border-gray-300 rounded-lg p-4">
-            <PaymentElement 
-              options={{
-                layout: 'tabs',
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Total */}
-        <div className="flex justify-between items-center mb-6 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
-          <span className="font-black text-lg text-gray-900">Total Due Today</span>
-          <span className="font-black text-3xl text-gray-900">{plan.price}</span>
-        </div>
-
-        {error && (
-          <div className="bg-red-100 border-2 border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4 text-sm font-medium">
-            {error}
-          </div>
-        )}
-
-        <Button 
-          type="submit"
-          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-7 text-lg font-black shadow-lg"
-          disabled={isProcessing || !stripe || !elements}
-        >
-          {isProcessing ? (
-            <><Loader2 className="w-5 h-5 animate-spin mr-2" /> Processing Payment...</>
-          ) : (
-            <>Subscribe Now - {plan.price}/month</>
-          )}
-        </Button>
-
-        <p className="text-center text-sm text-gray-500 mt-4 font-medium">
-          Your subscription will renew monthly. Cancel anytime.
-        </p>
-      </div>
-    </form>
-  );
-}
-
 export default function Checkout() {
   const [, setLocation] = useLocation();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [cardNumber, setCardNumber] = useState('');
+  const [expiry, setExpiry] = useState('');
+  const [cvc, setCvc] = useState('');
+  const [error, setError] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [initError, setInitError] = useState('');
@@ -207,124 +64,337 @@ export default function Checkout() {
   // Get tier from URL params
   const params = new URLSearchParams(window.location.search);
   const tierParam = params.get('tier') || 'complete';
-  const selectedTier = (tierParam === 'essential' || tierParam === 'complete') ? tierParam : 'complete';
+  const [selectedTier, setSelectedTier] = useState<'essential' | 'complete'>(
+    (tierParam === 'essential' || tierParam === 'complete') ? tierParam : 'complete'
+  );
+
   const plan = PLANS[selectedTier];
 
+  // Initialize Stripe
+  const [stripe, setStripe] = useState<any>(null);
+  useEffect(() => {
+    loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder').then(setStripe);
+  }, []);
+
+  // Create subscription to get clientSecret
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
     onSuccess: (data) => {
-      console.log('[Checkout] Success response:', data);
-      // Use clientSecret for embedded checkout
       if (data?.clientSecret) {
-        console.log('[Checkout] Got clientSecret, setting up embedded checkout');
         setClientSecret(data.clientSecret);
         setIsLoading(false);
       } else {
-        console.error('[Checkout] No clientSecret in response:', data);
         setInitError('Failed to initialize checkout. Please try again.');
         setIsLoading(false);
       }
     },
     onError: (err) => {
-      console.error('[Checkout] Error:', err);
       setInitError(err.message || 'Failed to initialize checkout. Please try again.');
       setIsLoading(false);
     }
   });
 
   useEffect(() => {
-    console.log('[Checkout] Creating subscription for tier:', selectedTier);
-    // Create subscription on mount to get clientSecret
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
 
-  const handleSuccess = () => {
-    // Redirect to dashboard after short delay
-    setTimeout(() => {
-      setLocation('/dashboard?payment=success');
-    }, 2000);
+  const formatCardNumber = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    const matches = v.match(/\d{4,16}/g);
+    const match = (matches && matches[0]) || '';
+    const parts = [];
+    for (let i = 0, len = match.length; i < len; i += 4) {
+      parts.push(match.substring(i, i + 4));
+    }
+    return parts.length ? parts.join(' ') : value;
   };
 
-  const stripeOptions = {
-    clientSecret,
-    appearance: {
-      theme: 'stripe' as const,
-      variables: {
-        colorPrimary: '#f97316', // Orange-500
-        colorBackground: '#ffffff',
-        colorText: '#1f2937',
-        colorDanger: '#ef4444',
-        fontFamily: 'system-ui, sans-serif',
-        borderRadius: '8px',
-      },
-    },
+  const formatExpiry = (value: string) => {
+    const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
+    if (v.length >= 2) {
+      return v.substring(0, 2) + '/' + v.substring(2, 4);
+    }
+    return v;
   };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setIsProcessing(true);
+
+    if (!stripe) {
+      setError('Payment system is loading. Please wait a moment and try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    if (!clientSecret) {
+      setError('Checkout not ready. Please refresh and try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    // Validate
+    const cardNumberClean = cardNumber.replace(/\s/g, '');
+    if (!cardNumberClean || cardNumberClean.length < 16) {
+      setError('Please enter a valid card number');
+      setIsProcessing(false);
+      return;
+    }
+    if (!expiry || expiry.length < 5) {
+      setError('Please enter a valid expiry date');
+      setIsProcessing(false);
+      return;
+    }
+    if (!cvc || cvc.length < 3) {
+      setError('Please enter a valid CVC');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      // Parse expiry
+      const [month, year] = expiry.split('/');
+      const expMonth = parseInt(month, 10);
+      const expYear = 2000 + parseInt(year, 10);
+
+      // Create payment method from card details
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: {
+          number: cardNumberClean,
+          exp_month: expMonth,
+          exp_year: expYear,
+          cvc: cvc,
+        },
+      });
+
+      if (pmError) {
+        setError(pmError.message || 'Invalid card details. Please check and try again.');
+        setIsProcessing(false);
+        return;
+      }
+
+      // Confirm payment with payment method
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: paymentMethod.id,
+      });
+
+      if (confirmError) {
+        setError(confirmError.message || 'Payment failed. Please try again.');
+        setIsProcessing(false);
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Payment successful - redirect to dashboard
+        setLocation('/dashboard?payment=success');
+      } else {
+        setError('Payment is being processed. Please wait...');
+        setIsProcessing(false);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Payment failed. Please try again.');
+      setIsProcessing(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin mx-auto text-orange-500 mb-4" />
+          <p className="text-gray-600 font-medium">Setting up secure checkout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="bg-red-100 border-2 border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4 text-sm font-medium">
+            {initError}
+          </div>
+          <Button 
+            onClick={() => {
+              setIsLoading(true);
+              setInitError('');
+              createSubscriptionMutation.mutate({ tier: selectedTier });
+            }}
+            className="bg-orange-500 hover:bg-orange-600"
+          >
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b-2 border-gray-200 py-4">
-        <div className="container mx-auto px-4 flex items-center justify-between">
+      {/* Header */}
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/">
             <a className="flex items-center gap-2">
               <img src="/logo.webp" alt="DisputeStrike" className="h-8" />
-              <span className="font-bold text-xl">DisputeStrike</span>
+              <span className="font-bold text-xl text-gray-900">DisputeStrike</span>
             </a>
           </Link>
           <Link href="/preview-results">
-            <a className="text-sm text-gray-600 hover:text-orange-600 flex items-center gap-1 font-medium">
-              <ArrowLeft className="w-4 h-4" /> Back to Analysis
+            <a className="flex items-center gap-2 text-gray-600 hover:text-orange-600">
+              <ArrowLeft className="w-4 h-4" />
+              Back to Analysis
             </a>
           </Link>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-12 max-w-2xl">
-        <div className="space-y-8">
-          <h1 className="text-3xl font-black text-center text-gray-900">Complete Your Checkout</h1>
-          
-          {/* Main Card */}
-          <div className="bg-white p-8 rounded-xl border-2 border-gray-300 shadow-lg">
-            {isLoading ? (
-              <div className="text-center py-12">
-                <Loader2 className="w-12 h-12 animate-spin mx-auto text-orange-500 mb-4" />
-                <p className="text-gray-600 font-medium">Setting up secure checkout...</p>
-              </div>
-            ) : initError ? (
-              <div className="text-center py-12">
-                <div className="bg-red-100 border-2 border-red-400 text-red-800 px-4 py-3 rounded-lg mb-4 text-sm font-medium">
-                  {initError}
-                </div>
-                <Button 
-                  onClick={() => {
-                    setIsLoading(true);
-                    setInitError('');
-                    createSubscriptionMutation.mutate({ tier: selectedTier });
-                  }}
-                  className="bg-orange-500 hover:bg-orange-600"
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="grid md:grid-cols-2 gap-8">
+          {/* Plan Selection */}
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-6">Choose Your Plan</h1>
+            
+            <div className="space-y-4">
+              {Object.values(PLANS).map((p) => (
+                <div
+                  key={p.id}
+                  onClick={() => setSelectedTier(p.id as 'essential' | 'complete')}
+                  className={`relative border-2 rounded-xl p-5 cursor-pointer transition-all ${
+                    selectedTier === p.id
+                      ? 'border-orange-600 bg-orange-50'
+                      : 'border-gray-200 hover:border-orange-300 bg-white'
+                  }`}
                 >
-                  Try Again
-                </Button>
-              </div>
-            ) : clientSecret ? (
-              <Elements stripe={stripePromise} options={stripeOptions}>
-                <CheckoutForm 
-                  plan={plan} 
-                  selectedTier={selectedTier}
-                  onSuccess={handleSuccess}
-                />
-              </Elements>
-            ) : null}
+                  {p.popular && (
+                    <div className="absolute -top-3 left-4">
+                      <span className="bg-orange-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                        <Star className="w-3 h-3" /> Most Popular
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">{p.name}</h3>
+                      <p className="text-2xl font-bold text-gray-900 mt-1">
+                        {p.price}
+                        <span className="text-gray-500 text-sm font-normal">{p.period}</span>
+                      </p>
+                    </div>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      selectedTier === p.id ? 'border-orange-600 bg-orange-600' : 'border-gray-300'
+                    }`}>
+                      {selectedTier === p.id && <Check className="w-4 h-4 text-white" />}
+                    </div>
+                  </div>
+                  
+                  <ul className="mt-4 space-y-2">
+                    {p.features.map((feature, i) => (
+                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
+                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
           </div>
 
-          {/* Trust Badges */}
-          <div className="flex items-center justify-center gap-6 text-sm text-gray-600 bg-white p-4 rounded-lg border-2 border-gray-200">
-            <div className="flex items-center gap-2"><Shield className="w-5 h-5 text-green-600" /> <span className="font-medium">Secure SSL</span></div>
-            <div className="flex items-center gap-2"><Lock className="w-5 h-5 text-green-600" /> <span className="font-medium">256-bit Encryption</span></div>
-            <div className="flex items-center gap-2"><CreditCard className="w-5 h-5 text-blue-600" /> <span className="font-medium">Powered by Stripe</span></div>
-          </div>
+          {/* Payment Form */}
+          <div>
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Payment Details</h2>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Card Number
+                  </label>
+                  <div className="relative">
+                    <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+                      maxLength={19}
+                      placeholder="1234 5678 9012 3456"
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
 
-          <p className="text-center text-sm text-gray-500 font-medium">
-            By subscribing, you agree to our <a href="/terms" className="underline text-orange-600 hover:text-orange-700">Terms of Service</a> and authorize the monthly subscription charge. Cancel anytime.
-          </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="text"
+                      value={expiry}
+                      onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                      maxLength={5}
+                      placeholder="MM/YY"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      value={cvc}
+                      onChange={(e) => setCvc(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      maxLength={4}
+                      placeholder="123"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
+                <div className="bg-gray-50 rounded-lg p-4 mt-4">
+                  <div className="flex justify-between items-center text-sm text-gray-600 mb-2">
+                    <span>{plan.name} Plan</span>
+                    <span>{plan.price}{plan.period}</span>
+                  </div>
+                  <div className="flex justify-between items-center font-bold text-gray-900 pt-2 border-t">
+                    <span>Total Today</span>
+                    <span>{plan.price}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isProcessing || !stripe || !clientSecret}
+                  className="w-full bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-semibold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5" />
+                      Choose {plan.name} - {plan.price}/mo
+                    </>
+                  )}
+                </button>
+
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mt-4">
+                  <Shield className="w-4 h-4" />
+                  <span>256-bit SSL encrypted • Cancel anytime</span>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
