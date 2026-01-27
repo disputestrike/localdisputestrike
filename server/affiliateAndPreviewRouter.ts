@@ -246,7 +246,9 @@ router.post(
       }
 
       try {
+        console.log('[Preview] Starting AI analysis with text length:', trimmedText.length);
         const preview = await runPreviewAnalysis(trimmedText, isTextBasedPDF);
+        console.log('[Preview] Analysis complete - violations:', preview.totalViolations, 'accounts:', preview.accountPreviews?.length || 0);
         
         // Check if AI actually ran and found results
         // If totalViolations is 0 AND no accountPreviews, AI likely failed
@@ -264,14 +266,19 @@ router.post(
         // 1. AI found violations (good)
         // 2. AI found 0 violations but report is clean (also good - allow it)
         const light = toLightAnalysisResult(preview);
+        console.log('[Preview] Returning result - totalViolations:', light.totalViolations, 'accountPreviews:', light.accountPreviews?.length || 0);
         return res.status(200).json(light);
       } catch (e: unknown) {
         console.error('[Preview] runPreviewAnalysis error:', e);
-        const errMsg = e instanceof Error ? e.message : '';
+        const errMsg = e instanceof Error ? e.message : String(e);
+        console.error('[Preview] Error message:', errMsg);
         if (errMsg.includes('AI API key') || errMsg.includes('API key')) {
           return res.status(503).json({ error: 'Analysis service temporarily unavailable. Please try again later.' });
         }
-        return res.status(500).json({ error: 'Preview analysis failed. Please try again.' });
+        return res.status(500).json({ 
+          error: 'Preview analysis failed. Please try again.',
+          details: process.env.NODE_ENV === 'development' ? errMsg : undefined
+        });
       }
     } catch (e) {
       console.error('[Preview] upload-and-analyze error:', e);
