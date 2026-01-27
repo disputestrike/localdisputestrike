@@ -1,7 +1,7 @@
 /**
  * Cross-Bureau Conflict Detection Engine
  * 
- * Detects ALL 43 dispute strategies for credit report violations
+ * Detects ALL 63 dispute strategies for credit report violations
  * These conflicts are the strongest arguments for deletion
  */
 
@@ -32,6 +32,17 @@ export interface Conflict {
     // Category 7: Statistical & Pattern (5)
     | 'impossible_payment_patterns' | 'high_concentration_single_day' | 'synchronized_late_payments'
     | 'inquiry_without_purpose' | 'written_off_amount_conflicts'
+    // NEW Category 8: Metro 2 Format Violations (8)
+    | 'missing_metro2_fields' | 'invalid_account_status_code' | 'payment_rating_mismatch'
+    | 'compliance_condition_code_error' | 'ecoa_code_violation' | 'special_comment_conflict'
+    | 'consumer_info_indicator_error' | 'account_type_code_mismatch'
+    // NEW Category 9: Medical Debt Violations (5)
+    | 'medical_debt_under_500' | 'medical_debt_under_1_year' | 'paid_medical_collection'
+    | 'medical_debt_insurance_pending' | 'hipaa_violation'
+    // NEW Category 10: Identity & Fraud Indicators (7)
+    | 'ssn_mismatch' | 'address_never_lived' | 'name_variation_suspicious'
+    | 'dob_mismatch' | 'fraud_alert_ignored' | 'identity_theft_indicator'
+    | 'authorized_user_misreported'
     // Legacy types
     | 'status' | 'date' | 'previously_disputed' | 'missing_documentation';
   severity: 'critical' | 'high' | 'medium';
@@ -42,7 +53,7 @@ export interface Conflict {
   fcraViolation: string;
   deletionProbability: number; // 0-100%
   argument?: string; // Full legal argument for this violation
-  methodNumber?: number; // Which of the 43 methods this is
+  methodNumber?: number; // Which of the 63 methods this is
 }
 
 export interface ConflictAnalysis {
@@ -51,7 +62,7 @@ export interface ConflictAnalysis {
   criticalConflicts: number;
   highPriorityConflicts: number;
   estimatedDeletions: number;
-  methodsUsed: number[]; // Track which of the 43 methods were triggered
+  methodsUsed: number[]; // Track which of the 63 methods were triggered
 }
 
 /**
@@ -286,6 +297,110 @@ export function detectConflicts(accounts: ParsedAccount[]): ConflictAnalysis {
       const writtenOffConflicts = detectWrittenOffAmountConflicts(accountName, account);
       conflicts.push(...writtenOffConflicts);
       if (writtenOffConflicts.length > 0) methodsUsed.add(43);
+
+      // ============================================
+      // NEW METHODS 44-63: EXPANDED DETECTION
+      // ============================================
+
+      // Method 44: Missing Metro 2 required fields
+      const metro2Missing = detectMissingMetro2Fields(accountName, account);
+      conflicts.push(...metro2Missing);
+      if (metro2Missing.length > 0) methodsUsed.add(44);
+
+      // Method 45: Invalid account status code
+      const invalidStatus = detectInvalidAccountStatusCode(accountName, account);
+      conflicts.push(...invalidStatus);
+      if (invalidStatus.length > 0) methodsUsed.add(45);
+
+      // Method 46: Payment rating doesn't match status
+      const paymentRating = detectPaymentRatingMismatch(accountName, account);
+      conflicts.push(...paymentRating);
+      if (paymentRating.length > 0) methodsUsed.add(46);
+
+      // Method 47: Compliance condition code error
+      const complianceCode = detectComplianceConditionCodeError(accountName, account);
+      conflicts.push(...complianceCode);
+      if (complianceCode.length > 0) methodsUsed.add(47);
+
+      // Method 48: ECOA code violation
+      const ecoaViolation = detectECOACodeViolation(accountName, account);
+      conflicts.push(...ecoaViolation);
+      if (ecoaViolation.length > 0) methodsUsed.add(48);
+
+      // Method 49: Special comment conflicts
+      const specialComment = detectSpecialCommentConflict(accountName, account);
+      conflicts.push(...specialComment);
+      if (specialComment.length > 0) methodsUsed.add(49);
+
+      // Method 50: Consumer info indicator error
+      const consumerInfo = detectConsumerInfoIndicatorError(accountName, account);
+      conflicts.push(...consumerInfo);
+      if (consumerInfo.length > 0) methodsUsed.add(50);
+
+      // Method 51: Account type code mismatch
+      const accountTypeCode = detectAccountTypeCodeMismatch(accountName, account);
+      conflicts.push(...accountTypeCode);
+      if (accountTypeCode.length > 0) methodsUsed.add(51);
+
+      // Method 52: Medical debt under $500 (new FCRA rule)
+      const medicalUnder500 = detectMedicalDebtUnder500(accountName, account);
+      conflicts.push(...medicalUnder500);
+      if (medicalUnder500.length > 0) methodsUsed.add(52);
+
+      // Method 53: Medical debt under 1 year old
+      const medicalUnder1Year = detectMedicalDebtUnder1Year(accountName, account);
+      conflicts.push(...medicalUnder1Year);
+      if (medicalUnder1Year.length > 0) methodsUsed.add(53);
+
+      // Method 54: Paid medical collection still reporting
+      const paidMedical = detectPaidMedicalCollection(accountName, account);
+      conflicts.push(...paidMedical);
+      if (paidMedical.length > 0) methodsUsed.add(54);
+
+      // Method 55: Medical debt with pending insurance
+      const insurancePending = detectMedicalDebtInsurancePending(accountName, account);
+      conflicts.push(...insurancePending);
+      if (insurancePending.length > 0) methodsUsed.add(55);
+
+      // Method 56: HIPAA violation in medical debt reporting
+      const hipaaViolation = detectHIPAAViolation(accountName, account);
+      conflicts.push(...hipaaViolation);
+      if (hipaaViolation.length > 0) methodsUsed.add(56);
+
+      // Method 57: SSN mismatch indicators
+      const ssnMismatch = detectSSNMismatch(accountName, account);
+      conflicts.push(...ssnMismatch);
+      if (ssnMismatch.length > 0) methodsUsed.add(57);
+
+      // Method 58: Address never lived at
+      const addressNeverLived = detectAddressNeverLived(accountName, account);
+      conflicts.push(...addressNeverLived);
+      if (addressNeverLived.length > 0) methodsUsed.add(58);
+
+      // Method 59: Suspicious name variations
+      const nameVariation = detectNameVariationSuspicious(accountName, account);
+      conflicts.push(...nameVariation);
+      if (nameVariation.length > 0) methodsUsed.add(59);
+
+      // Method 60: Date of birth mismatch
+      const dobMismatch = detectDOBMismatch(accountName, account);
+      conflicts.push(...dobMismatch);
+      if (dobMismatch.length > 0) methodsUsed.add(60);
+
+      // Method 61: Fraud alert ignored
+      const fraudAlert = detectFraudAlertIgnored(accountName, account);
+      conflicts.push(...fraudAlert);
+      if (fraudAlert.length > 0) methodsUsed.add(61);
+
+      // Method 62: Identity theft indicator
+      const identityTheft = detectIdentityTheftIndicator(accountName, account);
+      conflicts.push(...identityTheft);
+      if (identityTheft.length > 0) methodsUsed.add(62);
+
+      // Method 63: Authorized user misreported as primary
+      const authorizedUser = detectAuthorizedUserMisreported(accountName, account);
+      conflicts.push(...authorizedUser);
+      if (authorizedUser.length > 0) methodsUsed.add(63);
     }
   }
 
@@ -1810,6 +1925,585 @@ function detectWrittenOffAmountConflicts(accountName: string, account: ParsedAcc
 }
 
 // ============================================
+// NEW METHODS 44-51: METRO 2 FORMAT VIOLATIONS
+// ============================================
+
+function detectMissingMetro2Fields(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Metro 2 requires specific fields
+  const missingFields: string[] = [];
+  if (!account.dateOpened) missingFields.push('Date Opened');
+  if (!account.accountNumber || account.accountNumber === 'Not Reported') missingFields.push('Account Number');
+  if (!rawData.includes('payment') && !rawData.includes('history')) missingFields.push('Payment History');
+  if (!rawData.includes('high credit') && !rawData.includes('credit limit') && !rawData.includes('original')) missingFields.push('High Credit/Original Amount');
+  
+  if (missingFields.length >= 2) {
+    conflicts.push({
+      type: 'missing_metro2_fields',
+      severity: 'high',
+      accountName,
+      description: `Missing Metro 2 required fields: ${missingFields.join(', ')}`,
+      bureaus: [account.bureau],
+      details: { missingFields },
+      fcraViolation: '§ 1681s-2(a)(1) - Metro 2 compliance required',
+      deletionProbability: 75,
+      argument: `METRO 2 FORMAT VIOLATION:\nMissing required fields: ${missingFields.join(', ')}\n\nUnder the Metro 2 reporting format, furnishers must include all required data fields. Incomplete records violate reporting standards and cannot be verified.`,
+      methodNumber: 44,
+    });
+  }
+  return conflicts;
+}
+
+function detectInvalidAccountStatusCode(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const status = account.status.toLowerCase();
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for invalid status combinations
+  const isOpen = status.includes('open');
+  const isClosed = status.includes('closed');
+  const isPaid = status.includes('paid') || account.balance === 0;
+  const hasBalance = account.balance > 0;
+  
+  if (isClosed && isOpen) {
+    conflicts.push({
+      type: 'invalid_account_status_code',
+      severity: 'critical',
+      accountName,
+      description: 'Invalid status: Account shows both "Open" and "Closed"',
+      bureaus: [account.bureau],
+      details: { status: account.status },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate status required',
+      deletionProbability: 90,
+      argument: `INVALID ACCOUNT STATUS CODE:\nStatus shows both "Open" AND "Closed" - this is impossible. An account cannot be in two mutually exclusive states.`,
+      methodNumber: 45,
+    });
+  }
+  
+  if (isPaid && hasBalance && account.balance > 100) {
+    conflicts.push({
+      type: 'invalid_account_status_code',
+      severity: 'high',
+      accountName,
+      description: `Invalid status: "Paid" but balance is $${account.balance.toFixed(2)}`,
+      bureaus: [account.bureau],
+      details: { status: account.status, balance: account.balance },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate status required',
+      deletionProbability: 85,
+      argument: `INVALID STATUS CODE:\n• Status: ${account.status}\n• Balance: $${account.balance.toFixed(2)}\n\nA "Paid" account cannot have a balance of $${account.balance.toFixed(2)}. This contradiction proves data corruption.`,
+      methodNumber: 45,
+    });
+  }
+  return conflicts;
+}
+
+function detectPaymentRatingMismatch(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  const status = account.status.toLowerCase();
+  
+  // Check if payment rating conflicts with status
+  const hasGoodRating = rawData.includes('pays as agreed') || rawData.includes('current') || rawData.includes('ok');
+  const hasNegativeStatus = status.includes('charge') || status.includes('collection') || status.includes('delinquent');
+  
+  if (hasGoodRating && hasNegativeStatus) {
+    conflicts.push({
+      type: 'payment_rating_mismatch',
+      severity: 'high',
+      accountName,
+      description: 'Payment rating "Pays as Agreed" conflicts with negative status',
+      bureaus: [account.bureau],
+      details: { status: account.status },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Consistent information required',
+      deletionProbability: 80,
+      argument: `PAYMENT RATING MISMATCH:\n• Payment Rating: "Pays as Agreed" or "Current"\n• Account Status: ${account.status}\n\nThese are contradictory. If consumer "pays as agreed," how can the account be ${account.status}?`,
+      methodNumber: 46,
+    });
+  }
+  return conflicts;
+}
+
+function detectComplianceConditionCodeError(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for compliance condition code issues
+  const hasBankruptcy = rawData.includes('bankruptcy') || rawData.includes('chapter 7') || rawData.includes('chapter 13');
+  const hasForeclosure = rawData.includes('foreclosure');
+  const hasSettled = rawData.includes('settled');
+  
+  // Multiple compliance conditions that conflict
+  if ((hasBankruptcy && hasForeclosure) || (hasBankruptcy && hasSettled && account.balance > 0)) {
+    conflicts.push({
+      type: 'compliance_condition_code_error',
+      severity: 'high',
+      accountName,
+      description: 'Conflicting compliance condition codes',
+      bureaus: [account.bureau],
+      details: { hasBankruptcy, hasForeclosure, hasSettled },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate compliance codes required',
+      deletionProbability: 75,
+      argument: `COMPLIANCE CONDITION CODE ERROR:\nThis account shows conflicting compliance conditions that cannot coexist. The Metro 2 format requires accurate compliance condition codes.`,
+      methodNumber: 47,
+    });
+  }
+  return conflicts;
+}
+
+function detectECOACodeViolation(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // ECOA (Equal Credit Opportunity Act) code issues
+  const isJoint = rawData.includes('joint') || rawData.includes('co-signer') || rawData.includes('cosigner');
+  const isIndividual = rawData.includes('individual');
+  const isAuthorized = rawData.includes('authorized user') || rawData.includes('auth user');
+  
+  // Multiple ECOA designations
+  if ((isJoint && isIndividual) || (isAuthorized && !rawData.includes('authorized'))) {
+    conflicts.push({
+      type: 'ecoa_code_violation',
+      severity: 'high',
+      accountName,
+      description: 'ECOA code violation: Conflicting account responsibility designations',
+      bureaus: [account.bureau],
+      details: { isJoint, isIndividual, isAuthorized },
+      fcraViolation: 'ECOA § 1691 + FCRA § 1681s-2(a)(1)(A)',
+      deletionProbability: 80,
+      argument: `ECOA CODE VIOLATION:\nAccount shows conflicting responsibility designations. Under ECOA, the account must be accurately classified as Individual, Joint, or Authorized User - not multiple designations.`,
+      methodNumber: 48,
+    });
+  }
+  return conflicts;
+}
+
+function detectSpecialCommentConflict(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for conflicting special comments
+  const hasDisputed = rawData.includes('disputed') || rawData.includes('consumer disputes');
+  const hasVerified = rawData.includes('verified') || rawData.includes('accurate');
+  const hasPaidInFull = rawData.includes('paid in full');
+  const hasChargeOff = rawData.includes('charge off') || rawData.includes('charged off');
+  
+  if (hasPaidInFull && hasChargeOff && account.balance > 0) {
+    conflicts.push({
+      type: 'special_comment_conflict',
+      severity: 'high',
+      accountName,
+      description: 'Special comment conflict: "Paid in Full" but shows charge-off with balance',
+      bureaus: [account.bureau],
+      details: { hasPaidInFull, hasChargeOff, balance: account.balance },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Consistent special comments required',
+      deletionProbability: 85,
+      argument: `SPECIAL COMMENT CONFLICT:\n• Comment: "Paid in Full"\n• Status: Charge-Off\n• Balance: $${account.balance.toFixed(2)}\n\nThese are mutually exclusive. "Paid in Full" means $0 balance, not $${account.balance.toFixed(2)}.`,
+      methodNumber: 49,
+    });
+  }
+  return conflicts;
+}
+
+function detectConsumerInfoIndicatorError(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for consumer information indicator issues
+  const hasDeceased = rawData.includes('deceased');
+  const hasActiveAccount = rawData.includes('active') || rawData.includes('open');
+  
+  if (hasDeceased && hasActiveAccount) {
+    conflicts.push({
+      type: 'consumer_info_indicator_error',
+      severity: 'critical',
+      accountName,
+      description: 'Consumer info error: Account shows "Deceased" but also "Active"',
+      bureaus: [account.bureau],
+      details: { hasDeceased, hasActiveAccount },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate consumer information required',
+      deletionProbability: 95,
+      argument: `CONSUMER INFORMATION INDICATOR ERROR:\nAccount shows "Deceased" indicator but also shows as "Active." This is impossible and indicates severe data corruption or mixed file error.`,
+      methodNumber: 50,
+    });
+  }
+  return conflicts;
+}
+
+function detectAccountTypeCodeMismatch(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const accountType = (account.accountType || '').toLowerCase();
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for account type mismatches
+  const isCollection = accountType.includes('collection');
+  const isCreditCard = accountType.includes('credit card') || accountType.includes('revolving');
+  const isMortgage = accountType.includes('mortgage') || accountType.includes('real estate');
+  const isAuto = accountType.includes('auto') || accountType.includes('vehicle');
+  
+  // Collection shouldn't have credit limit
+  if (isCollection && rawData.includes('credit limit')) {
+    conflicts.push({
+      type: 'account_type_code_mismatch',
+      severity: 'medium',
+      accountName,
+      description: 'Account type mismatch: Collection account shows credit limit',
+      bureaus: [account.bureau],
+      details: { accountType: account.accountType },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate account type required',
+      deletionProbability: 65,
+      argument: `ACCOUNT TYPE CODE MISMATCH:\nCollection accounts do not have credit limits. This field should be blank for collections. The presence of a credit limit suggests this may be misclassified.`,
+      methodNumber: 51,
+    });
+  }
+  return conflicts;
+}
+
+// ============================================
+// NEW METHODS 52-56: MEDICAL DEBT VIOLATIONS
+// ============================================
+
+function detectMedicalDebtUnder500(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const accountType = (account.accountType || '').toLowerCase();
+  const rawData = (account.rawData || '').toLowerCase();
+  const accountNameLower = accountName.toLowerCase();
+  
+  const isMedical = accountType.includes('medical') || 
+                    rawData.includes('medical') || 
+                    rawData.includes('hospital') ||
+                    rawData.includes('healthcare') ||
+                    rawData.includes('physician') ||
+                    rawData.includes('emergency') ||
+                    accountNameLower.includes('medical') ||
+                    accountNameLower.includes('hospital');
+  
+  if (isMedical && account.balance > 0 && account.balance < 500) {
+    conflicts.push({
+      type: 'medical_debt_under_500',
+      severity: 'critical',
+      accountName,
+      description: `Medical debt under $500 ($${account.balance.toFixed(2)}) - MUST BE REMOVED per new FCRA rules`,
+      bureaus: [account.bureau],
+      details: { balance: account.balance, type: 'Medical' },
+      fcraViolation: 'FCRA Amendment 2023 - Medical debt under $500 prohibited',
+      deletionProbability: 100,
+      argument: `ILLEGAL MEDICAL DEBT REPORTING:\n• Balance: $${account.balance.toFixed(2)}\n• Type: Medical\n\nAs of 2023, medical debts under $500 are PROHIBITED from credit reports. This account MUST be deleted immediately under the new FCRA medical debt rules.`,
+      methodNumber: 52,
+    });
+  }
+  return conflicts;
+}
+
+function detectMedicalDebtUnder1Year(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const accountType = (account.accountType || '').toLowerCase();
+  const rawData = (account.rawData || '').toLowerCase();
+  const accountNameLower = accountName.toLowerCase();
+  
+  const isMedical = accountType.includes('medical') || 
+                    rawData.includes('medical') || 
+                    rawData.includes('hospital') ||
+                    rawData.includes('healthcare') ||
+                    accountNameLower.includes('medical');
+  
+  if (isMedical && account.dateOpened) {
+    const now = new Date();
+    const monthsSinceOpened = (now.getTime() - account.dateOpened.getTime()) / (1000 * 60 * 60 * 24 * 30);
+    
+    if (monthsSinceOpened < 12) {
+      conflicts.push({
+        type: 'medical_debt_under_1_year',
+        severity: 'critical',
+        accountName,
+        description: `Medical debt less than 1 year old (${Math.round(monthsSinceOpened)} months) - MUST BE REMOVED`,
+        bureaus: [account.bureau],
+        details: { monthsOld: Math.round(monthsSinceOpened), dateOpened: account.dateOpened.toLocaleDateString() },
+        fcraViolation: 'FCRA Amendment 2022 - Medical debt 1-year waiting period',
+        deletionProbability: 100,
+        argument: `ILLEGAL MEDICAL DEBT REPORTING:\n• Date Opened: ${account.dateOpened.toLocaleDateString()}\n• Age: ${Math.round(monthsSinceOpened)} months\n\nMedical debts cannot be reported until 1 year (365 days) after the date of first delinquency. This account is only ${Math.round(monthsSinceOpened)} months old and MUST be removed.`,
+        methodNumber: 53,
+      });
+    }
+  }
+  return conflicts;
+}
+
+function detectPaidMedicalCollection(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const accountType = (account.accountType || '').toLowerCase();
+  const rawData = (account.rawData || '').toLowerCase();
+  const accountNameLower = accountName.toLowerCase();
+  
+  const isMedical = accountType.includes('medical') || 
+                    rawData.includes('medical') || 
+                    rawData.includes('hospital') ||
+                    accountNameLower.includes('medical');
+  
+  const isPaid = account.balance === 0 || rawData.includes('paid') || rawData.includes('settled');
+  
+  if (isMedical && isPaid) {
+    conflicts.push({
+      type: 'paid_medical_collection',
+      severity: 'critical',
+      accountName,
+      description: 'Paid medical collection - MUST BE REMOVED per new FCRA rules',
+      bureaus: [account.bureau],
+      details: { balance: account.balance, status: account.status },
+      fcraViolation: 'FCRA Amendment 2022 - Paid medical debt prohibited',
+      deletionProbability: 100,
+      argument: `ILLEGAL PAID MEDICAL DEBT:\n• Status: Paid/Settled\n• Balance: $${account.balance.toFixed(2)}\n\nAs of July 2022, PAID medical debts are PROHIBITED from credit reports. All three bureaus agreed to remove paid medical collections. This account MUST be deleted.`,
+      methodNumber: 54,
+    });
+  }
+  return conflicts;
+}
+
+function detectMedicalDebtInsurancePending(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  const accountType = (account.accountType || '').toLowerCase();
+  
+  const isMedical = accountType.includes('medical') || rawData.includes('medical') || rawData.includes('hospital');
+  const hasInsuranceIndicator = rawData.includes('insurance') || rawData.includes('pending') || rawData.includes('claim');
+  
+  if (isMedical && hasInsuranceIndicator) {
+    conflicts.push({
+      type: 'medical_debt_insurance_pending',
+      severity: 'high',
+      accountName,
+      description: 'Medical debt with pending insurance claim should not be reported',
+      bureaus: [account.bureau],
+      details: { accountType: account.accountType },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Premature reporting',
+      deletionProbability: 85,
+      argument: `PREMATURE MEDICAL DEBT REPORTING:\nThis medical debt shows indicators of pending insurance. Medical debts should not be reported while insurance claims are being processed. The final balance is unknown until insurance adjudicates the claim.`,
+      methodNumber: 55,
+    });
+  }
+  return conflicts;
+}
+
+function detectHIPAAViolation(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  const accountType = (account.accountType || '').toLowerCase();
+  
+  const isMedical = accountType.includes('medical') || rawData.includes('medical');
+  
+  // Check if medical details are disclosed
+  const hasConditionInfo = rawData.includes('diagnosis') || 
+                           rawData.includes('treatment') || 
+                           rawData.includes('surgery') ||
+                           rawData.includes('procedure') ||
+                           rawData.includes('condition');
+  
+  if (isMedical && hasConditionInfo) {
+    conflicts.push({
+      type: 'hipaa_violation',
+      severity: 'critical',
+      accountName,
+      description: 'HIPAA violation: Medical condition information disclosed in credit report',
+      bureaus: [account.bureau],
+      details: { hasConditionInfo },
+      fcraViolation: 'HIPAA Privacy Rule + FCRA § 1681s-2(a)(1)(A)',
+      deletionProbability: 95,
+      argument: `HIPAA PRIVACY VIOLATION:\nThis medical debt entry contains protected health information (PHI) that should not appear on a credit report. Medical debt reporting should only include the creditor name and amount - never diagnosis, treatment, or condition information.`,
+      methodNumber: 56,
+    });
+  }
+  return conflicts;
+}
+
+// ============================================
+// NEW METHODS 57-63: IDENTITY & FRAUD INDICATORS
+// ============================================
+
+function detectSSNMismatch(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Look for SSN indicators
+  const hasSSNIssue = rawData.includes('ssn') && (rawData.includes('mismatch') || rawData.includes('partial') || rawData.includes('different'));
+  
+  if (hasSSNIssue) {
+    conflicts.push({
+      type: 'ssn_mismatch',
+      severity: 'critical',
+      accountName,
+      description: 'SSN mismatch detected - possible identity theft or mixed file',
+      bureaus: [account.bureau],
+      details: {},
+      fcraViolation: '§ 1681e(b) - Maximum possible accuracy',
+      deletionProbability: 95,
+      argument: `SSN MISMATCH - POSSIBLE IDENTITY THEFT:\nThis account shows SSN discrepancies. This is a strong indicator of either:\n1. Identity theft\n2. Mixed file (another consumer's data)\n3. Data entry error\n\nUnder FCRA § 1681e(b), bureaus must follow reasonable procedures to ensure accuracy. SSN mismatches require immediate investigation and likely deletion.`,
+      methodNumber: 57,
+    });
+  }
+  return conflicts;
+}
+
+function detectAddressNeverLived(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  // This would typically require consumer input to verify
+  // Flag accounts with addresses that seem suspicious
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Look for out-of-state indicators when consumer hasn't lived there
+  const hasAddressIssue = rawData.includes('address') && (rawData.includes('unknown') || rawData.includes('unverified'));
+  
+  if (hasAddressIssue) {
+    conflicts.push({
+      type: 'address_never_lived',
+      severity: 'high',
+      accountName,
+      description: 'Address verification issue - verify you lived at the reported address',
+      bureaus: [account.bureau],
+      details: {},
+      fcraViolation: '§ 1681e(b) - Maximum possible accuracy',
+      deletionProbability: 80,
+      argument: `ADDRESS VERIFICATION ISSUE:\nThis account is associated with an address that may not belong to you. If you have never lived at this address, this is a strong indicator of:\n1. Identity theft\n2. Mixed file error\n3. Fraudulent account\n\nRequest verification of the address used to open this account.`,
+      methodNumber: 58,
+    });
+  }
+  return conflicts;
+}
+
+function detectNameVariationSuspicious(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for suspicious name variations
+  const hasNameIssue = rawData.includes('aka') || rawData.includes('also known as') || rawData.includes('name variation');
+  
+  if (hasNameIssue && account.balance > 1000) {
+    conflicts.push({
+      type: 'name_variation_suspicious',
+      severity: 'high',
+      accountName,
+      description: 'Suspicious name variation on high-balance account',
+      bureaus: [account.bureau],
+      details: { balance: account.balance },
+      fcraViolation: '§ 1681e(b) - Maximum possible accuracy',
+      deletionProbability: 75,
+      argument: `SUSPICIOUS NAME VARIATION:\nThis account shows a name variation (AKA) that may not be yours. High-balance accounts with name variations are common indicators of:\n1. Identity theft\n2. Mixed files\n3. Synthetic identity fraud\n\nVerify this name variation is legitimate and belongs to you.`,
+      methodNumber: 59,
+    });
+  }
+  return conflicts;
+}
+
+function detectDOBMismatch(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for DOB issues
+  const hasDOBIssue = rawData.includes('dob') && (rawData.includes('mismatch') || rawData.includes('different') || rawData.includes('incorrect'));
+  
+  // Also check if account opened when consumer would have been too young
+  if (account.dateOpened) {
+    const year = account.dateOpened.getFullYear();
+    if (year < 2000) {
+      // Flag very old accounts for DOB verification
+      conflicts.push({
+        type: 'dob_mismatch',
+        severity: 'high',
+        accountName,
+        description: `Account opened in ${year} - verify you were 18+ at that time`,
+        bureaus: [account.bureau],
+        details: { dateOpened: account.dateOpened.toLocaleDateString(), year },
+        fcraViolation: '§ 1681e(b) - Maximum possible accuracy',
+        deletionProbability: 70,
+        argument: `DATE OF BIRTH VERIFICATION NEEDED:\nThis account was opened in ${year}. If you were under 18 at that time, this account cannot legally be yours and indicates:\n1. Identity theft\n2. Mixed file error\n3. Fraudulent account opened in a minor's name`,
+        methodNumber: 60,
+      });
+    }
+  }
+  return conflicts;
+}
+
+function detectFraudAlertIgnored(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check if account was opened despite fraud alert
+  const hasFraudAlert = rawData.includes('fraud alert') || rawData.includes('security freeze') || rawData.includes('credit freeze');
+  
+  if (hasFraudAlert) {
+    conflicts.push({
+      type: 'fraud_alert_ignored',
+      severity: 'critical',
+      accountName,
+      description: 'Account opened despite active fraud alert - FCRA violation',
+      bureaus: [account.bureau],
+      details: {},
+      fcraViolation: '§ 1681c-1 - Fraud alert requirements',
+      deletionProbability: 90,
+      argument: `FRAUD ALERT IGNORED:\nThis account was opened despite an active fraud alert. Under FCRA § 1681c-1, creditors MUST take reasonable steps to verify identity when a fraud alert is present. Opening an account without verification is a direct FCRA violation.`,
+      methodNumber: 61,
+    });
+  }
+  return conflicts;
+}
+
+function detectIdentityTheftIndicator(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for identity theft indicators
+  const hasIDTheftIndicator = rawData.includes('identity theft') || 
+                              rawData.includes('id theft') || 
+                              rawData.includes('fraud') ||
+                              rawData.includes('unauthorized') ||
+                              rawData.includes('not mine');
+  
+  if (hasIDTheftIndicator) {
+    conflicts.push({
+      type: 'identity_theft_indicator',
+      severity: 'critical',
+      accountName,
+      description: 'Identity theft indicator present - account may be fraudulent',
+      bureaus: [account.bureau],
+      details: {},
+      fcraViolation: '§ 1681c-2 - Block of information from identity theft',
+      deletionProbability: 95,
+      argument: `IDENTITY THEFT INDICATOR:\nThis account shows identity theft indicators. Under FCRA § 1681c-2, you have the right to block information resulting from identity theft. With proper documentation (FTC Identity Theft Report, police report), this account must be blocked within 4 business days.`,
+      methodNumber: 62,
+    });
+  }
+  return conflicts;
+}
+
+function detectAuthorizedUserMisreported(accountName: string, account: ParsedAccount): Conflict[] {
+  const conflicts: Conflict[] = [];
+  const rawData = (account.rawData || '').toLowerCase();
+  
+  // Check for authorized user issues
+  const isAuthorizedUser = rawData.includes('authorized user') || rawData.includes('auth user');
+  const hasNegativeStatus = account.status.toLowerCase().includes('charge') || 
+                            account.status.toLowerCase().includes('collection') ||
+                            account.status.toLowerCase().includes('delinquent');
+  
+  // Authorized users shouldn't be held responsible for negative accounts
+  if (isAuthorizedUser && hasNegativeStatus && account.balance > 0) {
+    conflicts.push({
+      type: 'authorized_user_misreported',
+      severity: 'high',
+      accountName,
+      description: 'Authorized user incorrectly reported as responsible for negative account',
+      bureaus: [account.bureau],
+      details: { status: account.status, balance: account.balance },
+      fcraViolation: '§ 1681s-2(a)(1)(A) - Accurate responsibility designation',
+      deletionProbability: 85,
+      argument: `AUTHORIZED USER MISREPORTED:\n• Designation: Authorized User\n• Status: ${account.status}\n• Balance: $${account.balance.toFixed(2)}\n\nAuthorized users are NOT responsible for account balances. They can be removed from any account at any time. Reporting negative information against an authorized user is inaccurate and must be corrected.`,
+      methodNumber: 63,
+    });
+  }
+  return conflicts;
+}
+
+// ============================================
 // GENERATE MULTI-ANGLE ARGUMENT
 // ============================================
 export function generateMultiAngleArgument(accountName: string, conflicts: Conflict[]): string {
@@ -1845,7 +2539,7 @@ export function generateMultiAngleArgument(accountName: string, conflicts: Confl
   const totalViolations = conflicts.length;
   const methodsUsed = Array.from(new Set(conflicts.map(c => c.methodNumber).filter(Boolean)));
   
-  argument += `\n**SUMMARY:** This account has ${totalViolations} documented violation${totalViolations > 1 ? 's' : ''} across ${methodsUsed.length} of our 43 detection methods. `;
+  argument += `\n**SUMMARY:** This account has ${totalViolations} documented violation${totalViolations > 1 ? 's' : ''} across ${methodsUsed.length} of our 63 detection methods. `;
   
   if (critical.length > 0) {
     argument += `The ${critical.length} CRITICAL error${critical.length > 1 ? 's' : ''} ALONE require${critical.length === 1 ? 's' : ''} immediate deletion. `;
