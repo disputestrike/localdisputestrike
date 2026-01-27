@@ -4,7 +4,8 @@
  *     query: { gl: "US", hl: "en", q: "manus" },
  *   })
  */
-import { ENV } from "./env";\nimport { safeJsonParse } from "../utils/json";
+import { ENV } from "./env";
+import { safeJsonParse } from "../utils/json";
 
 export type DataApiCallOptions = {
   query?: Record<string, unknown>;

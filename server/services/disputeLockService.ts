@@ -1,4 +1,5 @@
-import { db } from '../db';\nimport { safeJsonParse } from '../utils/json';
+import { db } from '../db';
+import { safeJsonParse } from '../utils/json';
 import { disputeRounds, negativeAccounts } from '../../drizzle/schema';
 import { eq, and, gt } from 'drizzle-orm';
 
@@ -36,8 +37,9 @@ export async function canDisputeAccount(
     for (const dispute of recentDisputes) {
       if (!dispute.disputedItemIds) continue;
 
-      const itemIds = safeJsonParse(dispute.disputedItemIds, null);
-      if (itemIds === null) continue;
+      try {
+        const itemIds = safeJsonParse(dispute.disputedItemIds, null);
+        if (itemIds === null) continue;
         if (itemIds.includes(accountId) && dispute.mailedAt) {
           // This account was disputed recently
           if (dispute.mailedAt > thirtyDaysAgo) {
