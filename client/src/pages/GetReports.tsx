@@ -48,6 +48,8 @@ export default function GetReports() {
   const [smartCreditConfirmed, setSmartCreditConfirmed] = useState(false);
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [analysisStatus, setAnalysisStatus] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const totalSteps = 6;
@@ -112,6 +114,8 @@ export default function GetReports() {
     }
     
     setIsAnalyzing(true);
+    setAnalysisProgress(0);
+    setAnalysisStatus('Preparing files...');
     setError(null);
     
     try {
@@ -119,12 +123,32 @@ export default function GetReports() {
       
       // Check if we have a combined file
       const combinedReport = reportsToUpload.find(r => r.bureau === 'combined');
+      const fileCount = combinedReport ? 1 : reportsToUpload.filter(r => r.bureau !== 'combined').length;
+      
+      // Progress simulation with realistic stages
+      const progressStages = [
+        { percent: 5, status: 'Uploading files...' },
+        { percent: 15, status: 'Extracting text from PDFs...' },
+        { percent: 30, status: 'Running AI analysis...' },
+        { percent: 50, status: 'Identifying negative accounts...' },
+        { percent: 70, status: 'Detecting FCRA violations...' },
+        { percent: 85, status: 'Calculating score impact...' },
+        { percent: 95, status: 'Finalizing results...' },
+      ];
+      
+      // Start progress animation
+      let currentStage = 0;
+      const progressInterval = setInterval(() => {
+        if (currentStage < progressStages.length) {
+          setAnalysisProgress(progressStages[currentStage].percent);
+          setAnalysisStatus(progressStages[currentStage].status);
+          currentStage++;
+        }
+      }, fileCount > 1 ? 3000 : 2000); // Slower for multiple files
       
       if (combinedReport) {
-        // If combined, we send it as 'transunion' to satisfy the backend's requirement for at least one bureau
         formData.append('transunion', combinedReport.file);
       } else {
-        // Otherwise send individual files
         reportsToUpload.forEach(report => {
           if (report.bureau !== 'combined') {
             formData.append(report.bureau, report.file);
@@ -137,18 +161,28 @@ export default function GetReports() {
         body: formData,
       });
 
+      clearInterval(progressInterval);
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.error || 'Upload failed');
       }
 
+      setAnalysisProgress(100);
+      setAnalysisStatus('Analysis complete!');
+      
       const data = await response.json();
       sessionStorage.setItem('previewAnalysis', JSON.stringify(data));
+      
+      // Brief delay to show 100%
+      await new Promise(resolve => setTimeout(resolve, 500));
       setLocation('/preview-results');
     } catch (e: any) {
       setError(e.message || 'Failed to upload reports. Please try again.');
     } finally {
       setIsAnalyzing(false);
+      setAnalysisProgress(0);
+      setAnalysisStatus('');
     }
   };
 
@@ -344,6 +378,39 @@ export default function GetReports() {
               </div>
             )}
 
+            {/* Analysis Progress Overlay */}
+            {isAnalyzing && (
+              <div className="mb-6 bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-300 rounded-xl p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center animate-pulse">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900">AI Analysis in Progress</h3>
+                    <p className="text-sm text-gray-600">{analysisStatus || 'Processing...'}</p>
+                  </div>
+                </div>
+                
+                <div className="mb-2">
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className="font-medium text-gray-700">Progress</span>
+                    <span className="font-bold text-orange-600">{analysisProgress}%</span>
+                  </div>
+                  <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${analysisProgress}%` }}
+                    />
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  This typically takes 15-45 seconds depending on file size
+                </p>
+              </div>
+            )}
+
             <div className="flex justify-end">
               <Button 
                 onClick={() => handleStartAnalysis()}
@@ -351,7 +418,7 @@ export default function GetReports() {
                 className="w-full sm:w-auto h-12 px-8 text-base font-bold bg-orange-500 hover:bg-orange-600 shadow-lg"
               >
                 {isAnalyzing ? (
-                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analyzing...</>
+                  <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Analyzing ({analysisProgress}%)...</>
                 ) : (
                   <>Start Analysis <ArrowRight className="w-5 h-5 ml-2" /></>
                 )}

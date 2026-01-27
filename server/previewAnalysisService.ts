@@ -137,8 +137,12 @@ export async function runPreviewAnalysis(
   if (!anthropic && !openai) {
     return normalizePreviewResult(keywordPreviewFallback(reportText));
   }
+  
+  const startTime = Date.now();
+  
   try {
-    const truncatedReport = reportText.slice(0, 15000);
+    // INCREASED: Allow more text for better analysis (was 15000)
+    const truncatedReport = reportText.slice(0, 30000);
 
     if (anthropic) {
       console.log('[Preview] Using Anthropic Claude for analysis...');
@@ -146,8 +150,8 @@ export async function runPreviewAnalysis(
       
       const response = await anthropic.messages.create({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        temperature: 0.2,
+        max_tokens: 4000, // INCREASED from 2000
+        temperature: 0.1, // LOWERED for more consistent results
         system: PREVIEW_SYSTEM_PROMPT,
         messages: [
           {
@@ -159,7 +163,8 @@ export async function runPreviewAnalysis(
 
       const content = response.content?.[0] as { text?: string } | undefined;
       let text = typeof content?.text === 'string' ? content.text : '';
-      console.log('[Preview] Anthropic response length:', text.length);
+      const aiTime = Date.now() - startTime;
+      console.log(`[Preview] Anthropic response: ${text.length} chars in ${aiTime}ms`);
       
       if (!text) {
         throw new Error('No response from Anthropic');
@@ -188,12 +193,13 @@ export async function runPreviewAnalysis(
           content: `Extract ALL negative accounts from this credit report. Return the REAL account names, balances, and statuses you find:\n\n${truncatedReport}`,
         },
       ],
-      temperature: 0.2,
-      max_tokens: 2000,
+      temperature: 0.1, // LOWERED for consistency
+      max_tokens: 4000, // INCREASED from 2000
       response_format: { type: 'json_object' },
     });
     
-    console.log('[Preview] OpenAI response received');
+    const aiTime = Date.now() - startTime;
+    console.log(`[Preview] OpenAI response received in ${aiTime}ms`);
 
     let content = response.choices[0]?.message?.content ?? '';
     if (!content) {
@@ -212,12 +218,16 @@ export async function runPreviewAnalysis(
 
 function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisResult {
   const raw = result.accountPreviews ?? [];
-  console.log('[Preview] Raw accountPreviews from AI:', JSON.stringify(raw, null, 2));
+  console.log('[Preview] Raw accountPreviews from AI:', raw.length, 'accounts');
+  if (raw.length > 0) {
+    console.log('[Preview] First 3 accounts:', JSON.stringify(raw.slice(0, 3), null, 2));
+  }
   
-  // More lenient filter - only require name OR last4
+  // More lenient filter - only require name OR last4 OR balance
+  // INCREASED limit from 10 to 20 for better preview
   const accountPreviews: AccountPreviewItem[] = raw
     .filter((a): a is AccountPreviewItem => Boolean(a?.name || a?.last4 || a?.balance))
-    .slice(0, 10)
+    .slice(0, 20) // INCREASED from 10
     .map((a) => ({
       name: String(a.name || 'Unknown Account').slice(0, 80),
       last4: String(a.last4 || '****').replace(/\D/g, '').slice(-4) || '****',

@@ -135,9 +135,10 @@ router.post(
         return res.status(400).json({ error: 'No files uploaded' });
       }
 
-      let combinedText = '';
       const fallbackCandidates: { key: string; file: Express.Multer.File }[] = [];
+      const filesToProcess: { key: string; file: Express.Multer.File; isHtml: boolean }[] = [];
 
+      // Collect all files to process
       for (const key of ['transunion', 'equifax', 'experian']) {
         const arr = files[key];
         const file = arr?.[0];
@@ -146,28 +147,44 @@ router.post(
           continue;
         }
         
-        console.log(`[Preview] Processing ${key}: ${file.originalname}, size: ${file.buffer.length} bytes, mime: ${file.mimetype}`);
+        console.log(`[Preview] Queued ${key}: ${file.originalname}, size: ${file.buffer.length} bytes`);
         
         const name = (file.originalname || '').toLowerCase();
-        const isHtml =
-          file.mimetype?.includes('text/html') || name.endsWith('.html') || name.endsWith('.htm');
+        const isHtml = file.mimetype?.includes('text/html') || name.endsWith('.html') || name.endsWith('.htm');
+        filesToProcess.push({ key, file, isHtml });
         if (!isHtml) fallbackCandidates.push({ key, file });
+      }
+
+      // PARALLEL PROCESSING - Extract text from all files simultaneously
+      console.log(`[Preview] Starting PARALLEL extraction for ${filesToProcess.length} files...`);
+      const startTime = Date.now();
+      
+      const extractionPromises = filesToProcess.map(async ({ key, file, isHtml }) => {
         try {
           if (isHtml) {
             const htmlText = file.buffer.toString('utf8');
-            console.log(`[Preview] ${key} HTML text length: ${htmlText.length}`);
-            combinedText += `\n\n--- ${key.toUpperCase()} BUREAU ---\n\n` + htmlText;
+            console.log(`[Preview] ${key} HTML: ${htmlText.length} chars`);
+            return { key, text: htmlText, success: true };
           } else {
             const text = await extractTextFromPDFBuffer(file.buffer);
-            console.log(`[Preview] ${key} PDF text extracted: ${text?.length || 0} chars`);
-            if (text && text.length > 0) {
-              combinedText += `\n\n--- ${key.toUpperCase()} BUREAU ---\n\n` + text;
-            } else {
-              console.log(`[Preview] WARNING: ${key} PDF returned no text (may be image-based)`);
-            }
+            console.log(`[Preview] ${key} PDF: ${text?.length || 0} chars`);
+            return { key, text: text || '', success: !!text && text.length > 0 };
           }
         } catch (e) {
-          console.warn(`[Preview] parse ${key} failed:`, e);
+          console.warn(`[Preview] ${key} extraction failed:`, e);
+          return { key, text: '', success: false };
+        }
+      });
+
+      const results = await Promise.all(extractionPromises);
+      const extractionTime = Date.now() - startTime;
+      console.log(`[Preview] Parallel extraction completed in ${extractionTime}ms`);
+
+      // Combine results
+      let combinedText = '';
+      for (const result of results) {
+        if (result.text && result.text.length > 0) {
+          combinedText += `\n\n--- ${result.key.toUpperCase()} BUREAU ---\n\n` + result.text;
         }
       }
 
