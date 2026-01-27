@@ -2795,92 +2795,43 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           apiVersion: '2025-12-15.clover',
         });
         
-        // Get product pricing
-        const tierPrices = {
-          essential: 7999,  // $79.99/month
-          complete: 12999,  // $129.99/month
-        };
-        const amount = tierPrices[input.tier];
-        const productName = input.tier === 'essential' ? 'Essential Plan' : 'Complete Plan';
+        // Use pre-configured Price IDs (the working approach)
+        const { STRIPE_PRICE_IDS } = await import('./stripeSubscriptionService');
+        const priceId = STRIPE_PRICE_IDS[input.tier];
         
-        // Create or get customer
-        let customerId: string;
-        const existingCustomers = await stripe.customers.list({
-          email: ctx.user.email || undefined,
-          limit: 1,
-        });
+        if (!priceId) {
+          throw new Error(`Stripe Price ID not configured for tier: ${input.tier}`);
+        }
         
-        if (existingCustomers.data.length > 0) {
-          customerId = existingCustomers.data[0].id;
-        } else {
-          const customer = await stripe.customers.create({
-            email: ctx.user.email || undefined,
-            name: ctx.user.name || undefined,
-            metadata: {
-              user_id: ctx.user.id.toString(),
+        const origin = ctx.req?.headers?.origin || 'http://localhost:3001';
+        
+        // Use simple checkout session (the working approach from subscriptionService.ts)
+        const session = await stripe.checkout.sessions.create({
+          mode: 'subscription',
+          payment_method_types: ['card'],
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
             },
-          });
-          customerId = customer.id;
-        }
-        
-        // Create or get Stripe product first (required for subscriptions)
-        const products = await stripe.products.list({ limit: 100 });
-        let stripeProduct = products.data.find(p => p.name === productName);
-        
-        if (!stripeProduct) {
-          stripeProduct = await stripe.products.create({
-            name: productName,
-            description: `DisputeStrike ${productName}`,
-          });
-        }
-        
-        // Create or get price for this product
-        const stripePrices = await stripe.prices.list({ product: stripeProduct.id, limit: 100 });
-        let price = stripePrices.data.find(p => 
-          p.unit_amount === amount && 
-          p.recurring?.interval === 'month'
-        );
-        
-        if (!price) {
-          price = await stripe.prices.create({
-            product: stripeProduct.id,
-            currency: 'usd',
-            unit_amount: amount,
-            recurring: {
-              interval: 'month',
-            },
-          });
-        }
-        
-        // Create a subscription with payment_behavior: default_incomplete
-        // This allows us to collect payment via embedded checkout
-        const subscription = await stripe.subscriptions.create({
-          customer: customerId,
-          items: [{
-            price: price.id,
-          }],
-          payment_behavior: 'default_incomplete',
-          payment_settings: {
-            save_default_payment_method: 'on_subscription',
-          },
-          expand: ['latest_invoice.payment_intent'],
+          ],
+          success_url: `${origin}/dashboard?payment=success`,
+          cancel_url: `${origin}/checkout?tier=${input.tier}&payment=cancelled`,
+          customer_email: ctx.user.email || undefined,
+          client_reference_id: ctx.user.id.toString(),
           metadata: {
             user_id: ctx.user.id.toString(),
+            customer_email: ctx.user.email || '',
+            customer_name: ctx.user.name || '',
             tier: input.tier,
           },
+          allow_promotion_codes: true,
         });
         
-        const invoice = subscription.latest_invoice as any;
-        const paymentIntent = invoice?.payment_intent as any;
-        
-        if (!paymentIntent?.client_secret) {
-          throw new Error('Failed to create subscription payment intent');
-        }
-        
+        // Return checkout URL instead of clientSecret (redirect to Stripe)
         return {
-          subscriptionId: subscription.id,
-          clientSecret: paymentIntent.client_secret,
-          customerId,
+          checkoutUrl: session.url || '',
+          sessionId: session.id,
         };
       }),
 

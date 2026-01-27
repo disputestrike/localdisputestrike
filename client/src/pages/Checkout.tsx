@@ -212,8 +212,13 @@ export default function Checkout() {
 
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
     onSuccess: (data) => {
-      setClientSecret(data.clientSecret);
-      setIsLoading(false);
+      // Redirect to Stripe checkout (the working approach)
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        setInitError('Failed to get checkout URL. Please try again.');
+        setIsLoading(false);
+      }
     },
     onError: (err) => {
       setInitError(err.message || 'Failed to initialize checkout. Please try again.');
@@ -222,7 +227,7 @@ export default function Checkout() {
   });
 
   useEffect(() => {
-    // Create subscription intent on mount
+    // Create checkout session on mount and redirect
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
 
@@ -293,15 +298,12 @@ export default function Checkout() {
                   Try Again
                 </Button>
               </div>
-            ) : clientSecret ? (
-              <Elements stripe={stripePromise} options={stripeOptions}>
-                <CheckoutForm 
-                  plan={plan} 
-                  selectedTier={selectedTier}
-                  onSuccess={handleSuccess}
-                />
-              </Elements>
-            ) : null}
+            ) : (
+              <div className="text-center py-12">
+                <Loader2 className="w-12 h-12 animate-spin mx-auto text-orange-500 mb-4" />
+                <p className="text-gray-600 font-medium">Redirecting to secure checkout...</p>
+              </div>
+            )}
           </div>
 
           {/* Trust Badges */}
