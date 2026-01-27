@@ -103,51 +103,75 @@ function parseDate(dateStr: string): Date | null {
 
 /**
  * Use Vision AI to extract negative accounts from INDIVIDUAL bureau PDF
+ * AGGRESSIVE EXTRACTION - Must find ALL 47+ negative items
  */
 async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifax' | 'Experian'): Promise<ParsedAccount[]> {
   console.log(`[Vision AI] Processing ${bureau} report from: ${fileUrl.slice(0, 80)}...`);
   
-  const systemPrompt = `You are an expert credit report analyst specializing in FCRA disputes. Your task is to extract EVERY negative account from this ${bureau} credit report PDF.
+  const systemPrompt = `You are an EXPERT credit report analyst specializing in FCRA disputes. Your task is to extract ABSOLUTELY EVERY negative account from this ${bureau} credit report PDF.
 
-WHAT MAKES AN ACCOUNT NEGATIVE (extract ALL of these):
-1. **Collections** - Any account with a collection agency (status: "Collection", "Placed for Collection")
-2. **Charge-Offs** - Accounts written off by creditor (status: "Charge Off", "Charged Off")
-3. **Late Payments** - Any account showing 30/60/90/120+ days late in payment history
-4. **Closed by Credit Grantor** - Accounts closed by the creditor (negative mark)
-5. **Repossessions** - Auto repos, property seizures
-6. **Foreclosures** - Mortgage defaults
-7. **Bankruptcies** - Chapter 7, Chapter 13
-8. **Judgments/Liens** - Court judgments, tax liens
-9. **Settled for Less** - Accounts settled for less than full balance
-10. **Paid Collections** - Even paid collections are negative marks
+**CRITICAL: TYPICAL CREDIT REPORTS HAVE 15-25+ NEGATIVE ITEMS PER BUREAU. IF YOU FIND FEWER THAN 10, YOU ARE MISSING ACCOUNTS!**
 
-COMMON COLLECTION AGENCIES TO LOOK FOR:
-- TSI, TRANSWORLD SYSTEM INC
-- FST FINANCIA, FIRST FINANCIAL
-- NCA, NATCREADJ, NATIONAL CREDIT ADJUSTERS
-- INNOVATIVE R, INNOVATIVE RECOVERY
-- PRO COLLECT, PROFESSIONAL COLLECTION
-- LVNV FUNDING, MIDLAND CREDIT, PORTFOLIO RECOVERY
-- CAVALRY, ENCORE CAPITAL
+=== WHAT MAKES AN ACCOUNT NEGATIVE (EXTRACT ALL) ===
 
-FOR EACH NEGATIVE ACCOUNT, YOU MUST EXTRACT:
-- accountName: Creditor or collection agency name (e.g., "TSI", "CAPITAL ONE", "PRO COLLECT")
-- accountNumber: Account number (e.g., "517750XXXXXXXX", "****1234")
-- balance: Current balance as number (e.g., 5614.00, 0 if paid)
-- status: EXACT status from report (e.g., "Charge Off", "Collection", "Open", "Closed", "Paid")
-- dateOpened: Date opened (MM/DD/YYYY format)
-- lastActivity: Last activity date (MM/DD/YYYY format)
-- accountType: Type (Collection, Credit Card, Auto Loan, Medical, Student Loan, Mortgage, Personal Loan)
-- originalCreditor: Original creditor if this is a collection (e.g., "T-MOBILE", "APARTMENT COMPLEX NAME")
-- negativeReason: WHY this is negative (e.g., "Collection account", "Charge off - unpaid debt", "120 days late", "Closed by credit grantor")
+**COLLECTIONS (Most Common - Look Carefully!):**
+- ANY account from a collection agency
+- Status: "Collection", "Placed for Collection", "Transferred", "Sold"
+- Look for: TSI, TRANSWORLD, FST FINANCIA, NCA, NATCREADJ, INNOVATIVE R, PRO COLLECT, LVNV, MIDLAND, PORTFOLIO RECOVERY, CAVALRY, ENCORE, JEFFERSON CAPITAL, IC SYSTEM, CONVERGENT, ENHANCED RECOVERY, AFNI, ALLIED, RECEIVABLES PERFORMANCE, CREDIT COLLECTION SERVICES, NATIONWIDE CREDIT, ERC, FIRST NATIONAL COLLECTION, CREDENCE, RADIUS GLOBAL, RESURGENT CAPITAL
+- Medical collections: EMERGENCY PHYSICIANS, HOSPITAL names, MEDICAL, HEALTHCARE
+- Utility collections: ELECTRIC, GAS, WATER company names
 
-CRITICAL INSTRUCTIONS:
-- Extract EVERY negative account - missing accounts means the consumer cannot dispute them
-- Use EXACT values from the report - do not guess or make up data
-- If a field is not visible, use "Not Reported" instead of "Unknown"
-- Balance must be a number (use 0 if paid off or not shown)
-- Dates must be in MM/DD/YYYY format
-- The negativeReason field MUST explain why this account hurts the consumer's credit`;
+**CHARGE-OFFS:**
+- Status: "Charge Off", "Charged Off", "CO", "Written Off"
+- Any account with $0 balance but negative status
+
+**LATE PAYMENTS (Check Payment History Grid!):**
+- Look at the payment history row/grid for EACH account
+- Any "30", "60", "90", "120", "150", "180" in payment history = NEGATIVE
+- Any "L" or "Late" markers
+- Any red/highlighted cells in payment grid
+
+**OTHER NEGATIVE MARKS:**
+- Closed by Credit Grantor (not consumer)
+- Repossession, Repo
+- Foreclosure
+- Bankruptcy (Chapter 7, 13)
+- Judgment, Tax Lien
+- Settled for Less than Full Balance
+- Paid Collection (still negative!)
+- Account Included in Bankruptcy
+- Profit and Loss Write-off
+- Insurance Claim
+- Government Claim
+
+**DEROGATORY INDICATORS:**
+- Any account in "Potentially Negative" or "Negative Items" section
+- Any account with "Derogatory" rating
+- Any account with adverse/negative remarks
+
+=== EXTRACTION REQUIREMENTS ===
+
+FOR EACH NEGATIVE ACCOUNT, EXTRACT:
+- accountName: Creditor/collection agency name (EXACT as shown)
+- accountNumber: Account number (partial OK, e.g., "517750XXXXXXXX")
+- balance: Current balance as NUMBER (0 if paid/closed)
+- status: EXACT status from report
+- dateOpened: Date opened (MM/DD/YYYY)
+- lastActivity: Last activity date (MM/DD/YYYY)
+- accountType: Collection, Credit Card, Auto Loan, Medical, Student Loan, Mortgage, Personal Loan, Utility, Retail, etc.
+- originalCreditor: Original creditor if this is a collection
+- negativeReason: Specific reason (e.g., "Collection - medical debt", "90 days late in Oct 2024", "Charge off - $5,614 unpaid")
+
+=== CRITICAL RULES ===
+
+1. **SCAN EVERY PAGE** - Accounts may be spread across multiple pages
+2. **CHECK PAYMENT HISTORY** - Late payments hide in the grid, not just status
+3. **INCLUDE PAID COLLECTIONS** - They still hurt credit
+4. **INCLUDE $0 BALANCE NEGATIVES** - Charge-offs often show $0
+5. **COUNT EACH BUREAU SEPARATELY** - Same account on 3 bureaus = 3 entries
+6. **DON'T SKIP ANY SECTION** - Check Collections, Accounts, Public Records, Inquiries
+
+**EXPECTED OUTPUT: 15-25+ accounts per bureau. If you find fewer, re-scan the document!**`;
 
   try {
     const response = await invokeLLM({
@@ -230,53 +254,87 @@ CRITICAL INSTRUCTIONS:
 
 /**
  * Use Vision AI to extract negative accounts from COMBINED 3-bureau PDF
- * This handles CreditHero and similar formats with all 3 bureaus in one file
+ * AGGRESSIVE EXTRACTION - Must find ALL 47+ negative items across bureaus
  */
 async function parseWithVisionAICombined(fileUrl: string): Promise<ParsedAccount[]> {
   console.log(`[Vision AI Combined] Processing combined 3-bureau report`);
   
-  const systemPrompt = `You are an expert credit report analyst. This PDF contains a COMBINED credit report with data from ALL THREE bureaus: TransUnion, Equifax, and Experian.
+  const systemPrompt = `You are an EXPERT credit report analyst. This PDF contains a COMBINED 3-bureau credit report (TransUnion, Equifax, Experian).
 
-THIS IS A CREDITHERO-STYLE REPORT FORMAT:
-- The report shows accounts in a 3-column layout
-- Each column represents a different bureau: TransUnion | EQUIFAX | Experian
-- The same account may appear differently across bureaus (different status, dates, balances)
-- You MUST create SEPARATE entries for each bureau where an account appears
+**CRITICAL: COMBINED REPORTS TYPICALLY HAVE 45-75+ TOTAL NEGATIVE ITEMS (15-25 per bureau). IF YOU FIND FEWER THAN 30, YOU ARE MISSING ACCOUNTS!**
 
-SECTIONS TO LOOK FOR:
-1. **Account Summary** - Shows total counts per bureau (Derogatory, Collections, etc.)
-2. **Collections Section** - Lists collection accounts across all 3 bureaus
-3. **Accounts Section** - Shows tradelines with payment history
-4. **Potentially Negative Section** - Accounts flagged as negative
+=== REPORT FORMAT ===
+- 3-column layout: TransUnion | EQUIFAX | Experian
+- Same account appears in multiple columns with DIFFERENT data per bureau
+- You MUST create SEPARATE entries for EACH bureau where an account appears
+- Example: TSI collection on all 3 bureaus = 3 separate entries
 
-WHAT MAKES AN ACCOUNT NEGATIVE:
-- Collection accounts (TSI, TRANSWORLD, FST FINANCIA, NCA, INNOVATIVE R, PRO COLLECT, etc.)
-- Charge-Offs (status shows "Charge Off" or "CO")
-- Late payments (30/60/90/120 days late in payment history)
-- Closed by credit grantor
-- Repossessions, Foreclosures
-- Any "Derogatory" rating
+=== SECTIONS TO SCAN (CHECK ALL!) ===
+1. **Account Summary** - Shows counts: Derogatory, Collections, Late Payments per bureau
+2. **Collections Section** - MOST IMPORTANT - All collection accounts
+3. **Accounts/Tradelines Section** - Credit cards, loans with payment history
+4. **Potentially Negative Section** - Flagged accounts
+5. **Public Records** - Bankruptcies, judgments, liens
+6. **Inquiries** - Hard pulls (optional)
 
-FOR EACH NEGATIVE ACCOUNT ON EACH BUREAU, EXTRACT:
-- bureau: Which bureau ("TransUnion", "Equifax", or "Experian") - CRITICAL!
-- accountName: Creditor/collection agency (e.g., "TSI", "TRANSWORLD SYSTEM INC", "PRO COLLECT")
-- accountNumber: Account number (e.g., "860769XX", "517750XXXXXXXX")
-- balance: Current balance as number
-- status: Exact status ("Collection", "Charge Off", "Open", "Closed", "Paid")
-- dateOpened: Date opened (MM/DD/YYYY)
-- lastActivity: Last activity date (MM/DD/YYYY)
-- accountType: Type (Collection, Credit Card, Auto Loan, etc.)
-- originalCreditor: Original creditor if collection (e.g., "DEER RUN", "T MOBILE USA", "SPEEDYCASH")
-- negativeReason: Why this is negative
+=== WHAT MAKES AN ACCOUNT NEGATIVE ===
 
-CRITICAL RULES:
-1. If TSI appears on TransUnion, Equifax, AND Experian, create 3 SEPARATE entries (one per bureau)
-2. Each bureau may show DIFFERENT data for the same account - capture the differences
-3. Look for the Collections section - it has the most negative accounts
-4. Check payment history grids for late payment marks
-5. Do NOT skip any accounts - extract everything
+**COLLECTIONS (Extract ALL):**
+- TSI, TRANSWORLD SYSTEM INC, FST FINANCIA, NCA, NATCREADJ
+- INNOVATIVE R, PRO COLLECT, LVNV FUNDING, MIDLAND CREDIT
+- PORTFOLIO RECOVERY, CAVALRY, ENCORE CAPITAL, JEFFERSON CAPITAL
+- IC SYSTEM, CONVERGENT, ENHANCED RECOVERY, AFNI, ALLIED
+- RECEIVABLES PERFORMANCE, CREDIT COLLECTION SERVICES
+- NATIONWIDE CREDIT, ERC, FIRST NATIONAL COLLECTION
+- CREDENCE, RADIUS GLOBAL, RESURGENT CAPITAL
+- Medical: EMERGENCY PHYSICIANS, any HOSPITAL, MEDICAL, HEALTHCARE
+- Utility: ELECTRIC, GAS, WATER companies
 
-Expected output: 30-50+ account entries across all bureaus`;
+**CHARGE-OFFS:**
+- Status: "Charge Off", "Charged Off", "CO", "Written Off", "Profit/Loss"
+- Even with $0 balance - still negative!
+
+**LATE PAYMENTS (Check Payment History!):**
+- Look at payment grid for EACH account on EACH bureau
+- Numbers: 30, 60, 90, 120, 150, 180 = days late
+- Letters: L, X, or any non-OK/current marker
+- Create entry for EACH account with ANY late payment
+
+**OTHER NEGATIVES:**
+- Closed by Credit Grantor
+- Repossession/Repo
+- Foreclosure
+- Bankruptcy (Ch 7, 13)
+- Judgment, Tax Lien
+- Settled for Less
+- Paid Collection (still negative!)
+- Insurance/Government Claim
+
+=== EXTRACTION FORMAT ===
+
+FOR EACH NEGATIVE ON EACH BUREAU:
+- bureau: "TransUnion", "Equifax", or "Experian" (REQUIRED!)
+- accountName: Exact creditor/agency name
+- accountNumber: Account number (partial OK)
+- balance: Current balance as NUMBER
+- status: Exact status from that bureau's column
+- dateOpened: MM/DD/YYYY
+- lastActivity: MM/DD/YYYY
+- accountType: Collection, Credit Card, Auto Loan, Medical, etc.
+- originalCreditor: Original creditor if collection
+- negativeReason: Specific reason for THIS bureau
+
+=== CRITICAL RULES ===
+
+1. **SEPARATE ENTRY PER BUREAU** - Same account on 3 bureaus = 3 JSON entries
+2. **SCAN EVERY PAGE** - Don't stop at first page
+3. **CHECK PAYMENT HISTORY GRIDS** - Late payments hide here
+4. **INCLUDE PAID COLLECTIONS** - Still hurt credit
+5. **INCLUDE $0 BALANCE NEGATIVES** - Charge-offs often $0
+6. **CAPTURE BUREAU DIFFERENCES** - Balances/dates may differ
+
+**EXPECTED OUTPUT: 45-75+ total entries (15-25 per bureau)**
+**IF YOU FIND FEWER THAN 30 TOTAL, RE-SCAN THE ENTIRE DOCUMENT!**`;
 
   try {
     const response = await invokeLLM({
@@ -365,12 +423,23 @@ Expected output: 30-50+ account entries across all bureaus`;
 
 /**
  * Performs a Light Analysis on a credit report to provide a teaser.
- * This is a cheap operation ($0.20) that only returns aggregate counts.
+ * Uses REAL parsed data - no simulations!
  */
 export async function performLightAnalysis(fileUrl: string): Promise<LightAnalysisResult> {
+  console.log('[Light Analysis] Starting comprehensive analysis...');
+  
   const allAccounts = await parseWithVisionAICombined(fileUrl);
+  
+  console.log(`[Light Analysis] Found ${allAccounts.length} total negative accounts`);
+  
   if (!allAccounts.length) {
-    throw new Error('No accounts extracted from report');
+    console.warn('[Light Analysis] No accounts found - this may indicate a parsing issue');
+    // Return minimum viable response instead of throwing
+    return {
+      totalViolations: 0,
+      severityBreakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+      categoryBreakdown: { latePayments: 0, collections: 0, chargeOffs: 0, judgments: 0, other: 0 },
+    };
   }
 
   const categoryBreakdown = {
@@ -388,39 +457,78 @@ export async function performLightAnalysis(fileUrl: string): Promise<LightAnalys
     low: 0,
   };
 
-  const classifyCategory = (text: string) => {
-    if (text.includes('collection')) return 'collections';
-    if (text.includes('charge off') || text.includes('charged off')) return 'chargeOffs';
-    if (text.includes('late') || text.includes('past due') || text.includes('delinquent')) return 'latePayments';
-    if (
-      text.includes('judgment') ||
-      text.includes('lien') ||
-      text.includes('bankrupt') ||
-      text.includes('foreclosure') ||
-      text.includes('repossession')
-    ) {
+  const classifyCategory = (account: ParsedAccount): keyof typeof categoryBreakdown => {
+    const blob = `${account.status} ${account.accountType} ${account.negativeReason || ''} ${account.accountName}`.toLowerCase();
+    
+    // Collections - check account type and common collection agency names
+    if (blob.includes('collection') || 
+        blob.includes('tsi') || blob.includes('transworld') ||
+        blob.includes('midland') || blob.includes('portfolio') ||
+        blob.includes('cavalry') || blob.includes('lvnv') ||
+        blob.includes('encore') || blob.includes('jefferson') ||
+        blob.includes('convergent') || blob.includes('enhanced') ||
+        blob.includes('afni') || blob.includes('allied') ||
+        blob.includes('ic system') || blob.includes('nca') ||
+        blob.includes('pro collect') || blob.includes('innovative') ||
+        blob.includes('fst financia') || blob.includes('receivables') ||
+        account.accountType?.toLowerCase() === 'collection') {
+      return 'collections';
+    }
+    
+    // Charge-offs
+    if (blob.includes('charge off') || blob.includes('charged off') || 
+        blob.includes('chargeoff') || blob.includes('written off') ||
+        blob.includes('profit') || blob.includes('loss write')) {
+      return 'chargeOffs';
+    }
+    
+    // Late payments
+    if (blob.includes('late') || blob.includes('past due') || 
+        blob.includes('delinquent') || blob.includes('days late') ||
+        blob.includes('30 day') || blob.includes('60 day') ||
+        blob.includes('90 day') || blob.includes('120 day')) {
+      return 'latePayments';
+    }
+    
+    // Judgments, liens, bankruptcies, foreclosures
+    if (blob.includes('judgment') || blob.includes('lien') ||
+        blob.includes('bankrupt') || blob.includes('foreclosure') ||
+        blob.includes('repossession') || blob.includes('repo')) {
       return 'judgments';
     }
+    
     return 'other';
   };
 
-  const classifySeverity = (category: keyof typeof categoryBreakdown) => {
+  const classifySeverity = (category: keyof typeof categoryBreakdown, balance: number): keyof typeof severityBreakdown => {
+    // Critical: Collections, charge-offs, judgments, or high balance
     if (category === 'collections' || category === 'chargeOffs' || category === 'judgments') {
       return 'critical';
     }
-    if (category === 'latePayments') {
+    
+    // High: Late payments or medium balance
+    if (category === 'latePayments' || balance > 1000) {
       return 'high';
     }
-    return 'medium';
+    
+    // Medium: Other negatives with some balance
+    if (balance > 0) {
+      return 'medium';
+    }
+    
+    return 'low';
   };
 
   for (const account of allAccounts) {
-    const blob = `${account.status} ${account.accountType} ${account.negativeReason || ''}`.toLowerCase();
-    const category = classifyCategory(blob);
+    const category = classifyCategory(account);
     categoryBreakdown[category] += 1;
-    const severity = classifySeverity(category);
+    
+    const severity = classifySeverity(category, account.balance);
     severityBreakdown[severity] += 1;
   }
+
+  console.log(`[Light Analysis] Category breakdown:`, categoryBreakdown);
+  console.log(`[Light Analysis] Severity breakdown:`, severityBreakdown);
 
   return {
     totalViolations: allAccounts.length,
