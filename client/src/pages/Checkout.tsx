@@ -212,21 +212,26 @@ export default function Checkout() {
 
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
     onSuccess: (data) => {
+      console.log('[Checkout] Success response:', data);
       // Redirect to Stripe checkout (the working approach)
-      if (data.checkoutUrl) {
+      if (data?.checkoutUrl) {
+        console.log('[Checkout] Redirecting to:', data.checkoutUrl);
         window.location.href = data.checkoutUrl;
       } else {
+        console.error('[Checkout] No checkoutUrl in response:', data);
         setInitError('Failed to get checkout URL. Please try again.');
         setIsLoading(false);
       }
     },
     onError: (err) => {
+      console.error('[Checkout] Error:', err);
       setInitError(err.message || 'Failed to initialize checkout. Please try again.');
       setIsLoading(false);
     }
   });
 
   useEffect(() => {
+    console.log('[Checkout] Creating checkout session for tier:', selectedTier);
     // Create checkout session on mount and redirect
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
