@@ -268,7 +268,7 @@ export default function Checkout() {
 
       <div className="container mx-auto px-4 py-12 max-w-2xl">
         <div className="space-y-8">
-          <h1 className="text-3xl font-black text-center text-gray-900">Complete Your Upgrade</h1>
+          <h1 className="text-3xl font-black text-center text-gray-900">Complete Your Checkout</h1>
           
           {/* Main Card */}
           <div className="bg-white p-8 rounded-xl border-2 border-gray-300 shadow-lg">

@@ -289,7 +289,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
                 onClick={() => handleUpgrade('essential')}
               >
                 <div className="text-center">
-                  <div>Upgrade to Essential ($79.99/mo)</div>
+                  <div>Choose Essential ($79.99/mo)</div>
                   <div className="text-xs font-normal opacity-90">Print & mail letters yourself.</div>
                 </div>
               </Button>
@@ -298,7 +298,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
                 onClick={() => handleUpgrade('complete')}
               >
                 <div className="text-center">
-                  <div>Upgrade to Complete ($129.99/mo)</div>
+                  <div>Choose Complete ($129.99/mo)</div>
                   <div className="text-xs font-normal opacity-90">We mail for you (5/month included).</div>
                 </div>
               </Button>
@@ -310,7 +310,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
         <Card className="border-2 border-gray-300 shadow-md">
           <CardHeader className="border-b-2 border-gray-200 pb-4">
             <CardTitle className="text-lg font-bold text-gray-900">Accounts Found (Partial Preview)</CardTitle>
-            <p className="text-sm text-gray-600">Below is a sample of accounts we found. Upgrade to see all {totalViolations} accounts and generate dispute letters.</p>
+            <p className="text-sm text-gray-600">Below is a sample of accounts we found. Choose a plan to see all {totalViolations} accounts and generate dispute letters.</p>
           </CardHeader>
           <CardContent className="p-0">
             {/* Show first 2 REAL accounts from analysis */}
@@ -344,7 +344,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
             {/* More accounts locked */}
             <div className="p-6 text-center bg-gray-50 border-t-2 border-gray-200">
               <p className="text-sm text-blue-600 font-semibold">+ {Math.max(0, totalViolations - 2)} more accounts found</p>
-              <p className="text-xs text-gray-500 mt-1">Upgrade to see all accounts and generate dispute letters.</p>
+              <p className="text-xs text-gray-500 mt-1">Choose a plan to see all accounts and generate dispute letters.</p>
             </div>
           </CardContent>
         </Card>

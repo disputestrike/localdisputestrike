@@ -2705,10 +2705,45 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         
         const origin = ctx.req.headers.origin || 'http://localhost:3001';
         
-        // Create Stripe checkout session
-        const session = await stripe.checkout.sessions.create({
-          mode: input.tier.includes('subscription') ? 'subscription' : 'payment',
-          line_items: [
+        // For subscriptions, we need to create/get product first, then use product ID
+        // For one-time payments, we can use product_data
+        const isSubscription = input.tier.includes('subscription');
+        let lineItems: any[];
+        
+        if (isSubscription) {
+          // Create or get Stripe product
+          const products = await stripe.products.list({ limit: 100 });
+          let stripeProduct = products.data.find(p => p.name === product.name);
+          
+          if (!stripeProduct) {
+            stripeProduct = await stripe.products.create({
+              name: product.name,
+              description: product.description,
+            });
+          }
+          
+          // Create price for this product
+          const prices = await stripe.prices.list({ product: stripeProduct.id, limit: 1 });
+          let price = prices.data.find(p => 
+            p.unit_amount === product.price && 
+            p.recurring?.interval === (input.tier === 'subscription_monthly' ? 'month' : 'year')
+          );
+          
+          if (!price) {
+            price = await stripe.prices.create({
+              product: stripeProduct.id,
+              currency: 'usd',
+              unit_amount: product.price,
+              recurring: {
+                interval: input.tier === 'subscription_monthly' ? 'month' : 'year',
+              },
+            });
+          }
+          
+          lineItems = [{ price: price.id, quantity: 1 }];
+        } else {
+          // One-time payment - can use product_data
+          lineItems = [
             {
               price_data: {
                 currency: 'usd',
@@ -2717,15 +2752,16 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
                   description: product.description,
                 },
                 unit_amount: product.price,
-                ...(input.tier.includes('subscription') && {
-                  recurring: {
-                    interval: input.tier === 'subscription_monthly' ? 'month' : 'year',
-                  },
-                }),
               },
               quantity: 1,
             },
-          ],
+          ];
+        }
+        
+        // Create Stripe checkout session
+        const session = await stripe.checkout.sessions.create({
+          mode: isSubscription ? 'subscription' : 'payment',
+          line_items: lineItems,
           success_url: `${origin}/dashboard?payment=success`,
           cancel_url: `${origin}/pricing?payment=cancelled`,
           customer_email: ctx.user.email || undefined,
