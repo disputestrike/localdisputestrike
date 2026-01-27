@@ -2842,21 +2842,32 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         });
         
         console.log('[Checkout] Subscription created:', subscription.id);
-        console.log('[Checkout] Latest invoice:', subscription.latest_invoice);
+        console.log('[Checkout] Latest invoice type:', typeof subscription.latest_invoice);
+        console.log('[Checkout] Latest invoice:', JSON.stringify(subscription.latest_invoice, null, 2));
         
-        // Get invoice and payment intent
-        const invoiceId = subscription.latest_invoice;
-        if (!invoiceId || typeof invoiceId !== 'string') {
-          console.error('[Checkout] No invoice ID in subscription');
-          throw new Error('Failed to create subscription invoice');
+        // Handle latest_invoice - it might be a string ID or an expanded Invoice object
+        let invoice: Stripe.Invoice;
+        if (typeof subscription.latest_invoice === 'string') {
+          // It's a string ID, retrieve it
+          invoice = await stripe.invoices.retrieve(subscription.latest_invoice, {
+            expand: ['payment_intent'],
+          });
+        } else if (subscription.latest_invoice && typeof subscription.latest_invoice === 'object') {
+          // It's already expanded
+          invoice = subscription.latest_invoice as Stripe.Invoice;
+          // Ensure payment_intent is expanded
+          if (typeof invoice.payment_intent === 'string') {
+            invoice = await stripe.invoices.retrieve(invoice.id, {
+              expand: ['payment_intent'],
+            });
+          }
+        } else {
+          console.error('[Checkout] No invoice in subscription:', subscription.latest_invoice);
+          throw new Error('Failed to create subscription invoice - no invoice found');
         }
         
-        // Retrieve invoice with expanded payment_intent
-        const invoice = await stripe.invoices.retrieve(invoiceId, {
-          expand: ['payment_intent'],
-        });
-        
-        console.log('[Checkout] Invoice retrieved:', invoice.id);
+        console.log('[Checkout] Invoice ID:', invoice.id);
+        console.log('[Checkout] Payment intent type:', typeof invoice.payment_intent);
         console.log('[Checkout] Payment intent:', invoice.payment_intent);
         
         const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
@@ -2871,7 +2882,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
         if (typeof paymentIntent === 'string') {
           console.log('[Checkout] Payment intent is string ID, retrieving...');
           const pi = await stripe.paymentIntents.retrieve(paymentIntent);
-          clientSecret = pi.client_secret;
+          clientSecret = pi.client_secret || '';
         } else {
           clientSecret = paymentIntent.client_secret || '';
         }
