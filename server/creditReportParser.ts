@@ -110,7 +110,7 @@ async function parseWithVisionAI(fileUrl: string, bureau: 'TransUnion' | 'Equifa
   
   const systemPrompt = `You are an EXPERT credit report analyst specializing in FCRA disputes. Your task is to extract ABSOLUTELY EVERY negative account from this ${bureau} credit report PDF.
 
-**CRITICAL: TYPICAL CREDIT REPORTS HAVE 15-25+ NEGATIVE ITEMS PER BUREAU. IF YOU FIND FEWER THAN 10, YOU ARE MISSING ACCOUNTS!**
+**CRITICAL: YOU MUST EXTRACT EVERY SINGLE NEGATIVE ITEM - NO LIMIT! Some reports have 50, 75, even 100+ negative items. Extract them ALL!**
 
 === WHAT MAKES AN ACCOUNT NEGATIVE (EXTRACT ALL) ===
 
@@ -171,7 +171,8 @@ FOR EACH NEGATIVE ACCOUNT, EXTRACT:
 5. **COUNT EACH BUREAU SEPARATELY** - Same account on 3 bureaus = 3 entries
 6. **DON'T SKIP ANY SECTION** - Check Collections, Accounts, Public Records, Inquiries
 
-**EXPECTED OUTPUT: 15-25+ accounts per bureau. If you find fewer, re-scan the document!**`;
+**THERE IS NO LIMIT - EXTRACT EVERY NEGATIVE ACCOUNT YOU FIND!**
+**If you find 10, extract 10. If you find 100, extract 100. Miss NOTHING!**`;
 
   try {
     const response = await invokeLLM({
@@ -261,7 +262,7 @@ async function parseWithVisionAICombined(fileUrl: string): Promise<ParsedAccount
   
   const systemPrompt = `You are an EXPERT credit report analyst. This PDF contains a COMBINED 3-bureau credit report (TransUnion, Equifax, Experian).
 
-**CRITICAL: COMBINED REPORTS TYPICALLY HAVE 45-75+ TOTAL NEGATIVE ITEMS (15-25 per bureau). IF YOU FIND FEWER THAN 30, YOU ARE MISSING ACCOUNTS!**
+**CRITICAL: EXTRACT EVERY SINGLE NEGATIVE ITEM - NO LIMIT! Combined reports can have 50, 100, even 150+ items. Extract them ALL across all 3 bureaus!**
 
 === REPORT FORMAT ===
 - 3-column layout: TransUnion | EQUIFAX | Experian
@@ -333,8 +334,9 @@ FOR EACH NEGATIVE ON EACH BUREAU:
 5. **INCLUDE $0 BALANCE NEGATIVES** - Charge-offs often $0
 6. **CAPTURE BUREAU DIFFERENCES** - Balances/dates may differ
 
-**EXPECTED OUTPUT: 45-75+ total entries (15-25 per bureau)**
-**IF YOU FIND FEWER THAN 30 TOTAL, RE-SCAN THE ENTIRE DOCUMENT!**`;
+**THERE IS NO LIMIT - EXTRACT EVERY NEGATIVE ACCOUNT FROM ALL 3 BUREAUS!**
+**If you find 30, extract 30. If you find 150, extract 150. Miss NOTHING!**
+**Each account on each bureau = separate entry. Be EXHAUSTIVE!**`;
 
   try {
     const response = await invokeLLM({
