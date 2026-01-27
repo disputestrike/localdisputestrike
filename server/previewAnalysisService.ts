@@ -392,7 +392,7 @@ function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisR
     ? Math.max(300, Math.min(850, Math.round(result.creditScore)))
     : undefined;
   return {
-    totalViolations: Math.max(0, Math.min(200, result.totalViolations || 0)),
+    totalViolations: Math.max(0, result.totalViolations || 0), // NO CAP - show real count
     deletionPotential: Math.max(0, Math.min(100, result.deletionPotential || 50)),
     categories: {
       latePayments: Math.max(0, result.categories?.latePayments || 0),
