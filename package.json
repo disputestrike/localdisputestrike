@@ -12,6 +12,10 @@
     "test": "vitest run",
     "db:push": "drizzle-kit generate && drizzle-kit migrate",
     "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:repair": "tsx scripts/repair-migrations.ts",
+    "db:sync": "tsx scripts/sync-schema.ts",
+    "db:setup": "pnpm db:repair && pnpm db:migrate && pnpm db:sync && pnpm db:seed",
     "test:local": "node scripts/test-local.mjs"
   },
   "dependencies": {

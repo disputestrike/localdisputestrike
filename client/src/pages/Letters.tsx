@@ -11,14 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import DashboardLayout from '@/components/DashboardLayout';
 import { Link } from "wouter";
 import { format } from "date-fns";
+import { useState } from "react";
 
 export default function Letters() {
   const { data: disputeLetters = [], isLoading: lettersLoading } = trpc.disputeLetters.list.useQuery();
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
   const downloadPdfMutation = trpc.disputeLetters.downloadPdf.useMutation();
+  const updateTrackingMutation = trpc.disputeLetters.updateTrackingNumber.useMutation();
+  const utils = trpc.useContext();
+  const [trackingInputs, setTrackingInputs] = useState<Record<number, string>>({});
+  const [savingTrackingId, setSavingTrackingId] = useState<number | null>(null);
 
   const handleDownload = async (letterId: number) => {
     try {
@@ -41,7 +47,29 @@ export default function Letters() {
     }
   };
 
+  const handleSaveTracking = async (letterId: number) => {
+    const value = (trackingInputs[letterId] || "").trim();
+    if (!value) return;
+    setSavingTrackingId(letterId);
+    try {
+      await updateTrackingMutation.mutateAsync({ id: letterId, trackingNumber: value });
+      await utils.disputeLetters.list.invalidate();
+      setTrackingInputs((prev) => ({ ...prev, [letterId]: "" }));
+    } catch (error) {
+      console.error("Failed to save tracking number", error);
+    } finally {
+      setSavingTrackingId(null);
+    }
+  };
+
   const isLoading = lettersLoading || reportsLoading;
+  const statusLabels: Record<string, string> = {
+    generated: "Generated",
+    downloaded: "Downloaded",
+    mailed: "Mailed",
+    response_received: "Response received",
+    resolved: "Resolved",
+  };
 
   if (isLoading) {
     return (
@@ -98,11 +126,50 @@ export default function Letters() {
                       <Mail className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="space-y-1">
-                      <p className="font-black text-gray-900">Round {letter.roundNumber} - {letter.bureau}</p>
+                      <p className="font-black text-gray-900">Round {letter.round} - {letter.bureau}</p>
                       <div className="flex items-center gap-3 text-xs">
-                        <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300 font-bold">{letter.type}</Badge>
+                        <Badge className="bg-blue-100 text-blue-800 border-2 border-blue-300 font-bold">{letter.letterType}</Badge>
+                        <Badge className="bg-gray-100 text-gray-700 border-2 border-gray-300 font-bold">
+                          {statusLabels[letter.status] || letter.status}
+                        </Badge>
                         <span className="text-gray-600 font-medium">Generated: {format(new Date(letter.createdAt), 'MMM dd, yyyy')}</span>
                       </div>
+                      {letter.trackingNumber ? (
+                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                          <span>Tracking: {letter.trackingNumber}</span>
+                          <a
+                            href={`https://tools.usps.com/go/TrackConfirmAction?tLabels=${letter.trackingNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline font-medium"
+                          >
+                            Track
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 pt-1">
+                          <Input
+                            className="h-8 w-56 text-xs"
+                            placeholder="Enter USPS tracking number"
+                            value={trackingInputs[letter.id] ?? ""}
+                            onChange={(e) =>
+                              setTrackingInputs((prev) => ({
+                                ...prev,
+                                [letter.id]: e.target.value,
+                              }))
+                            }
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs font-bold"
+                            onClick={() => handleSaveTracking(letter.id)}
+                            disabled={savingTrackingId === letter.id || !trackingInputs[letter.id]}
+                          >
+                            {savingTrackingId === letter.id ? "Saving..." : "Save Tracking"}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

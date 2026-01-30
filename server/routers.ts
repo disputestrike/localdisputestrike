@@ -1667,6 +1667,42 @@ Be thorough and list every negative item found.`;
           fileName: `DisputeLetter_${letter.bureau}_${letter.id}.pdf`,
         };
       }),
+    updateTrackingNumber: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        trackingNumber: z.string().trim().min(5).max(100),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const letter = await db.getDisputeLetterById(input.id);
+        if (!letter || letter.userId !== ctx.user.id) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Letter not found' });
+        }
+
+        const sanitizedTracking = input.trackingNumber.replace(/\s+/g, "");
+        if (!/^[A-Za-z0-9]+$/.test(sanitizedTracking)) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Tracking number must be alphanumeric' });
+        }
+
+        const mailedAt = letter.mailedAt ?? new Date();
+        const responseDeadline = letter.responseDeadline ?? new Date(mailedAt.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const status = letter.status === 'response_received' || letter.status === 'resolved'
+          ? letter.status
+          : 'mailed';
+
+        await db.updateDisputeLetterStatus(letter.id, status, {
+          mailedAt,
+          trackingNumber: sanitizedTracking,
+          responseDeadline,
+        });
+
+        return {
+          id: letter.id,
+          trackingNumber: sanitizedTracking,
+          mailedAt,
+          responseDeadline,
+          status,
+        };
+      }),
     /**
      * Generate dispute letters (placeholder - will implement AI generation later)
      */
@@ -3583,12 +3619,12 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         const { getDb } = await import('./db');
         const dbInstance = await getDb();
         if (dbInstance) {
-          const { users } = await import('../drizzle/schema');
+          const { userProfiles } = await import('../drizzle/schema');
           const { eq } = await import('drizzle-orm');
           await dbInstance
-            .update(users)
+            .update(userProfiles)
             .set({ isComplete: true, completedAt: new Date() })
-            .where(eq(users.id, ctx.user.id));
+            .where(eq(userProfiles.userId, ctx.user.id));
         }
         
         // Log activity

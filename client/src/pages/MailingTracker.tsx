@@ -14,13 +14,6 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
-// Mock data for table if no real data is available
-const MOCK_MAILING_DATA = [
-  { id: 1, bureau: 'TransUnion', trackingNumber: '9400109699939000000000', mailedDate: '2024-05-15', status: 'Delivered', deliveredDate: '2024-05-18' },
-  { id: 2, bureau: 'Equifax', trackingNumber: '9400109699939000000001', mailedDate: '2024-05-15', status: 'In Transit', deliveredDate: null },
-  { id: 3, bureau: 'Experian', trackingNumber: '9400109699939000000002', mailedDate: '2024-05-15', status: 'Processing', deliveredDate: null },
-];
-
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'Delivered':
@@ -29,16 +22,37 @@ const getStatusBadge = (status: string) => {
       return <Badge variant="secondary" className="bg-blue-500 hover:bg-blue-500">In Transit</Badge>;
     case 'Processing':
       return <Badge variant="outline" className="text-gray-500 border-gray-500">Processing</Badge>;
+    case 'Failed':
+      return <Badge variant="destructive">Failed</Badge>;
     default:
-      return <Badge variant="destructive">Unknown</Badge>;
+      return <Badge variant="outline" className="text-gray-600 border-gray-400">Unknown</Badge>;
   }
 };
 
+const getStatusLabel = (letter: any) => {
+  if (letter.lobMailingStatus) {
+    const map: Record<string, string> = {
+      pending: 'Processing',
+      processing: 'Processing',
+      printed: 'Processing',
+      mailed: 'In Transit',
+      in_transit: 'In Transit',
+      delivered: 'Delivered',
+      returned: 'Failed',
+      failed: 'Failed',
+    };
+    return map[letter.lobMailingStatus] || 'Processing';
+  }
+
+  if (letter.status === 'mailed') return 'In Transit';
+  if (letter.status === 'response_received') return 'Delivered';
+  if (letter.status === 'resolved') return 'Delivered';
+  return 'Processing';
+};
+
 export default function MailingTracker() {
-  // Fetch mailing data (this endpoint will need to be implemented on the server)
-  // const { data: mailingData = [], isLoading } = trpc.mailing.list.useQuery();
-  const isLoading = false;
-  const mailingData = MOCK_MAILING_DATA;
+  const { data: disputeLetters = [], isLoading } = trpc.disputeLetters.list.useQuery();
+  const mailingData = disputeLetters.filter((letter) => letter.trackingNumber || letter.status === 'mailed' || letter.lobMailingStatus);
 
   return (
     <DashboardLayout>
@@ -78,21 +92,25 @@ export default function MailingTracker() {
                     {mailingData.map((mail) => (
                       <TableRow key={mail.id}>
                         <TableCell className="font-medium">{mail.bureau}</TableCell>
-                        <TableCell>{mail.trackingNumber}</TableCell>
-                        <TableCell>{format(new Date(mail.mailedDate), 'MMM dd, yyyy')}</TableCell>
-                        <TableCell>{getStatusBadge(mail.status)}</TableCell>
+                        <TableCell>{mail.trackingNumber || '—'}</TableCell>
+                        <TableCell>{mail.mailedAt ? format(new Date(mail.mailedAt), 'MMM dd, yyyy') : '—'}</TableCell>
+                        <TableCell>{getStatusBadge(getStatusLabel(mail))}</TableCell>
                         <TableCell>
-                          {mail.deliveredDate ? format(new Date(mail.deliveredDate), 'MMM dd, yyyy') : 'N/A'}
+                          {mail.responseReceivedAt ? format(new Date(mail.responseReceivedAt), 'MMM dd, yyyy') : 'N/A'}
                         </TableCell>
                         <TableCell>
-                          <a 
-                            href={`https://tools.usps.com/go/TrackConfirmAction?tLabels=${mail.trackingNumber}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline text-sm flex items-center gap-1"
-                          >
-                            Track <Truck className="h-3 w-3" />
-                          </a>
+                          {mail.trackingNumber ? (
+                            <a 
+                              href={`https://tools.usps.com/go/TrackConfirmAction?tLabels=${mail.trackingNumber}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:underline text-sm flex items-center gap-1"
+                            >
+                              Track <Truck className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-gray-400">Tracking pending</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

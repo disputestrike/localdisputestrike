@@ -140,11 +140,21 @@ export default function Dashboard() {
     }
   };
 
-  const submitGenerateLetters = async () => {
+  const submitGenerateLetters = async (override?: { currentAddress?: string; previousAddress?: string }) => {
     setIsGeneratingLetters(true);
     try {
+      const currentAddress = override?.currentAddress ?? userProfile?.currentAddress;
+      if (!currentAddress) {
+        toast.error("Please complete your profile with a current mailing address.");
+        setIsGeneratingLetters(false);
+        return;
+      }
+      const previousAddress = override?.previousAddress ?? userProfile?.previousAddress;
+
       await generateLettersMutation.mutateAsync({
         bureaus: ['transunion', 'equifax', 'experian'],
+        currentAddress,
+        previousAddress: previousAddress || undefined,
       });
       toast.success('Letters generated successfully!');
       refetchLetters();
@@ -158,7 +168,10 @@ export default function Dashboard() {
   const handleIdentityBridgeComplete = async (data: any) => {
     await completeIdentityBridgeMutation.mutateAsync(data);
     setShowIdentityBridgeModal(false);
-    submitGenerateLetters();
+    submitGenerateLetters({
+      currentAddress: data?.currentAddress,
+      previousAddress: data?.previousAddress,
+    });
   };
 
   // Manual save function for debugging

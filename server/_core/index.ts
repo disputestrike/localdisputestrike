@@ -12,6 +12,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic } from "./vite";
 import { startAllCronJobs } from "../cronJobs";
+import { getDb } from "../db";
 
 async function startServer() {
   const app = express();
@@ -281,6 +282,12 @@ async function startServer() {
   const port = isDev
     ? 3001
     : parseInt(process.env.PORT || "3001", 10);
+
+  const db = await getDb();
+  if (!db) {
+    console.error("[Database] Database connection not available. Check DATABASE_URL and network access.");
+    process.exit(1);
+  }
 
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err?.code === 'EADDRINUSE') {
