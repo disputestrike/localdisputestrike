@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from '@/components/DashboardLayout';
 import { Link } from "wouter";
+import { useGenerateDisputeLetters, type BureauCode } from "@/hooks/useGenerateDisputeLetters";
 
 // Interfaces copied from MyLiveReport.tsx / CreditAnalysis.tsx
 interface NegativeItem {
@@ -21,6 +22,7 @@ interface NegativeItem {
   accountType: string;
   balance: number;
   bureau: string;
+  bureauCodes: BureauCode[];
   status: string;
   dateOpened?: string;
   lastActivity?: string;
@@ -37,9 +39,21 @@ const BUREAU_LABELS: Record<string, string> = {
 };
 
 const MAX_ITEMS_PER_ROUND = 5;
+const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
+
+const normalizeBureauCode = (value: string): BureauCode | null => {
+  const key = value.trim().toLowerCase();
+  if (!key) return null;
+  if (key === "trans union") return "transunion";
+  if (key === "transunion") return "transunion";
+  if (key === "equifax") return "equifax";
+  if (key === "experian") return "experian";
+  return null;
+};
 
 export default function DisputeManager() {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const { generateLetters, isGenerating } = useGenerateDisputeLetters();
 
   const { data: negativeAccounts = [], isLoading: accountsLoading } = trpc.negativeAccounts.list.useQuery();
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
@@ -48,17 +62,24 @@ export default function DisputeManager() {
     return negativeAccounts.map((a) => {
       const bal = typeof a.balance === "string" ? parseFloat(a.balance) || 0 : Number(a.balance) || 0;
       const hasConflicts = !!a.hasConflicts;
-      const bureauLabel = (a.bureau || "")
+      const bureauValues = (a.bureau || "")
         .split(/[,/]/)
-        .map((b) => BUREAU_LABELS[b.trim().toLowerCase()] || b.trim())
+        .map((b) => b.trim())
+        .filter(Boolean);
+      const bureauLabel = bureauValues
+        .map((b) => BUREAU_LABELS[b.toLowerCase()] || b)
         .filter(Boolean)
         .join(", ") || "—";
+      const bureauCodes = bureauValues
+        .map(normalizeBureauCode)
+        .filter((b): b is BureauCode => Boolean(b));
       return {
         id: a.id,
         accountName: a.accountName || "Unknown",
         accountType: a.accountType || "Unknown",
         balance: bal,
         bureau: bureauLabel || "—",
+        bureauCodes,
         status: a.status || "—",
         dateOpened: a.dateOpened ?? undefined,
         lastActivity: a.lastActivity ?? undefined,
@@ -88,6 +109,24 @@ export default function DisputeManager() {
       }
       return [...prev, itemId];
     });
+  };
+
+  const selectedBureaus = useMemo(() => {
+    const bureaus = new Set<BureauCode>();
+    for (const item of negativeItems) {
+      if (selectedItems.includes(item.id)) {
+        item.bureauCodes.forEach((code) => bureaus.add(code));
+      }
+    }
+    return Array.from(bureaus);
+  }, [negativeItems, selectedItems]);
+
+  const handleGenerateLetters = async () => {
+    const bureaus = selectedBureaus.length ? selectedBureaus : ALL_BUREAUS;
+    const success = await generateLetters({ accountIds: selectedItems, bureaus });
+    if (success) {
+      setSelectedItems([]);
+    }
   };
 
   if (isLoading) {
@@ -141,7 +180,7 @@ export default function DisputeManager() {
           <CardContent className="space-y-4 pt-6">
             <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
               <p className="font-black text-sm text-blue-800">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
-              <Button disabled={selectedItems.length === 0} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
+              <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
                 Generate Letters ({selectedItems.length})
               </Button>
             </div>

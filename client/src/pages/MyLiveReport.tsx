@@ -17,13 +17,14 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, safeJsonParse } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import DashboardLayout from '@/components/DashboardLayout';
 import { CONSUMER_PRICE_LABELS } from "@/lib/pricing";
+import { useGenerateDisputeLetters, type BureauCode } from "@/hooks/useGenerateDisputeLetters";
 
 // Interfaces copied from CreditAnalysis.tsx
 interface CreditScore {
@@ -38,6 +39,7 @@ interface NegativeItem {
   accountType: string;
   balance: number;
   bureau: string;
+  bureauCodes: BureauCode[];
   status: string;
   dateOpened?: string;
   lastActivity?: string;
@@ -51,6 +53,7 @@ interface AnalysisData {
   scores: CreditScore[];
   negativeItems: NegativeItem[];
   totalNegativeItems: number;
+  totalViolations: number;
   estimatedScoreIncrease: number;
   estimatedInterestSavings: number;
   trialEndsAt: string;
@@ -64,6 +67,17 @@ const BUREAU_LABELS: Record<string, string> = {
 };
 
 const MAX_ITEMS_PER_ROUND = 5;
+const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
+
+const normalizeBureauCode = (value: string): BureauCode | null => {
+  const key = value.trim().toLowerCase();
+  if (!key) return null;
+  if (key === "trans union") return "transunion";
+  if (key === "transunion") return "transunion";
+  if (key === "equifax") return "equifax";
+  if (key === "experian") return "experian";
+  return null;
+};
 
 const getScoreColor = (score: number) => {
   if (score >= 740) return 'text-green-600';
@@ -89,6 +103,7 @@ const getScoreBgColor = (score: number) => {
 export default function MyLiveReport() {
   const [, setLocation] = useLocation();
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const { generateLetters, isGenerating } = useGenerateDisputeLetters();
 
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
   const { data: negativeAccounts = [], isLoading: accountsLoading } = trpc.negativeAccounts.list.useQuery();
@@ -108,24 +123,36 @@ export default function MyLiveReport() {
     for (const r of creditReports) {
       const label = BUREAU_LABELS[r.bureau] || r.bureau;
       const existing = byBureau[label];
-      if (existing && r.creditScore != null) {
-        existing.score = r.creditScore;
+      if (existing) {
+        const parsedData = safeJsonParse(r.parsedData, null);
+        const parsedScore = parsedData && typeof parsedData.creditScore === "number" ? parsedData.creditScore : null;
+        const score = parsedScore ?? r.creditScore ?? null;
+        if (score != null) {
+          existing.score = score;
+        }
       }
     }
     const negativeItems: NegativeItem[] = negativeAccounts.map((a) => {
       const bal = typeof a.balance === "string" ? parseFloat(a.balance) || 0 : Number(a.balance) || 0;
       const hasConflicts = !!a.hasConflicts;
-      const bureauLabel = (a.bureau || "")
+      const bureauValues = (a.bureau || "")
         .split(/[,/]/)
-        .map((b) => BUREAU_LABELS[b.trim().toLowerCase()] || b.trim())
+        .map((b) => b.trim())
+        .filter(Boolean);
+      const bureauLabel = bureauValues
+        .map((b) => BUREAU_LABELS[b.toLowerCase()] || b)
         .filter(Boolean)
         .join(", ") || "—";
+      const bureauCodes = bureauValues
+        .map(normalizeBureauCode)
+        .filter((b): b is BureauCode => Boolean(b));
       return {
         id: a.id,
         accountName: a.accountName || "Unknown",
         accountType: a.accountType || "Unknown",
         balance: bal,
         bureau: bureauLabel || "—",
+        bureauCodes,
         status: a.status || "—",
         dateOpened: a.dateOpened ?? undefined,
         lastActivity: a.lastActivity ?? undefined,
@@ -139,6 +166,17 @@ export default function MyLiveReport() {
     });
 
     const totalNegativeItems = negativeItems.length;
+    const parsedViolationCounts = creditReports
+      .map((report) => {
+        const parsedData = safeJsonParse(report.parsedData, null);
+        return parsedData && typeof parsedData.totalViolations === "number" ? parsedData.totalViolations : null;
+      })
+      .filter((count): count is number => typeof count === "number" && count > 0);
+    const totalViolations = parsedViolationCounts.length
+      ? (new Set(parsedViolationCounts).size === 1
+          ? parsedViolationCounts[0]
+          : parsedViolationCounts.reduce((sum, count) => sum + count, 0))
+      : totalNegativeItems;
     const conflictCount = negativeItems.filter((i) => i.hasConflicts).length;
     const estimatedScoreIncrease = Math.min(120, conflictCount * 15 + (totalNegativeItems - conflictCount) * 6);
     const totalBalance = negativeItems.reduce((sum, i) => sum + i.balance, 0);
@@ -153,6 +191,7 @@ export default function MyLiveReport() {
       scores,
       negativeItems,
       totalNegativeItems,
+      totalViolations,
       estimatedScoreIncrease,
       estimatedInterestSavings,
       trialEndsAt: trialEnd.toISOString(),
@@ -178,6 +217,24 @@ export default function MyLiveReport() {
     });
   };
 
+  const selectedBureaus = useMemo(() => {
+    const bureaus = new Set<BureauCode>();
+    for (const item of allNegativeItems) {
+      if (selectedItems.includes(item.id)) {
+        item.bureauCodes.forEach((code) => bureaus.add(code));
+      }
+    }
+    return Array.from(bureaus);
+  }, [allNegativeItems, selectedItems]);
+
+  const handleGenerateLetters = async () => {
+    const bureaus = selectedBureaus.length ? selectedBureaus : ALL_BUREAUS;
+    const success = await generateLetters({ accountIds: selectedItems, bureaus });
+    if (success) {
+      setSelectedItems([]);
+    }
+  };
+
   if (isLoading) {
     return (
       <DashboardLayout>
@@ -191,7 +248,7 @@ export default function MyLiveReport() {
     );
   }
 
-  const hasNoData = !analysis.totalNegativeItems && !creditReports.length;
+  const hasNoData = !analysis.totalViolations && !analysis.totalNegativeItems && !creditReports.length;
   if (hasNoData) {
     return (
       <DashboardLayout>
@@ -244,7 +301,7 @@ export default function MyLiveReport() {
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-700">{analysis.totalNegativeItems}</div>
+              <div className="text-2xl font-bold text-red-700">{analysis.totalViolations}</div>
               <p className="text-xs text-red-500 mt-1">Identified by AI</p>
             </CardContent>
           </Card>
@@ -279,7 +336,7 @@ export default function MyLiveReport() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <p className="font-bold text-sm">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
-              <Button disabled={selectedItems.length === 0}>
+              <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating}>
                 Generate Letters ({selectedItems.length})
               </Button>
             </div>

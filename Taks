@@ -1,3 +1,6 @@
 1: Display full report after the paymentm, right now many UI values are missing and some values are not correct.
 2: Identity Bridge Modal Pops Up (BLOCKING), Getting error with text userProfile.
 3: There should be prefilled from the report, it will also pick user info.
+4: In the letter to the agency,  (5 out of 43 triggered), this should not be in letter as it is 
+    exposing our design.
+5: Should remove this "Severity Label: HIGH PRIORITY" from letter.

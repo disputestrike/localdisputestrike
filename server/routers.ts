@@ -1729,17 +1729,21 @@ Be thorough and list every negative item found.`;
           });
         }
         
+        const bypassDisputeLocks = process.env.DISABLE_DISPUTE_LOCKS === 'true'
+          || process.env.NODE_ENV !== 'production';
         // --- 30-DAY DISPUTE LOCK ---
-        const lastLetter = await db.getLastDisputeLetter(userId);
-        if (lastLetter) {
-          const thirtyDaysAgo = new Date();
-          thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-          
-          if (lastLetter.createdAt > thirtyDaysAgo) {
-            throw new TRPCError({
-              code: 'FORBIDDEN',
-              message: 'Dispute letters can only be generated once every 30 days to comply with bureau requirements and prevent frivolous flags.',
-            });
+        if (!bypassDisputeLocks) {
+          const lastLetter = await db.getLastDisputeLetter(userId);
+          if (lastLetter) {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            if (lastLetter.createdAt <= thirtyDaysAgo) {
+              throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Dispute letters can only be generated once every 30 days to comply with bureau requirements and prevent frivolous flags.',
+              });
+            }
           }
         }
         // --- END 30-DAY DISPUTE LOCK ---
@@ -1749,6 +1753,7 @@ Be thorough and list every negative item found.`;
 
         // Get accounts - either specific ones or all
         let accounts = await db.getNegativeAccountsByUserId(userId);
+        const existingLetters = await db.getDisputeLettersByUserId(userId);
         
         // If specific account IDs provided, filter to only those
         if (input.accountIds && input.accountIds.length > 0) {
@@ -1756,49 +1761,51 @@ Be thorough and list every negative item found.`;
         }
 
         // --- PER-ACCOUNT 30-DAY DISPUTE LOCK + MAX 3 ROUNDS ---
-        const existingLetters = await db.getDisputeLettersByUserId(userId);
-        const now = new Date();
-        const lockWindowMs = 30 * 24 * 60 * 60 * 1000;
-        const lockedAccounts: string[] = [];
-        const maxedAccounts: string[] = [];
+        if (!bypassDisputeLocks) {
+          const now = new Date();
+          const lockWindowMs = 30 * 24 * 60 * 60 * 1000;
+          const lockedAccounts: string[] = [];
+          const maxedAccounts: string[] = [];
 
-        for (const account of accounts) {
-          const related = existingLetters.filter(letter => {
-            if (!letter.accountsDisputed) return false;
-            try {
-              const ids = safeJsonParse(letter.accountsDisputed, []) as number[];
-              return Array.isArray(ids) && ids.includes(account.id);
-            } catch {
-              return false;
+          for (const account of accounts) {
+            const related = existingLetters.filter(letter => {
+              if (!letter.accountsDisputed) return false;
+              try {
+                const ids = safeJsonParse(letter.accountsDisputed, []) as number[];
+                return Array.isArray(ids) && ids.includes(account.id);
+              } catch {
+                return false;
+              }
+            });
+
+            const rounds = related.length;
+            if (rounds >= 3) {
+              maxedAccounts.push(account.accountName);
+              continue;
             }
-          });
 
-          const rounds = related.length;
-          if (rounds >= 3) {
-            maxedAccounts.push(account.accountName);
-            continue;
+            const lastLetter = related.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+            if (lastLetter && now.getTime() - lastLetter.createdAt.getTime() < lockWindowMs) {
+              lockedAccounts.push(account.accountName);
+            }
           }
 
-          const lastLetter = related.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
-          if (lastLetter && now.getTime() - lastLetter.createdAt.getTime() < lockWindowMs) {
-            lockedAccounts.push(account.accountName);
+          if (maxedAccounts.length > 0) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: `Max 3 dispute rounds reached for: ${maxedAccounts.slice(0, 3).join(', ')}${maxedAccounts.length > 3 ? '…' : ''}`,
+            });
           }
-        }
 
-        if (maxedAccounts.length > 0) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: `Max 3 dispute rounds reached for: ${maxedAccounts.slice(0, 3).join(', ')}${maxedAccounts.length > 3 ? '…' : ''}`,
-          });
-        }
-
-        if (lockedAccounts.length > 0) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: `30-day lock active for: ${lockedAccounts.slice(0, 3).join(', ')}${lockedAccounts.length > 3 ? '…' : ''}`,
-          });
+          if (lockedAccounts.length > 0) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: `30-day lock active for: ${lockedAccounts.slice(0, 3).join(', ')}${lockedAccounts.length > 3 ? '…' : ''}`,
+            });
+          }
         }
         // --- END PER-ACCOUNT LOCK ---
+        const disputeRoundLabel = existingLetters.length > 0 ? "SECOND DISPUTE" : "FIRST DISPUTE";
         
         // Import AI letter generator
         const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
@@ -1827,7 +1834,7 @@ Be thorough and list every negative item found.`;
           const rawContent = response.choices[0]?.message?.content;
           
           // Import and use post-processor to ensure all required sections
-          const { postProcessLetter, generateCoverPage } = await import('./letterPostProcessor');
+          const { postProcessLetter } = await import('./letterPostProcessor');
           
           // Get user profile for complete data
           const userProfile = await db.getUserProfile(userId);
@@ -1846,10 +1853,8 @@ Be thorough and list every negative item found.`;
           let letterContent: string;
           if (typeof rawContent === 'string') {
             // Post-process the AI output to add missing sections AND replace placeholders
-            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userData);
-            // Add cover page summary
-            const coverPage = generateCoverPage(accounts, bureau, userData);
-            letterContent = coverPage + processedLetter;
+            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userData, disputeRoundLabel);
+            letterContent = processedLetter;
           } else {
             letterContent = generatePlaceholderLetter(userName, bureau, input.currentAddress, accounts.length);
           }

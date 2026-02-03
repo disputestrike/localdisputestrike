@@ -4,6 +4,8 @@
  * and CRITICALLY: replaces any remaining placeholder text with actual user data
  */
 
+import { safeJsonParse } from "./utils/json";
+
 export interface AccountData {
   id: number;
   accountName?: string | null;
@@ -14,6 +16,15 @@ export interface AccountData {
   balance?: string | number | null;
   dateOpened?: string | null;
   lastActivity?: string | null;
+  bureau?: string | null;
+  transunionData?: string | null;
+  equifaxData?: string | null;
+  experianData?: string | null;
+  originalCreditor?: string | null;
+  amountPastDue?: string | number | null;
+  paymentHistory?: string | null;
+  comment?: string | null;
+  rawData?: string | null;
 }
 
 export interface UserData {
@@ -264,28 +275,428 @@ export function analyzeAccounts(accounts: AccountData[]): LetterAnalysis {
   return analysis;
 }
 
+const BUREAU_LABELS: Record<string, string> = {
+  transunion: "TransUnion",
+  equifax: "Equifax",
+  experian: "Experian",
+};
+
+type BureauSnapshot = {
+  status?: string;
+  balance?: string | number;
+  dateOpened?: string;
+  lastActivity?: string;
+};
+
+function formatBureauName(bureau: string): string {
+  const key = bureau.toLowerCase().trim();
+  return BUREAU_LABELS[key] || bureau;
+}
+
+function getBureauMailingAddress(bureau: string): string {
+  const addresses: Record<string, string> = {
+    transunion: 'TransUnion Consumer Solutions\nP.O. Box 2000\nChester, PA 19016-2000',
+    equifax: 'Equifax Consumer Solutions\nP.O. Box 105873\nAtlanta, GA 30348-5873',
+    experian: 'Experian Consumer Solutions\nP.O. Box 9595\nAllen, TX 75013',
+  };
+  return addresses[bureau.toLowerCase().trim()] || addresses.experian;
+}
+
+function extractField(obj: Record<string, any>, keys: string[]): string | number | undefined {
+  for (const key of keys) {
+    const value = obj?.[key];
+    if (value !== undefined && value !== null && value !== "") {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+function parseSnapshot(raw: string | null | undefined): BureauSnapshot | null {
+  if (!raw) return null;
+  const parsed = safeJsonParse(raw, null);
+  if (!parsed || typeof parsed !== "object") return null;
+  return {
+    status: String(extractField(parsed, ["status", "accountStatus", "currentStatus"]) || ""),
+    balance: extractField(parsed, ["balance", "currentBalance", "amount"]),
+    dateOpened: String(extractField(parsed, ["dateOpened", "openedDate", "openDate"]) || ""),
+    lastActivity: String(extractField(parsed, ["lastActivity", "lastPaymentDate", "dateOfLastActivity"]) || ""),
+  };
+}
+
+function formatSnapshotLine(label: string, value?: string | number): string {
+  if (value === undefined || value === null || value === "") {
+    return `• ${label}: Not reported`;
+  }
+  return `• ${label}: ${value}`;
+}
+
+function getBureauSnapshots(account: AccountData): Record<string, BureauSnapshot> {
+  const snapshots: Record<string, BureauSnapshot> = {};
+  const transunion = parseSnapshot(account.transunionData);
+  const equifax = parseSnapshot(account.equifaxData);
+  const experian = parseSnapshot(account.experianData);
+  if (transunion) snapshots.transunion = transunion;
+  if (equifax) snapshots.equifax = equifax;
+  if (experian) snapshots.experian = experian;
+  return snapshots;
+}
+
+function getDobYear(dob?: string): string {
+  if (!dob) return "Not provided";
+  const match = dob.match(/(\d{4})/);
+  return match ? match[1] : dob;
+}
+
+function getOtherBureaus(bureau: string): string[] {
+  const all = ["transunion", "equifax", "experian"];
+  const current = bureau.toLowerCase().trim();
+  return all.filter((b) => b !== current);
+}
+
+function parseAccountRawData(account: AccountData): Record<string, any> {
+  if (!account.rawData) return {};
+  const parsed = safeJsonParse(account.rawData, null);
+  return parsed && typeof parsed === "object" ? parsed : {};
+}
+
+function formatDisputeRoundLabel(roundLabel?: string): string {
+  if (!roundLabel) return "FORMAL DISPUTE OF INACCURATE AND UNVERIFIABLE TRADELINES";
+  return `FORMAL DISPUTE OF INACCURATE AND UNVERIFIABLE TRADELINES - ${roundLabel}`;
+}
+
+function generateAddressCorrectionNotice(userData: UserData): string {
+  return `
+IMPORTANT: ADDRESS AND NAME CORRECTION REQUIRED
+Consumer Name: ${userData.fullName} | DOB: ${getDobYear(userData.dob)} | SSN: ${userData.ssn4 ? `XXX-XX-${userData.ssn4}` : "Not provided"}
+`;
+}
+
+function generateAddressVerificationBlock(userData: UserData): string {
+  return `
+IMPORTANT NOTICE - ADDRESS AND NAME VERIFICATION:
+Please verify and correct your records to show:
+Correct Name: ${userData.fullName} (ONLY - no variations or alternate names)
+Correct Addresses on File:
+1. Current Address (Primary): ${userData.address}
+2. Previous Address: ${userData.previousAddress || "None"}
+Do NOT report any addresses other than the two above. If your records show any other
+addresses, please remove them immediately.
+Enclosed as verification of correct addresses:
+• Exhibit A: Government-Issued Photo ID (copy)
+• Exhibit B: Proof of Address (utility bill or bank statement)
+`;
+}
+
+function buildConflictNotes(snapshots: Record<string, BureauSnapshot>): string[] {
+  const notes: string[] = [];
+  const bureaus = Object.keys(snapshots);
+  if (bureaus.length < 2) return notes;
+
+  const fields: Array<{ key: keyof BureauSnapshot; label: string }> = [
+    { key: "status", label: "Status" },
+    { key: "balance", label: "Balance" },
+    { key: "dateOpened", label: "Date Opened" },
+    { key: "lastActivity", label: "Last Activity" },
+  ];
+
+  for (const field of fields) {
+    const values = bureaus
+      .map((b) => snapshots[b]?.[field.key])
+      .filter((v) => v !== undefined && v !== null && v !== "");
+    const unique = new Set(values.map((v) => String(v)));
+    if (unique.size > 1) {
+      notes.push(`${field.label} discrepancy across bureaus`);
+    }
+  }
+
+  return notes;
+}
+
+function generateIdentitySection(userData: UserData): string {
+  return `
+SECTION 1: IDENTITY & ADDRESS VERIFICATION
+Name: ${userData.fullName}
+Date of Birth: ${userData.dob || "Not provided"}
+SSN (Last 4): ${userData.ssn4 ? `XXX-XX-${userData.ssn4}` : "Not provided"}
+Current Address: ${userData.address}
+Previous Address: ${userData.previousAddress || "None"}
+`;
+}
+
+function generateLegalBasisSection(): string {
+  return `
+SECTION 2: LEGAL BASIS FOR DISPUTE
+Pursuant to the Fair Credit Reporting Act (FCRA), including §§ 1681i(a)(1)(A), 1681i(a)(5)(A), 1681i(a)(7), 1681s-2(b), 1681n, and 1681o, I am formally disputing inaccurate, incomplete, and unverifiable information in my credit file. You are required to conduct a reasonable reinvestigation and delete any information that cannot be verified.
+`;
+}
+
+function generateCrossBureauSection(accounts: AccountData[], bureau: string): string {
+  const otherBureaus = getOtherBureaus(bureau).map(formatBureauName);
+  const conflicts: string[] = [];
+  for (const account of accounts) {
+    const snapshots = getBureauSnapshots(account);
+    const notes = buildConflictNotes(snapshots);
+    if (notes.length > 0) {
+      const name = account.creditorName || account.accountName || "Unknown Account";
+      conflicts.push(`• ${name}: ${notes.join("; ")}`);
+    }
+  }
+
+  if (!conflicts.length) {
+    return `
+II. CRITICAL PROBLEM: CROSS-BUREAU CONFLICTS PROVE FURNISHER UNRELIABILITY
+The fundamental issue with the accounts below is that you report materially different
+information for the same accounts than do ${otherBureaus.join(" and ")}. This proves either:
+1. You are reporting inaccurate information to me, or
+2. The furnisher is providing conflicting information to different bureaus
+Either way, this violates FCRA § 1681i(a)(5)(A) requirement for "maximum possible accuracy."
+Under FCRA § 1681s-2(a)(1)(A), furnishers cannot report information they "know or have
+reasonable cause to believe is inaccurate." Your continued reporting despite cross-bureau
+conflicts proves the information is unreliable and unverifiable.
+`;
+  }
+
+  return `
+II. CRITICAL PROBLEM: CROSS-BUREAU CONFLICTS PROVE FURNISHER UNRELIABILITY
+The fundamental issue with the accounts below is that you report materially different
+information for the same accounts than do ${otherBureaus.join(" and ")}. This proves either:
+1. You are reporting inaccurate information to me, or
+2. The furnisher is providing conflicting information to different bureaus
+Either way, this violates FCRA § 1681i(a)(5)(A) requirement for "maximum possible accuracy."
+Under FCRA § 1681s-2(a)(1)(A), furnishers cannot report information they "know or have
+reasonable cause to believe is inaccurate." Your continued reporting despite cross-bureau
+conflicts proves the information is unreliable and unverifiable.
+Conflicts identified:
+${conflicts.join("\n")}
+`;
+}
+
+function buildViolationsForAccount(account: AccountData, analysis: LetterAnalysis, snapshots: Record<string, BureauSnapshot>): string[] {
+  const violations: string[] = [];
+  const rawData = parseAccountRawData(account);
+  const comment = account.comment || rawData.comment || rawData.remarks || rawData.note || "";
+  const hasImpossible = analysis.impossibleTimelineAccounts.some((a) => a.id === account.id);
+  if (hasImpossible) {
+    violations.push("IMPOSSIBLE TIMELINE - CRITICAL ERROR: Last activity predates account opening");
+  }
+  if (!account.dateOpened || account.dateOpened === "Unknown") {
+    violations.push("MISSING DATE OPENED: Critical field is not reported");
+  }
+  if (!account.lastActivity || account.lastActivity === "Unknown") {
+    violations.push("MISSING LAST ACTIVITY: Critical field is not reported");
+  }
+  if (comment && comment.toLowerCase().includes("dispute")) {
+    violations.push("Previously Disputed - Inadequate Investigation");
+  }
+  const conflictNotes = buildConflictNotes(snapshots);
+  if (conflictNotes.length) {
+    violations.push(...conflictNotes.map((note) => note.toUpperCase()));
+  }
+  if (!violations.length) {
+    violations.push("UNVERIFIABLE BALANCE: Insufficient documentation to validate reporting");
+  }
+  return violations;
+}
+
+function generateAccountDisputes(accounts: AccountData[], analysis: LetterAnalysis, bureau: string): string {
+  return accounts
+    .map((account, index) => {
+      const name = account.creditorName || account.accountName || "Unknown Account";
+      const accountNumber = account.accountNumber || "Not reported";
+      const snapshots = getBureauSnapshots(account);
+      const rawData = parseAccountRawData(account);
+      const comment = account.comment || rawData.comment || rawData.remarks || rawData.note || "";
+      const originalCreditor = account.originalCreditor || rawData.originalCreditor || rawData.originalCreditorName;
+      const paymentHistory = account.paymentHistory || rawData.paymentHistory;
+      const amountPastDue = account.amountPastDue || rawData.amountPastDue;
+      const violations = buildViolationsForAccount(account, analysis, snapshots);
+      const bureauLines = getOtherBureaus(bureau)
+        .map((bureauKey) => {
+          const snapshot = snapshots[bureauKey];
+          if (!snapshot) return null;
+          const bureauName = formatBureauName(bureauKey);
+          return `${bureauName} Reports:\n${formatSnapshotLine("Last Activity", snapshot.lastActivity)}\n${formatSnapshotLine("Status", snapshot.status)}\n${formatSnapshotLine("Balance", snapshot.balance)}\n${formatSnapshotLine("Date Opened", snapshot.dateOpened)}`;
+        })
+        .filter(Boolean)
+        .join("\n\n");
+
+      return `
+ACCOUNT ${index + 1}: ${name}
+Account Information You Report:
+${formatSnapshotLine("Account Number", accountNumber)}
+${formatSnapshotLine("Original Creditor", originalCreditor)}
+${formatSnapshotLine("Current Balance", account.balance)}
+${formatSnapshotLine("Amount Past Due", amountPastDue)}
+${formatSnapshotLine("Status", account.status)}
+${formatSnapshotLine("Last Activity", account.lastActivity)}
+${formatSnapshotLine("Date Opened", account.dateOpened)}
+${comment ? `• Comment: "${comment}"` : ""}
+${paymentHistory ? `• Payment History: ${paymentHistory}` : ""}
+
+What Other Bureaus Report (Same Account):
+${bureauLines || "No additional bureau data provided."}
+
+VIOLATIONS IDENTIFIED:
+${violations.map((v, i) => `${i + 1}. ${v}`).join("\n")}
+
+LEGAL REQUIREMENT FOR DELETION:
+Under 15 USC § 1681i(a)(5)(A):
+"If the completeness or accuracy of any item of information contained in a consumer's file
+is disputed and cannot be verified, the information shall be deleted from the file."
+
+DEMAND:
+Delete this account from my credit file within 15 days.
+If you believe this account should remain reported, you must provide:
+1. Written verification from the furnisher supporting each disputed field
+2. Complete payment history supporting the reported balance
+3. Documentation explaining all cross-bureau conflicts
+4. Documentation from the original creditor supporting the claim
+`;
+    })
+    .join("\n");
+}
+
+function generatePositiveAccountsSection(): string {
+  return `
+IV. ACCOUNTS THAT SHOULD NOT REPORT NEGATIVELY
+None identified in this dispute letter. If any paid or positive accounts are reporting negatively, I request immediate correction to reflect accurate, positive status.
+`;
+}
+
+function generateLegalRequirementsSection(): string {
+  const deadline = new Date();
+  deadline.setDate(deadline.getDate() + 30);
+  const deadlineDate = deadline.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+  return `
+VI. LEGAL REQUIREMENTS & TIMELINE
+Under 15 USC § 1681i(a)(3)(A), you have 30 days from receipt to:
+1. Complete a reasonable and thorough reinvestigation
+2. Review all enclosures
+3. Contact furnishers as needed
+4. Correct inaccurate information OR delete unverifiable information
+5. Provide written notice of results
+Under 15 USC § 1681i(a)(5)(A):
+"Any information determined to be inaccurate shall be promptly deleted."
+Any information that cannot be verified must also be deleted.
+Expected response deadline: ${deadlineDate}
+`;
+}
+
+function generateRequiredResponseSection(): string {
+  return `
+IX. REQUIRED RESPONSE
+Your written response must include:
+• Results for each disputed account (deleted, corrected, or verified)
+• Procedures used during reinvestigation per FCRA § 1681i(a)(6)(A)
+• The name and contact information of any furnisher contacted
+• Documentation reviewed during investigation
+`;
+}
+
+function generateStructuredLetter(
+  accounts: AccountData[],
+  bureau: string,
+  userData: UserData,
+  disputeRoundLabel?: string
+): string {
+  const analysis = analyzeAccounts(accounts);
+  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const bureauName = formatBureauName(bureau);
+  const bureauAddress = getBureauMailingAddress(bureau);
+  const roundLabel = formatDisputeRoundLabel(disputeRoundLabel);
+
+  const otherBureaus = getOtherBureaus(bureau).map(formatBureauName);
+
+  return `${userData.fullName}
+${userData.address}
+
+${today}
+${bureauName}
+${bureauAddress || ""}
+SENT VIA CERTIFIED MAIL - RETURN RECEIPT REQUESTED
+Re: ${roundLabel}
+${generateAddressCorrectionNotice(userData)}
+Dear ${bureauName}:
+${generateAddressVerificationBlock(userData)}
+
+I. LEGAL BASIS FOR THIS DISPUTE
+Under the Fair Credit Reporting Act (FCRA), 15 USC § 1681i(a)(1)(A), I dispute the accuracy
+and completeness of accounts on my credit file. Under 15 USC § 1681i(a)(5)(A), you are
+legally required to delete any information that is inaccurate or cannot be verified.
+Under FCRA § 1681i(a)(3)(A), upon receipt of this dispute, you must conduct a reasonable
+reinvestigation within 30 days and take appropriate action to verify the accuracy of each
+disputed item.${disputeRoundLabel ? `\nThis is a ${disputeRoundLabel} on accounts where your previous investigation was inadequate,\nas evidenced by conflicting data that remains on my report.` : ""}
+
+${generateCrossBureauSection(accounts, bureau)}
+
+III. ACCOUNT-BY-ACCOUNT DISPUTES
+${generateAccountDisputes(accounts, analysis, bureau)}
+
+${generatePositiveAccountsSection()}
+
+V. SUMMARY OF DEMANDS
+${generateSummaryTable(accounts, analysis)}
+
+${generateLegalRequirementsSection()}
+VII. SUPPORTING DOCUMENTATION ENCLOSED
+${generateExhibitSection(bureau, today)}
+
+VIII. CONSEQUENCES OF NON-COMPLIANCE
+${generateConsequencesSection()}
+
+${generateRequiredResponseSection()}
+
+CONTACT INFORMATION
+All future correspondence regarding this dispute should be sent to:
+${userData.fullName}
+${userData.address}
+Please send response via CERTIFIED MAIL with tracking confirmation.
+
+FINAL NOTICE
+I expect written confirmation of deletion and/or correction within 30 days of receipt of this
+letter. Failure to respond adequately or continued reporting of inaccurate information will
+result in CFPB complaints and litigation.
+
+Sincerely,
+${userData.fullName}
+
+ENCLOSURES:
+☐ Exhibit A: Government-Issued Photo ID (copy)
+☐ Exhibit B: Proof of Address
+☐ Exhibit C: ${bureauName} Credit Report
+☐ Exhibit D: ${otherBureaus[0] || "Equifax"} Credit Report
+☐ Exhibit E: ${otherBureaus[1] || "Experian"} Credit Report
+☐ Exhibit F: Additional Supporting Documents (if applicable)
+END OF LETTER
+`;
+}
+
 /**
  * Generate the exhibit system section
  */
 export function generateExhibitSection(bureau: string, reportDate: string): string {
-  const bureauName = bureau.charAt(0).toUpperCase() + bureau.slice(1);
+  const bureauName = formatBureauName(bureau);
+  const otherBureaus = getOtherBureaus(bureau).map(formatBureauName);
   
   return `
-
-═══════════════════════════════════════════════════════════════════════════════
-VI. SUPPORTING DOCUMENTATION ENCLOSED
-═══════════════════════════════════════════════════════════════════════════════
-
 Attached are the following exhibits:
 
 • Exhibit A: Government-Issued Photo ID (copy)
 • Exhibit B: Proof of Address (utility bill or bank statement)
 • Exhibit C: ${bureauName} Credit Report dated ${reportDate}
+• Exhibit D: ${otherBureaus[0] || "Equifax"} Credit Report (for comparison)
+• Exhibit E: ${otherBureaus[1] || "Experian"} Credit Report (for comparison)
+• Exhibit F: Additional supporting documentation (if applicable)
 
 ENCLOSURES CHECKLIST:
 ☐ Exhibit A: Government-Issued Photo ID
-☐ Exhibit B: Proof of Address  
+☐ Exhibit B: Proof of Address
 ☐ Exhibit C: ${bureauName} Credit Report
+☐ Exhibit D: ${otherBureaus[0] || "Equifax"} Credit Report
+☐ Exhibit E: ${otherBureaus[1] || "Experian"} Credit Report
+☐ Exhibit F: Other Supporting Documents
 
 `;
 }
@@ -294,38 +705,21 @@ ENCLOSURES CHECKLIST:
  * Generate the summary of demands table
  */
 export function generateSummaryTable(accounts: AccountData[], analysis: LetterAnalysis): string {
-  let table = `
-
-═══════════════════════════════════════════════════════════════════════════════
-IV. SUMMARY OF DEMANDS
-═══════════════════════════════════════════════════════════════════════════════
-
-┌─────────────────────────────────┬──────────────┬─────────────────────────────────┐
-│ ACCOUNT                         │ DEMAND       │ BASIS                           │
-├─────────────────────────────────┼──────────────┼─────────────────────────────────┤
-`;
+  let table = `Account\tDemand\tBasis\n`;
 
   for (const account of accounts) {
-    const name = (account.creditorName || account.accountName || 'Unknown').substring(0, 30).padEnd(30);
-    const severity = analysis.severityGrades.get(account.id) || 'MEDIUM';
-    
-    let basis = '';
+    const name = account.creditorName || account.accountName || "Unknown";
+    let basis = "Unverifiable Data";
     if (analysis.impossibleTimelineAccounts.find(a => a.id === account.id)) {
-      basis = 'IMPOSSIBLE TIMELINE';
-    } else if (!account.dateOpened || account.dateOpened === 'null') {
-      basis = 'Missing Date Opened';
-    } else if (!account.lastActivity || account.lastActivity === 'Unknown') {
-      basis = 'Missing Last Activity';
-    } else {
-      basis = 'Unverifiable Data';
+      basis = "Impossible timeline";
+    } else if (!account.dateOpened || account.dateOpened === "null") {
+      basis = "Missing date opened";
+    } else if (!account.lastActivity || account.lastActivity === "Unknown") {
+      basis = "Missing last activity";
     }
     
-    table += `│ ${name} │ DELETE       │ ${basis.padEnd(30)} │\n`;
+    table += `${name}\tDELETE\t${basis}\n`;
   }
-
-  table += `└─────────────────────────────────┴──────────────┴─────────────────────────────────┘
-
-`;
 
   return table;
 }
@@ -335,16 +729,11 @@ IV. SUMMARY OF DEMANDS
  */
 export function generateConsequencesSection(): string {
   return `
-
-═══════════════════════════════════════════════════════════════════════════════
-VII. CONSEQUENCES OF NON-COMPLIANCE
-═══════════════════════════════════════════════════════════════════════════════
-
-Failure to comply with this dispute within the 30-day statutory period will result in:
+Failure to comply within the 30-day statutory period will result in:
 
 1. STATUTORY DAMAGES under 15 U.S.C. § 1681n:
    • $100 to $1,000 per willful violation
-   • Punitive damages as the court may allow
+   • Punitive damages as allowed by law
    • Attorney's fees and costs
 
 2. ACTUAL DAMAGES under 15 U.S.C. § 1681o:
@@ -353,11 +742,11 @@ Failure to comply with this dispute within the 30-day statutory period will resu
 
 I am prepared to file complaints with:
 • Consumer Financial Protection Bureau (CFPB)
-• Federal Trade Commission (FTC)  
+• Federal Trade Commission (FTC)
 • State Attorney General
 • Pursue litigation for statutory damages under FCRA
 
-This is not an idle threat. I am fully prepared to exercise all legal remedies available to me.
+This is not an idle threat. I am prepared to exercise all legal remedies available to me.
 
 `;
 }
@@ -366,34 +755,28 @@ This is not an idle threat. I am fully prepared to exercise all legal remedies a
  * Generate mailing instructions section
  */
 export function generateMailingInstructions(bureau: string): string {
-  const bureauAddresses: Record<string, string> = {
-    transunion: 'TransUnion LLC\nConsumer Dispute Center\nP.O. Box 2000\nChester, PA 19016-2000',
-    equifax: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374-0256',
-    experian: 'Experian\nP.O. Box 4500\nAllen, TX 75013',
-  };
-
   return `
 
 ═══════════════════════════════════════════════════════════════════════════════
 IMPORTANT: HOW TO MAIL THIS LETTER
 ═══════════════════════════════════════════════════════════════════════════════
 
-1. PRINT THIS LETTER
+1. PRINT & SIGN
    □ Print on white paper
    □ Sign in BLUE ink above your typed name
 
 2. GATHER REQUIRED ENCLOSURES
-   □ Copy of your Driver's License or State ID
-   □ Copy of utility bill (for proof of address)
+   □ Government-issued photo ID (copy)
+   □ Proof of address (utility bill or bank statement)
+   □ Credit reports and supporting documents
 
 3. MAIL VIA CERTIFIED MAIL
    □ Go to USPS
    □ Request "Certified Mail with Return Receipt"
-   □ Cost: ~$8-10
    □ Keep your receipt and tracking number
 
 4. SEND TO THIS ADDRESS:
-   ${bureauAddresses[bureau] || bureauAddresses.experian}
+   ${getBureauMailingAddress(bureau)}
 
 5. TRACK YOUR LETTER
    □ Save your certified mail receipt and tracking number
@@ -435,77 +818,14 @@ export function removeDuplicateSignatures(letter: string, userName: string): str
  * and CRITICALLY: replace all placeholders with actual user data
  */
 export function postProcessLetter(
-  rawLetter: string,
+  _rawLetter: string,
   accounts: AccountData[],
   bureau: string,
-  userData: UserData
+  userData: UserData,
+  disputeRoundLabel?: string
 ): string {
-  const analysis = analyzeAccounts(accounts);
-  const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-  
-  // STEP 1: Replace ALL placeholders with actual user data
-  // This is the CRITICAL foundation - without this, letters are UNUSABLE
-  let processedLetter = replacePlaceholders(rawLetter, userData);
-
-  // STEP 2: Remove duplicate signature blocks
-  processedLetter = removeDuplicateSignatures(processedLetter, userData.fullName);
-
-  // STEP 3: Check if summary table exists, if not add it
-  if (!processedLetter.includes('SUMMARY OF DEMANDS') && !processedLetter.includes('Summary of Demands')) {
-    // Find a good insertion point (before signature or at end)
-    const signatureIndex = processedLetter.lastIndexOf('Sincerely');
-    if (signatureIndex > 0) {
-      processedLetter = 
-        processedLetter.substring(0, signatureIndex) + 
-        generateSummaryTable(accounts, analysis) +
-        processedLetter.substring(signatureIndex);
-    } else {
-      processedLetter += generateSummaryTable(accounts, analysis);
-    }
-  }
-
-  // STEP 4: Check if exhibit section exists, if not add it
-  if (!processedLetter.includes('Exhibit A') && !processedLetter.includes('ENCLOSURES')) {
-    const signatureIndex = processedLetter.lastIndexOf('Sincerely');
-    if (signatureIndex > 0) {
-      processedLetter = 
-        processedLetter.substring(0, signatureIndex) + 
-        generateExhibitSection(bureau, today) +
-        processedLetter.substring(signatureIndex);
-    } else {
-      processedLetter += generateExhibitSection(bureau, today);
-    }
-  }
-
-  // STEP 5: Check if consequences section with agency threats exists
-  if (!processedLetter.includes('CFPB') && !processedLetter.includes('Consumer Financial Protection Bureau')) {
-    const signatureIndex = processedLetter.lastIndexOf('Sincerely');
-    if (signatureIndex > 0) {
-      processedLetter = 
-        processedLetter.substring(0, signatureIndex) + 
-        generateConsequencesSection() +
-        processedLetter.substring(signatureIndex);
-    } else {
-      processedLetter += generateConsequencesSection();
-    }
-  }
-
-  // STEP 6: Add mailing instructions at the very end
-  if (!processedLetter.includes('HOW TO MAIL THIS LETTER')) {
-    processedLetter += generateMailingInstructions(bureau);
-  }
-
-  // STEP 7: Ensure proper signature
-  if (!processedLetter.includes('Sincerely')) {
-    processedLetter += `
-
-Sincerely,
-
-${userData.fullName}
-`;
-  }
-
-  return processedLetter;
+  const structuredLetter = generateStructuredLetter(accounts, bureau, userData, disputeRoundLabel);
+  return replacePlaceholders(structuredLetter, userData);
 }
 
 /**

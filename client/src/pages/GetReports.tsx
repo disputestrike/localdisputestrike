@@ -404,7 +404,7 @@ export default function GetReports() {
                 
                 <p className="text-xs text-gray-500 mt-3 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  This typically takes 15-45 seconds depending on file size
+                  This typically takes 1-3 minutes depending on file size
                 </p>
               </div>
             )}
