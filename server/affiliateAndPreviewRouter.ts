@@ -252,7 +252,7 @@ router.post(
         
         // Only reject if AI returned NO data at all (complete failure)
         // If accountPreviews exist OR totalViolations > 0, the analysis succeeded
-        if (preview.totalViolations === 0 && (!preview.accountPreviews || preview.accountPreviews.length === 0)) {
+        if (preview.totalViolations === 0 && !preview.accountPreviews?.length) {
           console.log('[Preview] Analysis returned no violations and no accounts - likely AI failure');
           return res.status(422).json({
             error: 'Could not extract account information from this report',
