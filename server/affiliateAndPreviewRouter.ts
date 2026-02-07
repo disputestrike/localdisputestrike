@@ -250,21 +250,21 @@ router.post(
         const preview = await runPreviewAnalysis(trimmedText, isTextBasedPDF);
         console.log('[Preview] Analysis complete - violations:', preview.totalViolations, 'accounts:', preview.accountPreviews?.length || 0);
         
-        // Check if AI actually ran and found results
-        // If totalViolations is 0 AND no accountPreviews, AI likely failed
-        // But if text was extracted successfully (>1000 chars), allow 0 violations (clean report)
-        if (preview.totalViolations === 0 && !preview.accountPreviews?.length && trimmedText.length < 1000) {
-          console.log('[Preview] Suspicious: 0 violations, no accounts, and low text length');
+        // Only reject if AI returned NO data at all (complete failure)
+        // If accountPreviews exist OR totalViolations > 0, the analysis succeeded
+        if (preview.totalViolations === 0 && (!preview.accountPreviews || preview.accountPreviews.length === 0)) {
+          console.log('[Preview] Analysis returned no violations and no accounts - likely AI failure');
           return res.status(422).json({
-            error: 'Could not extract violations from this report',
-            message: 'We could not analyze your credit report. The file may be corrupted or not a valid credit report.',
-            suggestion: 'Try uploading a different PDF or use AnnualCreditReport.com.',
+            error: 'Could not extract account information from this report',
+            message: 'The report appears to be valid, but we could not extract specific account details. This may be a clean report with no negative items.',
+            suggestion: 'If you believe this is an error, try re-uploading or use a different file format.',
           });
         }
         
-        // If we got here, either:
-        // 1. AI found violations (good)
-        // 2. AI found 0 violations but report is clean (also good - allow it)
+        // If we got here, the analysis succeeded:
+        // 1. AI found violations (totalViolations > 0), OR
+        // 2. AI found accountPreviews (even with 0 violations - clean report), OR
+        // 3. Both violations and accountPreviews found
         const light = toLightAnalysisResult(preview);
         console.log('[Preview] Returning result - totalViolations:', light.totalViolations, 'accountPreviews:', light.accountPreviews?.length || 0);
         return res.status(200).json(light);
