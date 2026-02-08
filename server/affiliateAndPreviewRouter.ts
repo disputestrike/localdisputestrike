@@ -286,7 +286,7 @@ router.post(
         console.error('[Preview] runPreviewAnalysis error:', e);
         const errMsg = e instanceof Error ? e.message : String(e);
         console.error('[Preview] Error message:', errMsg);
-        if (errMsg.includes('AI API key') || errMsg.includes('API key')) {
+        if (errMsg.includes('AI API key') || errMsg.includes('API key') || errMsg.includes('unavailable') || errMsg.includes('ANTHROPIC_API') || errMsg.includes('OPENAI_API')) {
           return res.status(503).json({ error: 'Analysis service temporarily unavailable. Please try again later.' });
         }
         return res.status(500).json({ 

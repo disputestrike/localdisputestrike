@@ -146,9 +146,9 @@ export async function runPreviewAnalysis(
   console.log(`[Preview] PDF type: ${isTextBasedPDF ? 'TEXT-BASED (using Claude)' : 'IMAGE-BASED (using OpenAI)'}`);
   
   if (!anthropic && !openai) {
-    // NO AI available - return minimal result (we ONLY use AI, no keyword counting)
-    console.error('[Preview] ERROR: No AI API keys available. Analysis requires AI.');
-    return normalizePreviewResult(minimalFallback());
+    // NO AI available - throw so user sees error instead of silent 0
+    console.error('[Preview] ERROR: No AI API keys available. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.');
+    throw new Error('Analysis service unavailable. Configure ANTHROPIC_API_KEY or OPENAI_API_KEY.');
   }
   
   const startTime = Date.now();
@@ -198,8 +198,13 @@ export async function runPreviewAnalysis(
         if (text.includes('```')) {
           text = text.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
         }
-        aiResult = safeJsonParse(text, {} as PreviewAnalysisResult);
-        console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
+        const parsed = safeJsonParse<PreviewAnalysisResult | null>(text, null);
+        if (parsed && typeof parsed === 'object' && typeof (parsed as PreviewAnalysisResult).totalViolations === 'number') {
+          aiResult = parsed as PreviewAnalysisResult;
+          console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
+        } else {
+          console.error('[Preview] Claude returned invalid JSON - missing totalViolations');
+        }
       }
     } else if (useOpenAI || (!useClaude && openai)) {
       console.log('[Preview] Using OpenAI for analysis (IMAGE-BASED PDF)...');
@@ -230,8 +235,8 @@ export async function runPreviewAnalysis(
         if (content.includes('```')) {
           content = content.replace(/```json\n?/gi, '').replace(/```\n?/g, '').trim();
         }
-        const parsed = safeJsonParse(content, null);
-        if (parsed && typeof parsed === 'object' && 'totalViolations' in parsed) {
+        const parsed = safeJsonParse<PreviewAnalysisResult | null>(content, null);
+        if (parsed && typeof parsed === 'object' && typeof (parsed as PreviewAnalysisResult).totalViolations === 'number') {
           aiResult = parsed as PreviewAnalysisResult;
           console.log('[Preview] AI result - totalViolations:', aiResult.totalViolations, 'accountPreviews:', aiResult.accountPreviews?.length || 0);
         } else {
@@ -249,13 +254,14 @@ export async function runPreviewAnalysis(
       return normalizePreviewResult(aiResult);
     }
     
-    // AI failed - return minimal result (we ONLY use AI, no fallback keyword counting)
-    console.error('[Preview] AI analysis failed - no result returned');
-    return normalizePreviewResult(minimalFallback());
+    // AI failed - throw so user sees error instead of silent 0
+    console.error('[Preview] AI analysis failed - no valid result returned');
+    throw new Error('AI could not analyze the report. Please try a different PDF or ensure the file contains readable credit report text.');
   } catch (error) {
-    console.error('Preview analysis error:', error);
-    // On error, return minimal result (we ONLY use AI)
-    return normalizePreviewResult(minimalFallback());
+    console.error('[Preview] Analysis error:', error);
+    // Re-throw so router returns 500/503 instead of silent 0
+    if (error instanceof Error) throw error;
+    throw new Error('Preview analysis failed. Please try again.');
   }
 }
 
