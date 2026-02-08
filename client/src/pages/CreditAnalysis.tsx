@@ -67,25 +67,26 @@ export default function CreditAnalysis() {
   const MAX_ITEMS_PER_ROUND = 5;
 
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery();
   const { data: negativeAccounts = [], isLoading: accountsLoading } = trpc.negativeAccounts.list.useQuery();
   const { data: profile } = trpc.profile.get.useQuery();
 
   const analysis = useMemo((): AnalysisData => {
+    const valid = (n: number | null | undefined) => (n != null && n >= 300 && n <= 850 ? n : null);
+    const tu = valid(scoresByBureau?.transunion);
+    const eq = valid(scoresByBureau?.equifax);
+    const ex = valid(scoresByBureau?.experian);
     const scores: CreditScore[] = [
-      { bureau: "TransUnion", score: 0 },
-      { bureau: "Equifax", score: 0 },
-      { bureau: "Experian", score: 0 },
+      { bureau: "TransUnion", score: tu ?? 0 },
+      { bureau: "Equifax", score: eq ?? 0 },
+      { bureau: "Experian", score: ex ?? 0 },
     ];
-    const byBureau: Record<string, CreditScore> = {
-      TransUnion: scores[0],
-      Equifax: scores[1],
-      Experian: scores[2],
-    };
-    for (const r of creditReports) {
-      const label = BUREAU_LABELS[r.bureau] || r.bureau;
-      const existing = byBureau[label];
-      if (existing && r.creditScore != null) {
-        existing.score = r.creditScore;
+    if (tu == null && eq == null && ex == null) {
+      for (const r of creditReports) {
+        const label = BUREAU_LABELS[r.bureau] || r.bureau;
+        const existing = scores.find(s => s.bureau === label);
+        const score = r.creditScore != null && r.creditScore >= 300 && r.creditScore <= 850 ? r.creditScore : null;
+        if (existing && score != null) existing.score = score;
       }
     }
     const negativeItems: NegativeItem[] = negativeAccounts.map((a) => {
@@ -134,7 +135,7 @@ export default function CreditAnalysis() {
       trialEndsAt: trialEnd.toISOString(),
       subscription: { status: subStatus, tier: subscriptionTier },
     };
-  }, [creditReports, negativeAccounts, profile]);
+  }, [creditReports, scoresByBureau, negativeAccounts, profile]);
 
   const isLoading = reportsLoading || accountsLoading;
 
@@ -150,10 +151,8 @@ export default function CreditAnalysis() {
   const isTrialActive = analysis?.subscription?.status === 'trial';
 
   const getScoreColor = (score: number) => {
-    if (score >= 740) return 'text-green-600';
-    if (score >= 670) return 'text-yellow-600';
-    if (score >= 580) return 'text-orange-600';
-    return 'text-red-600';
+    if (score >= 670) return 'text-primary';
+    return 'text-accent';
   };
 
   const getScoreLabel = (score: number) => {
@@ -164,10 +163,8 @@ export default function CreditAnalysis() {
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 740) return 'bg-green-100';
-    if (score >= 670) return 'bg-yellow-100';
-    if (score >= 580) return 'bg-orange-100';
-    return 'bg-red-100';
+    if (score >= 670) return 'bg-primary/10';
+    return 'bg-accent/10';
   };
 
   const tiers = [
@@ -235,7 +232,7 @@ export default function CreditAnalysis() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 flex items-center justify-center">
         <div className="text-center max-w-md px-4">
-          <Shield className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+          <Shield className="w-16 h-16 text-accent mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">No credit data yet</h1>
           <p className="text-gray-600 mb-6">
             Upload your credit reports from the dashboard to see your scores, negative items, and AI recommendations.
@@ -264,7 +261,7 @@ export default function CreditAnalysis() {
           </Link>
           <div className="flex items-center gap-4">
             {isTrialActive && (
-              <div className="flex items-center gap-2 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-sm">
+              <div className="flex items-center gap-2 bg-accent/10 text-accent px-3 py-1 rounded-full text-sm">
                 <Clock className="w-4 h-4" />
                 <span>{daysRemaining} days left in trial</span>
               </div>
@@ -276,9 +273,9 @@ export default function CreditAnalysis() {
       <div className="container mx-auto py-8 px-4">
         {/* Trial Banner */}
         {isTrialActive && (
-          <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-8 flex items-center justify-between">
+          <div className="bg-accent/5 border-2 border-border rounded-xl p-4 mb-8 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Clock className="w-6 h-6 text-orange-600" />
+              <Clock className="w-6 h-6 text-accent" />
               <div>
                 <p className="font-semibold text-gray-900">Your trial ends in {daysRemaining} days</p>
                 <p className="text-gray-600 text-sm">Upgrade now to start disputing and improve your credit</p>
@@ -286,7 +283,7 @@ export default function CreditAnalysis() {
             </div>
             <button 
               onClick={() => document.getElementById('upgrade-section')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
               Upgrade Now
             </button>
@@ -300,19 +297,25 @@ export default function CreditAnalysis() {
             Your Credit Scores
           </h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
-            {analysis?.scores.map((score) => (
-              <div key={score.bureau} className={`${getScoreBgColor(score.score)} rounded-xl p-6 text-center`}>
-                <p className="text-gray-600 font-medium mb-2">{score.bureau}</p>
-                <p className={`text-5xl font-bold ${getScoreColor(score.score)}`}>{score.score}</p>
-                <p className={`text-sm mt-2 ${getScoreColor(score.score)}`}>{getScoreLabel(score.score)}</p>
-                {score.change && (
-                  <p className={`text-sm mt-1 ${score.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {score.change > 0 ? '+' : ''}{score.change} pts
+          <div className="grid md:grid-cols-3 gap-4">
+            {analysis?.scores.map((score) => {
+              const hasScore = score.score >= 300 && score.score <= 850;
+              const short = score.bureau === 'TransUnion' ? 'TU' : score.bureau === 'Equifax' ? 'EQ' : 'EX';
+              return (
+                <div key={score.bureau} className={`${hasScore ? getScoreBgColor(score.score) : 'bg-gray-100'} rounded-lg p-4 text-center border border-gray-200`}>
+                  <p className="text-xs font-medium text-gray-600 mb-1">{short}</p>
+                  <p className={`text-2xl font-bold ${hasScore ? getScoreColor(score.score) : 'text-gray-400'}`}>
+                    {hasScore ? score.score : '—'}
                   </p>
-                )}
-              </div>
-            ))}
+                  {!hasScore && <p className="text-xs text-gray-500 mt-0.5">From report</p>}
+                  {hasScore && score.change != null && (
+                    <p className={`text-xs mt-1 ${score.change > 0 ? 'text-primary' : 'text-accent'}`}>
+                      {score.change > 0 ? '+' : ''}{score.change} pts
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -329,7 +332,7 @@ export default function CreditAnalysis() {
           
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <TrendingUp className="w-6 h-6 text-green-500" />
+              <TrendingUp className="w-6 h-6 text-primary" />
               <span className="text-gray-600">Potential Increase</span>
             </div>
             <p className="text-3xl font-bold text-green-600">+{analysis?.estimatedScoreIncrease}</p>
@@ -338,10 +341,10 @@ export default function CreditAnalysis() {
           
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <DollarSign className="w-6 h-6 text-orange-500" />
+              <DollarSign className="w-6 h-6 text-accent" />
               <span className="text-gray-600">Interest Savings</span>
             </div>
-            <p className="text-3xl font-bold text-orange-600">${analysis?.estimatedInterestSavings?.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-accent">${analysis?.estimatedInterestSavings?.toLocaleString()}</p>
             <p className="text-gray-500 text-sm">per year potential</p>
           </div>
         </div>
@@ -356,7 +359,7 @@ export default function CreditAnalysis() {
             <div className="flex items-center gap-3">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                 selectedItems.length >= MAX_ITEMS_PER_ROUND 
-                  ? 'bg-orange-100 text-orange-700' 
+                  ? 'bg-accent/10 text-accent' 
                   : 'bg-gray-100 text-gray-700'
               }`}>
                 {selectedItems.length}/{MAX_ITEMS_PER_ROUND} selected for Round 1
@@ -373,7 +376,7 @@ export default function CreditAnalysis() {
           {/* Recommended Items Section */}
           {recommendedItems.length > 0 && (
             <div className="mb-6">
-              <h3 className="text-sm font-semibold text-green-700 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-3 flex items-center gap-2">
                 <Zap className="w-4 h-4" />
                 AI Recommended (High Win Probability)
               </h3>
@@ -394,7 +397,7 @@ export default function CreditAnalysis() {
                       <div className="flex items-start gap-4">
                         <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
                           selectedItems.includes(item.id)
-                            ? 'border-orange-600 bg-orange-600'
+                            ? 'border-border bg-accent'
                             : 'border-gray-300'
                         }`}>
                           {selectedItems.includes(item.id) && <CheckCircle className="w-4 h-4 text-white" />}
@@ -448,7 +451,7 @@ export default function CreditAnalysis() {
                       <div className="flex items-start gap-4">
                         <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
                           selectedItems.includes(item.id)
-                            ? 'border-orange-600 bg-orange-600'
+                            ? 'border-border bg-accent'
                             : 'border-gray-300'
                         }`}>
                           {selectedItems.includes(item.id) && <CheckCircle className="w-4 h-4 text-white" />}
@@ -503,7 +506,7 @@ export default function CreditAnalysis() {
               >
                 {tier.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <span className="bg-orange-600 text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
+                    <span className="bg-accent text-white text-xs px-3 py-1 rounded-full flex items-center gap-1">
                       <Star className="w-3 h-3" /> Most Popular
                     </span>
                   </div>
@@ -531,7 +534,7 @@ export default function CreditAnalysis() {
 
                 {selectedTier === tier.id && (
                   <div className="absolute top-4 right-4">
-                    <CheckCircle className="w-6 h-6 text-orange-600" />
+                    <CheckCircle className="w-6 h-6 text-accent" />
                   </div>
                 )}
               </div>
@@ -556,8 +559,8 @@ export default function CreditAnalysis() {
             Results vary and are not guaranteed.
           </p>
           <div className="flex justify-center gap-4">
-            <Link href="/terms"><a className="hover:text-orange-600">Terms of Service</a></Link>
-            <Link href="/privacy"><a className="hover:text-orange-600">Privacy Policy</a></Link>
+            <Link href="/terms"><a className="hover:text-accent">Terms of Service</a></Link>
+            <Link href="/privacy"><a className="hover:text-accent">Privacy Policy</a></Link>
           </div>
         </div>
       </footer>

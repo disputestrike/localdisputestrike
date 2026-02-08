@@ -97,6 +97,7 @@ export async function getLockedAccounts(userId: number): Promise<
       if (dispute.disputedItemIds) {
         const itemIds = safeJsonParse(dispute.disputedItemIds, null);
         if (itemIds === null) continue;
+        try {
           for (const itemId of itemIds) {
             const unlocksAt = new Date(
               dispute.mailedAt!.getTime() + 30 * 24 * 60 * 60 * 1000

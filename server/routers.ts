@@ -1068,6 +1068,11 @@ Be thorough and list every negative item found.`;
             amountType: z.string().optional(),
           })).optional(),
           creditScore: z.number().optional(),
+          creditScores: z.object({
+            transunion: z.number().optional().nullable(),
+            equifax: z.number().optional().nullable(),
+            experian: z.number().optional().nullable(),
+          }).optional(),
         }),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1085,6 +1090,12 @@ Be thorough and list every negative item found.`;
           const existing = await db.getCreditReportsByUserId(userId);
           const existingReport = existing.find(r => r.bureau === bureau);
           
+          const cs = analysis.creditScores;
+          const bureauScore = (cs && (cs.transunion != null || cs.equifax != null || cs.experian != null))
+            ? (bureau === 'transunion' ? (cs.transunion ?? null) : bureau === 'equifax' ? (cs.equifax ?? null) : (cs.experian ?? null))
+            : null;
+          const scoreToSave = bureauScore != null ? bureauScore : (analysis.creditScore ?? null);
+
           if (existingReport) {
             reportIds.push(existingReport.id);
             // Update with parsed data if not already set
@@ -1092,12 +1103,12 @@ Be thorough and list every negative item found.`;
               await db.updateCreditReportParsedData(
                 existingReport.id,
                 JSON.stringify({
-                  creditScore: analysis.creditScore || null,
+                  creditScore: scoreToSave,
                   totalViolations: analysis.totalViolations,
                   severityBreakdown: analysis.severityBreakdown,
                   categoryBreakdown: analysis.categoryBreakdown,
                 }),
-                analysis.creditScore || null,
+                scoreToSave,
                 'FICO'
               );
             }
@@ -1112,16 +1123,16 @@ Be thorough and list every negative item found.`;
               isParsed: true,
             });
             
-            // Save parsed data
+            // Save parsed data (per-bureau score when available)
             await db.updateCreditReportParsedData(
               report.id,
               JSON.stringify({
-                creditScore: analysis.creditScore || null,
+                creditScore: scoreToSave,
                 totalViolations: analysis.totalViolations,
                 severityBreakdown: analysis.severityBreakdown,
                 categoryBreakdown: analysis.categoryBreakdown,
               }),
-              analysis.creditScore || null,
+              scoreToSave,
               'FICO'
             );
             
@@ -1267,6 +1278,14 @@ Be thorough and list every negative item found.`;
      */
     list: protectedProcedure.query(async ({ ctx }) => {
       return db.getCreditReportsByUserId(ctx.user.id);
+    }),
+
+    /**
+     * Get latest credit score per bureau (TransUnion, Equifax, Experian).
+     * Each bureau has its own number from the report; use this instead of a single default.
+     */
+    scoresByBureau: protectedProcedure.query(async ({ ctx }) => {
+      return db.getLatestScoresByBureau(ctx.user.id);
     }),
 
     /**

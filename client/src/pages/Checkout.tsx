@@ -218,26 +218,29 @@ export default function Checkout() {
     createSubscriptionMutation.mutate({ tier: selectedTier });
   }, [selectedTier]);
 
-  // Save preview analysis after payment
+  // Save preview analysis after payment so Dashboard / My Live Report show the full report
   const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
+  const utils = trpc.useUtils();
 
   const handleSuccess = async () => {
-    // Try to save preview analysis from sessionStorage
     try {
-      const previewData = sessionStorage.getItem('previewAnalysis');
+      const previewData = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
       if (previewData) {
         const analysis = JSON.parse(previewData);
         console.log('[Checkout] Saving preview analysis to database...');
         await savePreviewAnalysisMutation.mutateAsync({ analysis });
         console.log('[Checkout] Preview analysis saved successfully');
-        // Clear session storage after saving
         sessionStorage.removeItem('previewAnalysis');
+        localStorage.removeItem('previewAnalysis');
+        // Invalidate so Dashboard and My Live Report refetch and show the report
+        await utils.creditReports.list.invalidate();
+        await utils.creditReports.scoresByBureau.invalidate();
+        await utils.dashboardStats.get.invalidate();
+        await utils.negativeAccounts.list.invalidate();
       }
     } catch (err) {
       console.error('[Checkout] Failed to save preview analysis:', err);
-      // Continue to dashboard even if save fails
     }
-    
     setLocation('/dashboard?payment=success');
   };
 

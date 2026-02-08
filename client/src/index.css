@@ -10,20 +10,21 @@
   --color-card-foreground: hsl(224 71.4% 4.1%);
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(224 71.4% 4.1%);
-  --color-primary: hsl(24 100% 50%);
+  /* 2-color palette: Blue (primary) + Orange (accent) */
+  --color-primary: hsl(221 83% 40%);
   --color-primary-foreground: hsl(0 0% 100%);
   --color-secondary: hsl(220 14.3% 95.9%);
   --color-secondary-foreground: hsl(220.9 39.3% 11%);
   --color-muted: hsl(220 14.3% 95.9%);
   --color-muted-foreground: hsl(220 8.9% 46.1%);
-  --color-accent: hsl(220 14.3% 95.9%);
-  --color-accent-foreground: hsl(220.9 39.3% 11%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(210 20% 98%);
-  /* FIXED: Stronger border color for better visibility (was 91% - too faint) */
-  --color-border: hsl(220 13% 80%);
-  --color-input: hsl(220 13% 85%);
-  --color-ring: hsl(24 100% 50%);
+  --color-accent: hsl(24 95% 53%);
+  --color-accent-foreground: hsl(0 0% 100%);
+  --color-destructive: hsl(24 95% 53%);
+  --color-destructive-foreground: hsl(0 0% 100%);
+  /* Visible borders - dark enough to see across the app */
+  --color-border: hsl(220 10% 55%);
+  --color-input: hsl(220 10% 55%);
+  --color-ring: hsl(221 83% 40%);
   --color-chart-1: hsl(12 76% 61%);
   --color-chart-2: hsl(173 58% 39%);
   --color-chart-3: hsl(197 37% 24%);
@@ -58,20 +59,21 @@
     --card-foreground: 224 71.4% 4.1%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-    --primary: 24 100% 50%;
+    /* 2-color palette: Blue (primary) + Orange (accent) */
+    --primary: 221 83% 40%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14.3% 95.9%;
     --secondary-foreground: 220.9 39.3% 11%;
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 20% 98%;
-    /* FIXED: Stronger borders for better card/element separation */
-    --border: 220 13% 80%;
-    --input: 220 13% 85%;
-    --ring: 24 100% 50%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 24 95% 53%;
+    --destructive-foreground: 0 0% 100%;
+    /* Visible borders across the app */
+    --border: 220 10% 55%;
+    --input: 220 10% 55%;
+    --ring: 221 83% 40%;
     --radius: 0.5rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
@@ -87,19 +89,19 @@
     --card-foreground: 210 20% 98%;
     --popover: 224 71.4% 4.1%;
     --popover-foreground: 210 20% 98%;
-    --primary: 24 100% 50%;
+    --primary: 221 83% 50%;
     --primary-foreground: 0 0% 100%;
     --secondary: 215 27.9% 16.9%;
     --secondary-foreground: 210 20% 98%;
     --muted: 215 27.9% 16.9%;
     --muted-foreground: 217.9 10.6% 64.9%;
-    --accent: 215 27.9% 16.9%;
-    --accent-foreground: 210 20% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 215 27.9% 16.9%;
-    --input: 215 27.9% 16.9%;
-    --ring: 24 100% 50%;
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 24 95% 53%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 10% 35%;
+    --input: 220 10% 35%;
+    --ring: 221 83% 50%;
   }
 
   * {
@@ -134,7 +136,7 @@
 }
 
 [data-slot="card"]:hover {
-  border-color: hsl(220 20% 82%) !important;
+  border-color: hsl(220 10% 45%) !important;
   box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 6px 16px -4px rgba(0, 0, 0, 0.08) !important;
 }
 
@@ -165,34 +167,26 @@ input, textarea, select {
 }
 
 input:hover, textarea:hover, select:hover {
-  border-color: hsl(220 20% 75%) !important;
+  border-color: hsl(220 10% 45%) !important;
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: hsl(24 100% 50%) !important;
-  box-shadow: 0 0 0 3px hsla(24, 100%, 50%, 0.15) !important;
+  border-color: hsl(221 83% 40%) !important;
+  box-shadow: 0 0 0 3px hsla(221, 83%, 40%, 0.2) !important;
   outline: none !important;
 }
 
-/* Color-coded severity cards */
-.severity-critical {
-  border-left: 4px solid hsl(0 84% 60%) !important;
-  background: linear-gradient(to right, hsla(0, 84%, 60%, 0.05), transparent) !important;
-}
-
+/* 2-color severity: Blue (primary) + Orange (accent) */
+.severity-critical,
 .severity-high {
-  border-left: 4px solid hsl(25 95% 53%) !important;
-  background: linear-gradient(to right, hsla(25, 95%, 53%, 0.05), transparent) !important;
+  border-left: 4px solid hsl(24 95% 53%) !important;
+  background: linear-gradient(to right, hsla(24, 95%, 53%, 0.08), transparent) !important;
 }
 
-.severity-medium {
-  border-left: 4px solid hsl(48 96% 53%) !important;
-  background: linear-gradient(to right, hsla(48, 96%, 53%, 0.05), transparent) !important;
-}
-
+.severity-medium,
 .severity-low {
-  border-left: 4px solid hsl(142 71% 45%) !important;
-  background: linear-gradient(to right, hsla(142, 71%, 45%, 0.05), transparent) !important;
+  border-left: 4px solid hsl(221 83% 40%) !important;
+  background: linear-gradient(to right, hsla(221, 83%, 40%, 0.08), transparent) !important;
 }
 
 /* Section headers - clear visual break */
@@ -202,29 +196,20 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 1rem;
 }
 
-/* Metric/stat cards with colored tops */
+/* Metric/stat cards - 2 colors only */
 .metric-card {
-  border-top: 3px solid hsl(220 20% 85%);
+  border-top: 3px solid hsl(220 10% 55%);
 }
 
-.metric-card-red {
-  border-top: 3px solid hsl(0 84% 60%) !important;
-}
-
+.metric-card-red,
 .metric-card-orange {
-  border-top: 3px solid hsl(25 95% 53%) !important;
+  border-top: 3px solid hsl(24 95% 53%) !important;
 }
 
-.metric-card-green {
-  border-top: 3px solid hsl(142 71% 45%) !important;
-}
-
-.metric-card-blue {
-  border-top: 3px solid hsl(217 91% 60%) !important;
-}
-
+.metric-card-green,
+.metric-card-blue,
 .metric-card-purple {
-  border-top: 3px solid hsl(271 81% 56%) !important;
+  border-top: 3px solid hsl(221 83% 40%) !important;
 }
 
 /* Timeline/progress connectors */
@@ -243,7 +228,7 @@ table tbody tr:hover {
 
 /* List item separators */
 .list-separated > * + * {
-  border-top: 1px solid hsl(220 20% 90%);
+  border-top: 2px solid hsl(220 10% 55%);
   padding-top: 0.75rem;
   margin-top: 0.75rem;
 }
@@ -271,8 +256,8 @@ nav a:hover, nav button:hover {
 }
 
 nav a[data-active="true"], nav button[data-active="true"] {
-  background-color: hsl(24 100% 97%);
-  border-left: 3px solid hsl(24 100% 50%);
+  background-color: hsl(221 83% 97%);
+  border-left: 3px solid hsl(221 83% 40%);
 }
 
 /* Alert boxes with strong left border */
@@ -295,7 +280,7 @@ nav a[data-active="true"], nav button[data-active="true"] {
 
 /* Dropdown menus */
 [role="menu"], [role="listbox"] {
-  border: 1px solid hsl(220 20% 85%) !important;
+  border: 2px solid hsl(220 10% 55%) !important;
   box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15) !important;
 }
 

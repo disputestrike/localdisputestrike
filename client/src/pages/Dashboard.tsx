@@ -51,83 +51,72 @@ export default function Dashboard() {
   // Fetch data - ALL HOOKS AT TOP LEVEL
   const { data: userProfile } = trpc.profile.get.useQuery();
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
+  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery();
   const { data: stats } = trpc.dashboardStats.get.useQuery();
   const { data: disputeLetters, refetch: refetchLetters } = trpc.disputeLetters.list.useQuery();
   
   const completeIdentityBridgeMutation = trpc.profile.completeIdentityBridge.useMutation();
   const generateLettersMutation = trpc.disputeLetters.generate.useMutation();
   const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
-  
-  // Save preview analysis if it exists in sessionStorage but not in database
+  const utils = trpc.useUtils();
+
+  // Save preview analysis when we have it (from upload) but not yet in DB — so Dashboard/My Live Report show the full report
   const [hasTriedSave, setHasTriedSave] = useState(false);
   useEffect(() => {
     const savePreviewIfNeeded = async () => {
-      // Only save if user has no credit reports yet and we haven't tried yet
-      if (creditReports !== undefined && !hasTriedSave) {
-        setHasTriedSave(true);
-        
-        const previewData = sessionStorage.getItem('previewAnalysis');
-        console.log('[Dashboard] Checking for preview analysis...', {
-          hasPreviewData: !!previewData,
-          creditReportsCount: creditReports?.length || 0
-        });
-        
-        if (previewData && (!creditReports || creditReports.length === 0)) {
-          try {
-            const analysis = JSON.parse(previewData);
-            console.log('[Dashboard] Found preview analysis, saving to database...', {
-              totalViolations: analysis.totalViolations,
-              accountPreviews: analysis.accountPreviews?.length || 0
-            });
-            
-            const result = await savePreviewAnalysisMutation.mutateAsync({ analysis });
-            console.log('[Dashboard] Preview analysis saved successfully:', result);
-            
-            // Clear session storage and refetch
-            sessionStorage.removeItem('previewAnalysis');
-            await refetchReports();
-            
-            toast.success('Analysis data loaded successfully!');
-          } catch (err: any) {
-            console.error('[Dashboard] Failed to save preview analysis:', err);
-            toast.error(`Failed to save analysis: ${err.message || 'Unknown error'}`);
-          }
-        } else if (previewData && creditReports && creditReports.length > 0) {
-          // Data already exists, just clear session storage
-          console.log('[Dashboard] Credit reports already exist, clearing session storage');
+      if (creditReports === undefined || hasTriedSave) return;
+      setHasTriedSave(true);
+
+      const previewData = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
+      const hasReports = creditReports && creditReports.length > 0;
+      console.log('[Dashboard] Preview check:', { hasPreviewData: !!previewData, creditReportsCount: creditReports?.length ?? 0 });
+
+      if (!previewData || hasReports) {
+        if (previewData && hasReports) {
           sessionStorage.removeItem('previewAnalysis');
+          localStorage.removeItem('previewAnalysis');
         }
+        return;
+      }
+
+      try {
+        const analysis = JSON.parse(previewData);
+        console.log('[Dashboard] Saving preview analysis to database...');
+        await savePreviewAnalysisMutation.mutateAsync({ analysis });
+        sessionStorage.removeItem('previewAnalysis');
+        localStorage.removeItem('previewAnalysis');
+        await utils.creditReports.list.invalidate();
+        await utils.creditReports.scoresByBureau.invalidate();
+        await utils.dashboardStats.get.invalidate();
+        await utils.negativeAccounts.list.invalidate();
+        toast.success('Your report is now loaded.');
+      } catch (err: any) {
+        console.error('[Dashboard] Failed to save preview analysis:', err);
+        toast.error(err?.message || 'Could not load report. Try again.');
       }
     };
-    
+
     savePreviewIfNeeded();
-  }, [creditReports, hasTriedSave, savePreviewAnalysisMutation, refetchReports]);
+  }, [creditReports, hasTriedSave, savePreviewAnalysisMutation, utils]);
 
-  // Scoreboard Row Logic (Blueprint §2.1)
-  const getScore = (bureau: string) => {
-    const report = creditReports?.find(r => r.bureau === bureau);
-    if (report?.parsedData) {
-      const parsedData = safeJsonParse(report.parsedData, null);
-      if (parsedData === null) {
-        console.error("Failed to parse JSON for report:", report.bureau, report.parsedData);
-        return null;
-      }
-      return parsedData.creditScore || null;
-    }
-    return null;
-  };
-
+  // Per-bureau scores from endpoint (each bureau has its own number from the report)
   const scores = {
-    transunion: getScore('transunion'),
-    equifax: getScore('equifax'),
-    experian: getScore('experian'),
+    transunion: scoresByBureau?.transunion ?? creditReports?.find(r => r.bureau === 'transunion')?.creditScore ?? null,
+    equifax: scoresByBureau?.equifax ?? creditReports?.find(r => r.bureau === 'equifax')?.creditScore ?? null,
+    experian: scoresByBureau?.experian ?? creditReports?.find(r => r.bureau === 'experian')?.creditScore ?? null,
+  };
+  const validScore = (n: number | null | undefined) => (n != null && n >= 300 && n <= 850 ? n : null);
+  const scoresValid = {
+    transunion: validScore(scores.transunion),
+    equifax: validScore(scores.equifax),
+    experian: validScore(scores.experian),
   };
 
   const avgScore = Object.values(scores).filter(s => s !== null).reduce((a, b) => a! + b!, 0) / 
                    (Object.values(scores).filter(s => s !== null).length || 1);
   
-  const potentialDelta = 85; 
-  const targetScore = avgScore > 0 ? Math.round(avgScore + potentialDelta) : 750;
+  const potentialDelta = 85;
+  const targetScore = avgScore > 0 ? Math.min(850, Math.round(avgScore + potentialDelta)) : 750;
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <div className="min-h-screen flex items-center justify-center">Please sign in</div>;
@@ -174,24 +163,25 @@ export default function Dashboard() {
     });
   };
 
-  // Manual save function for debugging
+  // Manual save: pull report from storage into app (for debugging or if auto-save didn't run)
   const handleManualSave = async () => {
-    const previewData = sessionStorage.getItem('previewAnalysis');
+    const previewData = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
     if (!previewData) {
-      toast.error('No preview analysis found in session storage');
+      toast.error('No preview analysis in storage');
       return;
     }
-    
     try {
       const analysis = JSON.parse(previewData);
-      console.log('[Dashboard] Manual save triggered', analysis);
       await savePreviewAnalysisMutation.mutateAsync({ analysis });
       sessionStorage.removeItem('previewAnalysis');
-      await refetchReports();
-      toast.success('Analysis saved successfully!');
+      localStorage.removeItem('previewAnalysis');
+      await utils.creditReports.list.invalidate();
+      await utils.creditReports.scoresByBureau.invalidate();
+      await utils.dashboardStats.get.invalidate();
+      await utils.negativeAccounts.list.invalidate();
+      toast.success('Report loaded.');
     } catch (err: any) {
-      console.error('[Dashboard] Manual save failed:', err);
-      toast.error(`Save failed: ${err.message || 'Unknown error'}`);
+      toast.error(err?.message || 'Save failed');
     }
   };
 
@@ -200,9 +190,9 @@ export default function Dashboard() {
       <DashboardLayout>
         <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
           {/* Debug: Show if preview data exists */}
-          {sessionStorage.getItem('previewAnalysis') && (!creditReports || creditReports.length === 0) && (
-            <Alert className="mb-4 border-orange-300 bg-orange-50">
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
+          {(sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis')) && (!creditReports || creditReports.length === 0) && (
+            <Alert className="mb-4 border-2 border-border bg-accent/10">
+              <AlertTriangle className="h-4 w-4 text-accent" />
               <AlertDescription className="flex items-center justify-between">
                 <span>Preview analysis found but not saved. Click to save:</span>
                 <Button 
@@ -230,7 +220,7 @@ export default function Dashboard() {
               <Button 
                 onClick={handleGenerateLetters}
                 disabled={isGeneratingLetters}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                className="bg-primary hover:bg-primary/90 text-white font-bold"
               >
                 {isGeneratingLetters ? (
                   <>
@@ -252,38 +242,42 @@ export default function Dashboard() {
             <Card className="lg:col-span-2 border-2 border-gray-300 shadow-lg">
               <CardHeader className="pb-2 border-b-2 border-gray-200">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
+                  <div className="p-2 bg-primary/10 rounded-lg">
+                    <BarChart3 className="w-5 h-5 text-primary" />
                   </div>
                   Live Credit Scores
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-3 text-center">
                   {[
-                    { name: 'TransUnion', score: scores.transunion, color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
-                    { name: 'Equifax', score: scores.equifax, color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
-                    { name: 'Experian', score: scores.experian, color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' }
-                  ].map((b) => (
-                    <div key={b.name} className={cn("p-4 rounded-lg border-2", b.bg, b.border)}>
-                      <p className="text-xs font-bold text-gray-700 uppercase tracking-wide">{b.name}</p>
-                      <p className={cn("text-4xl font-black mt-1", b.score ? b.color : "text-gray-300")}>
-                        {b.score || "---"}
-                      </p>
-                    </div>
-                  ))}
+                    { short: 'TU', bureau: 'transunion' as const, color: 'text-primary', bg: 'bg-primary/5', border: 'border-border' },
+                    { short: 'EQ', bureau: 'equifax' as const, color: 'text-primary', bg: 'bg-primary/5', border: 'border-border' },
+                    { short: 'EX', bureau: 'experian' as const, color: 'text-accent', bg: 'bg-accent/5', border: 'border-border' }
+                  ].map((b) => {
+                    const score = scoresValid[b.bureau];
+                    return (
+                      <div key={b.short} className={cn("p-3 rounded-lg border", b.bg, b.border)}>
+                        <p className="text-xs font-medium text-gray-600">{b.short}</p>
+                        <p className={cn("text-2xl font-bold mt-0.5", score != null ? b.color : "text-gray-400")}>
+                          {score ?? "—"}
+                        </p>
+                        {score == null && <p className="text-xs text-gray-500 mt-0.5">From report</p>}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div className="mt-6 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
-                  <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border-2 border-green-200">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
+                <div className="mt-6 pt-4 border-t-2 border-border flex items-center justify-between">
+                  <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg border-2 border-border">
+                    <TrendingUp className="w-6 h-6 text-primary" />
                     <div>
-                      <p className="text-xs text-green-700 font-medium">Potential Delta</p>
-                      <p className="text-2xl font-black text-green-600">+{potentialDelta} Points</p>
+                      <p className="text-xs text-primary font-medium">Potential Delta</p>
+                      <p className="text-2xl font-black text-primary">+{potentialDelta} Points</p>
                     </div>
                   </div>
-                  <div className="text-right p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
-                    <p className="text-xs text-blue-700 font-medium">AI Target Score</p>
-                    <p className="text-2xl font-black text-blue-600">{targetScore}</p>
+                  <div className="text-right p-3 bg-accent/10 rounded-lg border-2 border-border">
+                    <p className="text-xs text-accent font-medium">AI Target Score</p>
+                    <p className="text-2xl font-black text-accent">{targetScore}</p>
                   </div>
                 </div>
               </CardContent>
@@ -300,7 +294,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
                 <p className="text-sm leading-relaxed text-white/95">
-                  "We've identified <span className="font-bold text-yellow-200">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+                  "We've identified <span className="font-bold text-white">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
                 </p>
                 <Button 
                   className="w-full bg-white hover:bg-gray-100 text-orange-600 font-bold shadow-md border-2 border-white"
@@ -320,7 +314,7 @@ export default function Dashboard() {
                   <div key={step} className="flex flex-col items-center gap-2">
                     <div className={cn(
                       "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                      i === 0 ? "bg-green-600 text-white" : "bg-gray-100 text-gray-400"
+                      i === 0 ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
                     )}>
                       {i === 0 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
                     </div>
@@ -334,44 +328,44 @@ export default function Dashboard() {
 
           {/* 4 METRIC BOXES (Blueprint §2.3) - Strong borders and color-coded */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-2 border-red-200 bg-red-50 shadow-md metric-card-red">
+            <Card className="border-2 border-border bg-accent/10 shadow-md">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-red-700 mb-2">
+                <div className="flex items-center gap-2 text-accent mb-2">
                   <AlertTriangle className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-wide">Negative Items</span>
                 </div>
-                <p className="text-4xl font-black text-red-600">{stats?.totalNegativeAccounts || 0}</p>
-                <p className="text-xs text-red-600 mt-1 font-medium">Found in AI analysis</p>
+                <p className="text-4xl font-black text-accent">{stats?.totalNegativeAccounts || 0}</p>
+                <p className="text-xs text-accent mt-1 font-medium">Found in AI analysis</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-blue-200 bg-blue-50 shadow-md metric-card-blue">
+            <Card className="border-2 border-border bg-primary/10 shadow-md">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-blue-700 mb-2">
+                <div className="flex items-center gap-2 text-primary mb-2">
                   <Mail className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-wide">Letters Sent</span>
                 </div>
-                <p className="text-4xl font-black text-blue-600">{stats?.totalLettersSent || 0}</p>
-                <p className="text-xs text-blue-600 mt-1 font-medium">Total dispute letters</p>
+                <p className="text-4xl font-black text-primary">{stats?.totalLettersSent || 0}</p>
+                <p className="text-xs text-primary mt-1 font-medium">Total dispute letters</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-green-200 bg-green-50 shadow-md metric-card-green">
+            <Card className="border-2 border-border bg-primary/10 shadow-md">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-green-700 mb-2">
+                <div className="flex items-center gap-2 text-primary mb-2">
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-wide">Deletions</span>
                 </div>
-                <p className="text-4xl font-black text-green-600">{stats?.totalDeletions || 0}</p>
-                <p className="text-xs text-green-600 mt-1 font-medium">Items removed</p>
+                <p className="text-4xl font-black text-primary">{stats?.totalDeletions || 0}</p>
+                <p className="text-xs text-primary mt-1 font-medium">Items removed</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-purple-200 bg-purple-50 shadow-md metric-card-purple">
+            <Card className="border-2 border-border bg-accent/10 shadow-md">
               <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-purple-700 mb-2">
+                <div className="flex items-center gap-2 text-accent mb-2">
                   <Clock className="w-5 h-5" />
                   <span className="text-xs font-bold uppercase tracking-wide">Avg. Time</span>
                 </div>
-                <p className="text-4xl font-black text-purple-600">34</p>
-                <p className="text-xs text-purple-600 mt-1 font-medium">Days to first result</p>
+                <p className="text-4xl font-black text-accent">34</p>
+                <p className="text-xs text-accent mt-1 font-medium">Days to first result</p>
               </CardContent>
             </Card>
           </div>
@@ -419,7 +413,7 @@ export default function Dashboard() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</div>
                       <div>
                         <p className="text-sm font-medium">Generate your dispute letters</p>
                         <p className="text-xs text-muted-foreground">Our AI will create custom letters for each bureau.</p>
@@ -519,7 +513,7 @@ export default function Dashboard() {
                           <Button variant="ghost" size="sm">
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Button variant="ghost" size="sm" className="text-accent hover:text-accent hover:bg-accent/10">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -546,13 +540,14 @@ export default function Dashboard() {
           onClose={() => setShowIdentityBridgeModal(false)}
           onComplete={handleIdentityBridgeComplete}
           prefillData={{
-            fullName: userProfile?.fullName,
-            address: userProfile?.address,
-            city: userProfile?.city,
-            state: userProfile?.state,
-            zip: userProfile?.zip,
-            dateOfBirth: userProfile?.dateOfBirth,
-            phone: userProfile?.phone,
+            fullName: userProfile?.fullName ?? '',
+            currentAddress: userProfile?.currentAddress ?? '',
+            currentCity: userProfile?.currentCity ?? '',
+            currentState: userProfile?.currentState ?? '',
+            currentZip: userProfile?.currentZip ?? '',
+            dateOfBirth: userProfile?.dateOfBirth ?? '',
+            phone: userProfile?.phone ?? '',
+            ssnLast4: userProfile?.ssnLast4 ?? '',
           }}
         />
       </DashboardLayout>

@@ -28,38 +28,30 @@ import {
   Bot,
   Clock
 } from "lucide-react";
-import { cn, safeJsonParse } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 export default function DashboardHome() {
   const [isIdentityModalOpen, setIsIdentityModalOpen] = useState(false);
   
   // Fetch real data
   const { data: stats } = trpc.dashboardStats.get.useQuery();
-  const { data: creditReports } = trpc.creditReports.list.useQuery();
+  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery();
   const { data: userProfile } = trpc.profile.get.useQuery();
   const utils = trpc.useUtils();
 
-  // Scoreboard Row Logic (Blueprint §2.1)
-  const getScore = (bureau: string) => {
-    const report = creditReports?.find(r => r.bureau === bureau);
-    if (report?.parsedData) {
-      const parsed = safeJsonParse(report.parsedData, null);
-      return parsed?.creditScore || null;
-    }
-    return null;
-  };
-
+  // Per-bureau scores from endpoint (each bureau has its own number from the report)
+  const valid = (n: number | null | undefined) => (n != null && n >= 300 && n <= 850 ? n : null);
   const scores = {
-    transunion: getScore('transunion'),
-    equifax: getScore('equifax'),
-    experian: getScore('experian'),
+    transunion: valid(scoresByBureau?.transunion),
+    equifax: valid(scoresByBureau?.equifax),
+    experian: valid(scoresByBureau?.experian),
   };
 
   const avgScore = Object.values(scores).filter(s => s !== null).reduce((a, b) => a! + b!, 0) / 
                    Object.values(scores).filter(s => s !== null).length || 0;
   
-  const potentialDelta = 85; // AI Predicted increase
-  const targetScore = avgScore > 0 ? Math.round(avgScore + potentialDelta) : 750;
+  const potentialDelta = 85; // AI analysis–based; max total 850
+  const targetScore = avgScore > 0 ? Math.min(850, Math.round(avgScore + potentialDelta)) : 750;
 
   const handleCompleteIdentity = async (data: any) => {
     // Save identity data and proceed to letter generation
@@ -78,7 +70,7 @@ export default function DashboardHome() {
             <h1 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Financial War Room</h1>
             <p className="text-sm text-gray-500">Strategic Credit Restoration in Progress</p>
           </div>
-          <Badge className="bg-orange-100 text-orange-700 border-orange-200 self-start md:self-center">
+          <Badge className="bg-accent/10 text-accent border-2 border-border self-start md:self-center">
             {userProfile?.subscriptionTier === 'complete' ? 'COMPLETE TIER' : 'ESSENTIAL TIER'}
           </Badge>
         </div>
@@ -90,39 +82,39 @@ export default function DashboardHome() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-gray-200">
                 <h3 className="text-sm font-black text-gray-700 uppercase tracking-widest">Live Credit Scores</h3>
-                <span className="text-xs text-green-600 font-bold flex items-center gap-1 bg-green-50 px-2 py-1 rounded-full">
+                <span className="text-xs text-primary font-bold flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-full">
                   <Clock className="w-3 h-3" /> UPDATED FROM REPORT
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                {Object.entries(scores).map(([bureau, score]) => {
+              <div className="grid grid-cols-3 gap-3">
+                {(['transunion', 'equifax', 'experian'] as const).map((bureau) => {
+                  const score = scores[bureau];
                   const colors: Record<string, { bg: string; border: string; text: string }> = {
-                    transunion: { bg: 'bg-blue-50', border: 'border-blue-300', text: 'text-blue-700' },
-                    equifax: { bg: 'bg-red-50', border: 'border-red-300', text: 'text-red-700' },
-                    experian: { bg: 'bg-purple-50', border: 'border-purple-300', text: 'text-purple-700' },
+                    transunion: { bg: 'bg-primary/5', border: 'border-border', text: 'text-primary' },
+                    equifax: { bg: 'bg-primary/5', border: 'border-border', text: 'text-primary' },
+                    experian: { bg: 'bg-accent/5', border: 'border-border', text: 'text-accent' },
                   };
                   const c = colors[bureau] || colors.transunion;
+                  const short = bureau === 'transunion' ? 'TU' : bureau === 'equifax' ? 'EQ' : 'EX';
                   return (
-                    <div key={bureau} className={cn("text-center p-4 rounded-lg border-2", c.bg, c.border)}>
-                      <p className="text-xs font-black text-gray-600 uppercase mb-2">{bureau}</p>
-                      <p className={cn(
-                        "text-4xl font-black",
-                        score ? c.text : "text-gray-300"
-                      )}>
-                        {score || "---"}
+                    <div key={bureau} className={cn("text-center p-3 rounded-lg border", c.bg, c.border)}>
+                      <p className="text-xs font-medium text-gray-600 mb-1">{short}</p>
+                      <p className={cn("text-2xl font-bold", score != null ? c.text : "text-gray-400")}>
+                        {score != null ? score : "—"}
                       </p>
+                      {score == null && <p className="text-xs text-gray-500 mt-0.5">From report</p>}
                     </div>
                   );
                 })}
               </div>
               <div className="mt-6 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
-                <div className="p-3 bg-green-50 rounded-lg border-2 border-green-300">
-                  <p className="text-xs font-bold text-green-700 uppercase">Potential Delta</p>
-                  <p className="text-2xl font-black text-green-600">+{potentialDelta} Points</p>
+                <div className="p-3 bg-primary/10 rounded-lg border-2 border-border">
+                  <p className="text-xs font-bold text-primary uppercase">Potential Delta</p>
+                  <p className="text-2xl font-black text-primary">+{potentialDelta} Points</p>
                 </div>
-                <div className="p-3 bg-blue-50 rounded-lg border-2 border-blue-300 text-right">
-                  <p className="text-xs font-bold text-blue-700 uppercase">AI Target Score</p>
-                  <p className="text-2xl font-black text-blue-600">{targetScore}</p>
+                <div className="p-3 bg-accent/10 rounded-lg border-2 border-border text-right">
+                  <p className="text-xs font-bold text-accent uppercase">AI Target Score</p>
+                  <p className="text-2xl font-black text-accent">{targetScore}</p>
                 </div>
               </div>
             </CardContent>
@@ -138,7 +130,7 @@ export default function DashboardHome() {
                 <h3 className="text-sm font-black uppercase tracking-widest">AI Strategist</h3>
               </div>
               <p className="text-sm leading-relaxed text-white/95">
-                "We've identified <span className="font-black text-yellow-200">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+                "We've identified <span className="font-black text-accent">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
               </p>
               <div className="mt-6">
                 <Button 
@@ -160,7 +152,7 @@ export default function DashboardHome() {
                 <div key={step} className="flex flex-col items-center gap-2">
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2",
-                    i === 0 ? "bg-green-500 text-white border-green-600" : "bg-gray-100 text-gray-500 border-gray-300"
+                    i === 0 ? "bg-primary text-white border-border" : "bg-secondary text-muted-foreground border-border"
                   )}>
                     {i === 0 ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
                   </div>
@@ -201,7 +193,7 @@ export default function DashboardHome() {
         {/* PRIMARY CTA (Blueprint §2.4) */}
         <div className="flex justify-center pt-4">
           <Button 
-            className="bg-orange-600 hover:bg-orange-700 text-white px-12 py-8 text-xl font-black shadow-xl shadow-orange-200 group"
+            className="bg-accent hover:bg-accent/90 text-white px-12 py-8 text-xl font-black shadow-xl group"
             onClick={() => setIsIdentityModalOpen(true)}
           >
             GENERATE MY ROUND 1 DISPUTE LETTERS
@@ -215,13 +207,14 @@ export default function DashboardHome() {
           onClose={() => setIsIdentityModalOpen(false)}
           onComplete={handleCompleteIdentity}
           prefillData={{
-            fullName: userProfile?.fullName || '',
-            address: userProfile?.currentAddress || '',
-            city: userProfile?.currentCity || '',
-            state: userProfile?.currentState || '',
-            zip: userProfile?.currentZip || '',
-            dateOfBirth: userProfile?.dateOfBirth || '',
-            phone: userProfile?.phone || '',
+            fullName: userProfile?.fullName ?? '',
+            currentAddress: userProfile?.currentAddress ?? '',
+            currentCity: userProfile?.currentCity ?? '',
+            currentState: userProfile?.currentState ?? '',
+            currentZip: userProfile?.currentZip ?? '',
+            dateOfBirth: userProfile?.dateOfBirth ?? '',
+            phone: userProfile?.phone ?? '',
+            ssnLast4: userProfile?.ssnLast4 ?? '',
           }}
         />
       </div>

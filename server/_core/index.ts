@@ -17,7 +17,12 @@ import { getDb } from "../db";
 async function startServer() {
   const app = express();
   const server = createServer(app);
-  
+
+  // Long timeouts for 3-file upload + AI analysis (can take 3–5 min)
+  const longTimeoutMs = 6 * 60 * 1000;
+  server.headersTimeout = longTimeoutMs;
+  server.requestTimeout = longTimeoutMs;
+
   // Trust proxy for rate limiting behind reverse proxy
   app.set('trust proxy', 1);
   

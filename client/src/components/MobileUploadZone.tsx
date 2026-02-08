@@ -126,9 +126,9 @@ export function MobileUploadZone({
   };
 
   const bureauBgColors = {
-    transunion: 'bg-blue-50 border-blue-200',
-    equifax: 'bg-red-50 border-red-200',
-    experian: 'bg-purple-50 border-purple-200',
+    transunion: 'bg-primary/5 border-2 border-border',
+    equifax: 'bg-primary/5 border-2 border-border',
+    experian: 'bg-accent/5 border-2 border-border',
   };
 
   if (hasExistingReport) {

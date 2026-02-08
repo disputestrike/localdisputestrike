@@ -1283,7 +1283,7 @@ services:
 | `IMPLEMENTATION_SUMMARY.md` | V2 implementation details |
 | `FINAL_GO_LIVE_REPORT.md` | Go-live preparation |
 | `BLUEPRINT_STATUS.md` | Blueprint implementation status |
-| `COMPLETE_FLOW_SPECIFICATION.md` | Full flow specification v3.0 |
+| `COMPLETE_not _SPECIFICATION.md` | Full flow specification v3.0 |
 | `audit/FIXES_SUMMARY.md` | S3/logout fixes |
 | `audit/QA_QC_AUDIT.md` | QA/QC verification |
 

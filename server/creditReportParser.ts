@@ -594,6 +594,20 @@ export async function parseAndSaveReport(
 
     await db.updateCreditReportParsedData(reportId, 'parsed', score, scoreModel);
 
+    // Auto-fill user profile from analysis when available (so Complete Profile modal can be pre-filled)
+    if (personalInfo) {
+      const addr = personalInfo.currentAddress;
+      await db.updateUserProfile(userId, {
+        fullName: personalInfo.fullName || undefined,
+        currentAddress: addr?.fullAddress || undefined,
+        currentCity: addr?.city || undefined,
+        currentState: addr?.state || undefined,
+        currentZip: addr?.zip || undefined,
+        dateOfBirth: personalInfo.dateOfBirth || undefined,
+        ssnLast4: personalInfo.ssnLast4 || undefined,
+      });
+    }
+
     if (score && scoreModel) {
       await db.recordCreditScore({ 
         userId, 
@@ -629,24 +643,20 @@ export async function parseAndSaveCombinedReport(
     // We can just parse one bureau since personal info is usually consistent
     const personalInfo = await parsePersonalInfoWithAI(fileUrl, 'TransUnion');
     
-    // Step 3: If personal info was found, update the user's profile
+    // Step 3: If personal info was found, update the user's profile (auto-fill from analysis)
     if (personalInfo) {
+      const addr = personalInfo.currentAddress;
       await db.updateUserProfile(userId, {
         fullName: personalInfo.fullName,
-        currentAddress: personalInfo.currentAddress.fullAddress,
-        dateOfBirth: personalInfo.dateOfBirth,
-        ssnLast4: personalInfo.ssnLast4,
+        currentAddress: addr?.fullAddress || '',
+        currentCity: addr?.city || undefined,
+        currentState: addr?.state || undefined,
+        currentZip: addr?.zip || undefined,
+        dateOfBirth: personalInfo.dateOfBirth || undefined,
+        ssnLast4: personalInfo.ssnLast4 || undefined,
       });
-
-      // Step 4: Record the extracted credit scores
-      if (personalInfo.creditScore) {
-        // Record the score for all three bureaus. The actual report records will be linked later.
-        await db.recordCreditScore({ userId, bureau: 'transunion', score: personalInfo.creditScore, scoreModel: personalInfo.scoreModel });
-        await db.recordCreditScore({ userId, bureau: 'equifax', score: personalInfo.creditScore, scoreModel: personalInfo.scoreModel });
-        await db.recordCreditScore({ userId, bureau: 'experian', score: personalInfo.creditScore, scoreModel: personalInfo.scoreModel });
-      }
     }
-    
+
     console.log(`[Parser Combined] Vision AI extracted ${allAccounts.length} total accounts`);
     
     // Create 3 credit report records
@@ -721,15 +731,32 @@ export async function parseAndSaveCombinedReport(
     
     console.log(`[Parser Combined] Distribution: TU=${bureauCounts.transunion}, EQ=${bureauCounts.equifax}, EX=${bureauCounts.experian}`);
     console.log(`[Parser Combined] Saved ${newCount} new accounts, skipped ${skipCount} duplicates`);
-    
-    // Update report statuses and save score to report record
-    const score = personalInfo?.creditScore || null;
-    const scoreModel = personalInfo?.scoreModel || null;
 
-    await db.updateCreditReportParsedData(transunionReport.id, 'parsed', score, scoreModel);
-    await db.updateCreditReportParsedData(equifaxReport.id, 'parsed', score, scoreModel);
-    await db.updateCreditReportParsedData(experianReport.id, 'parsed', score, scoreModel);
-    
+    // Extract all 3 bureau scores from combined report (each bureau has its own number: e.g. TU 587, EQ 573, EX 665)
+    const allScores = await parseAllBureauScoresFromCombined(fileUrl);
+    const fallbackScore = personalInfo?.creditScore ?? null;
+    const fallbackModel = personalInfo?.scoreModel ?? allScores?.scoreModel ?? null;
+
+    // Use per-bureau scores when AI returns them; only use single fallback when AI fails entirely (so we never show 587 for all three when report has 587/573/665)
+    const hasAnyBureauScore = allScores && (allScores.transunion != null || allScores.equifax != null || allScores.experian != null);
+    const tuScore = hasAnyBureauScore ? (allScores!.transunion ?? null) : fallbackScore;
+    const eqScore = hasAnyBureauScore ? (allScores!.equifax ?? null) : fallbackScore;
+    const exScore = hasAnyBureauScore ? (allScores!.experian ?? null) : fallbackScore;
+
+    await db.updateCreditReportParsedData(transunionReport.id, 'parsed', tuScore, fallbackModel);
+    await db.updateCreditReportParsedData(equifaxReport.id, 'parsed', eqScore, fallbackModel);
+    await db.updateCreditReportParsedData(experianReport.id, 'parsed', exScore, fallbackModel);
+
+    if (hasAnyBureauScore) {
+      if (allScores!.transunion != null) await db.recordCreditScore({ userId, bureau: 'transunion', score: allScores!.transunion, scoreModel: allScores!.scoreModel ?? undefined });
+      if (allScores!.equifax != null) await db.recordCreditScore({ userId, bureau: 'equifax', score: allScores!.equifax, scoreModel: allScores!.scoreModel ?? undefined });
+      if (allScores!.experian != null) await db.recordCreditScore({ userId, bureau: 'experian', score: allScores!.experian, scoreModel: allScores!.scoreModel ?? undefined });
+    } else if (fallbackScore != null) {
+      await db.recordCreditScore({ userId, bureau: 'transunion', score: fallbackScore, scoreModel: fallbackModel ?? undefined });
+      await db.recordCreditScore({ userId, bureau: 'equifax', score: fallbackScore, scoreModel: fallbackModel ?? undefined });
+      await db.recordCreditScore({ userId, bureau: 'experian', score: fallbackScore, scoreModel: fallbackModel ?? undefined });
+    }
+
     return {
       transunionId: transunionReport.id,
       equifaxId: equifaxReport.id,
@@ -850,6 +877,85 @@ IMPORTANT:
     };
   } catch (error) {
     console.error('[AI Parser] Personal info extraction failed:', error);
+    return null;
+  }
+}
+
+/** Result of extracting all 3 bureau scores from a combined report (e.g. VantageScore 3.0 per bureau) */
+export interface AllBureauScores {
+  transunion: number | null;
+  equifax: number | null;
+  experian: number | null;
+  scoreModel: string | null;
+}
+
+/**
+ * Extract credit scores for ALL 3 bureaus from a combined 3-bureau report PDF.
+ * Many reports show TransUnion, Equifax, Experian side-by-side with different scores (300-850).
+ */
+export async function parseAllBureauScoresFromCombined(fileUrl: string): Promise<AllBureauScores | null> {
+  console.log('[AI Parser] Extracting all 3 bureau scores from combined report');
+  const systemPrompt = `You are an expert credit report analyst. This is a COMBINED report that shows credit scores from all three bureaus (TransUnion, Equifax, Experian), often side-by-side or in separate sections with labels like "VantageScore® 3.0" or "FICO".
+
+CRITICAL: Each bureau has its OWN score. They are almost always DIFFERENT numbers (e.g. TransUnion 587, Equifax 573, Experian 665). Do NOT use the same number for all three unless the document literally shows one score applied to all bureaus.
+
+Extract the credit score (integer 300-850) for EACH bureau from its own section/column:
+- transunion: the number shown under or next to TransUnion only
+- equifax: the number shown under or next to Equifax only  
+- experian: the number shown under or next to Experian only
+- scoreModel: string (e.g. "VantageScore 3.0", "FICO 8") or null
+
+If you cannot find a score for a specific bureau, use null for that bureau only. Do NOT copy another bureau's score into a bureau you could not read.`;
+
+  try {
+    const response = await invokeLLM({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Extract the credit score for TransUnion, Equifax, and Experian from this combined credit report. Return each bureau score separately.' },
+            { type: 'file_url', file_url: { url: fileUrl, mime_type: 'application/pdf' } },
+          ],
+        },
+      ],
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          name: 'all_bureau_scores',
+          strict: true,
+          schema: {
+            type: 'object',
+            properties: {
+              transunion: { type: 'number' },
+              equifax: { type: 'number' },
+              experian: { type: 'number' },
+              scoreModel: { type: 'string' },
+            },
+            required: ['scoreModel'],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+
+    const content = response.choices[0]?.message?.content;
+    const parsed = safeJsonParse(content, content);
+    if (!parsed) return null;
+
+    const clamp = (n: unknown): number | null => {
+      if (typeof n !== 'number' || !Number.isFinite(n)) return null;
+      return Math.max(300, Math.min(850, Math.round(n)));
+    };
+
+    return {
+      transunion: clamp(parsed.transunion),
+      equifax: clamp(parsed.equifax),
+      experian: clamp(parsed.experian),
+      scoreModel: typeof parsed.scoreModel === 'string' ? parsed.scoreModel : null,
+    };
+  } catch (error) {
+    console.error('[AI Parser] All-bureau scores extraction failed:', error);
     return null;
   }
 }

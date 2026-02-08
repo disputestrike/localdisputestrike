@@ -241,6 +241,24 @@ export async function getCreditReportsByUserId(userId: number): Promise<CreditRe
     .orderBy(desc(creditReports.uploadedAt));
 }
 
+/** Get latest credit score per bureau from reports (each bureau can have a different number). */
+export async function getLatestScoresByBureau(userId: number): Promise<{
+  transunion: number | null;
+  equifax: number | null;
+  experian: number | null;
+}> {
+  const reports = await getCreditReportsByUserId(userId);
+  const result = { transunion: null as number | null, equifax: null as number | null, experian: null as number | null };
+  for (const r of reports) {
+    const score = r.creditScore != null && r.creditScore >= 300 && r.creditScore <= 850 ? r.creditScore : null;
+    if (score == null) continue;
+    if (r.bureau === 'transunion' && result.transunion == null) result.transunion = score;
+    else if (r.bureau === 'equifax' && result.equifax == null) result.equifax = score;
+    else if (r.bureau === 'experian' && result.experian == null) result.experian = score;
+  }
+  return result;
+}
+
 export async function getCreditReportById(reportId: number): Promise<CreditReport | undefined> {
   const db = await getDb();
   if (!db) return undefined;
@@ -1750,6 +1768,9 @@ export async function upsertUserProfile(userId: number, data: Partial<Omit<Inser
     return inserted[0];
   }
 }
+
+/** Alias for upsertUserProfile (used by credit report parser when filling profile from analysis) */
+export const updateUserProfile = upsertUserProfile;
 
 /**
  * Get full address string from profile

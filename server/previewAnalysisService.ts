@@ -46,6 +46,10 @@ export interface PreviewAnalysisResult {
   estimatedScoreIncrease: string;
   /** Up to 10 partial previews: name, last4, balance, status only. */
   accountPreviews?: AccountPreviewItem[];
+  /** Single score if report shows one (legacy). */
+  creditScore?: number;
+  /** Per-bureau scores - each bureau has its OWN number (e.g. TU 587, EQ 573, EX 665). */
+  creditScores?: { transunion?: number | null; equifax?: number | null; experian?: number | null };
 }
 
 const PREVIEW_SYSTEM_PROMPT = `You are a credit report analyst. Count ACTUAL negative items, not word mentions.
@@ -73,8 +77,15 @@ Return a JSON object with this exact structure:
   "accountPreviews": [
     { "name": "<EXACT creditor name>", "last4": "<last 4 digits>", "balance": "<balance>", "status": "<status>", "amountType": "Unpaid Balance" }
   ],
-  "creditScore": <number if found>
+  "creditScore": <number if only one score on report>,
+  "creditScores": {
+    "transunion": <number 300-850 or null - TransUnion score ONLY>,
+    "equifax": <number 300-850 or null - Equifax score ONLY>,
+    "experian": <number 300-850 or null - Experian score ONLY>
+  }
 }
+
+**CRITICAL for creditScores:** Combined reports show THREE DIFFERENT scores (one per bureau). Extract each bureau's score from its section. They are often different (e.g. TransUnion 587, Equifax 573, Experian 665). Do NOT use the same number for all three unless the document literally shows one score for all. Use null for a bureau if you cannot find its score.
 
 **COUNTING RULES - COUNT ACTUAL ITEMS:**
 1. Each COLLECTION ACCOUNT = 1 violation (per bureau if appears on multiple)
@@ -269,9 +280,20 @@ function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisR
     }));
   
   console.log('[Preview] Normalized accountPreviews:', accountPreviews.length);
-  const creditScore = result.creditScore != null && Number.isFinite(result.creditScore)
-    ? Math.max(300, Math.min(850, Math.round(result.creditScore)))
-    : undefined;
+  const clamp = (n: unknown): number | undefined => {
+    if (n == null || typeof n !== 'number' || !Number.isFinite(n)) return undefined;
+    return Math.max(300, Math.min(850, Math.round(n)));
+  };
+  const creditScore = clamp(result.creditScore);
+  const rawScores = result.creditScores;
+  const creditScores =
+    rawScores && (rawScores.transunion != null || rawScores.equifax != null || rawScores.experian != null)
+      ? {
+          transunion: clamp(rawScores.transunion) ?? undefined,
+          equifax: clamp(rawScores.equifax) ?? undefined,
+          experian: clamp(rawScores.experian) ?? undefined,
+        }
+      : undefined;
   return {
     totalViolations: Math.max(0, result.totalViolations || 0), // NO CAP - show real count
     deletionPotential: Math.max(0, Math.min(100, result.deletionPotential || 50)),
@@ -290,7 +312,8 @@ function normalizePreviewResult(result: PreviewAnalysisResult): PreviewAnalysisR
     },
     estimatedScoreIncrease: result.estimatedScoreIncrease || '30-60',
     accountPreviews: accountPreviews.length ? accountPreviews : undefined,
-    creditScore,
+    creditScore: creditScore ?? (creditScores ? (creditScores.transunion ?? creditScores.equifax ?? creditScores.experian) : undefined),
+    creditScores,
   };
 }
 

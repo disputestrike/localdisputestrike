@@ -80,10 +80,8 @@ const normalizeBureauCode = (value: string): BureauCode | null => {
 };
 
 const getScoreColor = (score: number) => {
-  if (score >= 740) return 'text-green-600';
-  if (score >= 670) return 'text-yellow-600';
-  if (score >= 580) return 'text-orange-600';
-  return 'text-red-600';
+  if (score >= 670) return 'text-primary';
+  return 'text-accent';
 };
 
 const getScoreLabel = (score: number) => {
@@ -94,10 +92,8 @@ const getScoreLabel = (score: number) => {
 };
 
 const getScoreBgColor = (score: number) => {
-  if (score >= 740) return 'bg-green-100';
-  if (score >= 670) return 'bg-yellow-100';
-  if (score >= 580) return 'bg-orange-100';
-  return 'bg-red-100';
+  if (score >= 670) return 'bg-primary/10';
+  return 'bg-accent/10';
 };
 
 export default function MyLiveReport() {
@@ -106,29 +102,28 @@ export default function MyLiveReport() {
   const { generateLetters, isGenerating } = useGenerateDisputeLetters();
 
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery();
   const { data: negativeAccounts = [], isLoading: accountsLoading } = trpc.negativeAccounts.list.useQuery();
   const { data: profile } = trpc.profile.get.useQuery();
 
   const analysis = useMemo((): AnalysisData => {
+    const valid = (n: number | null | undefined) => (n != null && n >= 300 && n <= 850 ? n : null);
+    const tu = valid(scoresByBureau?.transunion);
+    const eq = valid(scoresByBureau?.equifax);
+    const ex = valid(scoresByBureau?.experian);
     const scores: CreditScore[] = [
-      { bureau: "TransUnion", score: 0 },
-      { bureau: "Equifax", score: 0 },
-      { bureau: "Experian", score: 0 },
+      { bureau: "TransUnion", score: tu ?? 0 },
+      { bureau: "Equifax", score: eq ?? 0 },
+      { bureau: "Experian", score: ex ?? 0 },
     ];
-    const byBureau: Record<string, CreditScore> = {
-      TransUnion: scores[0],
-      Equifax: scores[1],
-      Experian: scores[2],
-    };
-    for (const r of creditReports) {
-      const label = BUREAU_LABELS[r.bureau] || r.bureau;
-      const existing = byBureau[label];
-      if (existing) {
-        const parsedData = safeJsonParse(r.parsedData, null);
-        const parsedScore = parsedData && typeof parsedData.creditScore === "number" ? parsedData.creditScore : null;
-        const score = parsedScore ?? r.creditScore ?? null;
-        if (score != null) {
-          existing.score = score;
+    if (tu == null && eq == null && ex == null) {
+      for (const r of creditReports) {
+        const label = BUREAU_LABELS[r.bureau] || r.bureau;
+        const existing = scores.find(s => s.bureau === label);
+        if (existing) {
+          const scoreFromReport = r.creditScore != null && r.creditScore >= 300 && r.creditScore <= 850 ? r.creditScore : null;
+          const score = scoreFromReport ?? (safeJsonParse(r.parsedData, null)?.creditScore ?? null);
+          if (score != null && score >= 300 && score <= 850) existing.score = score;
         }
       }
     }
@@ -197,7 +192,7 @@ export default function MyLiveReport() {
       trialEndsAt: trialEnd.toISOString(),
       subscription: { status: subStatus, tier: subscriptionTier },
     };
-  }, [creditReports, negativeAccounts, profile]);
+  }, [creditReports, scoresByBureau, negativeAccounts, profile]);
 
   const isLoading = reportsLoading || accountsLoading;
 
@@ -253,7 +248,7 @@ export default function MyLiveReport() {
     return (
       <DashboardLayout>
         <div className="p-8 text-center max-w-md mx-auto">
-          <Shield className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+          <Shield className="w-16 h-16 text-accent mx-auto mb-4" />
           <h1 className="text-xl font-bold text-gray-900 mb-2">No credit data yet</h1>
           <p className="text-gray-600 mb-6">
             Upload your credit reports from the dashboard to see your scores, negative items, and AI recommendations.
@@ -275,54 +270,58 @@ export default function MyLiveReport() {
         <h1 className="text-3xl font-bold text-gray-900">My Live Report & Analysis</h1>
         <p className="text-lg text-gray-600">Your interactive 3-bureau credit report with AI-powered violation analysis.</p>
 
-        {/* Score Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {analysis.scores.map((s) => (
-            <Card key={s.bureau} className="shadow-lg">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{s.bureau}</CardTitle>
-                <Shield className="h-4 w-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold">{s.score}</div>
-                <p className={cn("text-xs font-medium mt-1", getScoreColor(s.score))}>
-                  {getScoreLabel(s.score)}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+        {/* Score Section - all 3 bureaus from report (each bureau has its own number) */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {analysis.scores.map((s) => {
+            const hasScore = s.score >= 300 && s.score <= 850;
+            const short = s.bureau === 'TransUnion' ? 'TU' : s.bureau === 'Equifax' ? 'EQ' : 'EX';
+            return (
+              <Card key={s.bureau} className="shadow border border-gray-200">
+                <CardHeader className="py-2 px-4 flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-xs font-medium text-gray-600">{short}</CardTitle>
+                  <Shield className="h-3.5 w-3.5 text-gray-400" />
+                </CardHeader>
+                <CardContent className="pt-0 px-4 pb-4">
+                  <div className={cn("text-2xl font-bold", hasScore ? getScoreColor(s.score) : "text-gray-400")}>
+                    {hasScore ? s.score : "—"}
+                  </div>
+                  {!hasScore && <p className="text-xs text-gray-500 mt-0.5">From report</p>}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Summary Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-red-50 border-red-200">
+          <Card className="bg-accent/10 border-2 border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-red-600">Total Violations</CardTitle>
               <AlertTriangle className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-700">{analysis.totalViolations}</div>
-              <p className="text-xs text-red-500 mt-1">Identified by AI</p>
+              <div className="text-2xl font-bold text-accent">{analysis.totalViolations}</div>
+              <p className="text-xs text-accent mt-1">Identified by AI</p>
             </CardContent>
           </Card>
           <Card className="bg-green-50 border-green-200">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-green-600">Est. Score Increase</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-600" />
+              <CardTitle className="text-sm font-medium text-primary">Est. Score Increase</CardTitle>
+              <TrendingUp className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-700">+{analysis.estimatedScoreIncrease}</div>
               <p className="text-xs text-green-500 mt-1">Points Potential</p>
             </CardContent>
           </Card>
-          <Card className="bg-blue-50 border-blue-200">
+          <Card className="bg-accent/10 border-2 border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-blue-600">Est. Savings</CardTitle>
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-700">${analysis.estimatedInterestSavings.toLocaleString()}</div>
-              <p className="text-xs text-blue-500 mt-1">In Interest</p>
+              <div className="text-2xl font-bold text-accent">${analysis.estimatedInterestSavings.toLocaleString()}</div>
+              <p className="text-xs text-accent mt-1">In Interest</p>
             </CardContent>
           </Card>
         </div>
@@ -349,7 +348,7 @@ export default function MyLiveReport() {
                   AI Recommended (High Priority)
                 </h3>
                 {recommendedItems.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-red-50/50 transition-colors">
+                  <div key={item.id} className="flex items-center justify-between p-4 border-2 border-border rounded-lg hover:bg-accent/5 transition-colors">
                     <div className="flex items-center gap-4">
                       <input
                         type="checkbox"
@@ -361,7 +360,7 @@ export default function MyLiveReport() {
                       <div className="space-y-0.5">
                         <p className="font-bold text-gray-900">{item.accountName}</p>
                         <div className="flex items-center gap-3 text-xs text-gray-500">
-                          <Badge variant="secondary" className="bg-red-100 text-red-700 border-red-300">{item.accountType}</Badge>
+                          <Badge variant="secondary" className="bg-accent/10 text-accent border-2 border-border">{item.accountType}</Badge>
                           <Badge variant="secondary">{item.bureau}</Badge>
                           <span className="flex items-center gap-1"><FileText className="w-3 h-3" /> Status: {item.status}</span>
                         </div>
@@ -391,7 +390,7 @@ export default function MyLiveReport() {
                         checked={selectedItems.includes(item.id)}
                         onChange={() => toggleItemSelection(item.id)}
                         disabled={selectedItems.length >= MAX_ITEMS_PER_ROUND && !selectedItems.includes(item.id)}
-                        className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-5 h-5 text-primary bg-secondary border-2 border-border rounded focus:ring-primary"
                       />
                       <div className="space-y-0.5">
                         <p className="font-bold text-gray-900">{item.accountName}</p>

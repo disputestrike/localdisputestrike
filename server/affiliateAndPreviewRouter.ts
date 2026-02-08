@@ -63,11 +63,13 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
   categoryBreakdown: { latePayments: number; collections: number; chargeOffs: number; judgments: number; other: number };
   accountPreviews?: { name: string; last4: string; balance: string; status: string; amountType?: string }[];
   creditScore?: number;
+  creditScores?: { transunion?: number; equifax?: number; experian?: number };
 } {
   const t = Math.max(1, p.totalViolations);
   
   console.log('[toLightAnalysisResult] Input accountPreviews:', p.accountPreviews?.length || 0);
   console.log('[toLightAnalysisResult] Input totalViolations:', p.totalViolations);
+  console.log('[toLightAnalysisResult] creditScores:', p.creditScores ? JSON.stringify(p.creditScores) : 'none');
   
   const result = {
     totalViolations: p.totalViolations,
@@ -86,6 +88,13 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
     },
     accountPreviews: p.accountPreviews?.length ? p.accountPreviews : undefined,
     creditScore: p.creditScore,
+    creditScores: p.creditScores?.transunion != null || p.creditScores?.equifax != null || p.creditScores?.experian != null
+      ? {
+          transunion: p.creditScores.transunion ?? undefined,
+          equifax: p.creditScores.equifax ?? undefined,
+          experian: p.creditScores.experian ?? undefined,
+        }
+      : undefined,
   };
   
   console.log('[toLightAnalysisResult] Output accountPreviews:', result.accountPreviews?.length || 0);
@@ -105,9 +114,14 @@ const uploadFields = upload.fields([
   { name: 'experian', maxCount: 1 },
 ]);
 
+// 3-file upload + extraction + AI can take 3–5 minutes; avoid default timeouts
+const UPLOAD_ANALYZE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
 router.post(
   '/credit-reports/upload-and-analyze',
   (req: Request, res: Response, next: () => void) => {
+    req.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
+    res.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
     uploadFields(req, res, (err: unknown) => {
       if (err) {
         const code = (err as { code?: string })?.code;
@@ -115,7 +129,7 @@ router.post(
           return res.status(413).json({ error: 'File too large. Max 50MB per file.' });
         }
         if (code === 'LIMIT_FILE_COUNT' || code === 'LIMIT_UNEXPECTED_FILE') {
-          return res.status(400).json({ error: 'Invalid upload. Use one file per bureau (TransUnion, Equifax, Experian).' });
+          return res.status(400).json({ error: 'Invalid upload. Use 1 combined file (all 3 bureaus) or 3 separate files (TransUnion, Equifax, Experian).' });
         }
         console.error('[Preview] Multer error:', err);
         return res.status(400).json({ error: 'Invalid upload. Check file types (PDF/HTML) and sizes.' });
