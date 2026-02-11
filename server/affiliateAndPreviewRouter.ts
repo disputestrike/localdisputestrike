@@ -117,27 +117,28 @@ const uploadFields = upload.fields([
 // 3-file upload + extraction + AI can take 3–5 minutes; avoid default timeouts
 const UPLOAD_ANALYZE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
-router.post(
-  '/credit-reports/upload-and-analyze',
-  (req: Request, res: Response, next: () => void) => {
-    req.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
-    res.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
-    uploadFields(req, res, (err: unknown) => {
-      if (err) {
-        const code = (err as { code?: string })?.code;
-        if (code === 'LIMIT_FILE_SIZE') {
-          return res.status(413).json({ error: 'File too large. Max 50MB per file.' });
-        }
-        if (code === 'LIMIT_FILE_COUNT' || code === 'LIMIT_UNEXPECTED_FILE') {
-          return res.status(400).json({ error: 'Invalid upload. Use 1 combined file (all 3 bureaus) or 3 separate files (TransUnion, Equifax, Experian).' });
-        }
-        console.error('[Preview] Multer error:', err);
-        return res.status(400).json({ error: 'Invalid upload. Check file types (PDF/HTML) and sizes.' });
+/** Timeout + multer middleware for upload-and-analyze */
+const uploadAndAnalyzeMulter = (req: Request, res: Response, next: () => void) => {
+  req.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
+  res.setTimeout(UPLOAD_ANALYZE_TIMEOUT_MS);
+  uploadFields(req, res, (err: unknown) => {
+    if (err) {
+      const code = (err as { code?: string })?.code;
+      if (code === 'LIMIT_FILE_SIZE') {
+        return res.status(413).json({ error: 'File too large. Max 50MB per file.' });
       }
-      next();
-    });
-  },
-  async (req: Request, res: Response) => {
+      if (code === 'LIMIT_FILE_COUNT' || code === 'LIMIT_UNEXPECTED_FILE') {
+        return res.status(400).json({ error: 'Invalid upload. Use 1 combined file (all 3 bureaus) or 3 separate files (TransUnion, Equifax, Experian).' });
+      }
+      console.error('[Preview] Multer error:', err);
+      return res.status(400).json({ error: 'Invalid upload. Check file types (PDF/HTML) and sizes.' });
+    }
+    next();
+  });
+};
+
+/** Handler for upload-and-analyze (shared by both route registrations) */
+async function handleUploadAndAnalyze(req: Request, res: Response) {
     try {
       const files = req.files as { [k: string]: Express.Multer.File[] } | undefined;
       
@@ -286,12 +287,18 @@ router.post(
         console.error('[Preview] runPreviewAnalysis error:', e);
         const errMsg = e instanceof Error ? e.message : String(e);
         console.error('[Preview] Error message:', errMsg);
-        if (errMsg.includes('AI API key') || errMsg.includes('API key') || errMsg.includes('unavailable') || errMsg.includes('ANTHROPIC_API') || errMsg.includes('OPENAI_API')) {
-          return res.status(503).json({ error: 'Analysis service temporarily unavailable. Please try again later.' });
+        if (errMsg.includes('API key') || errMsg.includes('unavailable') || errMsg.includes('ANTHROPIC_API') || errMsg.includes('OPENAI_API') || errMsg.includes('Configure')) {
+          return res.status(503).json({
+            error: 'Analysis service unavailable.',
+            message: 'Add OPENAI_API_KEY or ANTHROPIC_API_KEY to your .env file, then restart the server.',
+            suggestion: 'See .env.example for setup.',
+          });
         }
-        return res.status(500).json({ 
-          error: 'Preview analysis failed. Please try again.',
-          details: process.env.NODE_ENV === 'development' ? errMsg : undefined
+        // Surface the real error so user sees it (e.g. "AI could not analyze the report...")
+        const userMessage = errMsg && errMsg.length < 200 ? errMsg : 'Preview analysis failed. Please try again.';
+        return res.status(500).json({
+          error: userMessage,
+          details: process.env.NODE_ENV === 'development' ? (e instanceof Error ? e.stack : errMsg) : undefined,
         });
       }
     } catch (e) {
@@ -299,6 +306,27 @@ router.post(
       return res.status(500).json({ error: 'Upload failed. Please try again.' });
     }
   }
-);
+}
+
+// Register on main router (path: /credit-reports/upload-and-analyze when mounted at /api)
+router.post('/credit-reports/upload-and-analyze', uploadAndAnalyzeMulter, handleUploadAndAnalyze);
+
+/** Dedicated router for explicit mount at /api/credit-reports (avoids 404) */
+export const uploadAnalyzeRouter = (() => {
+  const r = Router();
+  r.get('/upload-and-analyze', (_req, res) => {
+    res.status(200).json({ ok: true, message: 'Use POST with FormData (transunion, equifax, or experian file field)' });
+  });
+  r.post('/upload-and-analyze', (req, res, next) => {
+    console.log('[Preview] POST /api/credit-reports/upload-and-analyze received');
+    uploadAndAnalyzeMulter(req, res, () => {
+      handleUploadAndAnalyze(req, res).catch((err) => {
+        console.error('[Preview] handleUploadAndAnalyze error:', err);
+        res.status(500).json({ error: 'Upload failed. Please try again.' });
+      });
+    });
+  });
+  return r;
+})();
 
 export default router;

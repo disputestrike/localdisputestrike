@@ -254,7 +254,9 @@ async function startServer() {
   });
 
   // Affiliate tracking + Free preview upload-and-analyze (Compliance Audit Jan 2026)
-  const affiliateAndPreviewRouter = (await import('../affiliateAndPreviewRouter')).default;
+  const { default: affiliateAndPreviewRouter, uploadAnalyzeRouter } = await import('../affiliateAndPreviewRouter');
+  // Register upload-and-analyze FIRST so it cannot be shadowed (fixes 404)
+  app.use('/api/credit-reports', uploadAnalyzeRouter);
   app.use('/api', affiliateAndPreviewRouter);
 
   // V2 - Trial, subscription, and round management routes
