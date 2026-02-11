@@ -286,9 +286,8 @@ async function startServer() {
   }
 
   const isDev = process.env.NODE_ENV === 'development';
-  const port = isDev
-    ? 3001
-    : parseInt(process.env.PORT || "3001", 10);
+  const port = parseInt(process.env.PORT || "3001", 10);
+  const host = process.env.HOST || "0.0.0.0";
 
   const db = await getDb();
   if (!db) {
@@ -304,8 +303,9 @@ async function startServer() {
     throw err;
   });
 
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+  server.listen(port, host, () => {
+    const url = host === "0.0.0.0" ? `http://localhost:${port}/` : `http://${host}:${port}/`;
+    console.log(`Server running on ${url}`);
     console.log(`[SECURITY] Helmet, CORS, and Rate Limiting enabled`);
     startAllCronJobs();
   });

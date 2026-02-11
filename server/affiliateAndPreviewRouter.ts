@@ -295,9 +295,10 @@ async function handleUploadAndAnalyze(req: Request, res: Response) {
           });
         }
         // Surface the real error so user sees it (e.g. "AI could not analyze the report...")
-        const userMessage = errMsg && errMsg.length < 200 ? errMsg : 'Preview analysis failed. Please try again.';
+        const maxLen = process.env.NODE_ENV === 'development' ? 400 : 200;
+        const userMessage = errMsg && errMsg.length <= maxLen ? errMsg : (errMsg ? errMsg.slice(0, maxLen) + '…' : 'Preview analysis failed. Please try again.');
         return res.status(500).json({
-          error: userMessage,
+          error: userMessage || 'Preview analysis failed. Please try again.',
           details: process.env.NODE_ENV === 'development' ? (e instanceof Error ? e.stack : errMsg) : undefined,
         });
       }
@@ -305,7 +306,6 @@ async function handleUploadAndAnalyze(req: Request, res: Response) {
       console.error('[Preview] upload-and-analyze error:', e);
       return res.status(500).json({ error: 'Upload failed. Please try again.' });
     }
-  }
 }
 
 // Register on main router (path: /credit-reports/upload-and-analyze when mounted at /api)

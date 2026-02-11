@@ -52,9 +52,16 @@ export async function setupVite(app: Express, server: Server) {
     },
   };
   
+  const devPort = parseInt(process.env.PORT || "3001", 10);
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server },
+    hmr: {
+      server,
+      protocol: "ws",
+      host: "localhost",
+      port: devPort,
+      clientPort: devPort,
+    },
     allowedHosts: true as const,
   };
 
