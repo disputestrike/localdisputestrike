@@ -191,15 +191,15 @@ export default function Dashboard() {
         <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
           {/* Debug: Show if preview data exists */}
           {(sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis')) && (!creditReports || creditReports.length === 0) && (
-            <Alert className="mb-4 border-2 border-border bg-accent/10">
-              <AlertTriangle className="h-4 w-4 text-accent" />
+            <Alert className="mb-4 border border-orange-200 bg-orange-50">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
               <AlertDescription className="flex items-center justify-between">
                 <span>Preview analysis found but not saved. Click to save:</span>
                 <Button 
                   size="sm" 
                   onClick={handleManualSave}
                   disabled={savePreviewAnalysisMutation.isPending}
-                  className="ml-4"
+                  className="ml-4 bg-orange-500 hover:bg-orange-600"
                 >
                   {savePreviewAnalysisMutation.isPending ? 'Saving...' : 'Save Analysis'}
                 </Button>
@@ -208,19 +208,19 @@ export default function Dashboard() {
           )}
           
           {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Financial War Room</h1>
-              <p className="text-muted-foreground">Strategic Credit Restoration in Progress</p>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-gray-900">Financial War Room</h1>
+              <p className="text-sm md:text-base text-gray-500 mt-1">Strategic Credit Restoration in Progress</p>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="bg-white text-gray-600 border-gray-200 font-medium px-3 py-1.5 text-sm">
                 {userProfile?.subscriptionTier === 'complete' ? 'Complete Tier' : 'Essential Tier'}
               </Badge>
               <Button 
                 onClick={handleGenerateLetters}
                 disabled={isGeneratingLetters}
-                className="bg-primary hover:bg-primary/90 text-white font-bold"
+                className="bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-sm"
               >
                 {isGeneratingLetters ? (
                   <>
@@ -237,88 +237,92 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* SCOREBOARD ROW (Blueprint §2.1) - Strong borders and visual separation */}
+          {/* Live Credit Scores + AI Strategist */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Card className="lg:col-span-2 border-2 border-gray-300 shadow-lg">
-              <CardHeader className="pb-2 border-b-2 border-gray-200">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <BarChart3 className="w-5 h-5 text-primary" />
+            <Card className="lg:col-span-2 border border-gray-200 bg-white shadow-sm">
+              <CardHeader className="pb-4 border-b border-gray-100">
+                <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="p-2 bg-blue-50 rounded-lg">
+                    <BarChart3 className="w-4 h-4 text-blue-600" />
                   </div>
                   Live Credit Scores
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-3 gap-3 text-center">
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-3 gap-4">
                   {[
-                    { short: 'TU', bureau: 'transunion' as const, color: 'text-primary', bg: 'bg-primary/5', border: 'border-border' },
-                    { short: 'EQ', bureau: 'equifax' as const, color: 'text-primary', bg: 'bg-primary/5', border: 'border-border' },
-                    { short: 'EX', bureau: 'experian' as const, color: 'text-accent', bg: 'bg-accent/5', border: 'border-border' }
+                    { short: 'TU', bureau: 'transunion' as const },
+                    { short: 'EQ', bureau: 'equifax' as const },
+                    { short: 'EX', bureau: 'experian' as const }
                   ].map((b) => {
                     const score = scoresValid[b.bureau];
                     return (
-                      <div key={b.short} className={cn("p-3 rounded-lg border", b.bg, b.border)}>
-                        <p className="text-xs font-medium text-gray-600">{b.short}</p>
-                        <p className={cn("text-2xl font-bold mt-0.5", score != null ? b.color : "text-gray-400")}>
+                      <div key={b.short} className="p-4 rounded-lg bg-gray-50 border border-gray-100 text-center">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{b.short}</p>
+                        <p className={cn("text-2xl font-bold mt-1 tracking-tight", score != null ? "text-gray-900" : "text-gray-400")}>
                           {score ?? "—"}
                         </p>
-                        {score == null && <p className="text-xs text-gray-500 mt-0.5">From report</p>}
+                        {score == null && <p className="text-xs text-gray-400 mt-0.5">From report</p>}
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-6 pt-4 border-t-2 border-border flex items-center justify-between">
-                  <div className="flex items-center gap-3 p-3 bg-primary/10 rounded-lg border-2 border-border">
-                    <TrendingUp className="w-6 h-6 text-primary" />
+                <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100 flex-1">
+                    <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
                     <div>
-                      <p className="text-xs text-primary font-medium">Potential Delta</p>
-                      <p className="text-2xl font-black text-primary">+{potentialDelta} Points</p>
+                      <p className="text-xs font-medium text-blue-600">Potential Delta</p>
+                      <p className="text-xl font-bold text-gray-900">+{potentialDelta} Points</p>
                     </div>
                   </div>
-                  <div className="text-right p-3 bg-accent/10 rounded-lg border-2 border-border">
-                    <p className="text-xs text-accent font-medium">AI Target Score</p>
-                    <p className="text-2xl font-black text-accent">{targetScore}</p>
+                  <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg border border-orange-100 flex-1 justify-end">
+                    <div className="text-right">
+                      <p className="text-xs font-medium text-orange-600">AI Target Score</p>
+                      <p className="text-xl font-bold text-gray-900">{targetScore}</p>
+                    </div>
+                    <Target className="w-5 h-5 text-orange-600 shrink-0" />
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-2 border-orange-400 shadow-xl">
-              <CardHeader className="border-b border-orange-400/50">
-                <CardTitle className="text-lg flex items-center gap-2 text-white">
-                  <div className="p-2 bg-white/20 rounded-lg">
-                    <Bot className="w-5 h-5" />
+            <Card className="border border-orange-200 bg-orange-50 shadow-sm">
+              <CardHeader className="pb-4 border-b border-orange-100">
+                <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="p-2 bg-orange-100 rounded-lg">
+                    <Bot className="w-4 h-4 text-orange-600" />
                   </div>
                   AI Strategist
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 pt-4">
-                <p className="text-sm leading-relaxed text-white/95">
-                  "We've identified <span className="font-bold text-white">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  We've identified <span className="font-semibold text-orange-600">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1.
                 </p>
                 <Button 
-                  className="w-full bg-white hover:bg-gray-100 text-orange-600 font-bold shadow-md border-2 border-white"
+                  className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
                   onClick={() => setLocation('/dashboard/dispute-manager')}
                 >
                   View Full Strategy
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardContent>
             </Card>
           </div>
 
-          {/* PROGRESS BAR (Blueprint §2.2) */}
-          <Card>
-            <CardContent className="pt-6">
+          {/* Progress Tracker */}
+          <Card className="border border-gray-200 bg-white shadow-sm">
+            <CardContent className="py-6">
               <div className="flex justify-between mb-4">
                 {['Analyze', 'Generate', 'Send', 'Track'].map((step, i) => (
                   <div key={step} className="flex flex-col items-center gap-2">
                     <div className={cn(
-                      "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold",
-                      i === 0 ? "bg-primary text-white" : "bg-secondary text-muted-foreground"
+                      "w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold transition-colors",
+                      i === 0 ? "bg-orange-500 text-white" : "bg-gray-100 text-gray-500"
                     )}>
-                      {i === 0 ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                      {i === 0 ? <CheckCircle2 className="w-5 h-5" /> : i + 1}
                     </div>
-                    <span className="text-xs font-medium">{step}</span>
+                    <span className="text-xs font-medium text-gray-600">{step}</span>
                   </div>
                 ))}
               </div>
@@ -326,104 +330,112 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          {/* 4 METRIC BOXES (Blueprint §2.3) - Strong borders and color-coded */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-2 border-border bg-accent/10 shadow-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-accent mb-2">
-                  <AlertTriangle className="w-5 h-5" />
-                  <span className="text-xs font-bold uppercase tracking-wide">Negative Items</span>
+          {/* Metric Cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 bg-orange-50 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Negative Items</span>
                 </div>
-                <p className="text-4xl font-black text-accent">{stats?.totalNegativeAccounts || 0}</p>
-                <p className="text-xs text-accent mt-1 font-medium">Found in AI analysis</p>
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats?.totalNegativeAccounts || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">Found in AI analysis</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-border bg-primary/10 shadow-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-primary mb-2">
-                  <Mail className="w-5 h-5" />
-                  <span className="text-xs font-bold uppercase tracking-wide">Letters Sent</span>
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 bg-blue-50 rounded-lg">
+                    <Mail className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Letters Sent</span>
                 </div>
-                <p className="text-4xl font-black text-primary">{stats?.totalLettersSent || 0}</p>
-                <p className="text-xs text-primary mt-1 font-medium">Total dispute letters</p>
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats?.totalLettersSent || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">Total dispute letters</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-border bg-primary/10 shadow-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-primary mb-2">
-                  <CheckCircle2 className="w-5 h-5" />
-                  <span className="text-xs font-bold uppercase tracking-wide">Deletions</span>
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 bg-green-50 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Deletions</span>
                 </div>
-                <p className="text-4xl font-black text-primary">{stats?.totalDeletions || 0}</p>
-                <p className="text-xs text-primary mt-1 font-medium">Items removed</p>
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats?.totalDeletions || 0}</p>
+                <p className="text-xs text-gray-500 mt-1">Items removed</p>
               </CardContent>
             </Card>
-            <Card className="border-2 border-border bg-accent/10 shadow-md">
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-2 text-accent mb-2">
-                  <Clock className="w-5 h-5" />
-                  <span className="text-xs font-bold uppercase tracking-wide">Avg. Time</span>
+            <Card className="border border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="p-1.5 bg-orange-50 rounded-lg">
+                    <Clock className="w-4 h-4 text-orange-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Avg. Time</span>
                 </div>
-                <p className="text-4xl font-black text-accent">34</p>
-                <p className="text-xs text-accent mt-1 font-medium">Days to first result</p>
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">34</p>
+                <p className="text-xs text-gray-500 mt-1">Days to first result</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Main Content Tabs */}
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="letters">Dispute Letters</TabsTrigger>
-              <TabsTrigger value="reports">Credit Reports</TabsTrigger>
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="bg-gray-100 p-1 rounded-lg">
+              <TabsTrigger value="overview" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Overview</TabsTrigger>
+              <TabsTrigger value="letters" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Dispute Letters</TabsTrigger>
+              <TabsTrigger value="reports" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">Credit Reports</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="overview" className="space-y-4">
+            <TabsContent value="overview" className="space-y-6 mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <Card className="border border-gray-200 bg-white shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold text-gray-900">Recent Activity</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {disputeLetters?.slice(0, 3).map((letter) => (
-                        <div key={letter.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div key={letter.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50/50">
                           <div className="flex items-center gap-3">
-                            <div className="p-2 bg-white rounded border">
-                              <FileText className="w-4 h-4 text-gray-400" />
+                            <div className="p-2 bg-white rounded-lg border border-gray-200">
+                              <FileText className="w-4 h-4 text-gray-500" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium">{letter.bureau.toUpperCase()} Dispute Letter</p>
-                              <p className="text-xs text-muted-foreground">{new Date(letter.createdAt!).toLocaleDateString()}</p>
+                              <p className="text-sm font-medium text-gray-900">{letter.bureau.toUpperCase()} Dispute Letter</p>
+                              <p className="text-xs text-gray-500">{new Date(letter.createdAt!).toLocaleDateString()}</p>
                             </div>
                           </div>
-                          <Badge variant="secondary">{letter.status}</Badge>
+                          <Badge variant="secondary" className="font-medium">{letter.status}</Badge>
                         </div>
                       ))}
                       {(!disputeLetters || disputeLetters.length === 0) && (
-                        <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+                        <p className="text-sm text-gray-500 text-center py-8">No recent activity</p>
                       )}
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Next Steps</CardTitle>
+                <Card className="border border-gray-200 bg-white shadow-sm">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base font-semibold text-gray-900">Next Steps</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0">1</div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-sm font-semibold shrink-0">1</div>
                       <div>
-                        <p className="text-sm font-medium">Generate your dispute letters</p>
-                        <p className="text-xs text-muted-foreground">Our AI will create custom letters for each bureau.</p>
+                        <p className="text-sm font-medium text-gray-900">Generate your dispute letters</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Our AI will create custom letters for each bureau.</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-xs font-bold shrink-0">2</div>
+                    <div className="flex items-start gap-4">
+                      <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center text-sm font-semibold shrink-0">2</div>
                       <div>
-                        <p className="text-sm font-medium">Review and send</p>
-                        <p className="text-xs text-muted-foreground">Download and mail your letters to the bureaus.</p>
+                        <p className="text-sm font-medium text-gray-900">Review and send</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Download and mail your letters to the bureaus.</p>
                       </div>
                     </div>
                   </CardContent>
@@ -431,35 +443,39 @@ export default function Dashboard() {
               </div>
             </TabsContent>
 
-            <TabsContent value="letters">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+            <TabsContent value="letters" className="mt-6">
+              <Card className="border border-gray-200 bg-white shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <CardTitle>Dispute Letters</CardTitle>
-                    <CardDescription>Manage and track your generated dispute letters</CardDescription>
+                    <CardTitle className="text-base font-semibold text-gray-900">Dispute Letters</CardTitle>
+                    <CardDescription className="text-sm text-gray-500 mt-0.5">Manage and track your generated dispute letters</CardDescription>
                   </div>
-                  <Button onClick={handleGenerateLetters} disabled={isGeneratingLetters}>
-                    {isGeneratingLetters ? <Loader2 className="w-4 h-4 animate-spin" /> : "Generate New Letters"}
+                  <Button onClick={handleGenerateLetters} disabled={isGeneratingLetters} className="bg-orange-500 hover:bg-orange-600">
+                    {isGeneratingLetters ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                    ) : (
+                      <><Zap className="w-4 h-4 mr-2" />Generate New Letters</>
+                    )}
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {disputeLetters?.map((letter) => (
-                      <div key={letter.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={letter.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50/50 hover:bg-gray-50 transition-colors">
                         <div className="flex items-center gap-4">
-                          <div className="p-3 bg-blue-50 rounded-lg">
-                            <FileText className="w-6 h-6 text-blue-600" />
+                          <div className="p-2.5 bg-blue-50 rounded-lg">
+                            <FileText className="w-5 h-5 text-blue-600" />
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900">{letter.bureau.toUpperCase()} Dispute Letter</p>
-                            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <p className="font-medium text-gray-900">{letter.bureau.toUpperCase()} Dispute Letter</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                               <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {new Date(letter.createdAt!).toLocaleDateString()}</span>
                               <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> Round {letter.round}</span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge variant={letter.status === 'sent' ? 'default' : 'secondary'}>
+                          <Badge variant={letter.status === 'sent' ? 'default' : 'secondary'} className="font-medium">
                             {letter.status.toUpperCase()}
                           </Badge>
                           <Button variant="ghost" size="sm">
@@ -470,10 +486,14 @@ export default function Dashboard() {
                     ))}
                     {(!disputeLetters || disputeLetters.length === 0) && (
                       <div className="text-center py-12">
-                        <FileText className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                        <p className="text-gray-500">No letters generated yet</p>
-                        <Button variant="outline" className="mt-4" onClick={handleGenerateLetters}>
-                          Generate Your First Letters
+                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">No letters generated yet</p>
+                        <Button variant="outline" className="mt-4 border-orange-200 text-orange-600 hover:bg-orange-50" onClick={handleGenerateLetters} disabled={isGeneratingLetters}>
+                          {isGeneratingLetters ? (
+                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
+                          ) : (
+                            "Generate Your First Letters"
+                          )}
                         </Button>
                       </div>
                     )}
@@ -482,29 +502,29 @@ export default function Dashboard() {
               </Card>
             </TabsContent>
 
-            <TabsContent value="reports">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+            <TabsContent value="reports" className="mt-6">
+              <Card className="border border-gray-200 bg-white shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between pb-4">
                   <div>
-                    <CardTitle>Credit Reports</CardTitle>
-                    <CardDescription>Your uploaded credit report files</CardDescription>
+                    <CardTitle className="text-base font-semibold text-gray-900">Credit Reports</CardTitle>
+                    <CardDescription className="text-sm text-gray-500 mt-0.5">Your uploaded credit report files</CardDescription>
                   </div>
-                  <Button variant="outline" onClick={() => setLocation('/get-reports')}>
+                  <Button variant="outline" onClick={() => setLocation('/get-reports')} className="border-gray-200">
                     <Upload className="w-4 h-4 mr-2" />
                     Upload New
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {creditReports?.map((report) => (
-                      <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={report.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-4">
-                          <div className="p-3 bg-gray-50 rounded-lg">
-                            <FileText className="w-6 h-6 text-gray-400" />
+                          <div className="p-2.5 bg-gray-100 rounded-lg">
+                            <FileText className="w-5 h-5 text-gray-500" />
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900">{report.bureau.toUpperCase()} Report</p>
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <p className="font-medium text-gray-900">{report.bureau.toUpperCase()} Report</p>
+                            <p className="text-xs text-gray-500 mt-1">
                               Uploaded on {new Date(report.createdAt!).toLocaleDateString()}
                             </p>
                           </div>
@@ -513,7 +533,7 @@ export default function Dashboard() {
                           <Button variant="ghost" size="sm">
                             <Eye className="w-4 h-4" />
                           </Button>
-                          <Button variant="ghost" size="sm" className="text-accent hover:text-accent hover:bg-accent/10">
+                          <Button variant="ghost" size="sm" className="text-red-600 hover:bg-red-50">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -521,9 +541,9 @@ export default function Dashboard() {
                     ))}
                     {(!creditReports || creditReports.length === 0) && (
                       <div className="text-center py-12">
-                        <Upload className="w-12 h-12 text-gray-200 mx-auto mb-4" />
-                        <p className="text-gray-500">No reports uploaded yet</p>
-                        <Button variant="outline" className="mt-4" onClick={() => setLocation('/get-reports')}>
+                        <Upload className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                        <p className="text-gray-500 font-medium">No reports uploaded yet</p>
+                        <Button variant="outline" className="mt-4 border-gray-200" onClick={() => setLocation('/get-reports')}>
                           Upload Your Reports
                         </Button>
                       </div>

@@ -181,7 +181,14 @@ export default function DisputeManager() {
             <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
               <p className="font-black text-sm text-blue-800">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
               <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
-                Generate Letters ({selectedItems.length})
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>Generate Letters ({selectedItems.length})</>
+                )}
               </Button>
             </div>
 

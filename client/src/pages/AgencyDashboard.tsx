@@ -48,6 +48,7 @@ import {
   Activity,
   CheckCircle2,
   Clock,
+  Loader2,
   AlertTriangle,
 } from "lucide-react";
 import {
@@ -424,7 +425,14 @@ export default function AgencyDashboard() {
                         disabled={!newClient.clientName.trim() || createClient.isPending}
                         className="bg-orange-500 hover:bg-orange-600"
                       >
-                        {createClient.isPending ? "Adding..." : "Add Client"}
+                        {createClient.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Adding...
+                          </>
+                        ) : (
+                          "Add Client"
+                        )}
                       </Button>
                     </DialogFooter>
                   </DialogContent>

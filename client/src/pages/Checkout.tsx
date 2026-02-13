@@ -269,8 +269,16 @@ export default function Checkout() {
               createSubscriptionMutation.mutate({ tier: selectedTier });
             }}
             className="bg-orange-500 hover:bg-orange-600"
+            disabled={createSubscriptionMutation.isPending}
           >
-            Try Again
+            {createSubscriptionMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Retrying...
+              </>
+            ) : (
+              "Try Again"
+            )}
           </Button>
         </div>
       </div>

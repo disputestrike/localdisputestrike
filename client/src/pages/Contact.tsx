@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Shield, Mail, MessageSquare, Clock, MapPin } from "lucide-react";
+import { Shield, Mail, MessageSquare, Clock, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -182,8 +182,16 @@ export default function Contact() {
                   type="submit"
                   size="lg"
                   className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6"
+                  disabled={submitMutation.isPending}
                 >
-                  Send Message
+                  {submitMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
                 </Button>
               </form>
             </div>

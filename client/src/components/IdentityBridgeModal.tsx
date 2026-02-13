@@ -19,7 +19,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Info,
-  Upload
+  Upload,
+  Loader2
 } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -259,8 +260,17 @@ export default function IdentityBridgeModal({
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Processing..." : "Generate My Letters"}
-            <ArrowRight className="w-4 h-4 ml-2" />
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                Generate My Letters
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

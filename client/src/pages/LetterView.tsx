@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { trpc } from "@/lib/trpc";
-import { ArrowLeft, Download, Mail, CheckCircle2, AlertTriangle, Printer } from "lucide-react";
+import { ArrowLeft, Download, Mail, CheckCircle2, AlertTriangle, Printer, Loader2 } from "lucide-react";
 import { Link, useRoute } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -107,14 +107,32 @@ export default function LetterView() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button variant="outline" onClick={handleDownload}>
-            <Download className="h-4 w-4 mr-2" />
-            Download
+          <Button variant="outline" onClick={handleDownload} disabled={downloadPDF.isPending}>
+            {downloadPDF.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </>
+            )}
           </Button>
           {letter.status !== "mailed" && letter.status !== "resolved" && (
-            <Button onClick={handleMarkAsMailed} className="gradient-primary text-primary-foreground">
-              <Mail className="h-4 w-4 mr-2" />
-              Mark as Mailed
+            <Button onClick={handleMarkAsMailed} className="gradient-primary text-primary-foreground" disabled={updateStatus.isPending}>
+              {updateStatus.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Mark as Mailed
+                </>
+              )}
             </Button>
           )}
         </div>

@@ -15,7 +15,8 @@ import {
   Zap,
   FileText,
   ExternalLink,
-  Lock
+  Lock,
+  Loader2
 } from "lucide-react";
 import RoundStatus from "@/components/RoundStatus";
 import { useLocation } from "wouter";
@@ -217,7 +218,14 @@ export default function DashboardHomeV2() {
                       onClick={handleMailDisputes}
                       disabled={isMailing}
                     >
-                      {isMailing ? "Processing..." : "Send My Disputes Now"}
+                      {isMailing ? (
+                        <>
+                          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        "Send My Disputes Now"
+                      )}
                     </Button>
 
                     {dashboardData.mailings.length > 0 && (

@@ -166,7 +166,14 @@ export default function Letters() {
                             onClick={() => handleSaveTracking(letter.id)}
                             disabled={savingTrackingId === letter.id || !trackingInputs[letter.id]}
                           >
-                            {savingTrackingId === letter.id ? "Saving..." : "Save Tracking"}
+                            {savingTrackingId === letter.id ? (
+                              <>
+                                <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                                Saving...
+                              </>
+                            ) : (
+                              "Save Tracking"
+                            )}
                           </Button>
                         </div>
                       )}
@@ -178,8 +185,17 @@ export default function Letters() {
                         <FileText className="w-4 h-4 mr-2" /> View PDF
                       </Link>
                     </Button>
-                    <Button size="sm" onClick={() => handleDownload(letter.id)} disabled={downloadPdfMutation.isLoading} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
-                      <Printer className="w-4 h-4 mr-2" /> Print
+                    <Button size="sm" onClick={() => handleDownload(letter.id)} disabled={downloadPdfMutation.isPending} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
+                      {downloadPdfMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Printer className="w-4 h-4 mr-2" /> Print
+                        </>
+                      )}
                     </Button>
                   </div>
                 </div>

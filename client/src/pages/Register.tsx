@@ -37,6 +37,7 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
@@ -113,16 +114,29 @@ export default function Register() {
                 Didn't receive the email? Check your spam folder or{" "}
                 <button
                   onClick={async () => {
-                    await fetch("/api/auth/resend-verification", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ email }),
-                    });
-                    alert("Verification email resent!");
+                    setResendLoading(true);
+                    try {
+                      await fetch("/api/auth/resend-verification", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email }),
+                      });
+                      alert("Verification email resent!");
+                    } finally {
+                      setResendLoading(false);
+                    }
                   }}
-                  className="text-orange-600 hover:text-orange-500"
+                  disabled={resendLoading}
+                  className="text-orange-600 hover:text-orange-500 disabled:opacity-50 inline-flex items-center gap-1"
                 >
-                  resend it
+                  {resendLoading ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "resend it"
+                  )}
                 </button>
               </p>
             </CardContent>

@@ -29,6 +29,7 @@ import {
   Lock,
   Phone,
   Home,
+  Loader2,
 } from "lucide-react";
 
 export default function DashboardSettings() {
@@ -372,7 +373,14 @@ export default function DashboardSettings() {
                 className="bg-orange-500 hover:bg-orange-600 text-white px-8"
                 disabled={updateProfileMutation.isPending}
               >
-                {updateProfileMutation.isPending ? "Saving..." : "Save Profile"}
+                {updateProfileMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Profile"
+              )}
               </Button>
             </div>
 

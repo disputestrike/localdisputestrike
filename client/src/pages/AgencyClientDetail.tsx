@@ -346,8 +346,17 @@ export default function AgencyClientDetail() {
                   <div className="flex gap-2">
                     <Button variant="outline" onClick={() => setIsEditingInfo(false)}>Cancel</Button>
                     <Button onClick={handleSaveInfo} disabled={updateClient.isPending}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save
+                      {updateClient.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}

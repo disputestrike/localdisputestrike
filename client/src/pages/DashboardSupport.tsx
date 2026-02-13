@@ -17,6 +17,7 @@ import {
   BookOpen,
   Video,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
 const faqs = [
@@ -227,7 +228,14 @@ export default function DashboardSupport() {
               className="bg-cyan-500 hover:bg-orange-500 text-gray-900"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : "Submit Ticket"}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Ticket"
+              )}
             </Button>
           </CardContent>
         </Card>

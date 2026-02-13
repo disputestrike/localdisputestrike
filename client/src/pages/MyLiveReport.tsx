@@ -336,7 +336,14 @@ export default function MyLiveReport() {
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <p className="font-bold text-sm">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
               <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating}>
-                Generate Letters ({selectedItems.length})
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>Generate Letters ({selectedItems.length})</>
+                )}
               </Button>
             </div>
 

@@ -22,6 +22,7 @@ import {
   HeadphonesIcon,
   ArrowRight,
   Star,
+  Loader2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLocation, Link } from "wouter";
@@ -149,14 +150,14 @@ export default function AgencyPricing() {
       {/* Hero Section */}
       <section className="pt-24 pb-16 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <Badge className="mb-4 bg-orange-500/20 text-orange-300 border-orange-500/30">
-            <Building2 className="h-3 w-3 mr-1" />
+          <Badge className="mb-4 bg-orange-500/20 text-orange-300 border-orange-500/30 inline-flex items-center gap-2 px-3 py-1">
+            <Building2 className="h-3.5 w-3.5 shrink-0" />
             Agency & Merchant Accounts
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-6">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-6">
             Scale Your Credit Repair Business
           </h1>
-          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
             Manage multiple clients, generate unlimited dispute letters, and grow your 
             credit repair agency with our powerful B2B platform.
           </p>
@@ -184,41 +185,41 @@ export default function AgencyPricing() {
             {plans.map((plan) => (
               <Card 
                 key={plan.tier}
-                className={`relative ${plan.popular ? 'border-orange-500 border-2 shadow-xl scale-105' : 'border-gray-200'}`}
+                className={`relative bg-white ${plan.popular ? 'border-2 border-orange-500 shadow-xl scale-[1.02] ring-2 ring-orange-500/20' : 'border border-gray-200'}`}
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-orange-500 text-white px-4 py-1">
-                      <Star className="h-3 w-3 mr-1 fill-current" />
+                    <Badge className="bg-orange-500 text-white px-4 py-1.5 inline-flex items-center gap-2 font-semibold text-sm">
+                      <Star className="h-3.5 w-3.5 fill-current shrink-0" />
                       Most Popular
                     </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pt-8">
-                  <CardTitle className="text-2xl">{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <div className="mt-4">
-                    <span className="text-4xl font-bold">{plan.priceLabel}</span>
-                    <span className="text-gray-500">/month</span>
+                <CardHeader className={`text-center ${plan.popular ? 'pt-12' : 'pt-8'}`}>
+                  <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">{plan.name}</CardTitle>
+                  <CardDescription className="text-base text-gray-600 mt-1">{plan.description}</CardDescription>
+                  <div className="mt-6 flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold tracking-tight text-gray-900">{plan.priceLabel}</span>
+                    <span className="text-base text-gray-500 font-medium">/month</span>
                   </div>
-                  <div className="mt-2 text-sm text-orange-600 font-medium">
+                  <div className="mt-2 text-sm font-semibold text-orange-600">
                     Up to {plan.clients} clients
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-2">
                   <ul className="space-y-3">
                     {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-gray-600">{feature}</span>
+                      <li key={index} className="flex items-start gap-3">
+                        <Check className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+                        <span className="text-gray-700 text-[15px] leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="pt-4">
                   <Button 
-                    className={`w-full ${plan.popular ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
-                    variant={plan.popular ? "default" : "outline"}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold h-11"
+                    variant="default"
                     onClick={() => handleSelectPlan(plan)}
                     disabled={agencyStatus?.isAgency && agencyStatus.planTier === plan.tier}
                   >
@@ -427,7 +428,14 @@ export default function AgencyPricing() {
               disabled={!agencyName.trim() || upgradeToAgency.isPending}
               className="bg-orange-500 hover:bg-orange-600"
             >
-              {upgradeToAgency.isPending ? "Processing..." : "Upgrade Now"}
+              {upgradeToAgency.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Upgrade Now"
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

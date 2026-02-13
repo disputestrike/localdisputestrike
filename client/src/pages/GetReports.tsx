@@ -331,7 +331,14 @@ export default function GetReports() {
                     onClick={() => { setError(null); handleStartAnalysis(); }}
                     disabled={isAnalyzing || uploadedReports.length === 0}
                   >
-                    Retry upload
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Retrying...
+                      </>
+                    ) : (
+                      "Retry upload"
+                    )}
                   </Button>
                 </div>
               )}
