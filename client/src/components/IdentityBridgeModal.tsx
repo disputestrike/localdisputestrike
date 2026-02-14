@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -15,20 +15,21 @@ import {
   Shield, 
   Lock, 
   PenTool, 
-  ArrowRight,
   AlertCircle,
   CheckCircle2,
-  Info,
-  Upload,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { trpc } from "@/lib/trpc";
 
 interface IdentityBridgeModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete: (data: any) => Promise<void>;
   prefillData?: any;
+  /** Complete tier only: we print & mail, so ID + utility bill upload required */
+  isCompleteTier?: boolean;
 }
 
 export default function IdentityBridgeModal({
@@ -36,7 +37,14 @@ export default function IdentityBridgeModal({
   onClose,
   onComplete,
   prefillData,
+  isCompleteTier = false,
 }: IdentityBridgeModalProps) {
+  const idFileRef = useRef<HTMLInputElement>(null);
+  const utilityFileRef = useRef<HTMLInputElement>(null);
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [utilityFile, setUtilityFile] = useState<File | null>(null);
+  const uploadToS3 = trpc.upload.uploadToS3.useMutation();
+
   const [formData, setFormData] = useState({
     fullName: '',
     currentAddress: '',
@@ -64,6 +72,7 @@ export default function IdentityBridgeModal({
 
   useEffect(() => {
     if (prefillData) {
+      console.log('[IdentityBridgeModal] Applying prefill:', prefillData);
       setFormData(prev => ({ ...prev, ...prefillData }));
     }
   }, [prefillData]);
@@ -93,10 +102,60 @@ export default function IdentityBridgeModal({
       setError("Please accept all legal consents to continue");
       return;
     }
+    if (isCompleteTier) {
+      if (!idFile) {
+        setError("Please upload a copy of your ID (we print and mail your letters)");
+        return;
+      }
+      if (!utilityFile) {
+        setError("Please upload a utility bill (we print and mail your letters)");
+        return;
+      }
+    }
 
     setIsSubmitting(true);
+    setError(null);
     try {
-      await onComplete({ ...formData, ...consents });
+      let idDocumentUrl: string | undefined;
+      let utilityBillUrl: string | undefined;
+
+      if (isCompleteTier && idFile && utilityFile) {
+        const toContentType = (f: File) =>
+          f.type === 'application/pdf' ? 'application/pdf' as const
+          : f.type === 'image/png' ? 'image/png' as const
+          : f.type === 'image/jpeg' || f.type === 'image/jpg' ? 'image/jpeg' as const
+          : 'image/jpeg' as const;
+        const toFileData = (f: File) =>
+          new Promise<number[]>((res, rej) => {
+            const r = new FileReader();
+            r.onload = () => res(Array.from(new Uint8Array(r.result as ArrayBuffer)));
+            r.onerror = rej;
+            r.readAsArrayBuffer(f);
+          });
+        const idKey = `onboarding-id/${Date.now()}-${idFile.name}`;
+        const utilKey = `onboarding-utility/${Date.now()}-${utilityFile.name}`;
+        const [idRes, utilRes] = await Promise.all([
+          uploadToS3.mutateAsync({
+            fileKey: idKey,
+            fileData: await toFileData(idFile),
+            contentType: toContentType(idFile),
+          }),
+          uploadToS3.mutateAsync({
+            fileKey: utilKey,
+            fileData: await toFileData(utilityFile),
+            contentType: toContentType(utilityFile),
+          }),
+        ]);
+        idDocumentUrl = idRes.url;
+        utilityBillUrl = utilRes.url;
+      }
+
+      await onComplete({
+        ...formData,
+        ...consents,
+        idDocumentUrl,
+        utilityBillUrl,
+      });
     } catch (err: any) {
       setError(err.message || "Failed to save information");
       setIsSubmitting(false);
@@ -108,11 +167,12 @@ export default function IdentityBridgeModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Shield className="h-6 w-6 text-blue-600" />
-            Complete Your Profile
+            <Shield className="h-6 w-6 text-orange-500" />
+            Complete Onboarding
           </DialogTitle>
           <DialogDescription>
-            We need this information to generate your letters and verify with the credit bureaus.
+            Confirm your information from your credit report. Update any fields that are missing or incorrect, then save. 
+            <strong className="text-orange-600"> This will lock your identity to this account permanently to prevent abuse.</strong>
           </DialogDescription>
         </DialogHeader>
 
@@ -120,7 +180,8 @@ export default function IdentityBridgeModal({
           <Alert className="bg-blue-50 border-blue-200">
             <Lock className="h-4 w-4 text-blue-600" />
             <AlertDescription className="text-blue-800">
-              <strong>Your data is secure:</strong> All information is encrypted and stored securely.
+              <strong>Your data is secure:</strong> Once saved, your name, date of birth, and SSN last 4 will be permanently locked to this account. 
+              This ensures one account = one person and prevents unauthorized sharing.
             </AlertDescription>
           </Alert>
 
@@ -184,6 +245,39 @@ export default function IdentityBridgeModal({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <Label>Previous Address (optional)</Label>
+            <Input 
+              value={formData.previousAddress} 
+              onChange={(e) => handleInputChange('previousAddress', e.target.value)} 
+              placeholder="Street address"
+            />
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Prev. City</Label>
+              <Input 
+                value={formData.previousCity} 
+                onChange={(e) => handleInputChange('previousCity', e.target.value)} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Prev. State</Label>
+              <Input 
+                value={formData.previousState} 
+                onChange={(e) => handleInputChange('previousState', e.target.value)} 
+                maxLength={2} 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Prev. ZIP</Label>
+              <Input 
+                value={formData.previousZip} 
+                onChange={(e) => handleInputChange('previousZip', e.target.value)} 
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Phone Number</Label>
@@ -204,6 +298,61 @@ export default function IdentityBridgeModal({
               />
             </div>
           </div>
+
+          {isCompleteTier && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-bold text-gray-900">ID & Utility Bill (Required for Print & Mail)</h3>
+              <p className="text-sm text-gray-600">
+                We print and mail your dispute letters. Please upload a copy of your ID and a recent utility bill so we can include them with your letters.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Government-issued ID *</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      ref={idFileRef}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => idFileRef.current?.click()}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {idFile ? idFile.name : 'Choose file'}
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Utility Bill (proof of address) *</Label>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      ref={utilityFileRef}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className="hidden"
+                      onChange={(e) => setUtilityFile(e.target.files?.[0] ?? null)}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => utilityFileRef.current?.click()}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload className="h-4 w-4" />
+                      {utilityFile ? utilityFile.name : 'Choose file'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="space-y-4 pt-4 border-t">
             <h3 className="font-bold text-gray-900">Legal Authorization & Consent</h3>
@@ -256,19 +405,19 @@ export default function IdentityBridgeModal({
         <DialogFooter className="gap-2 sm:gap-0">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
           <Button 
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
             onClick={handleSubmit}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Processing...
+                Saving...
               </>
             ) : (
               <>
-                Generate My Letters
-                <ArrowRight className="w-4 h-4 ml-2" />
+                Save & Complete Onboarding
+                <CheckCircle2 className="w-4 h-4 ml-2" />
               </>
             )}
           </Button>

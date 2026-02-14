@@ -592,17 +592,28 @@ export async function parseAndSaveReport(
     const score = personalInfo?.creditScore || null;
     const scoreModel = personalInfo?.scoreModel || null;
 
-    await db.updateCreditReportParsedData(reportId, 'parsed', score, scoreModel);
+    const parsedDataToStore = personalInfo
+      ? JSON.stringify({ status: 'parsed', personalInfo })
+      : 'parsed';
+    await db.updateCreditReportParsedData(reportId, parsedDataToStore, score, scoreModel);
 
     // Auto-fill user profile from analysis when available (so Complete Profile modal can be pre-filled)
     if (personalInfo) {
       const addr = personalInfo.currentAddress;
+      const prevAddr = personalInfo.previousAddresses?.[0];
+      const prevAddrStr = prevAddr
+        ? [prevAddr.street, prevAddr.city, prevAddr.state, prevAddr.zip].filter(Boolean).join(', ')
+        : undefined;
       await db.updateUserProfile(userId, {
         fullName: personalInfo.fullName || undefined,
         currentAddress: addr?.fullAddress || undefined,
         currentCity: addr?.city || undefined,
         currentState: addr?.state || undefined,
         currentZip: addr?.zip || undefined,
+        previousAddress: prevAddrStr,
+        previousCity: prevAddr?.city || undefined,
+        previousState: prevAddr?.state || undefined,
+        previousZip: prevAddr?.zip || undefined,
         dateOfBirth: personalInfo.dateOfBirth || undefined,
         ssnLast4: personalInfo.ssnLast4 || undefined,
       });
@@ -646,12 +657,20 @@ export async function parseAndSaveCombinedReport(
     // Step 3: If personal info was found, update the user's profile (auto-fill from analysis)
     if (personalInfo) {
       const addr = personalInfo.currentAddress;
+      const prevAddr = personalInfo.previousAddresses?.[0];
+      const prevAddrStr = prevAddr
+        ? [prevAddr.street, prevAddr.city, prevAddr.state, prevAddr.zip].filter(Boolean).join(', ')
+        : undefined;
       await db.updateUserProfile(userId, {
         fullName: personalInfo.fullName,
         currentAddress: addr?.fullAddress || '',
         currentCity: addr?.city || undefined,
         currentState: addr?.state || undefined,
         currentZip: addr?.zip || undefined,
+        previousAddress: prevAddrStr,
+        previousCity: prevAddr?.city || undefined,
+        previousState: prevAddr?.state || undefined,
+        previousZip: prevAddr?.zip || undefined,
         dateOfBirth: personalInfo.dateOfBirth || undefined,
         ssnLast4: personalInfo.ssnLast4 || undefined,
       });
@@ -743,9 +762,10 @@ export async function parseAndSaveCombinedReport(
     const eqScore = hasAnyBureauScore ? (allScores!.equifax ?? null) : fallbackScore;
     const exScore = hasAnyBureauScore ? (allScores!.experian ?? null) : fallbackScore;
 
-    await db.updateCreditReportParsedData(transunionReport.id, 'parsed', tuScore, fallbackModel);
-    await db.updateCreditReportParsedData(equifaxReport.id, 'parsed', eqScore, fallbackModel);
-    await db.updateCreditReportParsedData(experianReport.id, 'parsed', exScore, fallbackModel);
+    const combinedParsedData = personalInfo ? JSON.stringify({ status: 'parsed', personalInfo }) : 'parsed';
+    await db.updateCreditReportParsedData(transunionReport.id, combinedParsedData, tuScore, fallbackModel);
+    await db.updateCreditReportParsedData(equifaxReport.id, combinedParsedData, eqScore, fallbackModel);
+    await db.updateCreditReportParsedData(experianReport.id, combinedParsedData, exScore, fallbackModel);
 
     if (hasAnyBureauScore) {
       if (allScores!.transunion != null) await db.recordCreditScore({ userId, bureau: 'transunion', score: allScores!.transunion, scoreModel: allScores!.scoreModel ?? undefined });

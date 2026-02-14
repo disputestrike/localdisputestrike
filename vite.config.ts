@@ -7,7 +7,15 @@ import { defineConfig } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+const plugins = [
+  react({
+    // Exclude sonner wrapper from Fast Refresh - prevents "RefreshRuntime.register is not a function"
+    exclude: [/node_modules/, /sonner\.tsx$/],
+  }),
+  tailwindcss(),
+  jsxLocPlugin(),
+  vitePluginManusRuntime(),
+];
 
 export default defineConfig({
   plugins,

@@ -1073,6 +1073,20 @@ Be thorough and list every negative item found.`;
             equifax: z.number().optional().nullable(),
             experian: z.number().optional().nullable(),
           }).optional(),
+          consumerInfo: z.object({
+            fullName: z.string().optional(),
+            currentAddress: z.string().optional(),
+            currentCity: z.string().optional(),
+            currentState: z.string().optional(),
+            currentZip: z.string().optional(),
+            previousAddress: z.string().optional(),
+            previousCity: z.string().optional(),
+            previousState: z.string().optional(),
+            previousZip: z.string().optional(),
+            dateOfBirth: z.string().optional(),
+            ssnLast4: z.string().optional(),
+            phone: z.string().optional(),
+          }).optional(),
         }),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1080,6 +1094,65 @@ Be thorough and list every negative item found.`;
         const { analysis } = input;
         
         console.log('[SavePreview] Saving preview analysis for user:', userId, 'violations:', analysis.totalViolations);
+        
+        // CRITICAL: Identity Validation - Prevent uploading different people's reports
+        const existingProfile = await db.getUserProfile(userId);
+        
+        if (existingProfile?.isComplete && analysis.consumerInfo) {
+          // Profile is locked - validate that uploaded report matches account owner
+          console.log('[SavePreview] Validating identity match for locked account');
+          
+          const ci = analysis.consumerInfo;
+          
+          // Normalize for comparison
+          const normalize = (s?: string | null) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          
+          const existingName = normalize(existingProfile.fullName);
+          const uploadedName = normalize(ci.fullName);
+          const existingSSN = (existingProfile.ssnLast4 || '').trim();
+          const uploadedSSN = (ci.ssnLast4 || '').trim();
+          const existingDOB = (existingProfile.dateOfBirth || '').split('T')[0];
+          
+          // Convert uploaded DOB to YYYY-MM-DD if needed
+          let uploadedDOB = ci.dateOfBirth || '';
+          if (uploadedDOB.includes('/')) {
+            const [month, day, year] = uploadedDOB.split('/');
+            uploadedDOB = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          }
+          
+          // Check identity match (only if we have data to compare)
+          const hasUploadedIdentity = uploadedName && uploadedSSN && uploadedDOB;
+          
+          if (hasUploadedIdentity) {
+            const nameMatches = existingName === uploadedName;
+            const ssnMatches = existingSSN === uploadedSSN;
+            const dobMatches = existingDOB === uploadedDOB;
+            
+            if (!nameMatches || !ssnMatches || !dobMatches) {
+              console.error('[SavePreview] Identity mismatch - uploaded report does not match account owner!', {
+                existingName,
+                uploadedName,
+                nameMatches,
+                existingSSN,
+                uploadedSSN,
+                ssnMatches,
+                existingDOB,
+                uploadedDOB,
+                dobMatches,
+              });
+              
+              throw new Error(
+                'Identity verification failed. The credit report you uploaded belongs to a different person. ' +
+                'This account is locked to prevent multiple people from sharing one account. ' +
+                'Please upload YOUR OWN credit report that matches your registered identity.'
+              );
+            }
+            
+            console.log('[SavePreview] Identity verified - report matches account owner');
+          } else {
+            console.warn('[SavePreview] Uploaded report missing identity info - cannot validate (will use existing identity)');
+          }
+        }
         
         // Create placeholder credit reports for each bureau with the analysis data
         const bureaus: Array<'transunion' | 'equifax' | 'experian'> = ['transunion', 'equifax', 'experian'];
@@ -1096,55 +1169,77 @@ Be thorough and list every negative item found.`;
             : null;
           const scoreToSave = bureauScore != null ? bureauScore : (analysis.creditScore ?? null);
 
+          const dedupedCount = analysis.accountPreviews?.length
+            ? new Set(
+                analysis.accountPreviews.map((p: { name?: string; last4?: string }) =>
+                  `${(p.name || '').trim().toLowerCase()}|${String(p.last4 || '').replace(/\D/g, '')}`
+                )
+              ).size
+            : 0;
+          const totalViolationsToSave = dedupedCount > 0 ? dedupedCount * 3 : analysis.totalViolations;
+          const parsedDataToSave = {
+            creditScore: scoreToSave,
+            totalViolations: totalViolationsToSave,
+            severityBreakdown: analysis.severityBreakdown,
+            categoryBreakdown: analysis.categoryBreakdown,
+            consumerInfo: analysis.consumerInfo ?? null,
+            personalInfo: analysis.consumerInfo ? {
+              fullName: analysis.consumerInfo.fullName,
+              currentAddress: analysis.consumerInfo.currentAddress
+                ? { street: analysis.consumerInfo.currentAddress, city: analysis.consumerInfo.currentCity, state: analysis.consumerInfo.currentState, zip: analysis.consumerInfo.currentZip, fullAddress: [analysis.consumerInfo.currentAddress, analysis.consumerInfo.currentCity, analysis.consumerInfo.currentState, analysis.consumerInfo.currentZip].filter(Boolean).join(', ') }
+                : undefined,
+              dateOfBirth: analysis.consumerInfo.dateOfBirth,
+              ssnLast4: analysis.consumerInfo.ssnLast4,
+            } : undefined,
+          };
+
           if (existingReport) {
             reportIds.push(existingReport.id);
-            // Update with parsed data if not already set
-            if (!existingReport.parsedData) {
-              await db.updateCreditReportParsedData(
-                existingReport.id,
-                JSON.stringify({
-                  creditScore: scoreToSave,
-                  totalViolations: analysis.totalViolations,
-                  severityBreakdown: analysis.severityBreakdown,
-                  categoryBreakdown: analysis.categoryBreakdown,
-                }),
-                scoreToSave,
-                'FICO'
-              );
-            }
+            // Always merge consumerInfo when we have it - critical for onboarding prefill
+            const existingParsed = existingReport.parsedData
+              ? (safeJsonParse(existingReport.parsedData as string, null) as Record<string, unknown> | null)
+              : null;
+            const mergedParsed = existingParsed && typeof existingParsed === 'object'
+              ? { ...existingParsed, consumerInfo: parsedDataToSave.consumerInfo ?? existingParsed.consumerInfo, personalInfo: parsedDataToSave.personalInfo ?? existingParsed.personalInfo }
+              : parsedDataToSave;
+            await db.updateCreditReportParsedData(
+              existingReport.id,
+              JSON.stringify(mergedParsed),
+              scoreToSave,
+              'FICO'
+            );
           } else {
-            // Create new placeholder report
             const report = await db.createCreditReport({
               userId,
               bureau,
-              fileUrl: 'preview-analysis', // Placeholder
+              fileUrl: 'preview-analysis',
               fileKey: 'preview-analysis',
               fileName: `Preview Analysis - ${bureau}`,
               isParsed: true,
             });
-            
-            // Save parsed data (per-bureau score when available)
             await db.updateCreditReportParsedData(
               report.id,
-              JSON.stringify({
-                creditScore: scoreToSave,
-                totalViolations: analysis.totalViolations,
-                severityBreakdown: analysis.severityBreakdown,
-                categoryBreakdown: analysis.categoryBreakdown,
-              }),
+              JSON.stringify(parsedDataToSave),
               scoreToSave,
               'FICO'
             );
-            
             reportIds.push(report.id);
           }
         }
         
-        // Save account previews as negative accounts
+        // Save account previews as negative accounts (deduped - same account not saved twice)
         if (analysis.accountPreviews && analysis.accountPreviews.length > 0) {
-          console.log('[SavePreview] Saving', analysis.accountPreviews.length, 'account previews');
+          const seen = new Set<string>();
+          const dedupedPreviews = analysis.accountPreviews.filter((p: { name?: string; last4?: string }) => {
+            const key = `${(p.name || '').trim().toLowerCase()}|${String(p.last4 || '').replace(/\D/g, '')}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          const consistentTotalViolations = dedupedPreviews.length * 3;
+          console.log('[SavePreview] Saving', dedupedPreviews.length, 'unique accounts →', consistentTotalViolations, 'disputable items');
           
-          for (const preview of analysis.accountPreviews) {
+          for (const preview of dedupedPreviews) {
             // Try to determine account type from status/name
             let accountType = 'Collection';
             if (preview.status?.toLowerCase().includes('charge')) accountType = 'Charge-off';
@@ -3560,10 +3655,73 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
 
   // User Profile Router
   profile: router({
-    // Get user profile
+    // Get user profile (includes subscriptionTier from subscriptionsV2 for Complete vs Essential)
     get: protectedProcedure.query(async ({ ctx }) => {
       const profile = await db.getUserProfile(ctx.user.id);
-      return profile || null;
+      const subV2 = await db.getSubscriptionV2ByUserId(ctx.user.id);
+      const subscriptionTier = subV2?.tier === 'complete' ? 'complete' : 'essential';
+      return profile ? { ...profile, subscriptionTier } : null;
+    }),
+
+    // Get onboarding prefill - merges profile with consumer info from credit reports
+    getOnboardingPrefill: protectedProcedure.query(async ({ ctx }) => {
+      const profile = await db.getUserProfile(ctx.user.id);
+      const reports = await db.getCreditReportsByUserId(ctx.user.id);
+      const prefill: Record<string, string> = {
+        fullName: profile?.fullName ?? '',
+        currentAddress: profile?.currentAddress ?? '',
+        currentCity: profile?.currentCity ?? '',
+        currentState: profile?.currentState ?? '',
+        currentZip: profile?.currentZip ?? '',
+        previousAddress: profile?.previousAddress ?? '',
+        previousCity: profile?.previousCity ?? '',
+        previousState: profile?.previousState ?? '',
+        previousZip: profile?.previousZip ?? '',
+        dateOfBirth: profile?.dateOfBirth ?? '',
+        phone: profile?.phone ?? '',
+        ssnLast4: profile?.ssnLast4 ?? '',
+      };
+      // PREFER credit report data - it's the source of truth from their actual report
+      for (const report of reports) {
+        if (!report.parsedData || typeof report.parsedData !== 'string') continue;
+        const parsed = safeJsonParse(report.parsedData, null) as Record<string, unknown> | null;
+        if (!parsed || typeof parsed !== 'object') continue;
+        const ci = (parsed.consumerInfo ?? parsed.personalInfo) as Record<string, unknown> | undefined;
+        if (!ci || typeof ci !== 'object') continue;
+        if (ci.fullName) prefill.fullName = String(ci.fullName);
+        const currAddr = ci.currentAddress;
+        if (currAddr) {
+          const addrStr = typeof currAddr === 'string'
+            ? currAddr
+            : String((currAddr as Record<string, unknown>).fullAddress || [(currAddr as Record<string, unknown>).street, (currAddr as Record<string, unknown>).city, (currAddr as Record<string, unknown>).state, (currAddr as Record<string, unknown>).zip].filter(Boolean).join(', '));
+          if (addrStr) prefill.currentAddress = addrStr;
+          if (typeof currAddr === 'object') {
+            const addr = currAddr as Record<string, unknown>;
+            if (addr.city) prefill.currentCity = String(addr.city);
+            if (addr.state) prefill.currentState = String(addr.state);
+            if (addr.zip) prefill.currentZip = String(addr.zip);
+          }
+        }
+        if (ci.currentCity) prefill.currentCity = String(ci.currentCity);
+        if (ci.currentState) prefill.currentState = String(ci.currentState);
+        if (ci.currentZip) prefill.currentZip = String(ci.currentZip);
+        if (ci.dateOfBirth) prefill.dateOfBirth = String(ci.dateOfBirth);
+        if (ci.phone) prefill.phone = String(ci.phone);
+        if (ci.ssnLast4) prefill.ssnLast4 = String(ci.ssnLast4);
+        if (ci.previousAddress) prefill.previousAddress = String(ci.previousAddress);
+        if (!prefill.previousAddress && Array.isArray(ci.previousAddresses) && ci.previousAddresses[0]) {
+          const prev = ci.previousAddresses[0] as Record<string, unknown>;
+          if (typeof prev === 'object' && prev?.fullAddress) prefill.previousAddress = String(prev.fullAddress);
+          else if (typeof prev === 'object') {
+            const parts = [prev?.street, prev?.city, prev?.state, prev?.zip].filter(Boolean).map(String);
+            prefill.previousAddress = parts.join(', ');
+            if (prev?.city && !prefill.previousCity) prefill.previousCity = String(prev.city);
+            if (prev?.state && !prefill.previousState) prefill.previousState = String(prev.state);
+            if (prev?.zip && !prefill.previousZip) prefill.previousZip = String(prev.zip);
+          }
+        }
+      }
+      return prefill;
     }),
 
     // Update user profile
@@ -3615,8 +3773,86 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         authorize: z.boolean().optional(),
         noGuarantee: z.boolean().optional(),
         terms: z.boolean().optional(),
+        idDocumentUrl: z.string().optional(), // Complete tier: ID for print & mail
+        utilityBillUrl: z.string().optional(), // Complete tier: utility bill for print & mail
       }))
       .mutation(async ({ ctx, input }) => {
+        // CRITICAL: Identity Lock - Once set, identity cannot be changed
+        // This ensures one account = one person forever
+        const existingProfile = await db.getUserProfile(ctx.user.id);
+        
+        if (existingProfile?.isComplete) {
+          // Profile already locked - validate that new data matches existing identity
+          console.log('[IdentityBridge] Profile already complete - validating identity match');
+          
+          // Normalize for comparison (case-insensitive, trim whitespace)
+          const normalize = (s?: string | null) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+          
+          const existingName = normalize(existingProfile.fullName);
+          const newName = normalize(input.fullName);
+          const existingSSN = (existingProfile.ssnLast4 || '').trim();
+          const newSSN = input.ssnLast4.trim();
+          const existingDOB = (existingProfile.dateOfBirth || '').split('T')[0]; // YYYY-MM-DD part only
+          
+          // Convert input DOB to YYYY-MM-DD
+          let newDOB = input.dateOfBirth;
+          if (newDOB.includes('/')) {
+            const [month, day, year] = newDOB.split('/');
+            newDOB = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+          }
+          
+          // Check if identity matches
+          const nameMatches = existingName === newName;
+          const ssnMatches = existingSSN === newSSN;
+          const dobMatches = existingDOB === newDOB;
+          
+          if (!nameMatches || !ssnMatches || !dobMatches) {
+            console.error('[IdentityBridge] Identity mismatch detected!', {
+              existingName,
+              newName,
+              nameMatches,
+              existingSS: existingSSN,
+              newSSN,
+              ssnMatches,
+              existingDOB,
+              newDOB,
+              dobMatches,
+            });
+            
+            throw new Error(
+              'Identity verification failed. The information provided does not match the account owner. ' +
+              'This account is locked to a specific person to prevent abuse. ' +
+              'If you believe this is an error, please contact support.'
+            );
+          }
+          
+          // Identity matches - allow address updates only
+          console.log('[IdentityBridge] Identity verified - allowing address update');
+          const updatedProfile = await db.upsertUserProfile(ctx.user.id, {
+            // Keep locked identity fields
+            fullName: existingProfile.fullName,
+            dateOfBirth: existingProfile.dateOfBirth,
+            ssnLast4: existingProfile.ssnLast4,
+            // Allow address updates
+            phone: input.phone,
+            currentAddress: input.currentAddress,
+            currentCity: input.currentCity,
+            currentState: input.currentState,
+            currentZip: input.currentZip,
+            previousAddress: input.previousAddress,
+            previousCity: input.previousCity,
+            previousState: input.previousState,
+            previousZip: input.previousZip,
+            idDocumentUrl: input.idDocumentUrl,
+            utilityBillUrl: input.utilityBillUrl,
+          });
+          
+          return updatedProfile;
+        }
+        
+        // First time setup - LOCK the identity permanently
+        console.log('[IdentityBridge] First time setup - locking identity to account');
+        
         // Convert date format if needed (MM/DD/YYYY to YYYY-MM-DD)
         let dateOfBirth = input.dateOfBirth;
         if (dateOfBirth.includes('/')) {
@@ -3637,9 +3873,11 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
           previousCity: input.previousCity,
           previousState: input.previousState,
           previousZip: input.previousZip,
+          idDocumentUrl: input.idDocumentUrl,
+          utilityBillUrl: input.utilityBillUrl,
         });
         
-        // Mark profile as complete
+        // Mark profile as complete - THIS LOCKS THE IDENTITY
         const { getDb } = await import('./db');
         const dbInstance = await getDb();
         if (dbInstance) {
@@ -3655,8 +3893,10 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         await db.logActivity({
           userId: ctx.user.id,
           activityType: 'identity_bridge_completed',
-          description: 'Completed Identity Bridge - profile information collected',
+          description: `Identity locked to account - Name: ${input.fullName}, DOB: ${dateOfBirth}, SSN Last 4: ${input.ssnLast4}`,
         });
+        
+        console.log('[IdentityBridge] Identity successfully locked to user:', ctx.user.id);
         
         return profile;
       }),

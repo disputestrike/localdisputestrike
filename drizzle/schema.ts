@@ -93,6 +93,10 @@ export const userProfiles = mysqlTable("user_profiles", {
   // Profile completion status
   isComplete: boolean("isComplete").default(false),
   completedAt: timestamp("completedAt"),
+
+  // Complete tier only: ID and utility bill for print & mail (we include when mailing)
+  idDocumentUrl: text("idDocumentUrl"),
+  utilityBillUrl: text("utilityBillUrl"),
   
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),

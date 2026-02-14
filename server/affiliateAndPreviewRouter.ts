@@ -57,6 +57,18 @@ router.post('/affiliate/track-click', (req: Request, res: Response) => {
 /**
  * Map PreviewAnalysisResult -> LightAnalysisResult (PreviewResults page contract)
  */
+function dedupeAccountPreviews(
+  previews: { name: string; last4: string; balance: string; status: string; amountType?: string }[]
+): { name: string; last4: string; balance: string; status: string; amountType?: string }[] {
+  const seen = new Set<string>();
+  return previews.filter((a) => {
+    const key = `${(a.name || '').trim().toLowerCase()}|${(a.last4 || '').replace(/\D/g, '')}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function toLightAnalysisResult(p: PreviewAnalysisResult): {
   totalViolations: number;
   severityBreakdown: { critical: number; high: number; medium: number; low: number };
@@ -64,29 +76,71 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
   accountPreviews?: { name: string; last4: string; balance: string; status: string; amountType?: string }[];
   creditScore?: number;
   creditScores?: { transunion?: number; equifax?: number; experian?: number };
+  consumerInfo?: Record<string, string>;
 } {
-  const t = Math.max(1, p.totalViolations);
-  
-  console.log('[toLightAnalysisResult] Input accountPreviews:', p.accountPreviews?.length || 0);
-  console.log('[toLightAnalysisResult] Input totalViolations:', p.totalViolations);
-  console.log('[toLightAnalysisResult] creditScores:', p.creditScores ? JSON.stringify(p.creditScores) : 'none');
-  
-  const result = {
-    totalViolations: p.totalViolations,
-    severityBreakdown: {
-      critical: Math.floor(t * 0.1),
-      high: Math.floor(t * 0.2),
-      medium: Math.floor(t * 0.3),
-      low: Math.max(0, t - Math.floor(t * 0.6)),
-    },
-    categoryBreakdown: {
-      latePayments: p.categories?.latePayments ?? 0,
-      collections: p.categories?.collections ?? 0,
-      chargeOffs: Math.floor((p.categories?.accountErrors ?? 0) / 2) + Math.floor((p.categories?.other ?? 0) / 2),
-      judgments: p.categories?.publicRecords ?? 0,
-      other: (p.categories?.inquiries ?? 0) + (p.categories?.accountErrors ?? 0) + (p.categories?.other ?? 0),
-    },
-    accountPreviews: p.accountPreviews?.length ? p.accountPreviews : undefined,
+  const rawPreviews = p.accountPreviews ?? [];
+  const deduped = dedupeAccountPreviews(rawPreviews);
+  const uniqueAccountCount = deduped.length;
+  const disputableItemsFromAccounts = uniqueAccountCount * 3;
+  const aiTotal = Math.max(0, p.totalViolations || 0);
+
+  // CRITICAL: totalViolations = what we'll actually save (deduped accounts × 3 bureaus)
+  // Ensures preview number matches full analysis after payment
+  const finalTotal = uniqueAccountCount > 0 ? disputableItemsFromAccounts : aiTotal;
+
+  const t = Math.max(1, finalTotal);
+  const cat = p.categories ?? {};
+  const latePayments = Math.max(0, cat.latePayments ?? 0);
+  const collections = Math.max(0, cat.collections ?? 0);
+  const chargeOffs = Math.max(0, cat.accountErrors ?? 0);
+  const judgments = Math.max(0, cat.publicRecords ?? 0);
+  const other = Math.max(0, (cat.inquiries ?? 0) + (cat.other ?? 0));
+
+  const categorySum = latePayments + collections + chargeOffs + judgments + other;
+  const categoryBreakdown = {
+    latePayments,
+    collections,
+    chargeOffs,
+    judgments,
+    other: categorySum > 0 ? other : Math.max(0, t - latePayments - collections - chargeOffs - judgments),
+  };
+
+  const critical = collections + chargeOffs + judgments;
+  const high = latePayments;
+  const remaining = Math.max(0, t - critical - high);
+  const severityBreakdown = {
+    critical: Math.min(critical, t),
+    high: Math.min(high, Math.max(0, t - critical)),
+    medium: Math.floor(remaining * 0.7),
+    low: Math.max(0, remaining - Math.floor(remaining * 0.7)),
+  };
+
+  console.log('[toLightAnalysisResult] Deduped:', uniqueAccountCount, 'accounts →', disputableItemsFromAccounts, 'disputable items; AI:', aiTotal, '→ final:', finalTotal);
+
+  const consumerInfo = p.consumerInfo
+    ? {
+        fullName: p.consumerInfo.fullName ?? '',
+        currentAddress: p.consumerInfo.currentAddress ?? '',
+        currentCity: p.consumerInfo.currentCity ?? '',
+        currentState: p.consumerInfo.currentState ?? '',
+        currentZip: p.consumerInfo.currentZip ?? '',
+        previousAddress: p.consumerInfo.previousAddress ?? '',
+        previousCity: p.consumerInfo.previousCity ?? '',
+        previousState: p.consumerInfo.previousState ?? '',
+        previousZip: p.consumerInfo.previousZip ?? '',
+        dateOfBirth: p.consumerInfo.dateOfBirth ?? '',
+        phone: p.consumerInfo.phone ?? '',
+        ssnLast4: p.consumerInfo.ssnLast4 ?? '',
+      }
+    : undefined;
+
+  console.log('[toLightAnalysisResult] Passing consumerInfo to client:', consumerInfo);
+
+  return {
+    totalViolations: finalTotal,
+    severityBreakdown,
+    categoryBreakdown,
+    accountPreviews: deduped.length ? deduped : undefined,
     creditScore: p.creditScore,
     creditScores: p.creditScores?.transunion != null || p.creditScores?.equifax != null || p.creditScores?.experian != null
       ? {
@@ -95,11 +149,8 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
           experian: p.creditScores.experian ?? undefined,
         }
       : undefined,
+    consumerInfo,
   };
-  
-  console.log('[toLightAnalysisResult] Output accountPreviews:', result.accountPreviews?.length || 0);
-  
-  return result;
 }
 
 /**

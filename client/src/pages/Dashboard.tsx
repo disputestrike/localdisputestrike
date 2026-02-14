@@ -20,15 +20,10 @@ import {
   Bot,
   Trash2,
   Loader2,
-  Printer,
-  ArrowUpDown,
   Zap,
   ArrowRight,
-  Send,
   Target,
   BarChart3,
-  LayoutDashboard,
-  Info,
   Search
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -50,6 +45,9 @@ export default function Dashboard() {
 
   // Fetch data - ALL HOOKS AT TOP LEVEL
   const { data: userProfile } = trpc.profile.get.useQuery();
+  const { data: onboardingPrefill } = trpc.profile.getOnboardingPrefill.useQuery(undefined, {
+    enabled: showIdentityBridgeModal,
+  });
   const { data: creditReports, refetch: refetchReports } = trpc.creditReports.list.useQuery();
   const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery();
   const { data: stats } = trpc.dashboardStats.get.useQuery();
@@ -71,28 +69,43 @@ export default function Dashboard() {
       const hasReports = creditReports && creditReports.length > 0;
       console.log('[Dashboard] Preview check:', { hasPreviewData: !!previewData, creditReportsCount: creditReports?.length ?? 0 });
 
-      if (!previewData || hasReports) {
-        if (previewData && hasReports) {
-          sessionStorage.removeItem('previewAnalysis');
-          localStorage.removeItem('previewAnalysis');
-        }
-        return;
-      }
+      if (!previewData) return;
 
       try {
         const analysis = JSON.parse(previewData);
         console.log('[Dashboard] Saving preview analysis to database...');
         await savePreviewAnalysisMutation.mutateAsync({ analysis });
-        sessionStorage.removeItem('previewAnalysis');
-        localStorage.removeItem('previewAnalysis');
+        
+        // Do NOT clear sessionStorage here - the onboarding modal needs it for prefill.
+        // It gets cleared on next upload (GetReports overwrites) or when user completes onboarding.
+        
+        // Refresh all data
         await utils.creditReports.list.invalidate();
         await utils.creditReports.scoresByBureau.invalidate();
+        await utils.profile.getOnboardingPrefill.invalidate();
         await utils.dashboardStats.get.invalidate();
         await utils.negativeAccounts.list.invalidate();
+        
         toast.success('Your report is now loaded.');
       } catch (err: any) {
         console.error('[Dashboard] Failed to save preview analysis:', err);
-        toast.error(err?.message || 'Could not load report. Try again.');
+        
+        // Handle identity validation errors
+        if (err?.message?.includes('Identity verification failed')) {
+          // Clear bad cached data
+          sessionStorage.removeItem('previewAnalysis');
+          localStorage.removeItem('previewAnalysis');
+          
+          toast.error(
+            '❌ ' + err.message,
+            { 
+              duration: 15000,
+              description: 'Please upload YOUR OWN credit report that matches your account.'
+            }
+          );
+        } else {
+          toast.error(err?.message || 'Could not load report. Try again.');
+        }
       }
     };
 
@@ -117,6 +130,89 @@ export default function Dashboard() {
   
   const potentialDelta = 85;
   const targetScore = avgScore > 0 ? Math.min(850, Math.round(avgScore + potentialDelta)) : 750;
+
+  // Auto-show onboarding modal after user sees their reports for a few seconds (once per session)
+  // MUST be before early returns - hooks must run unconditionally
+  const [hasAutoShownOnboarding, setHasAutoShownOnboarding] = useState(false);
+  useEffect(() => {
+    if (authLoading || !user || userProfile?.isComplete || hasAutoShownOnboarding) return;
+    const timer = setTimeout(() => {
+      setShowIdentityBridgeModal(true);
+      setHasAutoShownOnboarding(true);
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [authLoading, user, userProfile?.isComplete, hasAutoShownOnboarding]);
+
+  // Build prefill data for onboarding modal - MUST be before early returns (hooks rule)
+  const prefillData = React.useMemo(() => {
+    const fromProfile = {
+      fullName: userProfile?.fullName ?? '',
+      currentAddress: userProfile?.currentAddress ?? '',
+      currentCity: userProfile?.currentCity ?? '',
+      currentState: userProfile?.currentState ?? '',
+      currentZip: userProfile?.currentZip ?? '',
+      previousAddress: userProfile?.previousAddress ?? '',
+      previousCity: userProfile?.previousCity ?? '',
+      previousState: userProfile?.previousState ?? '',
+      previousZip: userProfile?.previousZip ?? '',
+      dateOfBirth: userProfile?.dateOfBirth ?? '',
+      phone: userProfile?.phone ?? '',
+      ssnLast4: userProfile?.ssnLast4 ?? '',
+    };
+    
+    const fromStorage = (() => {
+      try {
+        const raw = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
+        if (!raw) {
+          console.log('[Dashboard] No preview in storage');
+          return null;
+        }
+        const analysis = JSON.parse(raw);
+        const ci = analysis?.consumerInfo;
+        if (!ci || typeof ci !== 'object') {
+          console.log('[Dashboard] No consumerInfo in preview:', analysis);
+          return null;
+        }
+        console.log('[Dashboard] Found consumerInfo in storage:', ci);
+        return {
+          fullName: ci.fullName ?? '',
+          currentAddress: ci.currentAddress ?? '',
+          currentCity: ci.currentCity ?? '',
+          currentState: ci.currentState ?? '',
+          currentZip: ci.currentZip ?? '',
+          previousAddress: ci.previousAddress ?? '',
+          previousCity: ci.previousCity ?? '',
+          previousState: ci.previousState ?? '',
+          previousZip: ci.previousZip ?? '',
+          dateOfBirth: ci.dateOfBirth ?? '',
+          phone: ci.phone ?? '',
+          ssnLast4: ci.ssnLast4 ?? '',
+        };
+      } catch (e) {
+        console.error('[Dashboard] Error parsing storage:', e);
+        return null;
+      }
+    })();
+    
+    const fromServer = onboardingPrefill ?? null;
+    console.log('[Dashboard] Prefill sources:', { fromProfile, fromStorage, fromServer });
+    
+    // Merge: storage as base (from upload), server overrides (from saved reports), profile fills remaining gaps
+    const merged = { ...fromProfile };
+    if (fromStorage) {
+      for (const k of Object.keys(fromStorage) as (keyof typeof fromStorage)[]) {
+        if (fromStorage[k]) merged[k] = fromStorage[k];
+      }
+    }
+    if (fromServer) {
+      for (const k of Object.keys(fromServer) as (keyof typeof fromServer)[]) {
+        if (fromServer[k]) merged[k] = fromServer[k];
+      }
+    }
+    
+    console.log('[Dashboard] Final prefill:', merged);
+    return merged;
+  }, [userProfile, onboardingPrefill]);
 
   if (authLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!user) return <div className="min-h-screen flex items-center justify-center">Please sign in</div>;
@@ -155,12 +251,32 @@ export default function Dashboard() {
   };
 
   const handleIdentityBridgeComplete = async (data: any) => {
-    await completeIdentityBridgeMutation.mutateAsync(data);
-    setShowIdentityBridgeModal(false);
-    submitGenerateLetters({
-      currentAddress: data?.currentAddress,
-      previousAddress: data?.previousAddress,
-    });
+    try {
+      await completeIdentityBridgeMutation.mutateAsync(data);
+      setShowIdentityBridgeModal(false);
+      
+      // Clear cached data after onboarding completes
+      sessionStorage.removeItem('previewAnalysis');
+      localStorage.removeItem('previewAnalysis');
+      
+      // Refresh all data to reflect locked identity
+      await utils.profile.get.invalidate();
+      await utils.creditReports.list.invalidate();
+      await utils.creditReports.scoresByBureau.invalidate();
+      await utils.dashboardStats.get.invalidate();
+      await utils.negativeAccounts.list.invalidate();
+      
+      toast.success('✅ Identity locked! Your account is now secured to your personal information.');
+      // Don't auto-generate - user can click Generate Letters when ready
+    } catch (error: any) {
+      // Identity validation failed - show clear error
+      if (error.message?.includes('Identity verification failed')) {
+        toast.error(error.message, { duration: 10000 }); // Show longer
+      } else {
+        toast.error(error.message || 'Failed to complete onboarding');
+      }
+      // Keep modal open so user can correct data
+    }
   };
 
   // Manual save: pull report from storage into app (for debugging or if auto-save didn't run)
@@ -173,15 +289,26 @@ export default function Dashboard() {
     try {
       const analysis = JSON.parse(previewData);
       await savePreviewAnalysisMutation.mutateAsync({ analysis });
+      
+      // Clear cached data after successful save
       sessionStorage.removeItem('previewAnalysis');
       localStorage.removeItem('previewAnalysis');
+      
+      // Refresh all data
       await utils.creditReports.list.invalidate();
       await utils.creditReports.scoresByBureau.invalidate();
       await utils.dashboardStats.get.invalidate();
       await utils.negativeAccounts.list.invalidate();
-      toast.success('Report loaded.');
+      await utils.profile.getOnboardingPrefill.invalidate();
+      
+      toast.success('Report loaded successfully.');
     } catch (err: any) {
-      toast.error(err?.message || 'Save failed');
+      // Show identity validation errors clearly
+      if (err?.message?.includes('Identity verification failed')) {
+        toast.error(err.message, { duration: 10000 });
+      } else {
+        toast.error(err?.message || 'Save failed');
+      }
     }
   };
 
@@ -220,17 +347,26 @@ export default function Dashboard() {
               <Button 
                 onClick={handleGenerateLetters}
                 disabled={isGeneratingLetters}
-                className="bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-sm"
+                className={cn(
+                  userProfile?.isComplete
+                    ? "bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-sm"
+                    : "bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md"
+                )}
               >
                 {isGeneratingLetters ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Generating...
                   </>
-                ) : (
+                ) : userProfile?.isComplete ? (
                   <>
                     <Zap className="w-4 h-4 mr-2" />
                     Generate Letters
+                  </>
+                ) : (
+                  <>
+                    <Shield className="w-4 h-4 mr-2" />
+                    Complete Onboarding
                   </>
                 )}
               </Button>
@@ -271,13 +407,13 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100 flex-1">
                     <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
                     <div>
-                      <p className="text-xs font-medium text-blue-600">Potential Delta</p>
-                      <p className="text-xl font-bold text-gray-900">+{potentialDelta} Points</p>
+                      <p className="text-xs font-medium text-blue-600 text-center">Potential Increse After Round One</p>
+                      <p className="text-xl font-bold text-gray-900 text-center">+{potentialDelta} Points</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg border border-orange-100 flex-1 justify-end">
-                    <div className="text-right">
-                      <p className="text-xs font-medium text-orange-600">AI Target Score</p>
+                    <div style={{     alignItems: "center", display: "flex", flexDirection: "column", width: "100%" }} className="text-right">
+                      <p className="text-xs font-medium text-orange-600">AI Target Score After Round One</p>
                       <p className="text-xl font-bold text-gray-900">{targetScore}</p>
                     </div>
                     <Target className="w-5 h-5 text-orange-600 shrink-0" />
@@ -309,6 +445,56 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Onboarding - Complete to unlock letter generation */}
+          <Card
+            className={cn(
+              "transition-all cursor-pointer",
+              userProfile?.isComplete
+                ? "border-gray-200 bg-gray-50 opacity-75"
+                : "border-orange-300 bg-orange-50 shadow-md hover:shadow-lg"
+            )}
+            onClick={() => !userProfile?.isComplete && setShowIdentityBridgeModal(true)}
+          >
+            <CardContent className="py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center",
+                    userProfile?.isComplete ? "bg-gray-200 text-gray-500" : "bg-orange-500 text-white"
+                  )}
+                >
+                  {userProfile?.isComplete ? (
+                    <CheckCircle2 className="w-5 h-5" />
+                  ) : (
+                    <Shield className="w-5 h-5" />
+                  )}
+                </div>
+                <div>
+                  <p className={cn("font-semibold", userProfile?.isComplete ? "text-gray-500" : "text-orange-800")}>
+                    {userProfile?.isComplete ? "Onboarding Complete" : "Complete Onboarding"}
+                  </p>
+                  <p className={cn("text-sm", userProfile?.isComplete ? "text-gray-400" : "text-orange-700")}>
+                    {userProfile?.isComplete
+                      ? "Your profile is saved for letter generation"
+                      : "Confirm your info from your credit report to generate letters"}
+                  </p>
+                </div>
+              </div>
+              {!userProfile?.isComplete && (
+                <Button
+                  size="sm"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-medium"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowIdentityBridgeModal(true);
+                  }}
+                >
+                  Complete Now
+                </Button>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Progress Tracker */}
           <Card className="border border-gray-200 bg-white shadow-sm">
@@ -559,16 +745,8 @@ export default function Dashboard() {
           isOpen={showIdentityBridgeModal}
           onClose={() => setShowIdentityBridgeModal(false)}
           onComplete={handleIdentityBridgeComplete}
-          prefillData={{
-            fullName: userProfile?.fullName ?? '',
-            currentAddress: userProfile?.currentAddress ?? '',
-            currentCity: userProfile?.currentCity ?? '',
-            currentState: userProfile?.currentState ?? '',
-            currentZip: userProfile?.currentZip ?? '',
-            dateOfBirth: userProfile?.dateOfBirth ?? '',
-            phone: userProfile?.phone ?? '',
-            ssnLast4: userProfile?.ssnLast4 ?? '',
-          }}
+          isCompleteTier={userProfile?.subscriptionTier === 'complete'}
+          prefillData={prefillData}
         />
       </DashboardLayout>
     </React.Suspense>

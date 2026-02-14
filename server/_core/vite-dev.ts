@@ -12,7 +12,14 @@ import { jsxLocPlugin } from "@builder.io/vite-plugin-jsx-loc";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 export async function setupVite(app: Express, server: Server) {
-  const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime()];
+  const plugins = [
+    react({
+      exclude: [/node_modules/, /sonner\.tsx$/],
+    }),
+    tailwindcss(),
+    jsxLocPlugin(),
+    vitePluginManusRuntime(),
+  ];
   
   const viteConfig = {
     plugins,

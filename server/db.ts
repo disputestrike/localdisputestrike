@@ -232,10 +232,16 @@ export async function createCreditReport(report: InsertCreditReport): Promise<Cr
   return inserted[0];
 }
 
+/**
+ * Get all credit reports for a specific user
+ * CRITICAL: Always filters by userId to ensure data isolation
+ * One account = one person = only their own credit reports
+ */
 export async function getCreditReportsByUserId(userId: number): Promise<CreditReport[]> {
   const db = await getDb();
   if (!db) return [];
 
+  // SECURITY: Always filter by userId - prevents users from seeing other people's data
   return db.select().from(creditReports)
     .where(eq(creditReports.userId, userId))
     .orderBy(desc(creditReports.uploadedAt));
@@ -400,10 +406,16 @@ export async function createNegativeAccountIfNotExists(account: InsertNegativeAc
   return { account: inserted[0], isNew: true };
 }
 
+/**
+ * Get all negative accounts for a specific user
+ * CRITICAL: Always filters by userId to ensure data isolation
+ * One account = one person = only their own negative accounts
+ */
 export async function getNegativeAccountsByUserId(userId: number): Promise<NegativeAccount[]> {
   const db = await getDb();
   if (!db) return [];
 
+  // SECURITY: Always filter by userId - prevents users from seeing other people's data
   return db.select().from(negativeAccounts)
     .where(eq(negativeAccounts.userId, userId))
     .orderBy(desc(negativeAccounts.createdAt));
@@ -1710,6 +1722,7 @@ export async function getUserDashboardStats(userId: number): Promise<{
 
 /**
  * Get user profile by user ID
+ * CRITICAL: Always use userId to ensure data isolation - one account = one person
  */
 export async function getUserProfile(userId: number): Promise<UserProfile | undefined> {
   const dbInstance = await getDb();
@@ -1722,6 +1735,79 @@ export async function getUserProfile(userId: number): Promise<UserProfile | unde
     .limit(1);
 
   return result[0];
+}
+
+/**
+ * Validate that consumer info matches locked profile identity
+ * Used to prevent users from uploading different people's credit reports
+ * Returns: { matches: boolean, reason?: string }
+ */
+export async function validateIdentityMatch(
+  userId: number,
+  consumerInfo: {
+    fullName?: string;
+    dateOfBirth?: string;
+    ssnLast4?: string;
+  }
+): Promise<{ matches: boolean; reason?: string }> {
+  const profile = await getUserProfile(userId);
+  
+  // If profile not complete yet, allow (first time setup)
+  if (!profile?.isComplete) {
+    return { matches: true };
+  }
+  
+  // Normalize for comparison
+  const normalize = (s?: string | null) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  
+  const existingName = normalize(profile.fullName);
+  const uploadedName = normalize(consumerInfo.fullName);
+  const existingSSN = (profile.ssnLast4 || '').trim();
+  const uploadedSSN = (consumerInfo.ssnLast4 || '').trim();
+  const existingDOB = (profile.dateOfBirth || '').split('T')[0]; // YYYY-MM-DD part
+  
+  // Convert uploaded DOB to YYYY-MM-DD if needed
+  let uploadedDOB = consumerInfo.dateOfBirth || '';
+  if (uploadedDOB.includes('/')) {
+    const [month, day, year] = uploadedDOB.split('/');
+    uploadedDOB = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  
+  // Check if we have enough data to validate
+  const hasUploadedIdentity = uploadedName && uploadedSSN && uploadedDOB;
+  if (!hasUploadedIdentity) {
+    // Not enough data to validate - allow but log warning
+    console.warn('[Identity] Insufficient data to validate identity for user:', userId);
+    return { matches: true };
+  }
+  
+  // Check each field
+  const nameMatches = existingName === uploadedName;
+  const ssnMatches = existingSSN === uploadedSSN;
+  const dobMatches = existingDOB === uploadedDOB;
+  
+  if (!nameMatches || !ssnMatches || !dobMatches) {
+    console.error('[Identity] Mismatch detected:', {
+      userId,
+      existingName,
+      uploadedName,
+      nameMatches,
+      existingSSN,
+      uploadedSSN,
+      ssnMatches,
+      existingDOB,
+      uploadedDOB,
+      dobMatches,
+    });
+    
+    return {
+      matches: false,
+      reason: 'The uploaded credit report does not match your registered identity. ' +
+              'This account is locked to prevent sharing between multiple people.'
+    };
+  }
+  
+  return { matches: true };
 }
 
 /**
@@ -3469,6 +3555,16 @@ export async function getExpiredTrialsForWinback(daysAgo: number): Promise<Trial
 // ============================================
 // SUBSCRIPTION V2 FUNCTIONS (for cron jobs)
 // ============================================
+
+/**
+ * Get subscription V2 by user ID (for tier: trial, starter, professional, complete)
+ */
+export async function getSubscriptionV2ByUserId(userId: number): Promise<SubscriptionV2 | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(subscriptionsV2).where(eq(subscriptionsV2.userId, userId)).limit(1);
+  return result[0];
+}
 
 /**
  * Get expired trial subscriptions
