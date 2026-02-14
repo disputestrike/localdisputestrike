@@ -9,6 +9,8 @@ const t = initTRPC.context<TrpcContext>().create({
 
 export const router = t.router;
 export const publicProcedure = t.procedure;
+/** Procedure that allows both authenticated and unauthenticated - ctx.user may be null */
+export const optionalAuthProcedure = t.procedure;
 
 const requireUser = t.middleware(async opts => {
   const { ctx, next } = opts;

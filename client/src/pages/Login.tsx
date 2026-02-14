@@ -35,6 +35,9 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const redirectTo = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("redirect") || "/dashboard"
+    : "/dashboard";
   const [redirectUriHint, setRedirectUriHint] = useState(
     typeof window !== "undefined"
       ? `${window.location.origin}/api/auth/google/callback`
@@ -90,8 +93,7 @@ export default function Login() {
       const data = await response.json();
 
       if (data.success) {
-        // Redirect to dashboard
-        window.location.href = "/dashboard";
+        window.location.href = redirectTo;
       } else {
         setError(data.message || "Login failed");
       }
@@ -226,7 +228,7 @@ export default function Login() {
           <CardFooter className="flex flex-col gap-4">
             <div className="text-center text-gray-600 text-sm">
               Don't have an account?{" "}
-              <Link href="/register">
+              <Link href={redirectTo !== "/dashboard" ? `/register?redirect=${encodeURIComponent(redirectTo)}` : "/register"}>
                 <span className="text-orange-600 hover:text-orange-500 cursor-pointer font-medium">
                   Create one
                 </span>

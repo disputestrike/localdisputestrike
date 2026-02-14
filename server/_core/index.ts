@@ -295,6 +295,10 @@ async function startServer() {
     process.exit(1);
   }
 
+  // Ensure user_profiles has all required columns (self-heal if migrations weren't applied)
+  const { ensureUserProfilesSchema } = await import("../ensureUserProfilesSchema");
+  ensureUserProfilesSchema().catch((err) => console.warn("[Schema] ensureUserProfilesSchema:", err?.message));
+
   server.on('error', (err: NodeJS.ErrnoException) => {
     if (err?.code === 'EADDRINUSE') {
       console.error(`\n[ERROR] Port ${port} is in use. Stop the process using it (e.g. another \`pnpm dev\` or the old server), then run \`pnpm dev\` again.\n`);

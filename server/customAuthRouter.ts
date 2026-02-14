@@ -531,8 +531,8 @@ router.get('/google/callback', async (req, res) => {
       // Redirect to intended destination or dashboard
       const redirectTo = (state as string) || '/dashboard';
       
-      // If new user, redirect to get-reports to start the flow
-      if (result.user?.isNewUser) {
+      // If new user and they came from checkout, honor that. Else send to get-reports.
+      if (result.user?.isNewUser && !redirectTo.startsWith('/checkout')) {
         return res.redirect('/get-reports');
       }
       

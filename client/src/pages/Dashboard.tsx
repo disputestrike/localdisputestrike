@@ -255,19 +255,24 @@ export default function Dashboard() {
       await completeIdentityBridgeMutation.mutateAsync(data);
       setShowIdentityBridgeModal(false);
       
-      // Clear cached data after onboarding completes
+      if (data.saveForLater) {
+        // Essential: saved without ID/utility; they can complete later
+        await utils.profile.get.invalidate();
+        toast.success('Profile saved. When you have your ID and utility bill, click Complete Onboarding again to finish.');
+        return;
+      }
+      
+      // Full completion: clear cached preview and refresh
       sessionStorage.removeItem('previewAnalysis');
       localStorage.removeItem('previewAnalysis');
       
-      // Refresh all data to reflect locked identity
       await utils.profile.get.invalidate();
       await utils.creditReports.list.invalidate();
       await utils.creditReports.scoresByBureau.invalidate();
       await utils.dashboardStats.get.invalidate();
       await utils.negativeAccounts.list.invalidate();
       
-      toast.success('✅ Identity locked! Your account is now secured to your personal information.');
-      // Don't auto-generate - user can click Generate Letters when ready
+      toast.success('✅ Onboarding complete! Your account is secured. You can now generate letters.');
     } catch (error: any) {
       // Identity validation failed - show clear error
       if (error.message?.includes('Identity verification failed')) {
@@ -349,7 +354,7 @@ export default function Dashboard() {
                 disabled={isGeneratingLetters}
                 className={cn(
                   userProfile?.isComplete
-                    ? "bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-sm"
+                    ? "bg-green-600 hover:bg-green-700 text-white font-medium shadow-sm"
                     : "bg-orange-500 hover:bg-orange-600 text-white font-bold shadow-md"
                 )}
               >
@@ -745,7 +750,7 @@ export default function Dashboard() {
           isOpen={showIdentityBridgeModal}
           onClose={() => setShowIdentityBridgeModal(false)}
           onComplete={handleIdentityBridgeComplete}
-          isCompleteTier={userProfile?.subscriptionTier === 'complete'}
+          requiresIdAndUtility={userProfile?.subscriptionTier === 'essential'}
           prefillData={prefillData}
         />
       </DashboardLayout>

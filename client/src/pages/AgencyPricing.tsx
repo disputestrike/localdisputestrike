@@ -107,11 +107,7 @@ export default function AgencyPricing() {
   });
 
   const handleSelectPlan = (plan: typeof plans[0]) => {
-    if (!user) {
-      // Redirect to custom login page
-      window.location.href = "/login";
-      return;
-    }
+    // No login redirect — one signup, one login. User already authenticated.
     setSelectedPlan(plan);
     setIsUpgradeOpen(true);
   };

@@ -192,7 +192,7 @@ export default function Blog3RoundStrategy() {
                   DisputeStrike helps you execute the same escalation strategy used by credit attorneys - at a fraction of the cost.
                 </p>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/start">Get Started Free</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -228,7 +228,7 @@ export default function Blog3RoundStrategy() {
               Start with Round 1 today and let DisputeStrike guide you through the escalation process
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/quiz">Get Started Free</Link>
+              <Link href="/start">Get Started Free</Link>
             </Button>
           </div>
         </div>

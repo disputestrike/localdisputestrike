@@ -153,7 +153,7 @@ export default function BlogCreditReport() {
                   <li>• Escalate with Round 2 and Round 3 strategies</li>
                 </ul>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Start Your Journey Free</Link>
+                  <Link href="/start">Start Free Analysis</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -189,7 +189,7 @@ export default function BlogCreditReport() {
               Start your dispute journey with DisputeStrike today
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/quiz">Get Started Free</Link>
+              <Link href="/start">Get Started Free</Link>
             </Button>
           </div>
         </div>

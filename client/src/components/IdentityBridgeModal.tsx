@@ -28,8 +28,8 @@ interface IdentityBridgeModalProps {
   onClose: () => void;
   onComplete: (data: any) => Promise<void>;
   prefillData?: any;
-  /** Complete tier only: we print & mail, so ID + utility bill upload required */
-  isCompleteTier?: boolean;
+  /** Essential tier: ID + utility bill required to complete onboarding. Complete tier: no uploads needed. */
+  requiresIdAndUtility?: boolean;
 }
 
 export default function IdentityBridgeModal({
@@ -37,7 +37,7 @@ export default function IdentityBridgeModal({
   onClose,
   onComplete,
   prefillData,
-  isCompleteTier = false,
+  requiresIdAndUtility = false,
 }: IdentityBridgeModalProps) {
   const idFileRef = useRef<HTMLInputElement>(null);
   const utilityFileRef = useRef<HTMLInputElement>(null);
@@ -81,6 +81,33 @@ export default function IdentityBridgeModal({
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  /** Essential only: save profile without ID/utility; user can complete onboarding later. */
+  const handleSaveForLater = async () => {
+    if (!formData.fullName || !formData.currentAddress || !formData.dateOfBirth || (formData.ssnLast4?.length ?? 0) !== 4) {
+      setError("Please fill in name, address, date of birth, and SSN last 4 to save.");
+      return;
+    }
+    if (!consents.signature || !consents.authorize || !consents.noGuarantee || !consents.terms) {
+      setError("Please accept all legal consents to continue");
+      return;
+    }
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      await onComplete({
+        ...formData,
+        ...consents,
+        saveForLater: true,
+        subscriptionTier: 'essential',
+      });
+      onClose();
+    } catch (err: any) {
+      setError(err.message || "Failed to save");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!formData.fullName) {
       setError("Full legal name is required");
@@ -102,13 +129,14 @@ export default function IdentityBridgeModal({
       setError("Please accept all legal consents to continue");
       return;
     }
-    if (isCompleteTier) {
+    // Essential: ID + utility required only when doing full "Complete onboarding"
+    if (requiresIdAndUtility) {
       if (!idFile) {
-        setError("Please upload a copy of your ID (we print and mail your letters)");
+        setError("Please upload a copy of your government-issued ID (driver's license, passport, or state ID)");
         return;
       }
       if (!utilityFile) {
-        setError("Please upload a utility bill (we print and mail your letters)");
+        setError("Please upload a recent utility bill (proof of address)");
         return;
       }
     }
@@ -119,7 +147,7 @@ export default function IdentityBridgeModal({
       let idDocumentUrl: string | undefined;
       let utilityBillUrl: string | undefined;
 
-      if (isCompleteTier && idFile && utilityFile) {
+      if (requiresIdAndUtility && idFile && utilityFile) {
         const toContentType = (f: File) =>
           f.type === 'application/pdf' ? 'application/pdf' as const
           : f.type === 'image/png' ? 'image/png' as const
@@ -155,6 +183,7 @@ export default function IdentityBridgeModal({
         ...consents,
         idDocumentUrl,
         utilityBillUrl,
+        subscriptionTier: requiresIdAndUtility ? 'essential' : 'complete',
       });
     } catch (err: any) {
       setError(err.message || "Failed to save information");
@@ -299,11 +328,11 @@ export default function IdentityBridgeModal({
             </div>
           </div>
 
-          {isCompleteTier && (
-            <div className="space-y-4 pt-4 border-t">
-              <h3 className="font-bold text-gray-900">ID & Utility Bill (Required for Print & Mail)</h3>
+          {requiresIdAndUtility && (
+            <div className="space-y-4 pt-4 border-t border-orange-100 bg-orange-50/50 rounded-lg p-4">
+              <h3 className="font-bold text-gray-900">ID & Utility Bill (Required for Essential)</h3>
               <p className="text-sm text-gray-600">
-                We print and mail your dispute letters. Please upload a copy of your ID and a recent utility bill so we can include them with your letters.
+                Essential plan requires a government-issued ID and a recent utility bill for verification. You can save your info now and add these documents later to complete onboarding.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -402,8 +431,18 @@ export default function IdentityBridgeModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-0 flex-wrap">
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          {requiresIdAndUtility && (
+            <Button
+              variant="outline"
+              className="border-gray-300"
+              onClick={() => handleSaveForLater()}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save for later'}
+            </Button>
+          )}
           <Button 
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold"
             onClick={handleSubmit}

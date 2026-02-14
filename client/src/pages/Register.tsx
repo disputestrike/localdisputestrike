@@ -41,6 +41,10 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
+  const redirectTo = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("redirect") || "/get-reports"
+    : "/get-reports";
+
   const passwordRequirements = [
     { met: password.length >= 8, text: "At least 8 characters" },
     { met: /[A-Z]/.test(password), text: "One uppercase letter" },
@@ -140,10 +144,10 @@ export default function Register() {
                 </button>
               </p>
             </CardContent>
-            <CardFooter className="justify-center">
-              <Link href="/login">
+            <CardFooter className="flex flex-col gap-2 justify-center">
+              <Link href={redirectTo.startsWith("/checkout") ? `/login?redirect=${encodeURIComponent(redirectTo)}` : "/login"}>
                 <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
-                  Back to Login
+                  {redirectTo.startsWith("/checkout") ? "Log in to complete your purchase" : "Back to Login"}
                 </Button>
               </Link>
             </CardFooter>

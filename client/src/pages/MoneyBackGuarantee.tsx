@@ -275,7 +275,7 @@ export default function MoneyBackGuarantee() {
             Get your credit disputes organized with our professional software tools. Protected by our 110% Software Satisfaction Guarantee.
           </p>
           <Button size="lg" className="bg-white text-green-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/quiz">Start Your Journey</Link>
+            <Link href="/start">Start Free Analysis</Link>
           </Button>
         </div>
       </section>

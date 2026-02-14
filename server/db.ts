@@ -201,18 +201,87 @@ export async function getUserByOpenId(openId: string) {
     console.warn("[Database] Cannot get user: database not available");
     return undefined;
   }
-
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
-
-  return result.length > 0 ? result[0] : undefined;
+  try {
+    const [rows] = (await db.execute(
+      sql`SELECT id, openId, name, email, loginMethod, role, createdAt, updatedAt, lastSignedIn FROM \`users\` WHERE \`openId\` = ${openId} LIMIT 1`
+    )) as unknown as [Array<Record<string, unknown>>];
+    const row = rows?.[0];
+    if (!row) return undefined;
+    return {
+      id: Number(row.id),
+      openId: String(row.openId),
+      name: row.name != null ? String(row.name) : null,
+      email: row.email != null ? String(row.email) : null,
+      loginMethod: row.loginMethod != null ? String(row.loginMethod) : null,
+      role: (row.role as string) || 'user',
+      createdAt: row.createdAt instanceof Date ? row.createdAt : new Date(String(row.createdAt)),
+      updatedAt: row.updatedAt instanceof Date ? row.updatedAt : new Date(String(row.updatedAt)),
+      lastSignedIn: row.lastSignedIn != null ? (row.lastSignedIn instanceof Date ? row.lastSignedIn : new Date(String(row.lastSignedIn))) : null,
+    } as (typeof users.$inferSelect);
+  } catch (e) {
+    console.warn("[getUserByOpenId] Query failed:", (e as Error).message);
+    return undefined;
+  }
 }
 
 export async function getUserById(userId: number) {
   const db = await getDb();
   if (!db) return undefined;
+  try {
+    const [rows] = (await db.execute(
+      sql`SELECT id, openId, name, email, loginMethod, role, createdAt, updatedAt, lastSignedIn FROM \`users\` WHERE \`id\` = ${userId} LIMIT 1`
+    )) as unknown as [Array<Record<string, unknown>>];
+    const row = rows?.[0];
+    if (!row) return undefined;
+    return {
+      id: Number(row.id),
+      openId: String(row.openId),
+      name: row.name != null ? String(row.name) : null,
+      email: row.email != null ? String(row.email) : null,
+      loginMethod: row.loginMethod != null ? String(row.loginMethod) : null,
+      role: (row.role as string) || 'user',
+      createdAt: row.createdAt instanceof Date ? row.createdAt : new Date(String(row.createdAt)),
+      updatedAt: row.updatedAt instanceof Date ? row.updatedAt : new Date(String(row.updatedAt)),
+      lastSignedIn: row.lastSignedIn != null ? (row.lastSignedIn instanceof Date ? row.lastSignedIn : new Date(String(row.lastSignedIn))) : null,
+    } as (typeof users.$inferSelect);
+  } catch (e) {
+    console.warn("[getUserById] Query failed:", (e as Error).message);
+    return undefined;
+  }
+}
 
-  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  return result.length > 0 ? result[0] : undefined;
+/** Create a minimal guest user for checkout - no email/name from user, just for Stripe metadata */
+export async function createGuestUserForCheckout(): Promise<{ id: number; email: string | null; name: string | null }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const crypto = await import("crypto");
+  const openId = `guest_${crypto.randomBytes(16).toString("hex")}`;
+  const placeholderEmail = `checkout-${crypto.randomBytes(8).toString("hex")}@pending.local`;
+
+  try {
+    await db.insert(users).values({
+      openId,
+      name: "Guest",
+      email: placeholderEmail,
+      loginMethod: "guest",
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.warn("[createGuestUserForCheckout] Drizzle insert failed, trying raw SQL:", msg);
+    try {
+      await db.execute(sql`INSERT INTO \`users\` (\`openId\`, \`name\`, \`email\`, \`loginMethod\`) VALUES (${openId}, ${"Guest"}, ${placeholderEmail}, ${"guest"})`);
+    } catch (fallbackErr) {
+      const fallbackMsg = fallbackErr instanceof Error ? fallbackErr.message : String(fallbackErr);
+      throw new Error(`Failed to create guest user: ${fallbackMsg}`);
+    }
+  }
+  const [rows] = await db.execute(
+    sql`SELECT id, email, name FROM \`users\` WHERE \`openId\` = ${openId} LIMIT 1`
+  ) as unknown as [Array<{ id: number; email: string | null; name: string | null }>];
+  const row = rows?.[0];
+  if (!row) throw new Error("Failed to create guest user");
+  return { id: row.id, email: row.email, name: row.name };
 }
 
 // ============================================================================
@@ -3602,6 +3671,61 @@ export async function updateSubscriptionV2Status(
     .update(subscriptionsV2)
     .set({ status })
     .where(eq(subscriptionsV2.id, subscriptionId));
+}
+
+/**
+ * Record payment and create/update subscription after checkout success (Stripe Elements flow)
+ */
+export async function recordPaymentAndSubscriptionForCheckout(params: {
+  userId: number;
+  tier: 'essential' | 'complete';
+  amountUsd: number;
+  stripeSubscriptionId: string;
+  stripeCustomerId: string;
+  stripePaymentId: string;
+}): Promise<void> {
+  const dbInstance = await getDb();
+  if (!dbInstance) throw new Error("Database not available");
+
+  const tierForPayment = 'subscription_monthly' as const;
+  const tierForSubV2 = params.tier === 'essential' ? 'starter' : 'complete';
+
+  try {
+    await dbInstance.insert(payments).values({
+      userId: params.userId,
+      amount: params.amountUsd.toFixed(2),
+      tier: tierForPayment,
+      stripePaymentId: params.stripePaymentId,
+      status: 'completed',
+    });
+  } catch (e) {
+    console.warn('[recordPaymentAndSubscriptionForCheckout] createPayment (may exist):', (e as Error).message);
+  }
+
+  const existing = await getSubscriptionV2ByUserId(params.userId);
+  const now = new Date();
+  const periodEnd = new Date(now);
+  periodEnd.setMonth(periodEnd.getMonth() + 1);
+
+  if (existing) {
+    await dbInstance.update(subscriptionsV2).set({
+      tier: tierForSubV2,
+      status: 'active',
+      stripeSubscriptionId: params.stripeSubscriptionId,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+    }).where(eq(subscriptionsV2.id, existing.id));
+  } else {
+    await dbInstance.insert(subscriptionsV2).values({
+      userId: params.userId,
+      tier: tierForSubV2,
+      status: 'active',
+      stripeSubscriptionId: params.stripeSubscriptionId,
+      stripeCustomerId: params.stripeCustomerId,
+      currentPeriodStart: now,
+      currentPeriodEnd: periodEnd,
+    });
+  }
 }
 
 // ============================================

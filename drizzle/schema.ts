@@ -10,6 +10,12 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  accountType: mysqlEnum("accountType", ["individual", "agency"]).default("individual"),
+  agencyName: varchar("agencyName", { length: 255 }),
+  agencyPlanTier: mysqlEnum("agencyPlanTier", ["starter", "professional", "enterprise"]),
+  clientSlotsIncluded: int("clientSlotsIncluded").default(0),
+  clientSlotsUsed: int("clientSlotsUsed").default(0),
+  agencyMonthlyPrice: decimal("agencyMonthlyPrice", { precision: 10, scale: 2 }),
   affiliateSource: mysqlEnum("affiliateSource", ["smartcredit", "identityiq", "direct_upload", "none"])
     .default("direct_upload")
     .notNull(),

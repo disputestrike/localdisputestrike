@@ -117,7 +117,7 @@ export default function FAQ() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/trial-checkout">Get Started Free</Link>
+                  <Link href="/start">Get Started Free</Link>
                 </Button>
               </>
             )}
@@ -183,7 +183,7 @@ export default function FAQ() {
             Our support team is here to help. Start your free analysis and take control of your credit journey.
           </p>
           <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/trial-checkout">Start Start Free Analysis</Link>
+            <Link href="/start">Start Free Analysis</Link>
           </Button>
         </div>
       </section>
@@ -196,7 +196,7 @@ export default function FAQ() {
             Join thousands of users using our FCRA-compliant dispute tools
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/trial-checkout">Get Started Now</Link>
+            <Link href="/start">Get Started Now</Link>
           </Button>
         </div>
       </section>

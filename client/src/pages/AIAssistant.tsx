@@ -8,7 +8,6 @@ import { trpc } from "@/lib/trpc";
 import { Bot, Send, User, Loader2, Paperclip, Mic, MicOff, X, FileText, File, AlertCircle } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { getLoginUrl } from "@/const";
 
 interface Message {
   role: 'user' | 'assistant';
@@ -18,13 +17,8 @@ interface Message {
 }
 
 export default function AIAssistant() {
-  const { isAuthenticated, user } = useAuth();
-  
-  // Redirect to login if not authenticated
-  if (!isAuthenticated) {
-    window.location.href = "/login";
-    return null;
-  }
+  const { user } = useAuth();
+  // No login redirect — one signup, one login. User already authenticated.
 
   const [messages, setMessages] = useState<Message[]>([
     {

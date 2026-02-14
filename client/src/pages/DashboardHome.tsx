@@ -206,6 +206,7 @@ export default function DashboardHome() {
           isOpen={isIdentityModalOpen}
           onClose={() => setIsIdentityModalOpen(false)}
           onComplete={handleCompleteIdentity}
+          requiresIdAndUtility={userProfile?.subscriptionTier === 'essential'}
           prefillData={{
             fullName: userProfile?.fullName ?? '',
             currentAddress: userProfile?.currentAddress ?? '',

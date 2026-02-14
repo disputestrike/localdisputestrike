@@ -16,14 +16,8 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   const [, setLocation] = useLocation();
   
   // Get analysis from props or session storage - NO FALLBACK PLACEHOLDERS
-  const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis'), null);
+  const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis'), null);
   const analysis = propAnalysis || sessionAnalysis;
-
-  // DEBUG: Log what we received
-  console.log('[PreviewResults] propAnalysis:', propAnalysis);
-  console.log('[PreviewResults] sessionAnalysis:', sessionAnalysis);
-  console.log('[PreviewResults] final analysis:', analysis);
-  console.log('[PreviewResults] accountPreviews:', analysis?.accountPreviews);
 
   // If no real analysis data, show error state
   // Allow totalViolations: 0 (clean report) — only reject missing or invalid analysis
@@ -83,8 +77,12 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
     negativeReason: acc.status || acc.negativeReason || 'Negative item'
   }));
   
-  // Current scores: per-bureau only. Never show one number for all three — use API or analysis per-bureau, or "—".
-  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery(undefined, { retry: false });
+  // Use analysis data only — do NOT call scoresByBureau (protected). That 401 would trigger
+  // redirect-to-login and break the flow. User already signed up; preview must stay.
+  const { data: scoresByBureau } = trpc.creditReports.scoresByBureau.useQuery(undefined, {
+    retry: false,
+    enabled: false, // Preview uses analysis.creditScores; avoid protected call
+  });
   const valid = (n: number | null | undefined) => (n != null && n >= 300 && n <= CREDIT_SCORE_MAX ? n : null);
   const fromApi = {
     transunion: valid(scoresByBureau?.transunion),

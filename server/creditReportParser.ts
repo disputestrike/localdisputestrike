@@ -637,6 +637,60 @@ export async function parseAndSaveReport(
 }
 
 /**
+ * Parse and save credit report for AGENCY CLIENT
+ * Saves extracted accounts to agency_client_accounts
+ */
+export async function parseAndSaveAgencyClientReport(
+  reportId: number,
+  fileUrl: string,
+  bureau: 'transunion' | 'equifax' | 'experian',
+  agencyClientId: number,
+  agencyUserId: number
+): Promise<void> {
+  try {
+    console.log(`[Parser Agency] Starting parse for report ${reportId}, bureau: ${bureau}, client: ${agencyClientId}`);
+
+    const bureauCapitalized = bureau.charAt(0).toUpperCase() + bureau.slice(1) as 'TransUnion' | 'Equifax' | 'Experian';
+    const accounts = await parseWithVisionAI(fileUrl, bureauCapitalized);
+
+    console.log(`[Parser Agency] Vision AI extracted ${accounts.length} accounts`);
+
+    for (const account of accounts) {
+      const record: Parameters<typeof db.createAgencyClientAccount>[0] = {
+        agencyClientId,
+        agencyUserId,
+        accountName: account.accountName,
+        accountNumber: account.accountNumber ?? undefined,
+        accountType: account.accountType,
+        balance: account.balance,
+        originalCreditor: account.originalCreditor ?? undefined,
+        dateOpened: account.dateOpened ? account.dateOpened.toISOString().slice(0, 10) : undefined,
+        lastActivity: account.lastActivity ? account.lastActivity.toISOString().slice(0, 10) : undefined,
+        status: account.status,
+      };
+      if (bureau === 'transunion') record.transunionData = account.rawData;
+      else if (bureau === 'equifax') record.equifaxData = account.rawData;
+      else record.experianData = account.rawData;
+      await db.createAgencyClientAccount(record);
+    }
+
+    const personalInfo = await parsePersonalInfoWithAI(fileUrl, bureauCapitalized);
+    const parsedDataToStore = personalInfo ? JSON.stringify({ status: 'parsed', personalInfo }) : 'parsed';
+
+    await db.updateAgencyClientReport(reportId, agencyUserId, {
+      isParsed: true,
+      parsedData: parsedDataToStore,
+    });
+
+    console.log(`[Parser Agency] Saved ${accounts.length} accounts for report ${reportId}`);
+  } catch (error) {
+    console.error(`[Parser Agency] Failed to parse report ${reportId}:`, error);
+    await db.updateAgencyClientReport(reportId, agencyUserId, { isParsed: false });
+    throw error;
+  }
+}
+
+/**
  * Parse and save COMBINED 3-bureau credit report
  * Creates 3 report records (one per bureau) and distributes accounts accordingly
  */

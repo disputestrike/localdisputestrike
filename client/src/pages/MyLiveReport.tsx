@@ -66,7 +66,7 @@ const BUREAU_LABELS: Record<string, string> = {
   experian: "Experian",
 };
 
-const MAX_ITEMS_PER_ROUND = 5;
+const MAX_ITEMS_PER_ROUND = 20;
 const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
 
 const normalizeBureauCode = (value: string): BureauCode | null => {
@@ -212,6 +212,9 @@ export default function MyLiveReport() {
     });
   };
 
+  const selectTop20 = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+  const selectAll = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+
   const selectedBureaus = useMemo(() => {
     const bureaus = new Set<BureauCode>();
     for (const item of allNegativeItems) {
@@ -333,8 +336,18 @@ export default function MyLiveReport() {
             <p className="text-sm text-gray-500">Select up to {MAX_ITEMS_PER_ROUND} items for your next dispute round.</p>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <p className="font-bold text-sm">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
+            <div className="flex flex-wrap justify-between items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="font-bold text-sm">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={selectTop20} className="text-gray-700">
+                    Select Top 20
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={selectAll} className="text-gray-700">
+                    Select All
+                  </Button>
+                </div>
+              </div>
               <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating}>
                 {isGenerating ? (
                   <>

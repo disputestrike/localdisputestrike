@@ -47,7 +47,7 @@ export default function HowItWorks() {
                   <a href={getLoginUrl()}>Login</a>
                 </Button>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Start Your Journey Free</Link>
+                  <Link href="/start">Start Free Analysis</Link>
                 </Button>
               </>
             )}
@@ -301,7 +301,7 @@ export default function HowItWorks() {
             Join 16,628 users who are striking with precision and defending with decisive action
           </p>
           <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 text-xl px-12 py-7 rounded-full" asChild>
-            <Link href="/quiz">Start Free Analysis</Link>
+            <Link href="/start">Start Free Analysis</Link>
           </Button>
         </div>
       </section>

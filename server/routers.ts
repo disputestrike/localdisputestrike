@@ -1,3 +1,4 @@
+import type Stripe from "stripe";
 import { COOKIE_NAME } from "@shared/const";
 /**
  * DisputeStrike - AI-Powered Credit Dispute Platform
@@ -5,17 +6,12 @@ import { COOKIE_NAME } from "@shared/const";
  */
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, optionalAuthProcedure, router, adminProcedure, superAdminProcedure, masterAdminProcedure, canManageRole, ADMIN_ROLES } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 // import { generatePdfFromLetter } from './letterToPdf'; // Removed due to dependency issues
 import { safeJsonParse } from "./utils/json";
 import * as db from "./db";
-import { COOKIE_NAME } from "@shared/const";
-// File storage is now handled via /api/upload endpoint in index.ts
-// import { uploadRouter } from "./uploadRouter";
-
-// Admin procedures imported from _core/trpc with role hierarchy support
 
 // Agency-only procedure - requires user.accountType === 'agency'
 const agencyProcedure = protectedProcedure.use(async ({ ctx, next }) => {
@@ -38,10 +34,15 @@ const paidProcedure = protectedProcedure.use(async ({ ctx, next }) => {
     if (hasPayment && hasPayment.status === 'completed') {
       return next({ ctx: { ...ctx, paidUser: user, userTier: hasPayment.tier || 'essential' } });
     }
-    // Also check subscription status
+    // Also check subscription status (legacy subscriptions + v2 with trial)
     const subscription = await db.getSubscriptionByUserId(ctx.user.id);
-    if (subscription && (subscription.status === 'active' || subscription.status === 'trial')) {
+    if (subscription && subscription.status === 'active') {
       return next({ ctx: { ...ctx, paidUser: user, userTier: subscription.tier || 'essential' } });
+    }
+    const subV2 = await db.getSubscriptionV2ByUserId(ctx.user.id);
+    if (subV2 && (subV2.status === 'active' || subV2.status === 'trial')) {
+      const tier = subV2.tier === 'complete' || subV2.tier === 'professional' || subV2.tier === 'starter' ? subV2.tier : 'essential';
+      return next({ ctx: { ...ctx, paidUser: user, userTier: tier } });
     }
   }
   // For development/testing, allow through with a warning
@@ -731,8 +732,8 @@ export const appRouter = router({
           throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
         }
         
-        // Can't delete master admins
-        if (targetUser.role === 'master_admin') {
+        // Can't delete master admins (admin_accounts uses master_admin; users.role is user|admin)
+        if ((targetUser as { role?: string }).role === 'master_admin') {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Cannot delete master admin',
@@ -1042,9 +1043,11 @@ Be thorough and list every negative item found.`;
   creditReports: router({
     /**
      * Save preview analysis to database (called after successful payment)
+     * For guests: pass userId from checkout. For logged-in: uses ctx.user
      */
-    savePreviewAnalysis: protectedProcedure
+    savePreviewAnalysis: optionalAuthProcedure
       .input(z.object({
+        userId: z.number().optional(),
         analysis: z.object({
           totalViolations: z.number(),
           severityBreakdown: z.object({
@@ -1090,7 +1093,8 @@ Be thorough and list every negative item found.`;
         }),
       }))
       .mutation(async ({ ctx, input }) => {
-        const userId = ctx.user.id;
+        const userId = input.userId ?? ctx.user?.id;
+        if (!userId) throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Login required or provide userId from checkout' });
         const { analysis } = input;
         
         console.log('[SavePreview] Saving preview analysis for user:', userId, 'violations:', analysis.totalViolations);
@@ -1776,10 +1780,10 @@ Be thorough and list every negative item found.`;
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Letter not found' });
         }
         // const pdfBuffer = await generatePdfFromLetter(letter.letterContent); // Removed due to dependency issues
-        return {
-          pdf: pdfBuffer.toString('base64'),
-          fileName: `DisputeLetter_${letter.bureau}_${letter.id}.pdf`,
-        };
+        throw new TRPCError({
+          code: 'NOT_IMPLEMENTED',
+          message: 'PDF download is temporarily unavailable. Please use the print option in your browser.',
+        });
       }),
     updateTrackingNumber: protectedProcedure
       .input(z.object({
@@ -3081,19 +3085,22 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
 
     /**
      * Create subscription for embedded checkout (Stripe Elements)
-     * Returns clientSecret for PaymentElement
+     * No login, no email form - just Stripe payment. Guest = auto-created.
      */
-    createSubscription: protectedProcedure
+    createSubscription: optionalAuthProcedure
       .input(z.object({
         tier: z.enum(['essential', 'complete']),
       }))
       .mutation(async ({ ctx, input }) => {
+        const user = ctx.user
+          ? { id: ctx.user.id, email: ctx.user.email, name: ctx.user.name }
+          : await db.createGuestUserForCheckout();
+
         const Stripe = (await import('stripe')).default;
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
           apiVersion: '2025-12-15.clover',
         });
         
-        // Use pre-configured Price IDs (the working approach)
         const { STRIPE_PRICE_IDS } = await import('./stripeSubscriptionService');
         const priceId = STRIPE_PRICE_IDS[input.tier];
         
@@ -3102,29 +3109,23 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           throw new Error(`Stripe Price ID not configured for tier: ${input.tier}`);
         }
         
-        console.log('[Checkout] Creating embedded subscription for tier:', input.tier, 'priceId:', priceId);
+        console.log('[Checkout] Creating subscription for tier:', input.tier, 'userId:', user.id);
         
         try {
-          // Create or get customer
+          type InvoiceWithPI = Stripe.Invoice & { payment_intent?: string | Stripe.PaymentIntent | null };
+          const invPI = (i: Stripe.Invoice) => (i as InvoiceWithPI).payment_intent;
           let customer: Stripe.Customer;
           try {
-            const existingCustomers = await stripe.customers.list({
-              email: ctx.user.email || undefined,
-              limit: 1,
-            });
-            
+            const custEmail = user.email || undefined;
+            const existingCustomers = custEmail ? await stripe.customers.list({ email: custEmail, limit: 1 }) : { data: [] };
             if (existingCustomers.data.length > 0) {
               customer = existingCustomers.data[0];
-              console.log('[Checkout] Using existing customer:', customer.id);
             } else {
               customer = await stripe.customers.create({
-                email: ctx.user.email || undefined,
-                name: ctx.user.name || undefined,
-                metadata: {
-                  userId: ctx.user.id.toString(),
-                },
+                email: custEmail,
+                name: user.name || undefined,
+                metadata: { userId: user.id.toString() },
               });
-              console.log('[Checkout] Created new customer:', customer.id);
             }
           } catch (customerError: any) {
             console.error('[Checkout] Customer creation error:', customerError.message);
@@ -3145,7 +3146,8 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
               },
               expand: ['latest_invoice.payment_intent'],
               metadata: {
-                user_id: ctx.user.id.toString(),
+                user_id: user.id.toString(),
+                userId: user.id.toString(),
                 tier: input.tier,
               },
             });
@@ -3181,7 +3183,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
             invoice = subscription.latest_invoice as Stripe.Invoice;
             console.log('[Checkout] Using expanded invoice:', invoice.id);
             // Ensure payment_intent is expanded
-            if (typeof invoice.payment_intent === 'string') {
+            if (typeof invPI(invoice) === 'string') {
               console.log('[Checkout] Payment intent is string, retrieving...');
               invoice = await stripe.invoices.retrieve(invoice.id, {
                 expand: ['payment_intent'],
@@ -3195,8 +3197,8 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           console.log('[Checkout] Invoice ID:', invoice.id);
           console.log('[Checkout] Invoice status:', invoice.status);
           console.log('[Checkout] Invoice collection_method:', invoice.collection_method);
-          console.log('[Checkout] Payment intent type:', typeof invoice.payment_intent);
-          console.log('[Checkout] Payment intent:', invoice.payment_intent);
+          console.log('[Checkout] Payment intent type:', typeof invPI(invoice));
+          console.log('[Checkout] Payment intent:', invPI(invoice));
           
           // If invoice is draft, finalize it first
           if (invoice.status === 'draft') {
@@ -3213,7 +3215,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
           }
           
           // Get payment intent from invoice
-          let paymentIntent: Stripe.PaymentIntent | string | null = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+          let paymentIntent: Stripe.PaymentIntent | string | null = invPI(invoice) as Stripe.PaymentIntent | string | null;
           
           // If still no payment intent, try to create one
           if (!paymentIntent) {
@@ -3223,7 +3225,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
               invoice = await stripe.invoices.pay(invoice.id, {
                 expand: ['payment_intent'],
               });
-              paymentIntent = invoice.payment_intent as Stripe.PaymentIntent | string | null;
+              paymentIntent = invPI(invoice) as Stripe.PaymentIntent | string | null;
             } catch (payError: any) {
               console.error('[Checkout] Invoice pay error:', payError.message);
               // If pay fails, try to create payment intent manually
@@ -3237,7 +3239,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
                 metadata: {
                   subscription_id: subscription.id,
                   invoice_id: invoice.id,
-                  user_id: ctx.user.id.toString(),
+                  user_id: user.id.toString(),
                   tier: input.tier,
                 },
               });
@@ -3272,6 +3274,7 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
             clientSecret,
             subscriptionId: subscription.id,
             customerId: customer.id,
+            userId: user.id,
           };
         } catch (error: any) {
           console.error('[Checkout] Unexpected error:', error);
@@ -3281,6 +3284,53 @@ Tone: Formal, factual, and demanding. This is an official government complaint t
             message: `Checkout failed: ${errorMessage}`,
           });
         }
+      }),
+
+    /**
+     * Confirm payment success after Stripe Elements - records payment & subscription, auto-logs in guest so they see dashboard
+     */
+    confirmPaymentSuccess: optionalAuthProcedure
+      .input(z.object({ subscriptionId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const Stripe = (await import('stripe')).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+          apiVersion: '2025-12-15.clover',
+        });
+        const sub = await stripe.subscriptions.retrieve(input.subscriptionId);
+        const userId = sub.metadata?.user_id || sub.metadata?.userId;
+        const tier = (sub.metadata?.tier || 'complete') as 'essential' | 'complete';
+        if (!userId) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Invalid subscription' });
+        }
+        const uid = parseInt(userId, 10);
+        const latestInv = typeof sub.latest_invoice === 'object' ? sub.latest_invoice : null;
+        const inv = latestInv || (typeof sub.latest_invoice === 'string' ? await stripe.invoices.retrieve(sub.latest_invoice) : null);
+        const amountUsd = inv && 'amount_paid' in inv ? (inv.amount_paid || 0) / 100 : 0;
+        const pi = inv && 'payment_intent' in inv ? inv.payment_intent : null;
+        const paymentId = pi
+          ? (typeof pi === 'string' ? pi : (pi as Stripe.PaymentIntent).id)
+          : sub.id;
+        await db.recordPaymentAndSubscriptionForCheckout({
+          userId: uid,
+          tier,
+          amountUsd: amountUsd || 79.99,
+          stripeSubscriptionId: sub.id,
+          stripeCustomerId: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
+          stripePaymentId: paymentId,
+        });
+        let email = 'guest@checkout.local';
+        try {
+          const u = await db.getUserById(uid);
+          if (u?.email) email = u.email;
+        } catch {
+          /* ignore - use fallback */
+        }
+        const { generateToken } = await import('./customAuth');
+        const token = generateToken(uid, email);
+        const opts = { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax' as const, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/' };
+        ctx.res.cookie('auth-token', token, opts);
+        ctx.res.cookie('manus-session', token, opts);
+        return { success: true };
       }),
 
     /**
@@ -3773,8 +3823,10 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
         authorize: z.boolean().optional(),
         noGuarantee: z.boolean().optional(),
         terms: z.boolean().optional(),
-        idDocumentUrl: z.string().optional(), // Complete tier: ID for print & mail
-        utilityBillUrl: z.string().optional(), // Complete tier: utility bill for print & mail
+        idDocumentUrl: z.string().optional(), // Essential: required to complete onboarding
+        utilityBillUrl: z.string().optional(), // Essential: required to complete onboarding
+        subscriptionTier: z.enum(['essential', 'complete']).optional(),
+        saveForLater: z.boolean().optional(), // Essential: save profile without ID/utility; complete later
       }))
       .mutation(async ({ ctx, input }) => {
         // CRITICAL: Identity Lock - Once set, identity cannot be changed
@@ -3877,16 +3929,28 @@ Write a professional, detailed complaint that cites relevant FCRA sections and c
           utilityBillUrl: input.utilityBillUrl,
         });
         
-        // Mark profile as complete - THIS LOCKS THE IDENTITY
-        const { getDb } = await import('./db');
-        const dbInstance = await getDb();
-        if (dbInstance) {
-          const { userProfiles } = await import('../drizzle/schema');
-          const { eq } = await import('drizzle-orm');
-          await dbInstance
-            .update(userProfiles)
-            .set({ isComplete: true, completedAt: new Date() })
-            .where(eq(userProfiles.userId, ctx.user.id));
+        // Mark profile as complete only when appropriate
+        // Essential: require both ID + utility to complete. Save for later = don't set complete.
+        // Complete tier: no ID/utility needed, set complete now.
+        const isEssential = input.subscriptionTier === 'essential';
+        const hasIdAndUtility = Boolean(input.idDocumentUrl && input.utilityBillUrl);
+        const shouldSetComplete = input.saveForLater
+          ? false
+          : isEssential
+            ? hasIdAndUtility
+            : true;
+
+        if (shouldSetComplete) {
+          const { getDb } = await import('./db');
+          const dbInstance = await getDb();
+          if (dbInstance) {
+            const { userProfiles } = await import('../drizzle/schema');
+            const { eq } = await import('drizzle-orm');
+            await dbInstance
+              .update(userProfiles)
+              .set({ isComplete: true, completedAt: new Date() })
+              .where(eq(userProfiles.userId, ctx.user.id));
+          }
         }
         
         // Log activity

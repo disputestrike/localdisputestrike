@@ -162,7 +162,7 @@ export function MobileMenu() {
                   </Button>
                   <Button variant="outline" className="w-full border-orange-600 text-orange-600 hover:bg-orange-50" asChild>
                     <Link href="/start" onClick={() => setIsOpen(false)}>
-                      Start Free Preview
+                      Start Free Analysis
                     </Link>
                   </Button>
                 </>

@@ -337,10 +337,10 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="relative">
-                <img loading="lazy" src="/icon-step1-quiz.webp" alt="Take Quiz" className="w-32 h-32 mx-auto mb-6" />
+                <img loading="lazy" src="/icon-step1-quiz.webp" alt="Start Free Analysis" className="w-32 h-32 mx-auto mb-6" />
                 <div className="absolute top-0 right-0 bg-orange-600 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">1</div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">Take the Quiz</h3>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">Start Free Analysis</h3>
               <p className="text-gray-700">Answer a few questions about your credit situation</p>
             </div>
             
@@ -374,7 +374,7 @@ export default function Home() {
           
           <div className="text-center mt-12">
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/start">Start Your Journey Free <ArrowRight className="ml-2" /></Link>
+              <Link href="/start">Start Free Analysis <ArrowRight className="ml-2" /></Link>
             </Button>
           </div>
         </div>

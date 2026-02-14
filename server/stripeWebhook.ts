@@ -56,6 +56,14 @@ stripeWebhookRouter.post('/webhook', async (req, res) => {
         break;
       }
 
+      case 'invoice.paid': {
+        const invoice = event.data.object as Stripe.Invoice;
+        if (invoice.subscription && invoice.billing_reason === 'subscription_create') {
+          await handleInvoicePaidForSubscription(invoice);
+        }
+        break;
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         console.log('[Stripe Webhook] Payment succeeded:', paymentIntent.id);
@@ -117,5 +125,36 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     }
   } catch (error) {
     console.error('[Stripe Webhook] Error updating payment:', error);
+  }
+}
+
+/**
+ * Handle invoice.paid for embedded checkout subscriptions - records payment & subscription
+ */
+async function handleInvoicePaidForSubscription(invoice: Stripe.Invoice) {
+  if (!stripe || !invoice.subscription) return;
+  const subId = typeof invoice.subscription === 'string' ? invoice.subscription : invoice.subscription.id;
+  try {
+    const sub = await stripe.subscriptions.retrieve(subId);
+    const userId = sub.metadata?.user_id || sub.metadata?.userId;
+    const tier = (sub.metadata?.tier || 'complete') as 'essential' | 'complete';
+    if (!userId) {
+      console.warn('[Stripe Webhook] invoice.paid: no user_id in subscription metadata');
+      return;
+    }
+    const uid = parseInt(userId, 10);
+    const amountUsd = (invoice.amount_paid || 0) / 100;
+    const paymentId = typeof invoice.payment_intent === 'string' ? invoice.payment_intent : invoice.payment_intent?.id || invoice.id;
+    await db.recordPaymentAndSubscriptionForCheckout({
+      userId: uid,
+      tier,
+      amountUsd,
+      stripeSubscriptionId: sub.id,
+      stripeCustomerId: typeof sub.customer === 'string' ? sub.customer : sub.customer.id,
+      stripePaymentId: paymentId,
+    });
+    console.log('[Stripe Webhook] Recorded payment & subscription for user:', uid);
+  } catch (err: any) {
+    console.error('[Stripe Webhook] handleInvoicePaidForSubscription error:', err?.message);
   }
 }

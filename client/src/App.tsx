@@ -8,7 +8,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ScrollToTop } from "./components/ScrollToTop";
 import Home from "./pages/Home";
-import Quiz from "./pages/Quiz";
 import Dashboard from "@/pages/Dashboard";
 import MyLiveReport from "@/pages/MyLiveReport";
 import DisputeManager from "@/pages/DisputeManager";
@@ -102,7 +101,7 @@ function Router() {
       <Route path="/blog/fcra-rights" component={BlogFCRARights} />
       <Route path="/blog" component={Blog} />
       <Route path="/blog/:slug" component={BlogPost} />
-      <Route path="/quiz" component={Quiz} />
+      <Route path="/quiz">{() => (window.location.href = "/start", null)}</Route>
       
       {/* V3 - New Free Onboarding Flow */}
       <Route path="/start" component={OnboardingQuiz} />

@@ -16,6 +16,7 @@
     "db:repair": "tsx scripts/repair-migrations.ts",
     "db:sync": "tsx scripts/sync-schema.ts",
     "db:setup": "pnpm db:repair && pnpm db:migrate && pnpm db:sync && pnpm db:seed",
+    "db:repair-profiles": "cross-env DOTENV_CONFIG_PATH=.ENV tsx scripts/repair-user-profiles-columns.ts",
     "test:local": "node scripts/test-local.mjs"
   },
   "dependencies": {

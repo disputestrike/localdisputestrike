@@ -38,7 +38,7 @@ const BUREAU_LABELS: Record<string, string> = {
   experian: "Experian",
 };
 
-const MAX_ITEMS_PER_ROUND = 5;
+const MAX_ITEMS_PER_ROUND = 20;
 const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
 
 const normalizeBureauCode = (value: string): BureauCode | null => {
@@ -111,6 +111,9 @@ export default function DisputeManager() {
     });
   };
 
+  const selectTop20 = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+  const selectAll = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+
   const selectedBureaus = useMemo(() => {
     const bureaus = new Set<BureauCode>();
     for (const item of negativeItems) {
@@ -178,8 +181,18 @@ export default function DisputeManager() {
             <p className="text-sm text-gray-600 font-medium">Select up to {MAX_ITEMS_PER_ROUND} items for your next dispute round.</p>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
-            <div className="flex justify-between items-center p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
-              <p className="font-black text-sm text-blue-800">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
+            <div className="flex flex-wrap justify-between items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+              <div className="flex flex-wrap items-center gap-3">
+                <p className="font-black text-sm text-blue-800">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={selectTop20} className="border-blue-400 text-blue-800 hover:bg-blue-100">
+                    Select Top 20
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={selectAll} className="border-blue-400 text-blue-800 hover:bg-blue-100">
+                    Select All
+                  </Button>
+                </div>
+              </div>
               <Button onClick={handleGenerateLetters} disabled={selectedItems.length === 0 || isGenerating} className="bg-orange-500 hover:bg-orange-600 font-bold shadow-md">
                 {isGenerating ? (
                   <>

@@ -219,7 +219,7 @@ export default function BlogFCRARights() {
                   Take control of your credit journey and hold credit bureaus accountable under federal law.
                 </p>
                 <Button className="bg-orange-600 hover:bg-orange-700 text-white" asChild>
-                  <Link href="/quiz">Get Started Free</Link>
+                  <Link href="/start">Get Started Free</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -256,7 +256,7 @@ export default function BlogFCRARights() {
               Start exercising your FCRA § 611 rights today with DisputeStrike
             </p>
             <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-lg px-8 py-6" asChild>
-              <Link href="/quiz">Get Started Free</Link>
+              <Link href="/start">Get Started Free</Link>
             </Button>
           </div>
         </div>

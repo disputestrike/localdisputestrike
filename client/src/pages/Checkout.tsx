@@ -5,6 +5,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
+import { useAuth } from '@/_core/hooks/useAuth';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { 
@@ -100,11 +101,11 @@ function PaymentForm({
       if (confirmError) {
         setError(confirmError.message || 'Payment failed. Please try again.');
         setIsProcessing(false);
-      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-        // Payment successful - redirect to dashboard
+      } else if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing')) {
+        // Payment succeeded or is processing (e.g. 3DS) - redirect; webhook will record when done
         onSuccess();
       } else {
-        setError('Payment is being processed. Please wait...');
+        setError('Payment status unexpected. Please refresh and try again.');
         setIsProcessing(false);
       }
     } catch (err: any) {
@@ -184,24 +185,27 @@ function PaymentForm({
 
 export default function Checkout() {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [clientSecret, setClientSecret] = useState('');
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+  const [checkoutUserId, setCheckoutUserId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [initError, setInitError] = useState('');
 
-  // Get tier from URL params
   const params = new URLSearchParams(window.location.search);
-  const tierParam = params.get('tier') || 'complete';
+  const tierParam = params.get('tier') || params.get('plan') || 'complete';
   const [selectedTier, setSelectedTier] = useState<'essential' | 'complete'>(
     (tierParam === 'essential' || tierParam === 'complete') ? tierParam : 'complete'
   );
 
   const plan = PLANS[selectedTier];
 
-  // Create subscription to get clientSecret
   const createSubscriptionMutation = trpc.payments.createSubscription.useMutation({
     onSuccess: (data) => {
       if (data?.clientSecret) {
         setClientSecret(data.clientSecret);
+        if (data.subscriptionId) setSubscriptionId(data.subscriptionId);
+        if (data.userId != null) setCheckoutUserId(data.userId);
         setIsLoading(false);
       } else {
         setInitError('Failed to initialize checkout. Please try again.');
@@ -220,28 +224,31 @@ export default function Checkout() {
 
   // Save preview analysis after payment so Dashboard / My Live Report show the full report
   const savePreviewAnalysisMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
+  const confirmPaymentMutation = trpc.payments.confirmPaymentSuccess.useMutation();
   const utils = trpc.useUtils();
 
   const handleSuccess = async () => {
     try {
+      if (subscriptionId) {
+        await confirmPaymentMutation.mutateAsync({ subscriptionId });
+      }
       const previewData = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
       if (previewData) {
         const analysis = JSON.parse(previewData);
         console.log('[Checkout] Saving preview analysis to database...');
-        await savePreviewAnalysisMutation.mutateAsync({ analysis });
-        console.log('[Checkout] Preview analysis saved successfully');
+        const opts = user ? { analysis } : { analysis, userId: checkoutUserId ?? undefined };
+        await savePreviewAnalysisMutation.mutateAsync(opts);
         sessionStorage.removeItem('previewAnalysis');
         localStorage.removeItem('previewAnalysis');
-        // Invalidate so Dashboard and My Live Report refetch and show the report
         await utils.creditReports.list.invalidate();
         await utils.creditReports.scoresByBureau.invalidate();
         await utils.dashboardStats.get.invalidate();
         await utils.negativeAccounts.list.invalidate();
       }
     } catch (err) {
-      console.error('[Checkout] Failed to save preview analysis:', err);
+      console.error('[Checkout] Post-payment save failed:', err);
     }
-    setLocation('/dashboard?payment=success');
+    window.location.href = '/dashboard?payment=success';
   };
 
   if (isLoading) {
