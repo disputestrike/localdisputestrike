@@ -21,32 +21,32 @@ export default function AdminLogin() {
     setIsLoading(true);
 
     try {
-      // Use the custom auth login endpoint which handles both users and admins
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      let data: any = {};
+      try {
+        data = await response.json();
+      } catch {
+        setError("Server returned invalid response. Is the app running?");
+        return;
+      }
 
       if (!response.ok || !data.success) {
-        setError(data.message || "Login failed. Please check your credentials.");
+        setError(data.error || data.message || "Login failed. Please check your credentials.");
         return;
       }
 
-      // Check if the user has admin role
-      if (data.user.role !== 'admin') {
-        setError("Access denied. You do not have administrator privileges.");
-        // Clear the auth cookie since they aren't an admin
-        await fetch("/api/auth/logout", { method: "POST" });
-        return;
+      // Store session token for AdminPanel (reads "admin-session-token")
+      if (data.sessionToken) {
+        localStorage.setItem("admin-session-token", data.sessionToken);
       }
-
-      // Store admin session for the frontend
-      localStorage.setItem("admin-session", JSON.stringify(data.user));
       toast.success("Admin login successful");
       setLocation("/admin");
     } catch (err) {
@@ -140,12 +140,61 @@ export default function AdminLogin() {
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-gray-700">
+            <div className="mt-6 pt-6 border-t border-gray-700 space-y-2">
               <p className="text-center text-sm text-gray-500">
                 Not an admin?{" "}
                 <Link href="/" className="text-blue-400 hover:text-blue-300">
                   Return to main site
                 </Link>
+              </p>
+              <p className="text-center text-xs text-gray-600">
+                First time?{" "}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const r = await fetch("/api/admin/bootstrap", { method: "POST", credentials: "include" });
+                      const d = await r.json();
+                      if (d.success) {
+                        toast.success("Admin created! Try logging in now.");
+                        setError("");
+                      } else {
+                        setError(d.error || "Bootstrap failed");
+                      }
+                    } catch (e) {
+                      setError("Could not reach server. Is it running?");
+                    }
+                  }}
+                  className="text-blue-400 hover:text-blue-300 underline"
+                >
+                  Create default admin
+                </button>
+              </p>
+              <p className="text-center text-xs text-gray-600">
+                Locked out?{" "}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!confirm("Delete ALL data (letters, accounts, reports) and create fresh admin?")) return;
+                    try {
+                      const r = await fetch("/api/admin/reset-and-bootstrap", { method: "POST", credentials: "include" });
+                      const d = await r.json();
+                      if (d.success) {
+                        toast.success("All data deleted. Fresh admin created. Log in with admin@disputestrike.com / DisputeStrike2024!");
+                        setError("");
+                        setEmail("admin@disputestrike.com");
+                        setPassword("DisputeStrike2024!");
+                      } else {
+                        setError(d.error || "Reset failed");
+                      }
+                    } catch (e) {
+                      setError("Could not reach server.");
+                    }
+                  }}
+                  className="text-red-400 hover:text-red-300 underline"
+                >
+                  Reset all data + create admin
+                </button>
               </p>
             </div>
           </CardContent>

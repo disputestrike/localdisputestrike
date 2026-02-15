@@ -6,7 +6,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { getDb } from "./db";
 import { adminAccounts, adminActivityLog } from "../drizzle/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, gt } from "drizzle-orm";
 
 const router = Router();
 
@@ -37,6 +37,72 @@ export async function verifyAdminSession(req: any, res: any, next: any) {
   req.admin = session;
   next();
 }
+
+// Reset all dispute data + delete admins + create fresh default admin (when locked out)
+router.post("/reset-and-bootstrap", async (req, res) => {
+  try {
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ error: "Database not available" });
+    }
+    const { resetAllDisputeData } = await import("./db");
+    await resetAllDisputeData();
+    await db.delete(adminAccounts).where(gt(adminAccounts.id, 0));
+    const email = "admin@disputestrike.com";
+    const password = "DisputeStrike2024!";
+    const hashedPassword = await bcrypt.hash(password, 12);
+    await db.insert(adminAccounts).values({
+      email,
+      passwordHash: hashedPassword,
+      name: "Master Admin",
+      role: "master_admin",
+      status: "active",
+    });
+    adminSessions.clear();
+    res.json({
+      success: true,
+      message: "All data deleted. Fresh admin created.",
+      email,
+      password,
+    });
+  } catch (error) {
+    console.error("Reset and bootstrap error:", error);
+    res.status(500).json({ error: "Failed: " + (error instanceof Error ? error.message : "unknown") });
+  }
+});
+
+// Bootstrap: Create default admin ONLY when no admins exist (first-time setup)
+router.post("/bootstrap", async (req, res) => {
+  try {
+    const db = await getDb();
+    if (!db) {
+      return res.status(500).json({ error: "Database not available" });
+    }
+    const existing = await db.select().from(adminAccounts).limit(1);
+    if (existing.length > 0) {
+      return res.status(400).json({ error: "Admin already exists. Use existing credentials." });
+    }
+    const email = "admin@disputestrike.com";
+    const password = "DisputeStrike2024!";
+    const hashedPassword = await bcrypt.hash(password, 12);
+    await db.insert(adminAccounts).values({
+      email,
+      passwordHash: hashedPassword,
+      name: "Master Admin",
+      role: "master_admin",
+      status: "active",
+    });
+    res.json({
+      success: true,
+      message: "Default admin created. You can now log in.",
+      email,
+      password,
+    });
+  } catch (error) {
+    console.error("Admin bootstrap error:", error);
+    res.status(500).json({ error: "Failed to create admin" });
+  }
+});
 
 // Admin Login
 router.post("/login", async (req, res) => {

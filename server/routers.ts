@@ -500,6 +500,18 @@ export const appRouter = router({
       return { success: true, message: 'Deadline notifications sent' };
     }),
 
+    // Clear legacy ai_recommendations data (start fresh)
+    clearOldAiRecommendations: adminProcedure.mutation(async () => {
+      const affected = await db.clearOldAiRecommendations();
+      return { success: true, deleted: affected };
+    }),
+
+    // Reset ALL dispute data - letters, accounts, reports. Start fresh.
+    resetAllDisputeData: adminProcedure.mutation(async () => {
+      const counts = await db.resetAllDisputeData();
+      return { success: true, counts };
+    }),
+
     recentLetters: adminProcedure.query(async ({ ctx }) => {
       
       const { getAllDisputeLetters, getAllUsers } = await import('./db');
@@ -1069,6 +1081,7 @@ Be thorough and list every negative item found.`;
             balance: z.string(),
             status: z.string(),
             amountType: z.string().optional(),
+            bureau: z.enum(['transunion', 'equifax', 'experian']).optional(),
           })).optional(),
           creditScore: z.number().optional(),
           creditScores: z.object({
@@ -1173,19 +1186,14 @@ Be thorough and list every negative item found.`;
             : null;
           const scoreToSave = bureauScore != null ? bureauScore : (analysis.creditScore ?? null);
 
-          const dedupedCount = analysis.accountPreviews?.length
-            ? new Set(
-                analysis.accountPreviews.map((p: { name?: string; last4?: string }) =>
-                  `${(p.name || '').trim().toLowerCase()}|${String(p.last4 || '').replace(/\D/g, '')}`
-                )
-              ).size
-            : 0;
-          const totalViolationsToSave = dedupedCount > 0 ? dedupedCount * 3 : analysis.totalViolations;
+          // Use analysis.totalViolations so Dashboard/AI Strategist matches lightAnalysis
+          const totalViolationsToSave = Math.max(0, analysis.totalViolations ?? 0);
           const parsedDataToSave = {
             creditScore: scoreToSave,
             totalViolations: totalViolationsToSave,
             severityBreakdown: analysis.severityBreakdown,
             categoryBreakdown: analysis.categoryBreakdown,
+            accountPreviews: analysis.accountPreviews ?? [],
             consumerInfo: analysis.consumerInfo ?? null,
             personalInfo: analysis.consumerInfo ? {
               fullName: analysis.consumerInfo.fullName,
@@ -1204,7 +1212,7 @@ Be thorough and list every negative item found.`;
               ? (safeJsonParse(existingReport.parsedData as string, null) as Record<string, unknown> | null)
               : null;
             const mergedParsed = existingParsed && typeof existingParsed === 'object'
-              ? { ...existingParsed, consumerInfo: parsedDataToSave.consumerInfo ?? existingParsed.consumerInfo, personalInfo: parsedDataToSave.personalInfo ?? existingParsed.personalInfo }
+              ? { ...existingParsed, ...parsedDataToSave, consumerInfo: parsedDataToSave.consumerInfo ?? existingParsed.consumerInfo, personalInfo: parsedDataToSave.personalInfo ?? existingParsed.personalInfo }
               : parsedDataToSave;
             await db.updateCreditReportParsedData(
               existingReport.id,
@@ -1231,37 +1239,24 @@ Be thorough and list every negative item found.`;
           }
         }
         
-        // Save account previews as negative accounts (deduped - same account not saved twice)
+        // Save account previews as negative accounts — 1 row per preview to match totalViolations
         if (analysis.accountPreviews && analysis.accountPreviews.length > 0) {
-          const seen = new Set<string>();
-          const dedupedPreviews = analysis.accountPreviews.filter((p: { name?: string; last4?: string }) => {
-            const key = `${(p.name || '').trim().toLowerCase()}|${String(p.last4 || '').replace(/\D/g, '')}`;
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-          const consistentTotalViolations = dedupedPreviews.length * 3;
-          console.log('[SavePreview] Saving', dedupedPreviews.length, 'unique accounts →', consistentTotalViolations, 'disputable items');
-          
-          for (const preview of dedupedPreviews) {
-            // Try to determine account type from status/name
+          const previews = analysis.accountPreviews as Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }>;
+          console.log('[SavePreview] Saving', previews.length, 'accounts (matches totalViolations)');
+          for (const preview of previews) {
             let accountType = 'Collection';
             if (preview.status?.toLowerCase().includes('charge')) accountType = 'Charge-off';
             if (preview.status?.toLowerCase().includes('late')) accountType = 'Late Payment';
             if (preview.status?.toLowerCase().includes('judgment')) accountType = 'Judgment';
-            
-            // Extract balance number
             const balanceMatch = preview.balance?.replace(/[^0-9.]/g, '');
             const balance = balanceMatch ? parseFloat(balanceMatch) : 0;
-            
-            // Save to each bureau (since preview doesn't specify bureau)
-            for (const bureau of bureaus) {
+            const bureausToCreate = preview.bureau ? [preview.bureau] : bureaus;
+            for (const bureau of bureausToCreate) {
               const reportId = reportIds[bureaus.indexOf(bureau)];
-              
               await db.createNegativeAccountIfNotExists({
                 userId,
                 creditReportId: reportId,
-                accountName: preview.name,
+                accountName: preview.name || 'Unknown',
                 accountNumber: preview.last4 ? `****${preview.last4}` : null,
                 balance: balance.toString(),
                 status: preview.status || 'Unknown',
@@ -1721,6 +1716,15 @@ Be thorough and list every negative item found.`;
     }),
 
     /**
+     * Sync negative accounts from parsedData when totalViolations > current count.
+     * Ensures Dispute Manager shows all items from analysis.
+     */
+    syncFromParsedData: protectedProcedure.mutation(async ({ ctx }) => {
+      const { syncNegativeAccountsFromParsedData } = await import('./db');
+      return syncNegativeAccountsFromParsedData(ctx.user.id);
+    }),
+
+    /**
      * Manually add negative account
      */
     create: protectedProcedure
@@ -1769,6 +1773,14 @@ Be thorough and list every negative item found.`;
 
         return db.createNegativeAccount(data);
       }),
+
+    /**
+     * Get round-based dispute recommendations (Round 1/2/3 allocation)
+     */
+    getRoundRecommendations: protectedProcedure.query(async ({ ctx }) => {
+      const { allocateAllRounds } = await import('./disputeStrategy');
+      return allocateAllRounds(ctx.user.id);
+    }),
   }),
 
   disputeLetters: router({
@@ -1923,43 +1935,79 @@ Be thorough and list every negative item found.`;
           }
         }
         // --- END PER-ACCOUNT LOCK ---
-        const disputeRoundLabel = existingLetters.length > 0 ? "SECOND DISPUTE" : "FIRST DISPUTE";
+        const isRound1 = existingLetters.length === 0;
+        const maxRound = existingLetters.length > 0 ? Math.max(...existingLetters.map(l => l.round || 1)) : 0;
+        const isRound2 = !isRound1 && maxRound === 1;
+        const isRound3 = !isRound1 && maxRound >= 2;
+        const disputeRoundLabel = isRound1 ? "FIRST DISPUTE" : isRound2 ? "SECOND DISPUTE" : "THIRD DISPUTE";
         
-        // Import AI letter generator
-        const { invokeLLMWithFallback: invokeLLM } = await import('./llmWrapper');
-        
-        // Generate AI-powered letters
-        const letters = [];
-        
-        for (const bureau of input.bureaus) {
-          // Build prompt for AI
-          const prompt = buildLetterPrompt(userName, bureau, input.currentAddress, input.previousAddress, accounts);
-          
-          // Generate letter using AI
-          const response = await invokeLLM({
-            messages: [
-              {
-                role: 'system',
-                content: LETTER_GENERATION_SYSTEM_PROMPT,
-              },
-              {
-                role: 'user',
-                content: prompt,
-              },
-            ],
-          });
-          
-          const rawContent = response.choices[0]?.message?.content;
-          
-          // Import and use post-processor to ensure all required sections
+        // Get user profile
+        const userProfile = await db.getUserProfile(userId);
+        const fullName = userProfile?.fullName || userName;
+        const today = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        const letters: { id: number; bureau: string }[] = [];
+
+        // ROUND 1: Use short, one-error template-based letters (no cross-bureau)
+        if (isRound1) {
+          const { getRound1Targets, fillRound1Template, scoreAccounts } = await import('./disputeStrategy');
           const { postProcessLetter } = await import('./letterPostProcessor');
-          
-          // Get user profile for complete data
-          const userProfile = await db.getUserProfile(userId);
-          
-          // Build UserData object with all available info
+          const round1Targets = await getRound1Targets(userId);
+          const selectedIds = new Set(input.accountIds && input.accountIds.length > 0 ? input.accountIds : accounts.map(a => a.id));
+          let targetsToUse = round1Targets.filter(t => selectedIds.has(t.accountId) && input.bureaus.includes(t.bureau as 'transunion' | 'equifax' | 'experian'));
+          const accountMap = new Map(accounts.map(a => [a.id, a]));
+
+          // Fallback: if no round1 targets (e.g. all scored R2/R3), use selected accounts with template 1C
+          if (targetsToUse.length === 0 && accounts.length > 0) {
+            const scored = scoreAccounts(accounts.map(a => ({ id: a.id, accountName: a.accountName, balance: a.balance, status: a.status, dateOpened: a.dateOpened, lastActivity: a.lastActivity, accountType: a.accountType, bureau: a.bureau, rawData: a.rawData })));
+            targetsToUse = scored
+              .filter(s => selectedIds.has(s.id) && input.bureaus.includes(s.bureau as 'transunion' | 'equifax' | 'experian'))
+              .map(s => ({ accountId: s.id, account: s, bureau: s.bureau, letterTemplate: s.letterTemplate, errorTypes: s.errorTypes }));
+          }
+
+          for (const target of targetsToUse) {
+            const acc = accountMap.get(target.accountId);
+            if (!acc) continue;
+            const bureau = (acc.bureau || 'transunion').toLowerCase();
+            const letterContent = fillRound1Template(target.letterTemplate, {
+              fullName,
+              currentAddress: input.currentAddress,
+              date: today,
+              accountName: String(acc.accountName || 'Unknown'),
+              accountNumber: String(acc.accountNumber || 'N/A'),
+              accountType: String(acc.accountType || 'Unknown'),
+              balance: String(acc.balance ?? '0'),
+              status: String(acc.status || 'Unknown'),
+              dateOpened: acc.dateOpened ? String(acc.dateOpened) : 'Not reported',
+              lastActivity: acc.lastActivity ? String(acc.lastActivity) : 'Unknown',
+              bureau,
+            });
+            const userData = {
+              fullName,
+              address: input.currentAddress,
+              previousAddress: input.previousAddress,
+              phone: userProfile?.phone || undefined,
+              email: ctx.user.email || undefined,
+              dob: userProfile?.dateOfBirth || undefined,
+              ssn4: userProfile?.ssnLast4 || undefined,
+            };
+            const processedLetter = postProcessLetter(letterContent, [acc], bureau, userData, disputeRoundLabel);
+            const letter = await db.createDisputeLetter({
+              userId,
+              bureau: bureau as 'transunion' | 'equifax' | 'experian',
+              letterContent: processedLetter,
+              accountsDisputed: JSON.stringify([acc.id]),
+              round: 1,
+              letterType: 'initial',
+              status: 'generated',
+            });
+            letters.push({ id: letter.id, bureau });
+          }
+        } else {
+          // ROUND 2 or ROUND 3: Use template-based letters (no AI)
+          const { getRound2Targets, getRound3Targets, fillRound2Template, fillRound3Template } = await import('./disputeStrategy');
+          const { postProcessLetter } = await import('./letterPostProcessor');
           const userData = {
-            fullName: userProfile?.fullName || userName,
+            fullName,
             address: input.currentAddress,
             previousAddress: input.previousAddress,
             phone: userProfile?.phone || undefined,
@@ -1967,30 +2015,48 @@ Be thorough and list every negative item found.`;
             dob: userProfile?.dateOfBirth || undefined,
             ssn4: userProfile?.ssnLast4 || undefined,
           };
-          
-          let letterContent: string;
-          if (typeof rawContent === 'string') {
-            // Post-process the AI output to add missing sections AND replace placeholders
-            const processedLetter = postProcessLetter(rawContent, accounts, bureau, userData, disputeRoundLabel);
-            letterContent = processedLetter;
-          } else {
-            letterContent = generatePlaceholderLetter(userName, bureau, input.currentAddress, accounts.length);
-          }
-          
-          const letterId = await db.createDisputeLetter({
-            userId,
-            bureau,
-            letterContent,
-            accountsDisputed: JSON.stringify(accounts.map(a => a.id)),
-            round: 1,
-            letterType: 'initial',
-            status: 'generated',
-          });
+          const selectedIds = new Set(input.accountIds && input.accountIds.length > 0 ? input.accountIds : accounts.map(a => a.id));
+          const accountMap = new Map(accounts.map(a => [a.id, a]));
 
-          letters.push({
-            id: letterId,
-            bureau,
-          });
+          const targets = isRound3 ? await getRound3Targets(userId) : await getRound2Targets(userId);
+          const fillTemplate = isRound3 ? fillRound3Template : fillRound2Template;
+          const roundNum = isRound3 ? 3 : 2;
+
+          let targetsToUse = targets.filter(t => selectedIds.has(t.accountId) && input.bureaus.includes(t.bureau as 'transunion' | 'equifax' | 'experian'));
+          if (targetsToUse.length === 0 && selectedIds.size > 0) {
+            targetsToUse = targets.filter(t => input.bureaus.includes(t.bureau as 'transunion' | 'equifax' | 'experian')).slice(0, 5);
+          }
+
+          for (const target of targetsToUse) {
+            const acc = accountMap.get(target.accountId);
+            if (!acc) continue;
+            const bureau = (acc.bureau || 'transunion').toLowerCase();
+            const letterContent = fillTemplate(target.letterTemplate, {
+              fullName,
+              currentAddress: input.currentAddress,
+              date: today,
+              accountName: String(acc.accountName || 'Unknown'),
+              accountNumber: String(acc.accountNumber || 'N/A'),
+              accountType: String(acc.accountType || 'Unknown'),
+              balance: String(acc.balance ?? '0'),
+              status: String(acc.status || 'Unknown'),
+              dateOpened: acc.dateOpened ? String(acc.dateOpened) : 'Not reported',
+              lastActivity: acc.lastActivity ? String(acc.lastActivity) : 'Unknown',
+              bureau,
+            });
+            const processedLetter = postProcessLetter(letterContent, [acc], bureau, userData, disputeRoundLabel);
+            const letterType = target.letterTemplate.startsWith('3B') ? 'cfpb' : 'escalation';
+            const letter = await db.createDisputeLetter({
+              userId,
+              bureau: bureau as 'transunion' | 'equifax' | 'experian' | 'furnisher',
+              letterContent: processedLetter,
+              accountsDisputed: JSON.stringify([acc.id]),
+              round: roundNum,
+              letterType,
+              status: 'generated',
+            });
+            letters.push({ id: letter.id, bureau });
+          }
         }
 
         return {
@@ -2114,6 +2180,60 @@ ${profile?.dateOfBirth && profile?.ssnLast4 ? '✅ All required information is c
           hasAllRequiredInfo: !!(profile?.dateOfBirth && profile?.ssnLast4),
         };
       }),
+
+    /**
+     * Get Round 1 accounts that need results recorded (disputed in R1, no outcome yet).
+     */
+    getRound1AccountsForResults: protectedProcedure
+      .query(async ({ ctx }) => {
+        const userId = ctx.user.id;
+        const letters = await db.getDisputeLettersByUserId(userId);
+        const round1Letters = letters.filter(l => l.round === 1);
+        if (round1Letters.length === 0) return [];
+        const { safeJsonParse } = await import('./utils/json');
+        const accountIds = new Set<number>();
+        for (const l of round1Letters) {
+          const ids = safeJsonParse(l.accountsDisputed, []) as number[];
+          if (Array.isArray(ids)) ids.forEach(id => accountIds.add(id));
+        }
+        const outcomes = await db.getUserDisputeOutcomes(userId);
+        const accountsWithOutcome = new Set(outcomes.filter(o => o.accountId).map(o => o.accountId!));
+        const needResults = [...accountIds].filter(id => !accountsWithOutcome.has(id));
+        const accounts = await db.getNegativeAccountsByUserId(userId);
+        const accountMap = new Map(accounts.map(a => [a.id, a]));
+        return needResults.map(id => {
+          const a = accountMap.get(id);
+          if (!a) return null;
+          return { id: a.id, accountName: a.accountName, bureau: a.bureau };
+        }).filter(Boolean);
+      }),
+
+    /**
+     * Save Round 1 results (deleted/verified/no_response per account).
+     * Used to drive Round 2/3 escalation targets.
+     */
+    saveRound1Results: protectedProcedure
+      .input(z.object({
+        results: z.array(z.object({
+          accountId: z.number(),
+          result: z.enum(['deleted', 'verified', 'no_response']),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+        const { updateAfterRound1Results } = await import('./disputeStrategy');
+        await updateAfterRound1Results(userId, input.results);
+        return { success: true, count: input.results.length };
+      }),
+
+    /**
+     * Clear ALL dispute data for the current user (letters, outcomes, negative accounts, reports).
+     * Start fresh from round one.
+     */
+    clearUserDisputeData: protectedProcedure.mutation(async ({ ctx }) => {
+      const counts = await db.clearUserDisputeData(ctx.user.id);
+      return { success: true, deleted: counts };
+    }),
 
     /**
      * Generate Round 2 escalation letter with Method of Verification (MOV) request

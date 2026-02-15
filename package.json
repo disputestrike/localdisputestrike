@@ -17,6 +17,9 @@
     "db:sync": "tsx scripts/sync-schema.ts",
     "db:setup": "pnpm db:repair && pnpm db:migrate && pnpm db:sync && pnpm db:seed",
     "db:repair-profiles": "cross-env DOTENV_CONFIG_PATH=.ENV tsx scripts/repair-user-profiles-columns.ts",
+    "db:clear-old-ai-recommendations": "cross-env DOTENV_CONFIG_PATH=.ENV tsx scripts/clearOldAiRecommendations.ts",
+    "db:reset-all": "cross-env DOTENV_CONFIG_PATH=.ENV tsx scripts/clearOldAiRecommendations.ts reset",
+    "db:create-admin": "cross-env DOTENV_CONFIG_PATH=.ENV tsx scripts/createAdmin.ts",
     "test:local": "node scripts/test-local.mjs"
   },
   "dependencies": {

@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { eq, and, desc, inArray } from 'drizzle-orm';
 import { createTrialCheckout, createSubscriptionCheckout } from './subscriptionService';
 import { getRoundStatus, startRound, markRoundMailed, unlockRoundEarly, completeRound } from './roundLockingService';
-import { selectItemsForRound, saveRecommendations, getRecommendations } from './aiSelectionService';
+import { getRecommendedAccountIdsForRound1 } from './disputeStrategy';
 import { SUBSCRIPTION_TIERS, TRIAL_CONFIG, getTrialEndDate } from './productsV2';
 import { sendCertifiedLetter, BUREAU_ADDRESSES } from './lobService';
 import { createPaymentIntent } from './stripeService';
@@ -169,8 +169,7 @@ router.get("/letters/preview", async (req, res) => {
   if (!userId) return res.status(401).json({ error: "Unauthorized" });
 
   const user = await db.query.users.findFirst({ where: eq(db.schema.users.id, userId) });
-  const recommendations = await getRecommendations(db, userId);
-  const accountIds = recommendations.filter(r => r.isRecommended).map(r => r.accountId);
+  const accountIds = await getRecommendedAccountIdsForRound1(userId);
   
   const accounts = accountIds.length > 0 ? await db.query.negativeAccounts.findMany({
     where: inArray(db.schema.negativeAccounts.id, accountIds),

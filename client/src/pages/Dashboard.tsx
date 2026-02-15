@@ -128,8 +128,18 @@ export default function Dashboard() {
   const avgScore = Object.values(scores).filter(s => s !== null).reduce((a, b) => a! + b!, 0) / 
                    (Object.values(scores).filter(s => s !== null).length || 1);
   
-  const potentialDelta = 85;
-  const targetScore = avgScore > 0 ? Math.min(850, Math.round(avgScore + potentialDelta)) : 750;
+  // From AI analysis of report (dashboardStats); fallback when backend returns 0
+  const violationsCount = stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0;
+  let potentialDelta = stats?.potentialIncreaseAfterRound1 ?? 0;
+  if (potentialDelta <= 0 && violationsCount > 0) {
+    potentialDelta = Math.min(150, Math.min(5, violationsCount) * 25);
+  }
+  let targetScore = stats?.aiTargetScoreAfterRound1 ?? 0;
+  if (targetScore <= 0 && avgScore > 0) {
+    targetScore = Math.min(850, Math.round(avgScore + (potentialDelta || 85)));
+  } else if (targetScore <= 0 && potentialDelta > 0) {
+    targetScore = Math.min(850, 650 + potentialDelta);
+  }
 
   // Auto-show onboarding modal after user sees their reports for a few seconds (once per session)
   // MUST be before early returns - hooks must run unconditionally
@@ -412,14 +422,14 @@ export default function Dashboard() {
                   <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-lg border border-blue-100 flex-1">
                     <TrendingUp className="w-5 h-5 text-blue-600 shrink-0" />
                     <div>
-                      <p className="text-xs font-medium text-blue-600 text-center">Potential Increse After Round One</p>
-                      <p className="text-xl font-bold text-gray-900 text-center">+{potentialDelta} Points</p>
+                      <p className="text-xs font-medium text-blue-600 text-center">Potential Increase After Round One</p>
+                      <p className="text-xl font-bold text-gray-900 text-center">{potentialDelta > 0 ? `+${potentialDelta} Points` : "—"}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-lg border border-orange-100 flex-1 justify-end">
                     <div style={{     alignItems: "center", display: "flex", flexDirection: "column", width: "100%" }} className="text-right">
                       <p className="text-xs font-medium text-orange-600">AI Target Score After Round One</p>
-                      <p className="text-xl font-bold text-gray-900">{targetScore}</p>
+                      <p className="text-xl font-bold text-gray-900">{targetScore > 0 ? targetScore : "—"}</p>
                     </div>
                     <Target className="w-5 h-5 text-orange-600 shrink-0" />
                   </div>
@@ -438,7 +448,7 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  We've identified <span className="font-semibold text-orange-600">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1.
+                  We've identified <span className="font-semibold text-orange-600">{stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1.
                 </p>
                 <Button 
                   className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold"
@@ -531,7 +541,7 @@ export default function Dashboard() {
                   </div>
                   <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Negative Items</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats?.totalNegativeAccounts || 0}</p>
+                <p className="text-3xl font-bold text-gray-900 tracking-tight">{stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0}</p>
                 <p className="text-xs text-gray-500 mt-1">Found in AI analysis</p>
               </CardContent>
             </Card>

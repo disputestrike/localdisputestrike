@@ -529,6 +529,52 @@ export default function AdminPanel() {
     }
   };
 
+  const [clearingOldData, setClearingOldData] = useState(false);
+  const [resettingAll, setResettingAll] = useState(false);
+  const handleClearOldAiRecommendations = async () => {
+    if (!confirm("Clear legacy ai_recommendations data?")) return;
+    setClearingOldData(true);
+    try {
+      const response = await fetch("/api/trpc/admin.clearOldAiRecommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
+      const data = await response.json();
+      const result = data?.result?.data?.json ?? data;
+      const deleted = result?.deleted ?? 0;
+      toast.success(`Cleared ${deleted} old AI recommendation rows`);
+    } catch (error) {
+      toast.error("Failed to clear old data");
+    } finally {
+      setClearingOldData(false);
+    }
+  };
+
+  const handleResetAllDisputeData = async () => {
+    if (!confirm("RESET ALL DATA? This will delete ALL letters, accounts, credit reports, and dispute data for EVERY user. Start completely fresh. Cannot be undone.")) return;
+    setResettingAll(true);
+    try {
+      const response = await fetch("/api/trpc/admin.resetAllDisputeData", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({}),
+      });
+      const data = await response.json();
+      const result = data?.result?.data?.json ?? data;
+      const counts = result?.counts ?? {};
+      const total = Object.values(counts).reduce((a: number, b: number) => a + b, 0);
+      toast.success(`Reset complete. Deleted ${total} total rows.`);
+      loadUsers();
+    } catch (error) {
+      toast.error("Failed to reset data");
+    } finally {
+      setResettingAll(false);
+    }
+  };
+
   // Calculate analytics
   const totalRevenue = stats?.totalRevenue || payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   const revenueThisMonth = stats?.revenueThisMonth || payments
@@ -758,6 +804,14 @@ export default function AdminPanel() {
                 <Button onClick={handleExportPayments} variant="outline">
                   <Download className="h-4 w-4 mr-2" />
                   Export Payments
+                </Button>
+                <Button onClick={handleClearOldAiRecommendations} variant="outline" disabled={clearingOldData}>
+                  {clearingOldData ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                  Clear Old AI Data
+                </Button>
+                <Button onClick={handleResetAllDisputeData} variant="destructive" disabled={resettingAll}>
+                  {resettingAll ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Trash2 className="h-4 w-4 mr-2" />}
+                  Reset All Data (Letters, Accounts, Reports)
                 </Button>
               </CardContent>
             </Card>

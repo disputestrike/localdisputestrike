@@ -50,8 +50,18 @@ export default function DashboardHome() {
   const avgScore = Object.values(scores).filter(s => s !== null).reduce((a, b) => a! + b!, 0) / 
                    Object.values(scores).filter(s => s !== null).length || 0;
   
-  const potentialDelta = 85; // AI analysis–based; max total 850
-  const targetScore = avgScore > 0 ? Math.min(850, Math.round(avgScore + potentialDelta)) : 750;
+  // From AI analysis of report (dashboardStats); fallback when backend returns 0
+  const violationsCount = stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0;
+  let potentialDelta = stats?.potentialIncreaseAfterRound1 ?? 0;
+  if (potentialDelta <= 0 && violationsCount > 0) {
+    potentialDelta = Math.min(150, Math.min(5, violationsCount) * 25);
+  }
+  let targetScore = stats?.aiTargetScoreAfterRound1 ?? 0;
+  if (targetScore <= 0 && avgScore > 0) {
+    targetScore = Math.min(850, Math.round(avgScore + (potentialDelta || 85)));
+  } else if (targetScore <= 0 && potentialDelta > 0) {
+    targetScore = Math.min(850, 650 + potentialDelta);
+  }
 
   const handleCompleteIdentity = async (data: any) => {
     // Save identity data and proceed to letter generation
@@ -109,12 +119,12 @@ export default function DashboardHome() {
               </div>
               <div className="mt-6 pt-4 border-t-2 border-gray-200 flex items-center justify-between">
                 <div className="p-3 bg-primary/10 rounded-lg border-2 border-border">
-                  <p className="text-xs font-bold text-primary uppercase">Potential Delta</p>
-                  <p className="text-2xl font-black text-primary">+{potentialDelta} Points</p>
+                  <p className="text-xs font-bold text-primary uppercase">Potential Increase After Round One</p>
+                  <p className="text-2xl font-black text-primary">{potentialDelta > 0 ? `+${potentialDelta} Points` : "—"}</p>
                 </div>
                 <div className="p-3 bg-accent/10 rounded-lg border-2 border-border text-right">
-                  <p className="text-xs font-bold text-accent uppercase">AI Target Score</p>
-                  <p className="text-2xl font-black text-accent">{targetScore}</p>
+                  <p className="text-xs font-bold text-accent uppercase">AI Target Score After Round One</p>
+                  <p className="text-2xl font-black text-accent">{targetScore > 0 ? targetScore : "—"}</p>
                 </div>
               </div>
             </CardContent>
@@ -130,7 +140,7 @@ export default function DashboardHome() {
                 <h3 className="text-sm font-black uppercase tracking-widest">AI Strategist</h3>
               </div>
               <p className="text-sm leading-relaxed text-white/95">
-                "We've identified <span className="font-black text-accent">{stats?.totalNegativeAccounts || 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
+                "We've identified <span className="font-black text-accent">{stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0} violations</span> across your reports. By targeting the high-severity collections first, we can maximize your score delta in Round 1."
               </p>
               <div className="mt-6">
                 <Button 
@@ -169,8 +179,8 @@ export default function DashboardHome() {
         {/* 4 METRIC BOXES (Blueprint §2.3) - COLOR CODED WITH STRONG BORDERS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label: 'Total Violations', value: stats?.totalNegativeAccounts || 0, icon: AlertTriangle, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-300' },
-            { label: 'Estimated Deletions', value: Math.round((stats?.totalNegativeAccounts || 0) * 0.8), icon: TrendingUp, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-300' },
+            { label: 'Total Violations', value: stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0, icon: AlertTriangle, color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-300' },
+            { label: 'Estimated Deletions', value: Math.round(((stats?.totalViolationsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0)) * 0.8), icon: TrendingUp, color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-300' },
             { label: 'Letters Sent', value: stats?.totalLetters || 0, icon: Send, color: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-300' },
             { label: 'Items Deleted', value: stats?.deletedAccounts || 0, icon: CheckCircle2, color: 'text-green-700', bg: 'bg-green-50', border: 'border-green-300' },
           ].map((m) => (

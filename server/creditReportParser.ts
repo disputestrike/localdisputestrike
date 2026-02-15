@@ -24,6 +24,8 @@ export interface ParsedAccount {
   rawData: string;
   negativeReason?: string; // WHY this account is negative
   paymentHistory?: string; // Payment history pattern
+  highBalance?: number; // High balance ever reported (for math error detection)
+  chargeOffDate?: string; // Charge-off date MM/DD/YYYY
 }
 
 export interface PersonalInfo {
@@ -208,6 +210,9 @@ FOR EACH NEGATIVE ACCOUNT, EXTRACT:
                     accountType: { type: 'string', description: 'Collection, Credit Card, Auto Loan, etc.' },
                     originalCreditor: { type: 'string', description: 'Original creditor if collection' },
                     negativeReason: { type: 'string', description: 'Why this account is negative' },
+                    paymentHistory: { type: 'string', description: 'Payment history pattern e.g. 30-60-90' },
+                    highBalance: { type: 'number', description: 'High balance ever reported' },
+                    chargeOffDate: { type: 'string', description: 'Charge-off date if applicable MM/DD/YYYY' },
                   },
                   required: ['accountName', 'accountNumber', 'balance', 'status', 'dateOpened', 'lastActivity', 'accountType', 'originalCreditor', 'negativeReason'],
                   additionalProperties: false,
@@ -373,6 +378,9 @@ FOR EACH NEGATIVE ON EACH BUREAU:
                     accountType: { type: 'string', description: 'Account type' },
                     originalCreditor: { type: 'string', description: 'Original creditor if collection' },
                     negativeReason: { type: 'string', description: 'Why this account is negative' },
+                    paymentHistory: { type: 'string', description: 'Payment history pattern e.g. 30-60-90 or OK-OK-OK' },
+                    highBalance: { type: 'number', description: 'High balance ever reported' },
+                    chargeOffDate: { type: 'string', description: 'Charge-off date if applicable MM/DD/YYYY' },
                   },
                   required: ['bureau', 'accountName', 'accountNumber', 'balance', 'status', 'dateOpened', 'lastActivity', 'accountType', 'originalCreditor', 'negativeReason'],
                   additionalProperties: false,
@@ -399,6 +407,7 @@ FOR EACH NEGATIVE ON EACH BUREAU:
       const bureau = acc.bureau as 'TransUnion' | 'Equifax' | 'Experian';
       if (bureauCounts[bureau] !== undefined) bureauCounts[bureau]++;
       
+      const raw = { ...acc, paymentHistory: acc.paymentHistory ?? null, highBalance: acc.highBalance ?? null, chargeOffDate: acc.chargeOffDate ?? null };
       return {
         accountName: acc.accountName || 'Unknown Account',
         accountNumber: acc.accountNumber || 'Not Reported',
@@ -410,7 +419,10 @@ FOR EACH NEGATIVE ON EACH BUREAU:
         originalCreditor: acc.originalCreditor || '',
         negativeReason: acc.negativeReason || 'Negative account',
         bureau: bureau || 'TransUnion',
-        rawData: JSON.stringify(acc),
+        rawData: JSON.stringify(raw),
+        paymentHistory: acc.paymentHistory ?? undefined,
+        highBalance: typeof acc.highBalance === 'number' ? acc.highBalance : undefined,
+        chargeOffDate: acc.chargeOffDate ?? undefined,
       };
     });
     
@@ -532,10 +544,22 @@ export async function performLightAnalysis(fileUrl: string): Promise<LightAnalys
   console.log(`[Light Analysis] Category breakdown:`, categoryBreakdown);
   console.log(`[Light Analysis] Severity breakdown:`, severityBreakdown);
 
+  // Include accountPreviews with bureau so savePreviewAnalysis creates 1 row per item (no over-deduping)
+  const bureauToCode = (b: string) => (b || '').toLowerCase().replace(/\s+/g, '').replace('transunion', 'transunion').replace('equifax', 'equifax').replace('experian', 'experian') || 'transunion';
+  const accountPreviews = allAccounts.slice(0, 100).map((a) => ({
+    name: a.accountName || 'Unknown',
+    last4: (a.accountNumber || '').replace(/\D/g, '').slice(-4) || '0000',
+    balance: String(a.balance ?? 0),
+    status: a.status || 'Unknown',
+    amountType: a.negativeReason || a.accountType || 'Negative item',
+    bureau: toBureau(a.bureau),
+  }));
+
   return {
     totalViolations: allAccounts.length,
     severityBreakdown,
     categoryBreakdown,
+    accountPreviews,
   };
 }
 

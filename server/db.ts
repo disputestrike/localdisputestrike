@@ -86,7 +86,8 @@ import {
   DisputeRound,
   trialConversions,
   InsertTrialConversion,
-  TrialConversion
+  TrialConversion,
+  aiRecommendations,
 } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
@@ -116,6 +117,94 @@ export async function getDb() {
     console.warn("[Database] DATABASE_URL environment variable is not set");
   }
   return _db;
+}
+
+/** Clear legacy ai_recommendations data (from old aiSelectionService) */
+export async function clearOldAiRecommendations(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  try {
+    const result = await db.delete(aiRecommendations) as unknown as [{ affectedRows?: number }];
+    return result?.[0]?.affectedRows ?? 0;
+  } catch (e: any) {
+    if (e?.code === 'ER_NO_SUCH_TABLE') return 0;
+    if (e?.code === 'ETIMEDOUT' || e?.cause?.code === 'ETIMEDOUT') {
+      console.warn('[clearOldAiRecommendations] DB connection timed out - run from app (Admin → Clear Old Data) when DB is reachable');
+      return 0;
+    }
+    throw e;
+  }
+}
+
+/** Clear ALL dispute data for a specific user - letters, outcomes, accounts, reports. Start fresh. */
+export async function clearUserDisputeData(userId: number): Promise<{ [key: string]: number }> {
+  const db = await getDb();
+  if (!db) return {};
+  const counts: { [key: string]: number } = {};
+  try {
+    const run = async (name: string, fn: () => Promise<unknown>) => {
+      try {
+        const r = await fn() as [{ affectedRows?: number }];
+        counts[name] = r?.[0]?.affectedRows ?? 0;
+      } catch (e: any) {
+        if (e?.code !== 'ER_NO_SUCH_TABLE') throw e;
+        counts[name] = 0;
+      }
+    };
+    await run('dispute_outcomes', () => db.delete(disputeOutcomes).where(eq(disputeOutcomes.userId, userId)));
+    await run('mailing_checklists', () => db.delete(mailingChecklists).where(eq(mailingChecklists.userId, userId)));
+    await run('dispute_letters', () => db.delete(disputeLetters).where(eq(disputeLetters.userId, userId)));
+    await run('negative_accounts', () => db.delete(negativeAccounts).where(eq(negativeAccounts.userId, userId)));
+    await run('credit_reports', () => db.delete(creditReports).where(eq(creditReports.userId, userId)));
+    await run('ai_recommendations', () => db.delete(aiRecommendations).where(eq(aiRecommendations.userId, userId)));
+    const { disputeRounds } = await import("../drizzle/schema");
+    await run('dispute_rounds', () => db.delete(disputeRounds).where(eq(disputeRounds.userId, userId)));
+    return counts;
+  } catch (e: any) {
+    if (e?.code === 'ETIMEDOUT' || e?.cause?.code === 'ETIMEDOUT') {
+      console.warn('[clearUserDisputeData] DB timed out');
+      return counts;
+    }
+    throw e;
+  }
+}
+
+/** Reset ALL dispute data - letters, accounts, reports, etc. Start fresh like first time. */
+export async function resetAllDisputeData(): Promise<{ [key: string]: number }> {
+  const db = await getDb();
+  if (!db) return {};
+  const counts: { [key: string]: number } = {};
+  try {
+    const run = async (name: string, fn: () => Promise<unknown>) => {
+      try {
+        const r = await fn() as [{ affectedRows?: number }];
+        counts[name] = r?.[0]?.affectedRows ?? 0;
+      } catch (e: any) {
+        if (e?.code !== 'ER_NO_SUCH_TABLE') throw e;
+        counts[name] = 0;
+      }
+    };
+    await run('mailing_checklists', () => db.delete(mailingChecklists));
+    await run('dispute_letters', () => db.delete(disputeLetters));
+    await run('negative_accounts', () => db.delete(negativeAccounts));
+    await run('credit_reports', () => db.delete(creditReports));
+    await run('ai_recommendations', () => db.delete(aiRecommendations));
+    await run('dispute_outcomes', () => db.delete(disputeOutcomes));
+    await run('dispute_rounds', () => db.delete(disputeRounds));
+    await run('credit_score_history', () => db.delete(creditScoreHistory));
+    await run('user_notifications', () => db.delete(userNotifications));
+    const { bureauResponses } = await import("../drizzle/schema");
+    await run('bureau_responses', () => db.delete(bureauResponses));
+    const { parserComparisons } = await import("../drizzle/schema");
+    await run('parser_comparisons', () => db.delete(parserComparisons));
+    return counts;
+  } catch (e: any) {
+    if (e?.code === 'ETIMEDOUT' || e?.cause?.code === 'ETIMEDOUT') {
+      console.warn('[resetAllDisputeData] DB timed out');
+      return counts;
+    }
+    throw e;
+  }
 }
 
 // ============================================================================
@@ -316,20 +405,40 @@ export async function getCreditReportsByUserId(userId: number): Promise<CreditRe
     .orderBy(desc(creditReports.uploadedAt));
 }
 
-/** Get latest credit score per bureau from reports (each bureau can have a different number). */
+/** Get latest credit score per bureau from reports, falling back to credit_score_history. */
 export async function getLatestScoresByBureau(userId: number): Promise<{
   transunion: number | null;
   equifax: number | null;
   experian: number | null;
 }> {
-  const reports = await getCreditReportsByUserId(userId);
   const result = { transunion: null as number | null, equifax: null as number | null, experian: null as number | null };
+  const valid = (n: unknown) => typeof n === 'number' && n >= 300 && n <= 850 ? n : null;
+
+  const reports = await getCreditReportsByUserId(userId);
   for (const r of reports) {
-    const score = r.creditScore != null && r.creditScore >= 300 && r.creditScore <= 850 ? r.creditScore : null;
+    const score = valid(r.creditScore);
     if (score == null) continue;
     if (r.bureau === 'transunion' && result.transunion == null) result.transunion = score;
     else if (r.bureau === 'equifax' && result.equifax == null) result.equifax = score;
     else if (r.bureau === 'experian' && result.experian == null) result.experian = score;
+  }
+
+  // Fallback to credit_score_history when reports lack scores
+  if (!result.transunion && !result.equifax && !result.experian) {
+    const db = await getDb();
+    if (db) {
+      for (const bureau of ['transunion', 'equifax', 'experian'] as const) {
+        const [row] = await db.select()
+          .from(creditScoreHistory)
+          .where(and(eq(creditScoreHistory.userId, userId), eq(creditScoreHistory.bureau, bureau)))
+          .orderBy(desc(creditScoreHistory.recordedAt))
+          .limit(1);
+        if (row?.score != null) {
+          const s = valid(row.score);
+          if (s != null) result[bureau] = s;
+        }
+      }
+    }
   }
   return result;
 }
@@ -488,6 +597,65 @@ export async function getNegativeAccountsByUserId(userId: number): Promise<Negat
   return db.select().from(negativeAccounts)
     .where(eq(negativeAccounts.userId, userId))
     .orderBy(desc(negativeAccounts.createdAt));
+}
+
+/**
+ * Sync negative accounts from saved parsedData when totalViolations exceeds current count.
+ * Creates missing rows from accountPreviews stored in credit report parsedData.
+ */
+export async function syncNegativeAccountsFromParsedData(userId: number): Promise<{ created: number }> {
+  const db = await getDb();
+  if (!db) return { created: 0 };
+  const reports = await getCreditReportsByUserId(userId);
+  const existing = await getNegativeAccountsByUserId(userId);
+  let totalViolations = 0;
+  const allPreviews: Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: string }> = [];
+  for (const r of reports) {
+    if (!r.parsedData) continue;
+    const parsed = typeof r.parsedData === 'string' ? JSON.parse(r.parsedData) : r.parsedData;
+    const tv = parsed?.totalViolations;
+    if (typeof tv === 'number' && tv > totalViolations) totalViolations = tv;
+    const previews = parsed?.accountPreviews;
+    if (Array.isArray(previews) && previews.length > 0) {
+      for (const p of previews) {
+        if (p && (p.name || p.accountName)) allPreviews.push(p);
+      }
+    }
+  }
+  if (totalViolations <= existing.length || allPreviews.length === 0) return { created: 0 };
+  const bureaus: Array<'transunion' | 'equifax' | 'experian'> = ['transunion', 'equifax', 'experian'];
+  const reportIds = bureaus.map(b => reports.find(r => r.bureau === b)?.id ?? reports[0]?.id).filter(Boolean) as number[];
+  let created = 0;
+  for (const preview of allPreviews) {
+    const name = preview.name || (preview as { accountName?: string }).accountName || 'Unknown';
+    const last4 = preview.last4 || '0000';
+    const status = preview.status || 'Unknown';
+    const balanceMatch = (preview.balance || '0').replace(/[^0-9.]/g, '');
+    const balance = balanceMatch ? parseFloat(balanceMatch) : 0;
+    let accountType = 'Collection';
+    if (String(status).toLowerCase().includes('charge')) accountType = 'Charge-off';
+    if (String(status).toLowerCase().includes('late')) accountType = 'Late Payment';
+    if (String(status).toLowerCase().includes('judgment')) accountType = 'Judgment';
+    const bureauList = preview.bureau ? [preview.bureau.toLowerCase().replace(/\s/g, '') as 'transunion' | 'equifax' | 'experian'] : bureaus;
+    for (const bureau of bureauList) {
+      if (bureau !== 'transunion' && bureau !== 'equifax' && bureau !== 'experian') continue;
+      const reportId = reportIds[bureaus.indexOf(bureau)] ?? defaultReportId;
+      const result = await createNegativeAccountIfNotExists({
+        userId,
+        creditReportId: reportId,
+        accountName: name,
+        accountNumber: last4 ? `****${last4}` : null,
+        balance: String(balance),
+        status,
+        accountType,
+        bureau,
+        rawData: JSON.stringify(preview),
+        negativeReason: preview.amountType || 'Negative item',
+      });
+      if (result.isNew) created++;
+    }
+  }
+  return { created };
 }
 
 export async function getNegativeAccountById(accountId: number): Promise<NegativeAccount | undefined> {
@@ -1734,21 +1902,29 @@ export async function getUserRecentActivity(userId: number, limit: number = 10):
  */
 export async function getUserDashboardStats(userId: number): Promise<{
   totalNegativeAccounts: number;
+  /** Violation count from saved analysis (parsedData.totalViolations) - aligns with lightAnalysis. */
+  totalViolationsFromAnalysis: number;
   pendingDisputes: number;
   deletedAccounts: number;
   successRate: number;
   totalLetters: number;
+  /** AI-derived potential score increase after Round 1 (from report analysis). */
+  potentialIncreaseAfterRound1: number;
+  /** AI target score after Round 1 (current avg + potential, capped 850). */
+  aiTargetScoreAfterRound1: number;
 }> {
   const dbInstance = await getDb();
-  if (!dbInstance) {
-    return {
-      totalNegativeAccounts: 0,
-      pendingDisputes: 0,
-      deletedAccounts: 0,
-      successRate: 0,
-      totalLetters: 0,
-    };
-  }
+  const emptyStats = {
+    totalNegativeAccounts: 0,
+    totalViolationsFromAnalysis: 0,
+    pendingDisputes: 0,
+    deletedAccounts: 0,
+    successRate: 0,
+    totalLetters: 0,
+    potentialIncreaseAfterRound1: 0,
+    aiTargetScoreAfterRound1: 0,
+  };
+  if (!dbInstance) return emptyStats;
 
   // Get negative accounts count
   const accounts = await dbInstance
@@ -1769,18 +1945,65 @@ export async function getUserDashboardStats(userId: number): Promise<{
     .where(eq(disputeOutcomes.userId, userId));
 
   const totalNegativeAccounts = accounts.length;
+  // Align with lightAnalysis: use totalViolations from saved report parsedData when available
+  let totalViolationsFromAnalysis = 0;
+  try {
+    const reports = await getCreditReportsByUserId(userId);
+    for (const r of reports) {
+      if (r.parsedData) {
+        const parsed = typeof r.parsedData === 'string' ? JSON.parse(r.parsedData) : r.parsedData;
+        const tv = parsed?.totalViolations;
+        if (typeof tv === 'number' && tv > totalViolationsFromAnalysis) totalViolationsFromAnalysis = tv;
+      }
+    }
+  } catch (_) {}
+  const displayViolations = totalViolationsFromAnalysis > 0 ? totalViolationsFromAnalysis : totalNegativeAccounts;
+
   const totalLetters = letters.length;
   const pendingDisputes = letters.filter(l => l.status === "generated" || l.status === "mailed").length;
   const deletedAccounts = outcomes.filter(o => o.outcome === "deleted").length;
   const resolvedDisputes = outcomes.filter(o => o.outcome !== "pending").length;
   const successRate = resolvedDisputes > 0 ? Math.round((deletedAccounts / resolvedDisputes) * 100) : 0;
 
+  // Compute potential increase & target score from AI analysis (round allocation + severity)
+  let potentialIncreaseAfterRound1 = 0;
+  let aiTargetScoreAfterRound1 = 0;
+
+  try {
+    const { allocateAllRounds } = await import('./disputeStrategy');
+    const { round1, round2, round3 } = await allocateAllRounds(userId);
+    // Severity 3-10: higher severity = higher impact if deleted. Industry: collections ~30-100 pts each.
+    const ptsPerSeverity = (s: number) => s >= 9 ? 35 : s >= 7 ? 28 : s >= 5 ? 20 : 12;
+    potentialIncreaseAfterRound1 = Math.min(150, round1.reduce((sum, s) => sum + ptsPerSeverity(s.severity), 0));
+    // Fallback: when round1 is empty but we have items, estimate from all rounds
+    if (potentialIncreaseAfterRound1 === 0 && (round1.length + round2.length + round3.length) > 0) {
+      const allScored = [...round1, ...round2, ...round3];
+      potentialIncreaseAfterRound1 = Math.min(150, allScored.slice(0, 5).reduce((sum, s) => sum + ptsPerSeverity(s.severity), 0));
+    }
+    // Last resort: estimate from total negative accounts
+    if (potentialIncreaseAfterRound1 === 0 && totalNegativeAccounts > 0) {
+      potentialIncreaseAfterRound1 = Math.min(150, Math.min(5, totalNegativeAccounts) * 25);
+    }
+
+    const scores = await getLatestScoresByBureau(userId);
+    const scoreVals = [scores.transunion, scores.equifax, scores.experian].filter((s): s is number => s != null && s >= 300 && s <= 850);
+    const avgScore = scoreVals.length > 0 ? scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length : 0;
+    aiTargetScoreAfterRound1 = avgScore > 0
+      ? Math.min(850, Math.round(avgScore + potentialIncreaseAfterRound1))
+      : potentialIncreaseAfterRound1 > 0 ? Math.min(850, 650 + potentialIncreaseAfterRound1) : 0;
+  } catch (e) {
+    console.warn('[getUserDashboardStats] Could not compute AI metrics:', e);
+  }
+
   return {
     totalNegativeAccounts,
+    totalViolationsFromAnalysis,
     pendingDisputes,
     deletedAccounts,
     successRate,
     totalLetters,
+    potentialIncreaseAfterRound1,
+    aiTargetScoreAfterRound1,
   };
 }
 
