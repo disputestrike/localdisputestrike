@@ -91,11 +91,15 @@ export default function DisputeManager() {
   });
   const clearUserData = trpc.disputeLetters.clearUserDisputeData.useMutation({
     onSuccess: () => {
+      sessionStorage.removeItem('previewAnalysis');
+      localStorage.removeItem('previewAnalysis');
       utils.disputeLetters.list.invalidate();
       utils.disputeOutcomes.list.invalidate();
       utils.negativeAccounts.list.invalidate();
       utils.negativeAccounts.getRoundRecommendations.invalidate();
       utils.creditReports.list.invalidate();
+      utils.creditReports.scoresByBureau.invalidate();
+      utils.dashboardStats.get.invalidate();
       setSelectedItems([]);
       setPendingResults({});
     },

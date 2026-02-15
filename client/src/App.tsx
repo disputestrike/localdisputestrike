@@ -162,7 +162,7 @@ function Router() {
       <Route path="/agency/client/:clientId" component={AgencyClientDetail} />
       <Route path="/agency-pricing" component={AgencyPricing} />
       <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+      <Route path="/register">{() => (window.location.href = "/start", null)}</Route>
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset-password" component={ResetPassword} />
       <Route path="/verify-email" component={VerifyEmail} />

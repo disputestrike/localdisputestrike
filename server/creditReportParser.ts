@@ -16,6 +16,7 @@ export interface ParsedAccount {
   accountNumber: string;
   balance: number;
   status: string;
+  paymentStatus?: string; // Current Payment Status (As Agreed, Past Due, etc.)
   dateOpened: Date | null;
   lastActivity: Date | null;
   accountType: string;
@@ -23,7 +24,8 @@ export interface ParsedAccount {
   bureau: 'TransUnion' | 'Equifax' | 'Experian';
   rawData: string;
   negativeReason?: string; // WHY this account is negative
-  paymentHistory?: string; // Payment history pattern
+  paymentHistory?: string; // Times 30/60/90 late as "4/1/1"
+  remarks?: string; // Repossession, Consumer Disputes, etc.
   highBalance?: number; // High balance ever reported (for math error detection)
   chargeOffDate?: string; // Charge-off date MM/DD/YYYY
 }
@@ -323,12 +325,15 @@ FOR EACH NEGATIVE ON EACH BUREAU:
 - accountName: Exact creditor/agency name
 - accountNumber: Account number (partial OK)
 - balance: Current balance as NUMBER
-- status: Exact status from that bureau's column
+- status: Account status (Open, Closed, Charge Off, etc.)
+- paymentStatus: Current Payment Status (As Agreed, Past Due, Late Over 120, Collection, etc.)
 - dateOpened: MM/DD/YYYY
 - lastActivity: MM/DD/YYYY
 - accountType: Collection, Credit Card, Auto Loan, Medical, etc.
 - originalCreditor: Original creditor if collection
 - negativeReason: Specific reason for THIS bureau
+- paymentHistory: "4/1/1" format = Times 30/60/90 days late (e.g. 6/8/28 = 6×30-day, 8×60-day, 28×90-day). Use "0/0/0" if none.
+- remarks: Any remarks (Repossession, Consumer Disputes, etc.)
 
 === CRITICAL RULES ===
 
@@ -378,7 +383,9 @@ FOR EACH NEGATIVE ON EACH BUREAU:
                     accountType: { type: 'string', description: 'Account type' },
                     originalCreditor: { type: 'string', description: 'Original creditor if collection' },
                     negativeReason: { type: 'string', description: 'Why this account is negative' },
-                    paymentHistory: { type: 'string', description: 'Payment history pattern e.g. 30-60-90 or OK-OK-OK' },
+                    paymentHistory: { type: 'string', description: 'Times 30/60/90 days late as "4/1/1" format, or "0/0/0" if none' },
+                    paymentStatus: { type: 'string', description: 'Current Payment Status: As Agreed, Past Due, Late Over 120, etc.' },
+                    remarks: { type: 'string', description: 'Remarks: Repossession, Consumer Disputes, etc.' },
                     highBalance: { type: 'number', description: 'High balance ever reported' },
                     chargeOffDate: { type: 'string', description: 'Charge-off date if applicable MM/DD/YYYY' },
                   },
@@ -407,12 +414,13 @@ FOR EACH NEGATIVE ON EACH BUREAU:
       const bureau = acc.bureau as 'TransUnion' | 'Equifax' | 'Experian';
       if (bureauCounts[bureau] !== undefined) bureauCounts[bureau]++;
       
-      const raw = { ...acc, paymentHistory: acc.paymentHistory ?? null, highBalance: acc.highBalance ?? null, chargeOffDate: acc.chargeOffDate ?? null };
+      const raw = { ...acc, paymentHistory: acc.paymentHistory ?? null, paymentStatus: acc.paymentStatus ?? null, remarks: acc.remarks ?? null, highBalance: acc.highBalance ?? null, chargeOffDate: acc.chargeOffDate ?? null };
       return {
         accountName: acc.accountName || 'Unknown Account',
         accountNumber: acc.accountNumber || 'Not Reported',
         balance: typeof acc.balance === 'number' ? acc.balance : 0,
         status: acc.status || 'Not Reported',
+        paymentStatus: acc.paymentStatus ?? acc.status ?? undefined,
         dateOpened: parseDate(acc.dateOpened),
         lastActivity: parseDate(acc.lastActivity),
         accountType: acc.accountType || 'Not Reported',
@@ -421,6 +429,7 @@ FOR EACH NEGATIVE ON EACH BUREAU:
         bureau: bureau || 'TransUnion',
         rawData: JSON.stringify(raw),
         paymentHistory: acc.paymentHistory ?? undefined,
+        remarks: acc.remarks ?? undefined,
         highBalance: typeof acc.highBalance === 'number' ? acc.highBalance : undefined,
         chargeOffDate: acc.chargeOffDate ?? undefined,
       };
@@ -456,110 +465,34 @@ export async function performLightAnalysis(fileUrl: string): Promise<LightAnalys
     };
   }
 
-  const categoryBreakdown = {
-    latePayments: 0,
-    collections: 0,
-    chargeOffs: 0,
-    judgments: 0,
-    other: 0,
-  };
-
-  const severityBreakdown = {
-    critical: 0,
-    high: 0,
-    medium: 0,
-    low: 0,
-  };
-
-  const classifyCategory = (account: ParsedAccount): keyof typeof categoryBreakdown => {
-    const blob = `${account.status} ${account.accountType} ${account.negativeReason || ''} ${account.accountName}`.toLowerCase();
-    
-    // Collections - check account type and common collection agency names
-    if (blob.includes('collection') || 
-        blob.includes('tsi') || blob.includes('transworld') ||
-        blob.includes('midland') || blob.includes('portfolio') ||
-        blob.includes('cavalry') || blob.includes('lvnv') ||
-        blob.includes('encore') || blob.includes('jefferson') ||
-        blob.includes('convergent') || blob.includes('enhanced') ||
-        blob.includes('afni') || blob.includes('allied') ||
-        blob.includes('ic system') || blob.includes('nca') ||
-        blob.includes('pro collect') || blob.includes('innovative') ||
-        blob.includes('fst financia') || blob.includes('receivables') ||
-        account.accountType?.toLowerCase() === 'collection') {
-      return 'collections';
-    }
-    
-    // Charge-offs
-    if (blob.includes('charge off') || blob.includes('charged off') || 
-        blob.includes('chargeoff') || blob.includes('written off') ||
-        blob.includes('profit') || blob.includes('loss write')) {
-      return 'chargeOffs';
-    }
-    
-    // Late payments
-    if (blob.includes('late') || blob.includes('past due') || 
-        blob.includes('delinquent') || blob.includes('days late') ||
-        blob.includes('30 day') || blob.includes('60 day') ||
-        blob.includes('90 day') || blob.includes('120 day')) {
-      return 'latePayments';
-    }
-    
-    // Judgments, liens, bankruptcies, foreclosures
-    if (blob.includes('judgment') || blob.includes('lien') ||
-        blob.includes('bankrupt') || blob.includes('foreclosure') ||
-        blob.includes('repossession') || blob.includes('repo')) {
-      return 'judgments';
-    }
-    
-    return 'other';
-  };
-
-  const classifySeverity = (category: keyof typeof categoryBreakdown, balance: number): keyof typeof severityBreakdown => {
-    // Critical: Collections, charge-offs, judgments, or high balance
-    if (category === 'collections' || category === 'chargeOffs' || category === 'judgments') {
-      return 'critical';
-    }
-    
-    // High: Late payments or medium balance
-    if (category === 'latePayments' || balance > 1000) {
-      return 'high';
-    }
-    
-    // Medium: Other negatives with some balance
-    if (balance > 0) {
-      return 'medium';
-    }
-    
-    return 'low';
-  };
-
-  for (const account of allAccounts) {
-    const category = classifyCategory(account);
-    categoryBreakdown[category] += 1;
-    
-    const severity = classifySeverity(category, account.balance);
-    severityBreakdown[severity] += 1;
-  }
-
-  console.log(`[Light Analysis] Category breakdown:`, categoryBreakdown);
-  console.log(`[Light Analysis] Severity breakdown:`, severityBreakdown);
-
-  // Include accountPreviews with bureau so savePreviewAnalysis creates 1 row per item (no over-deduping)
-  const bureauToCode = (b: string) => (b || '').toLowerCase().replace(/\s+/g, '').replace('transunion', 'transunion').replace('equifax', 'equifax').replace('experian', 'experian') || 'transunion';
-  const accountPreviews = allAccounts.slice(0, 100).map((a) => ({
-    name: a.accountName || 'Unknown',
-    last4: (a.accountNumber || '').replace(/\D/g, '').slice(-4) || '0000',
-    balance: String(a.balance ?? 0),
-    status: a.status || 'Unknown',
-    amountType: a.negativeReason || a.accountType || 'Negative item',
-    bureau: toBureau(a.bureau),
+  // Core analysis engine: negative detection, cross-bureau matching, conflict detection, prioritization
+  const { runAnalysisPipeline } = await import('./analysisEngine');
+  const inputAccounts = allAccounts.map((a) => ({
+    accountName: a.accountName,
+    accountNumber: a.accountNumber,
+    balance: a.balance,
+    status: a.status,
+    paymentStatus: a.paymentStatus,
+    paymentHistory: a.paymentHistory,
+    remarks: a.remarks,
+    accountType: a.accountType,
+    bureau: a.bureau,
+    dateOpened: a.dateOpened,
+    lastActivity: a.lastActivity,
+    negativeReason: a.negativeReason,
+    originalCreditor: a.originalCreditor,
   }));
+  const analysis = runAnalysisPipeline(inputAccounts);
+
+  console.log(`[Light Analysis] Engine: ${analysis.totalUniqueNegatives} unique negatives, $${analysis.totalDebt.toLocaleString()} total debt`);
+  console.log(`[Light Analysis] Category breakdown:`, analysis.categoryBreakdown);
+  console.log(`[Light Analysis] Severity breakdown:`, analysis.severityBreakdown);
 
   return {
-    totalViolations: allAccounts.length,
-    severityBreakdown,
-    categoryBreakdown,
-    accountPreviews,
+    totalViolations: analysis.totalUniqueNegatives,
+    severityBreakdown: analysis.severityBreakdown,
+    categoryBreakdown: analysis.categoryBreakdown,
+    accountPreviews: analysis.accountPreviews.slice(0, 100),
   };
 }
 

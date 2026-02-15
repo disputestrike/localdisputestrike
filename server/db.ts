@@ -156,6 +156,7 @@ export async function clearUserDisputeData(userId: number): Promise<{ [key: stri
     await run('dispute_letters', () => db.delete(disputeLetters).where(eq(disputeLetters.userId, userId)));
     await run('negative_accounts', () => db.delete(negativeAccounts).where(eq(negativeAccounts.userId, userId)));
     await run('credit_reports', () => db.delete(creditReports).where(eq(creditReports.userId, userId)));
+    await run('credit_score_history', () => db.delete(creditScoreHistory).where(eq(creditScoreHistory.userId, userId)));
     await run('ai_recommendations', () => db.delete(aiRecommendations).where(eq(aiRecommendations.userId, userId)));
     const { disputeRounds } = await import("../drizzle/schema");
     await run('dispute_rounds', () => db.delete(disputeRounds).where(eq(disputeRounds.userId, userId)));
