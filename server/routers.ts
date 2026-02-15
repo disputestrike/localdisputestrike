@@ -1179,19 +1179,21 @@ Be thorough and list every negative item found.`;
         const totalViolationsToSave = Math.max(0, analysis.totalViolations ?? 0);
         const totalNegToSave = Math.max(0, analysis.totalNegativeAccounts ?? 0);
         const rawPreviews = analysis.accountPreviews ?? [];
-        const targetViolations = Math.max(totalNegToSave, totalViolationsToSave);
-        const padCount = Math.max(0, targetViolations - rawPreviews.length);
-        const paddedPreviews = [...rawPreviews];
-        for (let i = 0; i < padCount; i++) {
-          paddedPreviews.push({
-            name: `Violation #${rawPreviews.length + i + 1} (disputable)`,
-            last4: '****',
-            balance: '0',
-            status: 'Negative',
-            amountType: 'Disputable item from report',
-            bureau: (['transunion', 'equifax', 'experian'] as const)[i % 3],
-          });
+        // Expand any preview with bureau "TransUnion, Equifax" into one per bureau (real data, no placeholders)
+        const expandedPreviews: Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }> = [];
+        const bureauList = ['transunion', 'equifax', 'experian'] as const;
+        for (const p of rawPreviews) {
+          const bureauRaw = (p.bureau ?? '').toString();
+          const parts = bureauRaw.split(/[,;]/).map((s) => s.trim().toLowerCase().replace(/\s/g, ''));
+          const bureausForPreview = parts.some((b) => bureauList.includes(b as any))
+            ? parts.filter((b): b is typeof bureauList[number] => bureauList.includes(b as any))
+            : [('transunion' as const)];
+          if (bureausForPreview.length === 0) bureausForPreview.push('transunion');
+          for (const b of bureausForPreview) {
+            expandedPreviews.push({ ...p, bureau: b });
+          }
         }
+        const previewsToSave = expandedPreviews.length > 0 ? expandedPreviews : rawPreviews;
 
         for (const bureau of bureaus) {
           // Check if report already exists
@@ -1256,10 +1258,10 @@ Be thorough and list every negative item found.`;
           }
         }
         
-        // Save account previews as negative accounts — padded to totalNegativeAccounts so Dispute Manager shows all
-        if (paddedPreviews.length > 0) {
-          const previews = paddedPreviews as Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }>;
-          console.log('[SavePreview] Saving', previews.length, 'accounts (matches totalViolations)');
+        // Save account previews as negative accounts — real data only, no placeholders
+        if (previewsToSave.length > 0) {
+          const previews = previewsToSave as Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }>;
+          console.log('[SavePreview] Saving', previews.length, 'accounts (real data, 1 per account×bureau)');
           for (const preview of previews) {
             let accountType = 'Collection';
             if (preview.status?.toLowerCase().includes('charge')) accountType = 'Charge-off';
@@ -1267,22 +1269,20 @@ Be thorough and list every negative item found.`;
             if (preview.status?.toLowerCase().includes('judgment')) accountType = 'Judgment';
             const balanceMatch = preview.balance?.replace(/[^0-9.]/g, '');
             const balance = balanceMatch ? parseFloat(balanceMatch) : 0;
-            const bureausToCreate = preview.bureau ? [preview.bureau] : bureaus;
-            for (const bureau of bureausToCreate) {
-              const reportId = reportIds[bureaus.indexOf(bureau)];
-              await db.createNegativeAccountIfNotExists({
-                userId,
-                creditReportId: reportId,
-                accountName: preview.name || 'Unknown',
-                accountNumber: preview.last4 ? `****${preview.last4}` : null,
-                balance: balance.toString(),
-                status: preview.status || 'Unknown',
-                accountType,
-                bureau,
-                rawData: JSON.stringify(preview),
-                negativeReason: preview.amountType || 'Negative item',
-              });
-            }
+            const bureau = preview.bureau || 'transunion';
+            const reportId = reportIds[bureaus.indexOf(bureau)];
+            await db.createNegativeAccountIfNotExists({
+              userId,
+              creditReportId: reportId,
+              accountName: preview.name || 'Unknown',
+              accountNumber: preview.last4 ? `****${preview.last4}` : null,
+              balance: balance.toString(),
+              status: preview.status || 'Unknown',
+              accountType,
+              bureau,
+              rawData: JSON.stringify(preview),
+              negativeReason: preview.amountType || 'Negative item',
+            });
           }
         }
         

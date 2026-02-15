@@ -188,14 +188,27 @@ export function runAnalysisPipeline(accounts: AnalysisInputAccount[]): AnalysisR
     });
 
     const last4 = String(primary.accountNumber || primary.account_number || '****').replace(/\D/g, '').slice(-4) || '****';
-    accountPreviews.push({
-      name: s.creditor,
-      last4,
-      balance: String(balance),
-      status: s.status || 'Negative',
-      amountType: (primary.negativeReason as string) || (primary.accountType as string) || 'Negative item',
-      bureau: s.bureaus.join(', '),
-    });
+    const amountType = (primary.negativeReason as string) || (primary.accountType as string) || 'Negative item';
+    const toBureau = (b: string): 'transunion' | 'equifax' | 'experian' | null => {
+      const x = b.toLowerCase().replace(/\s/g, '');
+      if (x === 'tu' || x === 'transunion') return 'transunion';
+      if (x === 'eq' || x === 'equifax') return 'equifax';
+      if (x === 'ex' || x === 'experian') return 'experian';
+      return null;
+    };
+    for (const bureau of s.bureaus) {
+      const bu = toBureau(bureau);
+      if (bu) {
+        accountPreviews.push({
+          name: s.creditor,
+          last4,
+          balance: String(balance),
+          status: s.status || 'Negative',
+          amountType,
+          bureau: bu,
+        });
+      }
+    }
   }
 
   // totalUniqueNegatives = number of matched groups (unique accounts). Expected 9-10 for Elijah-type reports.
@@ -206,8 +219,8 @@ export function runAnalysisPipeline(accounts: AnalysisInputAccount[]): AnalysisR
   const totalUniqueNegatives = estimatedFloor > matchedCount ? Math.max(estimatedFloor, matchedCount) : matchedCount;
   const totalDisputableItems = negativeAccounts.reduce((sum, a) => sum + a.bureaus.length, 0);
   const totalConflictCount = negativeAccounts.reduce((sum, a) => sum + a.conflicts.length, 0);
-  // Violations = negatives + conflicts (each conflict is a disputable error)
-  const totalViolations = totalUniqueNegatives + totalConflictCount;
+  // Violations = disputable items (account×bureau). NOT totalUniqueNegatives+conflicts (that inflated to 46).
+  const totalViolations = totalDisputableItems > 0 ? totalDisputableItems : Math.max(totalUniqueNegatives, totalConflictCount);
 
   const round1Targets = scored
     .filter((s) => s.success_probability >= 0.65)

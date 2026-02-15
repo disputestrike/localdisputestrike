@@ -92,8 +92,8 @@ function toLightAnalysisResult(p: PreviewAnalysisResult): {
   const estimatedFromCategories = Math.min(categorySum, 12); // Cap - categories can overlap
   const totalNegativeAccounts = Math.min(Math.max(uniqueAccountCount, estimatedFromAi, estimatedFromCategories, 1), 15);
 
-  // VIOLATIONS: Expected ~20. Text path has no conflict detection - estimate ~2 violations/account (negatives + conflicts).
-  const totalViolations = Math.max(totalNegativeAccounts * 2, aiTotal);
+  // VIOLATIONS: Trust AI/engine count when present; else estimate ~2 violations/account.
+  const totalViolations = aiTotal > 0 ? aiTotal : Math.max(totalNegativeAccounts * 2, 1);
 
   const t = Math.max(1, totalViolations);
   const latePayments = Math.max(0, cat.latePayments ?? 0);
