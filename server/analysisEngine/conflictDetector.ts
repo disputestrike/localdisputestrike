@@ -133,7 +133,34 @@ export function detectConflicts(group: MatchedGroup): Conflict[] {
     }
   }
 
-  // 5. PAYMENT STATUS CONFLICT (one positive, one negative)
+  // 5. RE-AGING: Activity reported > 30 days after charge-off
+  for (const { key, acct } of bureaus) {
+    const chargeOffStr = getVal(acct, 'chargeOffDate') || (acct.chargeOffDate as string) || '';
+    const lastActivity = acct.lastActivity;
+    if (!chargeOffStr || !lastActivity) continue;
+    const chargeOffDate = typeof chargeOffStr === 'string' ? new Date(chargeOffStr) : null;
+    let lastDate: Date | null = null;
+    if (lastActivity instanceof Date) lastDate = lastActivity;
+    else if (typeof lastActivity === 'string') {
+      const d = new Date(lastActivity);
+      if (!isNaN(d.getTime())) lastDate = d;
+    }
+    if (chargeOffDate && lastDate && !isNaN(chargeOffDate.getTime())) {
+      const daysAfter = Math.round((lastDate.getTime() - chargeOffDate.getTime()) / (24 * 60 * 60 * 1000));
+      const status = getStatus(acct);
+      if (daysAfter > 30 && (status.includes('charge') || status.includes('collection'))) {
+        conflicts.push({
+          type: 'RE_AGING',
+          severity: 8,
+          description: `Activity reported ${Math.round(daysAfter / 30)} months after charge-off`,
+          bureaus_affected: [key],
+          details: { charge_off: chargeOffStr, last_activity: String(lastActivity), days_after: daysAfter },
+        });
+      }
+    }
+  }
+
+  // 6. PAYMENT STATUS CONFLICT (one positive, one negative)
   const paymentStatuses = bureaus.map((b) => getStatus(b.acct));
   const positiveTerms = ['as agreed', 'in good standing', 'paid'];
   const negativeTerms = ['charge', 'collection', 'late', 'past due'];

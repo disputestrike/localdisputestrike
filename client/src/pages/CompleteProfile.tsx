@@ -475,8 +475,7 @@ export default function CompleteProfile() {
     if (step > 1) {
       setStep(prev => prev - 1);
     } else {
-      // Go back to register page
-      setLocation('/register');
+      setLocation('/get-reports');
     }
   };
 

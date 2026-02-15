@@ -84,6 +84,30 @@ const ERROR_TO_TEMPLATE: Record<string, string> = {
   contradictory_status: '2A',
 };
 
+function extractFromRaw(rawData: string | null | undefined, key: string): string | null {
+  if (!rawData) return null;
+  try {
+    const obj = JSON.parse(rawData);
+    const v = obj?.[key];
+    return v != null ? String(v) : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractHighBalanceFromRaw(rawData: string | null | undefined): number | null {
+  if (!rawData) return null;
+  try {
+    const obj = JSON.parse(rawData);
+    const v = obj?.highBalance ?? obj?.high_balance;
+    if (v == null) return null;
+    const n = typeof v === 'number' ? v : parseFloat(String(v));
+    return isNaN(n) ? null : n;
+  } catch {
+    return null;
+  }
+}
+
 function pickTemplate(errorTypes: string[]): string {
   for (const t of errorTypes) {
     const tmpl = ERROR_TO_TEMPLATE[t];
@@ -93,7 +117,119 @@ function pickTemplate(errorTypes: string[]): string {
 }
 
 /**
- * Score all accounts and assign rounds
+ * Score all accounts with optional Claude enrichment (violation detection + prioritization)
+ */
+export async function scoreAccountsWithClaude(
+  accounts: ScoredAccountInput[]
+): Promise<ScoredAccount[]> {
+  const base = scoreAccounts(accounts);
+  const useClaude =
+    process.env.USE_CLAUDE_HYBRID !== 'false' &&
+    process.env.ANTHROPIC_API_KEY;
+
+  if (!useClaude || base.length === 0) return base;
+
+  try {
+    const { isClaudeAvailable, detectViolations, prioritizeForRounds } =
+      await import('../claude');
+
+    if (!isClaudeAvailable()) {
+      console.log('[DisputeScorer] Claude not available - using rule-based only');
+      return base;
+    }
+    console.log('[DisputeScorer] ========== PHASE 2: CLAUDE HYBRID ==========');
+
+    // 1) Violation detection: for accounts with only unverifiable_balance, ask Claude
+    const accountsToEnrich = base.filter(
+      (s) =>
+        s.errorTypes.length <= 1 &&
+        (s.errorTypes.length === 0 || s.errorTypes[0] === 'unverifiable_balance')
+    );
+    const limit = Math.min(3, accountsToEnrich.length);
+    for (let i = 0; i < limit; i++) {
+      const s = accountsToEnrich[i];
+      const acc = accounts.find((a) => a.id === s.id);
+      if (!acc) continue;
+      const json = JSON.stringify({
+        id: acc.id,
+        accountName: acc.accountName,
+        accountNumber: acc.accountNumber,
+        balance: acc.balance,
+        status: acc.status,
+        dateOpened: acc.dateOpened,
+        lastActivity: acc.lastActivity,
+        accountType: acc.accountType,
+        bureau: acc.bureau,
+      });
+      const violations = await detectViolations(json);
+      if (violations.length > 0) {
+        const { getRoundForConflict, getSeverityForConflict } =
+          await import('./conflictRoundMap');
+        let round = s.round;
+        let maxSeverity = s.severity;
+        const newTypes: string[] = [...s.errorTypes.filter((t) => t !== 'unverifiable_balance')];
+        for (const v of violations) {
+          const c = {
+            type: v.type,
+            severity: v.severity,
+            accountName: s.accountName,
+            description: v.description,
+            bureaus: [acc.bureau || 'transunion'],
+            details: {},
+            fcraViolation: 'FCRA § 1681i',
+            deletionProbability: 50,
+          };
+          const r = getRoundForConflict(c);
+          if (r < round) round = r;
+          const sev = getSeverityForConflict(c);
+          if (sev > maxSeverity) maxSeverity = Math.min(10, sev);
+          if (!newTypes.includes(v.type)) newTypes.push(v.type);
+        }
+        base[base.findIndex((x) => x.id === s.id)] = {
+          ...s,
+          round,
+          severity: maxSeverity,
+          errorTypes: newTypes.length ? newTypes : ['unverifiable_balance'],
+          letterTemplate: pickTemplate(newTypes.length ? newTypes : ['unverifiable_balance']),
+        };
+      }
+    }
+
+    // 2) Prioritization: optional Sonnet override of rounds
+    const assignments = await prioritizeForRounds(
+      JSON.stringify(
+        base.map((s) => ({
+          accountId: s.id,
+          accountName: s.accountName,
+          round: s.round,
+          severity: s.severity,
+          errorTypes: s.errorTypes,
+        }))
+      )
+    );
+    if (assignments.length > 0) {
+      const byId = new Map(assignments.map((a) => [a.accountId, a]));
+      for (let i = 0; i < base.length; i++) {
+        const a = byId.get(base[i].id);
+        if (a) {
+          base[i] = {
+            ...base[i],
+            round: a.round,
+            severity: Math.min(10, Math.max(3, a.severity)),
+          };
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[DisputeScorer] Claude enrichment failed, using rule-based only:', e);
+  }
+
+  console.log('[DisputeScorer] ========== END PHASE 2 (Claude) ==========');
+  return base;
+}
+
+/**
+ * Score all accounts and assign rounds (sync, rule-based only)
  */
 export function scoreAccounts(accounts: ScoredAccountInput[]): ScoredAccount[] {
   if (accounts.length === 0) return [];

@@ -1062,6 +1062,8 @@ Be thorough and list every negative item found.`;
         userId: z.number().optional(),
         analysis: z.object({
           totalViolations: z.number(),
+          totalNegativeAccounts: z.number().optional(),
+          violationBreakdown: z.record(z.string(), z.number()).optional(),
           severityBreakdown: z.object({
             critical: z.number(),
             high: z.number(),
@@ -1174,7 +1176,23 @@ Be thorough and list every negative item found.`;
         // Create placeholder credit reports for each bureau with the analysis data
         const bureaus: Array<'transunion' | 'equifax' | 'experian'> = ['transunion', 'equifax', 'experian'];
         const reportIds: number[] = [];
-        
+        const totalViolationsToSave = Math.max(0, analysis.totalViolations ?? 0);
+        const totalNegToSave = Math.max(0, analysis.totalNegativeAccounts ?? 0);
+        const rawPreviews = analysis.accountPreviews ?? [];
+        const targetViolations = Math.max(totalNegToSave, totalViolationsToSave);
+        const padCount = Math.max(0, targetViolations - rawPreviews.length);
+        const paddedPreviews = [...rawPreviews];
+        for (let i = 0; i < padCount; i++) {
+          paddedPreviews.push({
+            name: `Violation #${rawPreviews.length + i + 1} (disputable)`,
+            last4: '****',
+            balance: '0',
+            status: 'Negative',
+            amountType: 'Disputable item from report',
+            bureau: (['transunion', 'equifax', 'experian'] as const)[i % 3],
+          });
+        }
+
         for (const bureau of bureaus) {
           // Check if report already exists
           const existing = await db.getCreditReportsByUserId(userId);
@@ -1185,12 +1203,11 @@ Be thorough and list every negative item found.`;
             ? (bureau === 'transunion' ? (cs.transunion ?? null) : bureau === 'equifax' ? (cs.equifax ?? null) : (cs.experian ?? null))
             : null;
           const scoreToSave = bureauScore != null ? bureauScore : (analysis.creditScore ?? null);
-
-          // Use analysis.totalViolations so Dashboard/AI Strategist matches lightAnalysis
-          const totalViolationsToSave = Math.max(0, analysis.totalViolations ?? 0);
           const parsedDataToSave = {
             creditScore: scoreToSave,
             totalViolations: totalViolationsToSave,
+            totalNegativeAccounts: totalNegToSave || paddedPreviews.length,
+            violationBreakdown: analysis.violationBreakdown,
             severityBreakdown: analysis.severityBreakdown,
             categoryBreakdown: analysis.categoryBreakdown,
             accountPreviews: analysis.accountPreviews ?? [],
@@ -1239,9 +1256,9 @@ Be thorough and list every negative item found.`;
           }
         }
         
-        // Save account previews as negative accounts — 1 row per preview to match totalViolations
-        if (analysis.accountPreviews && analysis.accountPreviews.length > 0) {
-          const previews = analysis.accountPreviews as Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }>;
+        // Save account previews as negative accounts — padded to totalNegativeAccounts so Dispute Manager shows all
+        if (paddedPreviews.length > 0) {
+          const previews = paddedPreviews as Array<{ name?: string; last4?: string; status?: string; balance?: string; amountType?: string; bureau?: 'transunion' | 'equifax' | 'experian' }>;
           console.log('[SavePreview] Saving', previews.length, 'accounts (matches totalViolations)');
           for (const preview of previews) {
             let accountType = 'Collection';
@@ -1725,6 +1742,107 @@ Be thorough and list every negative item found.`;
     }),
 
     /**
+     * Run conflict analysis to populate hasConflicts/conflictDetails.
+     * Call when loading Dispute Manager so violations display correctly.
+     */
+    ensureConflictAnalysis: protectedProcedure.mutation(async ({ ctx }) => {
+      const { runConflictAnalysisForUser } = await import('./conflictAnalysisService');
+      await runConflictAnalysisForUser(ctx.user.id);
+      return { ok: true };
+    }),
+
+    /**
+     * Grouped dispute items: one row per unique account (not per bureau).
+     * Returns account groups with violations for proper display.
+     */
+    getGroupedDisputeItems: protectedProcedure.query(async ({ ctx }) => {
+      const accounts = await db.getNegativeAccountsByUserId(ctx.user.id);
+      const letters = await db.getDisputeLettersByUserId(ctx.user.id);
+      const { allocateAllRounds } = await import('./disputeStrategy');
+      const { round1, round2, round3 } = await allocateAllRounds(ctx.user.id);
+      const roundById = new Map<number, 1 | 2 | 3>();
+      round1.forEach((s: { id: number }) => roundById.set(s.id, 1));
+      round2.forEach((s: { id: number }) => roundById.set(s.id, 2));
+      round3.forEach((s: { id: number }) => roundById.set(s.id, 3));
+      const scored = new Map<number, { severity: number; errorTypes: string[] }>();
+      [...round1, ...round2, ...round3].forEach((s: { id: number; severity: number; errorTypes: string[] }) => {
+        scored.set(s.id, { severity: s.severity, errorTypes: s.errorTypes || [] });
+      });
+      const accountIdsWithLetters = new Set<number>();
+      for (const l of letters) {
+        try {
+          const ids = JSON.parse(l.accountsDisputed || '[]') as number[];
+          if (Array.isArray(ids)) ids.forEach((id) => accountIdsWithLetters.add(id));
+        } catch {}
+      }
+      const norm = (s: string) => (s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const groups = new Map<string, { accountIds: number[]; accountName: string; bureaus: string[]; balance: number; status: string; violations: Array<{ type: string; description: string; successRate: number }>; round: 1 | 2 | 3 | null; allHaveLetters: boolean }>();
+      for (const a of accounts) {
+        const key = norm(a.accountName || '');
+        if (!key) continue;
+        let g = groups.get(key);
+        if (!g) {
+          g = {
+            accountIds: [],
+            accountName: a.accountName || 'Unknown',
+            bureaus: [],
+            balance: 0,
+            status: a.status || '—',
+            violations: [],
+            round: null,
+            allHaveLetters: true,
+          };
+          groups.set(key, g);
+        }
+        g.accountIds.push(a.id);
+        const bureau = (a.bureau || 'transunion').toLowerCase();
+        if (bureau && !g.bureaus.includes(bureau)) g.bureaus.push(bureau);
+        const bal = typeof a.balance === 'string' ? parseFloat(a.balance) || 0 : Number(a.balance) || 0;
+        if (bal > (g.balance || 0)) g.balance = bal;
+        const r = roundById.get(a.id);
+        if (r != null && (g.round == null || r < (g.round || 3))) g.round = r;
+        if (!accountIdsWithLetters.has(a.id)) g.allHaveLetters = false;
+        const sc = scored.get(a.id);
+        if (sc?.errorTypes?.length) {
+          const sevToRate = (sev: number) => (sev >= 9 ? 95 : sev >= 7 ? 75 : sev >= 5 ? 60 : 50);
+          const successRate = sevToRate(sc.severity);
+          for (const t of sc.errorTypes) {
+            const typeLabel = t.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+            if (!g!.violations.some((v) => v.type === t)) {
+              g!.violations.push({
+                type: typeLabel,
+                description: typeLabel,
+                successRate,
+              });
+            }
+          }
+        }
+        if (a.conflictDetails) {
+          try {
+            const arr = JSON.parse(a.conflictDetails) as Array<{ type?: string; description?: string; severity?: string }>;
+            if (Array.isArray(arr)) {
+              for (const c of arr) {
+                const t = (c.type || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, (x) => x.toUpperCase());
+                if (!g!.violations.some((v) => v.type === t)) {
+                  g!.violations.push({
+                    type: t,
+                    description: c.description || t,
+                    successRate: c.severity === 'critical' ? 95 : c.severity === 'high' ? 75 : 60,
+                  });
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+      const items = Array.from(groups.values()).filter((g) => !g.allHaveLetters);
+      return {
+        groups: items,
+        totalViolations: items.reduce((sum, g) => sum + Math.max(1, g.violations.length), 0),
+      };
+    }),
+
+    /**
      * Manually add negative account
      */
     create: protectedProcedure
@@ -1949,7 +2067,7 @@ Be thorough and list every negative item found.`;
 
         // ROUND 1: Use short, one-error template-based letters (no cross-bureau)
         if (isRound1) {
-          const { getRound1Targets, fillRound1Template, scoreAccounts } = await import('./disputeStrategy');
+          const { getRound1Targets, fillRound1Template, scoreAccountsWithClaude } = await import('./disputeStrategy');
           const { postProcessLetter } = await import('./letterPostProcessor');
           const round1Targets = await getRound1Targets(userId);
           const selectedIds = new Set(input.accountIds && input.accountIds.length > 0 ? input.accountIds : accounts.map(a => a.id));
@@ -1958,7 +2076,7 @@ Be thorough and list every negative item found.`;
 
           // Fallback: if no round1 targets (e.g. all scored R2/R3), use selected accounts with template 1C
           if (targetsToUse.length === 0 && accounts.length > 0) {
-            const scored = scoreAccounts(accounts.map(a => ({ id: a.id, accountName: a.accountName, balance: a.balance, status: a.status, dateOpened: a.dateOpened, lastActivity: a.lastActivity, accountType: a.accountType, bureau: a.bureau, rawData: a.rawData })));
+            const scored = await scoreAccountsWithClaude(accounts.map(a => ({ id: a.id, accountName: a.accountName, balance: a.balance, status: a.status, dateOpened: a.dateOpened, lastActivity: a.lastActivity, accountType: a.accountType, bureau: a.bureau, rawData: a.rawData })));
             targetsToUse = scored
               .filter(s => selectedIds.has(s.id) && input.bureaus.includes(s.bureau as 'transunion' | 'equifax' | 'experian'))
               .map(s => ({ accountId: s.id, account: s, bureau: s.bureau, letterTemplate: s.letterTemplate, errorTypes: s.errorTypes }));
@@ -1968,7 +2086,8 @@ Be thorough and list every negative item found.`;
             const acc = accountMap.get(target.accountId);
             if (!acc) continue;
             const bureau = (acc.bureau || 'transunion').toLowerCase();
-            const letterContent = fillRound1Template(target.letterTemplate, {
+            let letterContent: string;
+            const ctx = {
               fullName,
               currentAddress: input.currentAddress,
               date: today,
@@ -1980,7 +2099,34 @@ Be thorough and list every negative item found.`;
               dateOpened: acc.dateOpened ? String(acc.dateOpened) : 'Not reported',
               lastActivity: acc.lastActivity ? String(acc.lastActivity) : 'Unknown',
               bureau,
-            });
+            };
+            if (process.env.USE_CLAUDE_HYBRID !== 'false' && process.env.ANTHROPIC_API_KEY) {
+              try {
+                const { generateLetterContent, isClaudeAvailable } = await import('./claude');
+                if (isClaudeAvailable()) {
+                  const bureauNames: Record<string, string> = { transunion: 'TransUnion', equifax: 'Equifax', experian: 'Experian' };
+                  const bureauAddrs: Record<string, string> = {
+                    transunion: 'TransUnion Consumer Solutions\nP.O. Box 2000\nChester, PA 19016-2000',
+                    equifax: 'Equifax Information Services LLC\nP.O. Box 740256\nAtlanta, GA 30374-0256',
+                    experian: 'Experian\nP.O. Box 4500\nAllen, TX 75013',
+                  };
+                  const aiContent = await generateLetterContent({
+                    ...ctx,
+                    bureauName: bureauNames[bureau] || bureau,
+                    bureauAddress: bureauAddrs[bureau] || bureauAddrs.transunion,
+                    errorTypes: target.errorTypes,
+                    primaryError: target.errorTypes[0] || 'Unverifiable information',
+                  });
+                  letterContent = aiContent || fillRound1Template(target.letterTemplate, ctx);
+                } else {
+                  letterContent = fillRound1Template(target.letterTemplate, ctx);
+                }
+              } catch {
+                letterContent = fillRound1Template(target.letterTemplate, ctx);
+              }
+            } else {
+              letterContent = fillRound1Template(target.letterTemplate, ctx);
+            }
             const userData = {
               fullName,
               address: input.currentAddress,

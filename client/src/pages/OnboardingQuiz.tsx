@@ -91,13 +91,11 @@ export default function OnboardingQuiz() {
   // Save quiz answers mutation
   const saveQuizAnswers = trpc.users.updateQuizAnswers.useMutation({
     onSuccess: () => {
-      // Navigate to account creation (Step 3)
-      setLocation("/register?from=quiz");
+      setLocation("/get-reports");
     },
     onError: (error) => {
       console.error("Error saving quiz answers:", error);
-      // Still navigate even if save fails - we'll save again later
-      setLocation("/register?from=quiz");
+      setLocation("/get-reports");
     },
   });
 
@@ -109,10 +107,8 @@ export default function OnboardingQuiz() {
 
   const handleSelectGoal = (value: string) => {
     setQuizData({ ...quizData, creditGoal: value });
-    // Save to localStorage for persistence before account creation
     localStorage.setItem("onboardingQuiz", JSON.stringify({ ...quizData, creditGoal: value }));
-    // Navigate to account creation
-    setTimeout(() => setLocation("/register?from=quiz"), 300);
+    setTimeout(() => setLocation("/get-reports"), 300);
   };
 
   const handleBack = () => {

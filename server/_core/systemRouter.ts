@@ -3,6 +3,22 @@ import { notifyOwner } from "./notification";
 import { adminProcedure, publicProcedure, router } from "./trpc";
 
 export const systemRouter = router({
+  /** Claude Hybrid status & cost - verify API is running */
+  claudeStatus: publicProcedure.query(async () => {
+    const { isClaudeAvailable } = await import("../claude");
+    const { getSessionTotal, getRecordsByOperation } = await import("../claude/costTracker");
+    const available = isClaudeAvailable();
+    const total = getSessionTotal();
+    const byOp = getRecordsByOperation();
+    return {
+      available: !!process.env.ANTHROPIC_API_KEY,
+      useHybrid: process.env.USE_CLAUDE_HYBRID !== "false",
+      totalCostUsd: total.totalCostUsd,
+      totalCalls: total.totalCalls,
+      byOperation: byOp,
+    };
+  }),
+
   health: publicProcedure
     .input(
       z.object({

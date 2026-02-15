@@ -55,8 +55,10 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
 
   // Use REAL data from analysis - no placeholders
   const totalViolations = analysis.totalViolations;
+  const totalNegativeAccounts = analysis.totalNegativeAccounts ?? totalViolations; // fallback for legacy data
   const divisor = totalViolations || 1; // avoid divide-by-zero for clean reports
   const severity = analysis.severityBreakdown || { critical: 0, high: 0, medium: 0, low: 0 };
+  const violationBreakdown = analysis.violationBreakdown || {};
   const categories = analysis.categoryBreakdown || analysis.categories || {
     latePayments: 0,
     collections: 0,
@@ -138,8 +140,10 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
         await savePreviewMutation.mutateAsync({
           analysis: {
             totalViolations: analysis.totalViolations,
+            totalNegativeAccounts: analysis.totalNegativeAccounts,
             severityBreakdown: analysis.severityBreakdown || { critical: 0, high: 0, medium: 0, low: 0 },
             categoryBreakdown: analysis.categoryBreakdown || { collections: 0, latePayments: 0, chargeOffs: 0, judgments: 0, other: 0 },
+            violationBreakdown: analysis.violationBreakdown,
             accountPreviews: analysis.accountPreviews,
             creditScore: analysis.creditScore,
             creditScores: analysis.creditScores,
@@ -174,19 +178,23 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
 
         {/* 4 Metric Boxes - Strong borders and color coding */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Box 1: Total Violations - RED theme */}
+          {/* Box 1: Negative Accounts + Violations - both large and prominent */}
           <Card className="bg-accent/10 border-2 border-border shadow-md">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
               <div>
-                <CardTitle className="text-xs font-semibold text-accent uppercase tracking-wide">Total Potential Violations Found</CardTitle>
+                <CardTitle className="text-xs font-semibold text-accent uppercase tracking-wide">Negative Accounts & Violations</CardTitle>
               </div>
               <AlertTriangle className="h-5 w-5 text-accent" />
             </CardHeader>
-            <CardContent className="px-4 pb-4">
-              <div className="text-5xl font-black text-accent">{totalViolations}</div>
-              <p className="text-xs text-accent mt-2 font-medium">
-                High potential for score increase!
-              </p>
+            <CardContent className="px-4 pb-4 space-y-3">
+              <div>
+                <p className="text-xs font-medium text-accent uppercase tracking-wide mb-0.5">Negative Accounts</p>
+                <div className="text-5xl font-black text-accent">{totalNegativeAccounts}</div>
+              </div>
+              <div>
+                <p className="text-xs font-medium text-accent uppercase tracking-wide mb-0.5">Violations</p>
+                <div className="text-5xl font-black text-accent">{totalViolations}</div>
+              </div>
             </CardContent>
           </Card>
 
@@ -227,14 +235,27 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
             </CardContent>
           </Card>
 
-          {/* Box 3: Violation Categories - color-coded badges */}
+          {/* Box 3: Violation Types + Account Categories */}
           <Card className="bg-white border-2 border-gray-300 shadow-md">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 pt-4 px-4">
-              <CardTitle className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Violation Categories</CardTitle>
+              <CardTitle className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Violations & Categories</CardTitle>
               <CheckCircle2 className="h-5 w-5 text-gray-500" />
             </CardHeader>
             <CardContent className="px-4 pb-4">
               <div className="space-y-2">
+                {Object.keys(violationBreakdown).length > 0 && (
+                  <>
+                    <p className="text-xs font-bold text-gray-600 uppercase mb-1">Violation Types (errors)</p>
+                    {Object.entries(violationBreakdown).map(([type, count]) => (
+                      <div key={type} className="flex items-center justify-between">
+                        <Badge className="bg-accent/10 text-accent border-2 border-border font-semibold">
+                          {type.replace(/_/g, ' ')} ({count})
+                        </Badge>
+                      </div>
+                    ))}
+                    <p className="text-xs font-bold text-gray-600 uppercase mt-2 mb-1">Account Categories</p>
+                  </>
+                )}
                 <div className="flex items-center justify-between">
                   <Badge className="bg-primary/10 text-primary border-2 border-border font-semibold">Late Payments ({categories.latePayments})</Badge>
                 </div>
@@ -403,7 +424,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
         <Card className="border-2 border-border shadow-md">
           <CardHeader className="border-b-2 border-border pb-4">
             <CardTitle className="text-lg font-bold text-gray-900">Accounts Found (Partial Preview)</CardTitle>
-            <p className="text-sm text-gray-600">Below is a sample of accounts we found. Choose a plan to see all {totalViolations} accounts and generate dispute letters.</p>
+            <p className="text-sm text-gray-600">Below is a sample of accounts we found. Choose a plan to see all {totalNegativeAccounts} accounts, {totalViolations} violations, and generate dispute letters.</p>
           </CardHeader>
           <CardContent className="p-0">
             {/* Show first 2 REAL accounts from analysis */}
@@ -436,7 +457,7 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
 
             {/* More accounts locked */}
             <div className="p-6 text-center bg-secondary border-t-2 border-border">
-              <p className="text-sm text-primary font-semibold">+ {Math.max(0, totalViolations - 2)} more accounts found</p>
+              <p className="text-sm text-primary font-semibold">+ {Math.max(0, totalNegativeAccounts - 2)} more accounts found</p>
               <p className="text-xs text-gray-500 mt-1">Choose a plan to see all accounts and generate dispute letters.</p>
             </div>
           </CardContent>

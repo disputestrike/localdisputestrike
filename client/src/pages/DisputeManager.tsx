@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import {
   AlertTriangle,
@@ -40,7 +40,7 @@ const BUREAU_LABELS: Record<string, string> = {
   experian: "Experian",
 };
 
-const MAX_ITEMS_PER_ROUND = 5;
+const MAX_ITEMS_PER_ROUND = 7;
 const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
 
 const normalizeBureauCode = (value: string): BureauCode | null => {
@@ -62,18 +62,24 @@ export default function DisputeManager() {
   const { data: negativeAccounts = [], isLoading: accountsLoading, refetch: refetchNegativeAccounts } = trpc.negativeAccounts.list.useQuery();
   const { data: stats, refetch: refetchStats } = trpc.dashboardStats.get.useQuery();
   const { data: creditReports = [], isLoading: reportsLoading } = trpc.creditReports.list.useQuery();
+  const savePreviewAnalysis = trpc.creditReports.savePreviewAnalysis.useMutation({
+    onSuccess: async () => {
+      await utils.creditReports.list.invalidate();
+      await utils.dashboardStats.get.invalidate();
+      syncFromParsedData.mutate();
+    },
+  });
   const syncFromParsedData = trpc.negativeAccounts.syncFromParsedData.useMutation({
-    onSuccess: (data) => {
-      if (data.created > 0) {
-        refetchNegativeAccounts();
-        refetchStats();
-        utils.negativeAccounts.getRoundRecommendations.invalidate();
-      }
+    onSuccess: async (data) => {
+      await refetchNegativeAccounts();
+      await refetchStats();
+      utils.negativeAccounts.getRoundRecommendations.invalidate();
     },
   });
   const { data: roundRecommendations } = trpc.negativeAccounts.getRoundRecommendations.useQuery(undefined, {
     enabled: negativeAccounts.length > 0,
   });
+  const { data: claudeStatus } = trpc.system.claudeStatus.useQuery();
   const { data: disputeLetters = [] } = trpc.disputeLetters.list.useQuery();
   const { data: disputeOutcomes = [] } = trpc.disputeOutcomes.list.useQuery();
   const utils = trpc.useUtils();
@@ -185,21 +191,37 @@ export default function DisputeManager() {
 
   const isLoading = accountsLoading || reportsLoading;
 
-  // Sync negative accounts from parsedData when analysis says more than we have (e.g. 9 vs 3)
   const analysisViolationsForSync = stats?.totalViolationsFromAnalysis ?? 0;
-  const hasSynced = useRef(false);
+  const analysisNegForSync = stats?.totalNegativeAccountsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0;
+
+  // Auto-save preview from storage if never persisted (enables auto-sync)
   useEffect(() => {
-    if (hasSynced.current) return;
-    if (analysisViolationsForSync > 0 && analysisViolationsForSync > negativeAccounts.length && !syncFromParsedData.isPending) {
-      hasSynced.current = true;
+    const previewRaw = sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis');
+    if (!previewRaw || negativeAccounts.length > 0 || savePreviewAnalysis.isPending || syncFromParsedData.isPending) return;
+    if (creditReports.length > 0) return; // already saved
+    try {
+      const analysis = JSON.parse(previewRaw);
+      if (analysis?.totalViolations > 0 || analysis?.totalNegativeAccounts > 0) {
+        savePreviewAnalysis.mutate({ analysis });
+      }
+    } catch {}
+  }, [negativeAccounts.length, creditReports.length, savePreviewAnalysis.isPending, syncFromParsedData.isPending]);
+
+  // Auto-sync: load items when analysis says more than we have (fully automatic)
+  useEffect(() => {
+    if (syncFromParsedData.isPending || savePreviewAnalysis.isPending) return;
+    if (creditReports.length === 0) return; // need reports to sync from
+    const needMore = (analysisViolationsForSync > 0 || analysisNegForSync > 0) && negativeAccounts.length < Math.max(analysisViolationsForSync, analysisNegForSync, 1);
+    if (needMore) {
       syncFromParsedData.mutate();
     }
-  }, [analysisViolationsForSync, negativeAccounts.length, syncFromParsedData.isPending]);
+  }, [analysisViolationsForSync, analysisNegForSync, negativeAccounts.length, creditReports.length, syncFromParsedData.isPending, savePreviewAnalysis.isPending]);
 
   const itemsNotYetDisputed = useMemo(
     () => negativeItems.filter((item) => !accountIdsWithLetters.has(item.id)),
     [negativeItems, accountIdsWithLetters]
   );
+  const openCount = itemsNotYetDisputed.length;
   const round1Items = itemsNotYetDisputed.filter((item) => item.round === 1);
   const round2Items = itemsNotYetDisputed.filter((item) => item.round === 2);
   const round3Items = itemsNotYetDisputed.filter((item) => item.round === 3);
@@ -213,20 +235,19 @@ export default function DisputeManager() {
         return prev.filter(id => id !== itemId);
       }
       if (prev.length >= MAX_ITEMS_PER_ROUND && !prev.includes(itemId)) {
-        return prev; // Don't add if already at max
+        return prev;
       }
       return [...prev, itemId];
     });
   };
 
-  // AI recommends Round 1 first; fallback to all items when round1 is empty
   const selectTop5Round1 = () => {
     const from = round1Items.length > 0 ? round1Items : itemsNotYetDisputed;
-    setSelectedItems(from.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+    setSelectedItems(from.slice(0, MAX_ITEMS_PER_ROUND).map((i) => i.id));
   };
   const selectAll = () => {
     const pool = [...round1Items, ...round2Items, ...round3Items, ...otherItems];
-    setSelectedItems(pool.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+    setSelectedItems(pool.slice(0, MAX_ITEMS_PER_ROUND).map((i) => i.id));
   };
 
   const selectedBureaus = useMemo(() => {
@@ -260,8 +281,9 @@ export default function DisputeManager() {
     );
   }
 
-  const hasNoData = negativeItems.length === 0 && creditReports.length === 0;
-  if (hasNoData) {
+  const hasPreviewInStorage = typeof window !== 'undefined' && !!(sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis'));
+  const hasNoData = negativeItems.length === 0 && creditReports.length === 0 && !savePreviewAnalysis.isPending;
+  if (hasNoData && !hasPreviewInStorage) {
     return (
       <DashboardLayout>
         <div className="p-8 text-center max-w-md mx-auto">
@@ -270,31 +292,59 @@ export default function DisputeManager() {
           <p className="text-gray-600 mb-6">
             Upload your credit reports from the dashboard to see negative items and start disputing.
           </p>
-          <Link href="/dashboard">
-            <a className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
-              Go to Dashboard
-              <ChevronRight className="w-4 h-4" />
-            </a>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/dashboard">
+              <a className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium">
+                Go to Dashboard
+                <ChevronRight className="w-4 h-4" />
+              </a>
+            </Link>
+            <Button
+              variant="outline"
+              className="border-slate-300"
+              disabled={clearUserData.isPending}
+              onClick={() => {
+                if (window.confirm("Clear all data and start fresh? This will reset your analysis.")) {
+                  clearUserData.mutate();
+                }
+              }}
+            >
+              {clearUserData.isPending ? "Clearing..." : "Clear data & start over"}
+            </Button>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
-  // Use totalViolationsFromAnalysis so count matches lightAnalysis/Dashboard across the app
+  // Show analysis counts (12 negative accounts, 24 violations) — from parsedData
+  const analysisNegAccounts = stats?.totalNegativeAccountsFromAnalysis ?? stats?.totalNegativeAccounts ?? 0;
   const analysisViolations = stats?.totalViolationsFromAnalysis ?? 0;
-  const openCount = analysisViolations > 0 ? analysisViolations : itemsNotYetDisputed.length;
 
   return (
     <DashboardLayout>
       <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
-        {/* Summary Banner — Open vs Past */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Summary Banner — Analysis counts (12/24) + Open for Dispute + Past Letters */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {(analysisNegAccounts > 0 || analysisViolations > 0) && (
+            <>
+              <div className="rounded-xl border-2 border-red-200 bg-red-50/80 p-5 shadow-sm">
+                <p className="text-sm font-semibold text-red-800 uppercase tracking-wide">Negative Accounts</p>
+                <p className="text-3xl font-black text-red-900 mt-1">{analysisNegAccounts}</p>
+                <p className="text-sm text-red-700 mt-0.5">On your report (informational)</p>
+              </div>
+              <div className="rounded-xl border-2 border-amber-200 bg-amber-50/80 p-5 shadow-sm">
+                <p className="text-sm font-semibold text-amber-800 uppercase tracking-wide">Violations</p>
+                <p className="text-3xl font-black text-amber-900 mt-1">{analysisViolations}</p>
+                <p className="text-sm text-amber-700 mt-0.5">Disputable errors — select these for letters</p>
+              </div>
+            </>
+          )}
           <div className="rounded-xl border-2 border-emerald-200 bg-emerald-50/80 p-5 shadow-sm">
             <p className="text-sm font-semibold text-emerald-800 uppercase tracking-wide">Open for Dispute</p>
             <p className="text-3xl font-black text-emerald-900 mt-1">{openCount}</p>
             <p className="text-sm text-emerald-700 mt-0.5">
-              {openCount === 0 ? "All items have letters." : "Items still needing dispute letters"}
+              {openCount === 0 ? "All violations have letters." : "Violations you can select for letters"}
             </p>
           </div>
           <div className="rounded-xl border-2 border-slate-200 bg-slate-50/80 p-5 shadow-sm">
@@ -303,25 +353,35 @@ export default function DisputeManager() {
             <p className="text-sm text-slate-600 mt-0.5">Letters generated</p>
           </div>
         </div>
+        {syncFromParsedData.isPending && (
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <p className="text-sm text-blue-800">Loading dispute items automatically…</p>
+          </div>
+        )}
 
         <div className="flex flex-wrap justify-between items-start gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <Badge className="bg-green-600 text-white font-bold">NEW</Badge>
-              <span className="text-sm text-green-700 font-medium">Round-based strategy — max 5 per round</span>
+              <span className="text-sm text-green-700 font-medium">Round-based strategy — max 7 per round</span>
             </div>
             <h1 className="text-3xl font-black text-gray-900">Dispute Manager</h1>
-            <p className="text-base text-gray-600 font-medium mt-1">Select up to 5 items for Round 1. Template-based letters (no cross-bureau in Round 1).</p>
-            <div className="flex flex-wrap gap-4 mt-2 text-sm font-bold">
+            <p className="text-base text-gray-600 font-medium mt-1">Evidence-based disputes — cross-bureau conflicts prioritized in Round 1. Top 5 by success rate.</p>
+            <div className="flex flex-wrap gap-4 mt-2 text-sm font-bold items-center">
               <span className="text-red-700">Round 1: {round1Items.length}</span>
               <span className="text-amber-700">Round 2: {round2Items.length}</span>
               <span className="text-blue-700">Round 3: {round3Items.length}</span>
+              {claudeStatus && (
+                <Badge variant={claudeStatus.available ? "default" : "secondary"} className={claudeStatus.available ? "bg-emerald-600" : "bg-slate-400"}>
+                  {claudeStatus.available ? "Claude AI ✓" : "Claude off"}
+                </Badge>
+              )}
             </div>
           </div>
           <Button
             variant="outline"
             className="border-red-300 text-red-700 hover:bg-red-50 hover:border-red-400 font-bold"
-            disabled={clearUserData.isPending || (negativeItems.length === 0 && disputeLetters.length === 0)}
+            disabled={clearUserData.isPending}
             onClick={() => {
               if (window.confirm("Clear all dispute data and start fresh? This will delete letters, outcomes, negative accounts, and credit reports. You will need to re-upload reports.")) {
                 clearUserData.mutate();
@@ -342,14 +402,14 @@ export default function DisputeManager() {
           </Button>
         </div>
 
-        {/* Open Disputes — items needing letters */}
+        {/* Open Disputes — violations needing letters */}
         <Card className="border-2 border-gray-300 shadow-lg">
           <CardHeader className="border-b-2 border-gray-200">
             <CardTitle className="text-xl font-black">Open Disputes — Items Needing Letters</CardTitle>
             <p className="text-sm text-gray-600 font-medium">
               {openCount === 0
                 ? "No open disputes. All negative items have dispute letters generated."
-                : `Select up to ${MAX_ITEMS_PER_ROUND} for your next round. (${openCount} items open)`}
+                : `Select up to ${MAX_ITEMS_PER_ROUND} items for your next round. (${openCount} open)`}
             </p>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
@@ -357,16 +417,16 @@ export default function DisputeManager() {
               <div className="py-12 text-center rounded-lg bg-gray-50 border border-gray-200">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                 <p className="font-semibold text-gray-700">No open disputes</p>
-                <p className="text-sm text-gray-500 mt-1">All negative items have letters. Use Past Disputes below to record outcomes.</p>
+                <p className="text-sm text-gray-500 mt-1">All violations have letters. Use Past Disputes below to record outcomes.</p>
               </div>
             ) : (
             <>
             <div className="flex flex-wrap justify-between items-center gap-3 p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
               <div className="flex flex-wrap items-center gap-3">
-                <p className="font-black text-sm text-blue-800">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
+                <p className="font-black text-sm text-blue-800">Selected: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={selectTop5Round1} className="border-blue-400 text-blue-800 hover:bg-blue-100">
-                    Select Top 5 (Round 1)
+                    Select Top 7 (Round 1)
                   </Button>
                   <Button variant="outline" size="sm" onClick={selectAll} className="border-blue-400 text-blue-800 hover:bg-blue-100">
                     Select All
@@ -385,12 +445,12 @@ export default function DisputeManager() {
               </Button>
             </div>
 
-            {/* Round 1 – High probability (3–5 accounts) */}
+            {/* Round 1 – High probability */}
             {round1Items.length > 0 && (
               <div className="space-y-3">
                 <h3 className="text-lg font-black flex items-center gap-2 text-red-700 bg-red-50 p-3 rounded-lg border-2 border-red-300">
                   <Badge className="bg-red-600 text-white font-bold">ROUND 1</Badge>
-                  High probability (internal logic errors only, no cross-bureau) — max 5
+                  Cross-bureau conflicts + internal logic errors (highest success) — max 5
                 </h3>
                 {round1Items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 border-2 border-red-200 rounded-lg bg-red-50/50 hover:bg-red-100/50 transition-colors">
@@ -460,7 +520,7 @@ export default function DisputeManager() {
               <div className="space-y-3">
                 <h3 className="text-lg font-black flex items-center gap-2 text-blue-700 bg-blue-50 p-3 rounded-lg border-2 border-blue-300">
                   <Badge className="bg-blue-600 text-white font-bold">ROUND 3</Badge>
-                  Final + CFPB (cross-bureau + escalation) — max 5
+                  Final + CFPB (cross-bureau + escalation) — max 7
                 </h3>
                 {round3Items.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 border-2 border-blue-200 rounded-lg bg-blue-50/50 hover:bg-blue-100/50 transition-colors">
@@ -495,7 +555,7 @@ export default function DisputeManager() {
               <div className="space-y-3 pt-4 border-t-2 border-gray-200">
                 <h3 className="text-lg font-black flex items-center gap-2 text-gray-700 bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
                   <AlertTriangle className="w-5 h-5 text-gray-600" />
-                  Other Negative Items
+                  Other Violations
                 </h3>
                 {otherItems.map((item) => (
                   <div key={item.id} className="flex items-center justify-between p-4 border-2 border-gray-200 rounded-lg bg-white hover:bg-gray-50 transition-colors">
@@ -525,7 +585,7 @@ export default function DisputeManager() {
               </div>
             )}
             </>
-            )}
+          )}
           </CardContent>
         </Card>
 

@@ -11,7 +11,7 @@ export {
   updateAfterRound1Results,
 } from './roundManager';
 export type { RoundAllocation, Round1Target, Round1Result } from './roundManager';
-export { scoreAccounts } from './disputeScorer';
+export { scoreAccounts, scoreAccountsWithClaude } from './disputeScorer';
 export type { ScoredAccount } from './disputeScorer';
 export { fillRound1Template } from './letterTemplates/round1';
 export { fillRound2Template } from './letterTemplates/round2';

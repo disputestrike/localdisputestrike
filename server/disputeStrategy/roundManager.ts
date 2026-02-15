@@ -1,13 +1,13 @@
 /**
  * Round Manager
- * Allocates accounts to Round 1/2/3, enforces 3-5 per round, provides targets for letter generation
+ * Allocates accounts to Round 1/2/3, enforces max 7 per round, provides targets for letter generation
  */
 
 import * as db from '../db';
-import { scoreAccounts, type ScoredAccount } from './disputeScorer';
+import { scoreAccountsWithClaude, type ScoredAccount } from './disputeScorer';
 import { findDuplicateGroups } from './duplicateFinder';
 
-const MAX_ITEMS_PER_ROUND = 5;
+const MAX_ITEMS_PER_ROUND = 7;
 
 export interface RoundAllocation {
   round1: ScoredAccount[];
@@ -46,7 +46,7 @@ export async function allocateAllRounds(userId: number): Promise<RoundAllocation
     rawData: a.rawData,
   }));
 
-  const scored = scoreAccounts(input);
+  const scored = await scoreAccountsWithClaude(input);
 
   // Deduplicate: for duplicate groups, treat the group as one "slot" (take highest severity)
   const seenDupKeys = new Set<string>();
@@ -225,7 +225,7 @@ export async function getRound3Targets(userId: number): Promise<Round1Target[]> 
   }
 
   const accounts = await db.getNegativeAccountsByUserId(userId);
-  const scored = scoreAccounts(accounts.map(a => ({
+  const scored = await scoreAccountsWithClaude(accounts.map(a => ({
     id: a.id, accountName: a.accountName, accountNumber: a.accountNumber, balance: a.balance,
     status: a.status, dateOpened: a.dateOpened, lastActivity: a.lastActivity, accountType: a.accountType,
     originalCreditor: a.originalCreditor, bureau: a.bureau, rawData: a.rawData,

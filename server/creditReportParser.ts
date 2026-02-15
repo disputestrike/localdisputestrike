@@ -484,16 +484,93 @@ export async function performLightAnalysis(fileUrl: string): Promise<LightAnalys
   }));
   const analysis = runAnalysisPipeline(inputAccounts);
 
-  console.log(`[Light Analysis] Engine: ${analysis.totalUniqueNegatives} unique negatives, $${analysis.totalDebt.toLocaleString()} total debt`);
-  console.log(`[Light Analysis] Category breakdown:`, analysis.categoryBreakdown);
-  console.log(`[Light Analysis] Severity breakdown:`, analysis.severityBreakdown);
+  console.log(`[Light Analysis] Engine: ${analysis.totalUniqueNegatives} negatives, ${analysis.totalViolations} violations, $${analysis.totalDebt.toLocaleString()} debt`);
+  console.log(`[Light Analysis] Violation breakdown:`, analysis.violationBreakdown);
+  console.log(`[Light Analysis] Violation severity:`, analysis.violationSeverityBreakdown);
 
+  // Use violationSeverityBreakdown for UI (proper distribution); fallback to severityBreakdown
+  const severity = analysis.violationSeverityBreakdown ?? analysis.severityBreakdown;
   return {
-    totalViolations: analysis.totalUniqueNegatives,
-    severityBreakdown: analysis.severityBreakdown,
+    totalViolations: analysis.totalViolations,
+    totalNegativeAccounts: analysis.totalUniqueNegatives,
+    severityBreakdown: severity,
     categoryBreakdown: analysis.categoryBreakdown,
+    violationBreakdown: analysis.violationBreakdown,
     accountPreviews: analysis.accountPreviews.slice(0, 100),
   };
+}
+
+/**
+ * Run analysis engine on pre-parsed accounts (for multi-file or combined).
+ */
+export async function performLightAnalysisFromAccounts(accounts: ParsedAccount[]): Promise<LightAnalysisResult> {
+  if (!accounts.length) {
+    return {
+      totalViolations: 0,
+      severityBreakdown: { critical: 0, high: 0, medium: 0, low: 0 },
+      categoryBreakdown: { latePayments: 0, collections: 0, chargeOffs: 0, judgments: 0, other: 0 },
+    };
+  }
+  const { runAnalysisPipeline } = await import('./analysisEngine');
+  const inputAccounts = accounts.map((a) => ({
+    accountName: a.accountName,
+    accountNumber: a.accountNumber,
+    balance: a.balance,
+    status: a.status,
+    paymentStatus: a.paymentStatus,
+    paymentHistory: a.paymentHistory,
+    remarks: a.remarks,
+    accountType: a.accountType,
+    bureau: a.bureau,
+    dateOpened: a.dateOpened,
+    lastActivity: a.lastActivity,
+    negativeReason: a.negativeReason,
+    originalCreditor: a.originalCreditor,
+  }));
+  const analysis = runAnalysisPipeline(inputAccounts);
+  const severity = analysis.violationSeverityBreakdown ?? analysis.severityBreakdown;
+  return {
+    totalViolations: analysis.totalViolations,
+    totalNegativeAccounts: analysis.totalUniqueNegatives,
+    severityBreakdown: severity,
+    categoryBreakdown: analysis.categoryBreakdown,
+    violationBreakdown: analysis.violationBreakdown,
+    accountPreviews: analysis.accountPreviews.slice(0, 100),
+  };
+}
+
+/**
+ * Parse multiple bureau PDFs (3 separate files) and run analysis engine.
+ * Use when user uploads TU, EQ, EX as separate files.
+ */
+export async function performLightAnalysisMulti(
+  files: Array<{ buffer: Buffer; bureau: 'TransUnion' | 'Equifax' | 'Experian' }>
+): Promise<{ light: LightAnalysisResult; personalInfo: PersonalInfo | null; allScores: Awaited<ReturnType<typeof parseAllBureauScoresFromCombined>> | null }> {
+  const { fileStorage } = await import('./s3Provider');
+  const allAccounts: ParsedAccount[] = [];
+
+  for (let i = 0; i < files.length; i++) {
+    const { buffer, bureau } = files[i];
+    if (!buffer || buffer.length < 100) continue;
+    const fileKey = `preview/${bureau}-${Date.now()}-${i}.pdf`;
+    const { fileUrl } = await fileStorage.saveFile(fileKey, buffer, 'application/pdf');
+    const accounts = await parseWithVisionAI(fileUrl, bureau);
+    allAccounts.push(...accounts);
+  }
+
+  const light = await performLightAnalysisFromAccounts(allAccounts);
+  const firstFile = files[0];
+  let personalInfo: PersonalInfo | null = null;
+  let allScores: Awaited<ReturnType<typeof parseAllBureauScoresFromCombined>> | null = null;
+  if (firstFile?.buffer && firstFile.buffer.length > 100) {
+    const fileKey = `preview/first-${Date.now()}.pdf`;
+    const { fileUrl } = await fileStorage.saveFile(fileKey, firstFile.buffer, 'application/pdf');
+    [personalInfo, allScores] = await Promise.all([
+      parsePersonalInfoWithAI(fileUrl, firstFile.bureau),
+      parseAllBureauScoresFromCombined(fileUrl),
+    ]);
+  }
+  return { light, personalInfo, allScores };
 }
 
 /**

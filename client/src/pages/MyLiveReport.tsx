@@ -53,6 +53,7 @@ interface AnalysisData {
   scores: CreditScore[];
   negativeItems: NegativeItem[];
   totalNegativeItems: number;
+  totalNegativeAccountsFromAnalysis: number;
   totalViolations: number;
   estimatedScoreIncrease: number;
   estimatedInterestSavings: number;
@@ -66,7 +67,7 @@ const BUREAU_LABELS: Record<string, string> = {
   experian: "Experian",
 };
 
-const MAX_ITEMS_PER_ROUND = 20;
+const MAX_ITEMS_PER_ROUND = 7;
 const ALL_BUREAUS: BureauCode[] = ["transunion", "equifax", "experian"];
 
 const normalizeBureauCode = (value: string): BureauCode | null => {
@@ -172,6 +173,15 @@ export default function MyLiveReport() {
           ? parsedViolationCounts[0]
           : parsedViolationCounts.reduce((sum, count) => sum + count, 0))
       : totalNegativeItems;
+    const parsedNegAccountCounts = creditReports
+      .map((report) => {
+        const parsedData = safeJsonParse(report.parsedData, null);
+        return parsedData && typeof parsedData.totalNegativeAccounts === "number" ? parsedData.totalNegativeAccounts : null;
+      })
+      .filter((count): count is number => typeof count === "number" && count > 0);
+    const totalNegativeAccountsFromAnalysis = parsedNegAccountCounts.length
+      ? Math.max(...parsedNegAccountCounts)
+      : totalNegativeItems;
     const conflictCount = negativeItems.filter((i) => i.hasConflicts).length;
     const estimatedScoreIncrease = Math.min(120, conflictCount * 15 + (totalNegativeItems - conflictCount) * 6);
     const totalBalance = negativeItems.reduce((sum, i) => sum + i.balance, 0);
@@ -212,7 +222,7 @@ export default function MyLiveReport() {
     });
   };
 
-  const selectTop20 = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
+  const selectTop7 = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
   const selectAll = () => setSelectedItems(allNegativeItems.slice(0, MAX_ITEMS_PER_ROUND).map(i => i.id));
 
   const selectedBureaus = useMemo(() => {
@@ -295,8 +305,18 @@ export default function MyLiveReport() {
           })}
         </div>
 
-        {/* Summary Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Summary Metrics — show both Negative Accounts & Violations so user can get letters */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card className="bg-red-50 border-2 border-red-200">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-red-700">Negative Accounts</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-900">{analysis.totalNegativeAccountsFromAnalysis}</div>
+              <p className="text-xs text-red-600 mt-1">Items on report</p>
+            </CardContent>
+          </Card>
           <Card className="bg-accent/10 border-2 border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-red-600">Total Violations</CardTitle>
@@ -304,7 +324,7 @@ export default function MyLiveReport() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-accent">{analysis.totalViolations}</div>
-              <p className="text-xs text-accent mt-1">Identified by AI</p>
+              <p className="text-xs text-accent mt-1">Disputable issues — generate letters</p>
             </CardContent>
           </Card>
           <Card className="bg-green-50 border-green-200">
@@ -340,8 +360,8 @@ export default function MyLiveReport() {
               <div className="flex flex-wrap items-center gap-3">
                 <p className="font-bold text-sm">Selected for Round 1: {selectedItems.length} / {MAX_ITEMS_PER_ROUND}</p>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={selectTop20} className="text-gray-700">
-                    Select Top 20
+                  <Button variant="outline" size="sm" onClick={selectTop7} className="text-gray-700">
+                    Select Top 7
                   </Button>
                   <Button variant="outline" size="sm" onClick={selectAll} className="text-gray-700">
                     Select All

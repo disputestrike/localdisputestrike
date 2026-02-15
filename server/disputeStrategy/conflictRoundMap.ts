@@ -1,14 +1,18 @@
 /**
- * Maps conflict types to dispute rounds per the new framework:
- * Round 1: Internal logic errors only (no cross-bureau)
- * Round 2: Internal conflicts within same bureau + furnisher escalation
- * Round 3: Cross-bureau + CFPB
+ * Maps conflict types to dispute rounds.
+ * Cross-bureau conflicts = HIGHEST success (75-85%) -> Round 1.
+ * Internal logic errors (impossible timeline etc) = Round 1.
+ * Within-bureau conflicts = Round 2. CFPB escalation = Round 3.
  */
 
 import type { Conflict } from '../conflictDetector';
 
 export const CONFLICT_TYPE_TO_ROUND: Record<string, 1 | 2 | 3> = {
-  // Round 1 - Internal logic errors only
+  // Round 1 - Cross-bureau (STRONGEST) + internal logic errors
+  cross_bureau_date: 1,
+  balance: 1,
+  contradictory_status: 1,
+  inconsistent_chargeoff_dates: 1,
   impossible_timeline: 1,
   last_activity_predates_opened: 1,
   date_opened_equals_closed: 1,
@@ -26,6 +30,8 @@ export const CONFLICT_TYPE_TO_ROUND: Record<string, 1 | 2 | 3> = {
   paid_medical_collection: 1,
   medical_debt_insurance_pending: 1,
   hipaa_violation: 1,
+  multiple_collectors: 1,
+  creditor_name_inconsistencies: 1,
 
   // Round 2 - Internal conflicts within bureau
   're-aging': 2,
@@ -35,7 +41,6 @@ export const CONFLICT_TYPE_TO_ROUND: Record<string, 1 | 2 | 3> = {
   account_age_exceeds_history: 2,
   balance_increase_post_chargeoff: 2,
   payment_history_mismatch: 2,
-  contradictory_status: 2,
   status_correction: 2,
   incorrect_account_type: 2,
   account_number_conflicts: 2,
@@ -45,12 +50,7 @@ export const CONFLICT_TYPE_TO_ROUND: Record<string, 1 | 2 | 3> = {
   inadequate_reinvestigation: 2,
   failure_to_provide_mov: 2,
 
-  // Round 3 - Cross-bureau
-  cross_bureau_date: 3,
-  inconsistent_chargeoff_dates: 3,
-  balance: 3,
-  multiple_collectors: 3,
-  creditor_name_inconsistencies: 3,
+  // Round 3 - CFPB escalation, identity, etc
   statute_of_limitations: 3,
   unverifiable_deficiency: 3,
   collection_exceeds_original: 3,
@@ -71,7 +71,6 @@ export const CONFLICT_TYPE_TO_ROUND: Record<string, 1 | 2 | 3> = {
   authorized_user_misreported: 3,
 
   // Fallback
-  status: 3,
   date: 3,
   previously_disputed: 3,
   missing_documentation: 3,
