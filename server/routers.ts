@@ -1284,7 +1284,17 @@ Be thorough and list every negative item found.`;
               negativeReason: preview.amountType || 'Negative item',
             });
           }
+        } else {
+          // Fallback: sync from parsedData if accountPreviews was missing but totalViolations exists
+          console.log('[SavePreview] No accountPreviews found, syncing from parsedData...');
+          await db.syncNegativeAccountsFromParsedData(userId);
         }
+
+        // Trigger the hybrid AI analysis immediately after saving the report
+        // This ensures the Dispute Manager is ready with rounds and strategy
+        console.log('[SavePreview] Triggering hybrid AI analysis for rounds...');
+        const { allocateAllRounds } = await import('./disputeStrategy');
+        await allocateAllRounds(userId).catch(e => console.error('[SavePreview] AI allocation failed:', e));
         
         // Save credit score to history if available
         if (analysis.creditScore) {

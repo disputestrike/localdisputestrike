@@ -238,6 +238,17 @@ export default function Checkout() {
         console.log('[Checkout] Saving preview analysis to database...');
         const opts = user ? { analysis } : { analysis, userId: checkoutUserId ?? undefined };
         await savePreviewAnalysisMutation.mutateAsync(opts);
+        
+        // Trigger the hybrid AI analysis immediately after saving the report
+        // This ensures the Dispute Manager is ready with rounds and strategy
+        console.log('[Checkout] Triggering hybrid AI analysis for rounds...');
+        // We use fetch() to trigger the server-side logic immediately
+        try {
+          await utils.creditReports.getRoundRecommendations.fetch();
+        } catch (e) {
+          console.warn('[Checkout] Round recommendation fetch failed (expected if not yet fully synced):', e);
+        }
+        
         sessionStorage.removeItem('previewAnalysis');
         localStorage.removeItem('previewAnalysis');
         await utils.creditReports.list.invalidate();

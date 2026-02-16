@@ -38,7 +38,7 @@ import { cn, safeJsonParse } from "@/lib/utils";
 
 const DashboardLayout = React.lazy(() => import("@/components/DashboardLayout"));
 import IdentityBridgeModal, { type IdentityBridgeData } from "@/components/IdentityBridgeModal";
-import QuickStartGuide from "@/components/QuickStartGuide";
+
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -46,7 +46,7 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const [isGeneratingLetters, setIsGeneratingLetters] = useState(false);
   const [showIdentityBridgeModal, setShowIdentityBridgeModal] = useState(false);
-  const [showQuickStart, setShowQuickStart] = useState(false);
+
 
   // Fetch data - ALL HOOKS AT TOP LEVEL
   const { data: userProfile } = trpc.profile.get.useQuery();
@@ -169,14 +169,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (authLoading || !user) return;
     
-    // Show Quick Start Guide for new users who haven't seen it
-    const hasSeenQuickStart = localStorage.getItem("hasSeenQuickStart");
-    if (!hasSeenQuickStart) {
-      const timer = setTimeout(() => {
-        setShowQuickStart(true);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
+
 
     // Show Onboarding Modal if profile is incomplete
     if (!userProfile?.isComplete && !hasAutoShownOnboarding) {
@@ -898,10 +891,7 @@ export default function Dashboard() {
           prefillData={prefillData}
         />
 
-        <QuickStartGuide 
-          open={showQuickStart} 
-          onOpenChange={setShowQuickStart} 
-        />
+
       </DashboardLayout>
     </React.Suspense>
   );
