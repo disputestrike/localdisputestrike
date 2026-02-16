@@ -79,8 +79,7 @@ export default function Home() {
         <div className="container">
           <div className="max-w-4xl mx-auto text-center space-y-8">
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold text-gray-900 leading-tight">
-              Strike <span className="text-orange-600">Precision</span> Into Your{" "}
-              <span className="text-orange-600">Credit Disputes</span>
+              Fix Your Credit with <span className="text-orange-600">AI Precision</span>. Strike Back at <span className="text-orange-600">Errors.</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 max-w-3xl mx-auto">
@@ -113,9 +112,9 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
+              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 text-white text-2xl px-10 sm:px-16 py-8 sm:py-10 rounded-full shadow-xl hover:scale-105 transition-all" asChild>
                 <Link href="/start">
-                  Start Free Analysis <ArrowRight className="ml-2" />
+                  Get Your Free Credit Analysis <ArrowRight className="ml-3 h-6 w-6" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="border-2 border-orange-600 text-orange-600 hover:bg-orange-50 text-xl px-8 sm:px-12 py-6 sm:py-7 rounded-full" asChild>
@@ -124,7 +123,7 @@ export default function Home() {
                 </Link>
               </Button>
             </div>
-            <p className="text-sm text-gray-500 mt-2">No credit card required. See all your violations for free.</p>
+            <p className="text-lg font-medium text-gray-600 mt-4">🚀 No Credit Card Required • Instant AI Analysis • 100% Secure</p>
             
             <div className="flex items-center justify-center gap-2 text-yellow-500">
               {[...Array(5)].map((_, i) => (

@@ -207,7 +207,7 @@ function generateEmailTemplate(params: {
         <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
           <tr>
             <td align="center">
-              <a href="${ctaUrl}" style="display: inline-block; background-color: #0f172a; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 6px; font-weight: 600; font-size: 16px;">${ctaText}</a>
+              <a href="${ctaUrl}" style="display: inline-block; background-color: #ea580c; color: #ffffff; text-decoration: none; padding: 16px 45px; border-radius: 50px; font-weight: 700; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">${ctaText}</a>
             </td>
           </tr>
         </table>
@@ -269,9 +269,9 @@ export async function sendTrialWelcomeEmail(
   name: string
 ): Promise<boolean> {
   const content = `
-    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Hey ${name},</p>
+    <p style="font-size: 18px; line-height: 1.6; color: #0f172a; margin-bottom: 20px;"><strong>Welcome to the Future of Credit Repair, ${name}!</strong></p>
     
-    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">Thank you for starting your <strong>Free Analysis</strong> with DisputeStrike! We're excited to help you improve your credit score.</p>
+    <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 20px;">You've just taken the first step toward financial freedom. Our AI is already hard at work scanning your reports for legal violations that the bureaus hope you'll never find.</p>
     
     <p style="font-size: 16px; line-height: 1.6; color: #333333; margin-bottom: 15px;"><strong>What's Next?</strong></p>
     
