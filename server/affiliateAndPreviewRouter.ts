@@ -7,6 +7,7 @@
 
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
+import rateLimit from 'express-rate-limit';
 import { extractTextFromPDFBuffer } from './_core/services/pdfParsingService';
 import {
   runPreviewAnalysis,
@@ -169,6 +170,21 @@ const uploadFields = upload.fields([
   { name: 'equifax', maxCount: 1 },
   { name: 'experian', maxCount: 1 },
 ]);
+
+/**
+ * AI Rate Limiter - Protects against excessive costs
+ * Limits free analysis to 3 per hour per IP
+ */
+const aiAnalysisLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 free analyses per hour
+  message: { 
+    error: "Free analysis limit reached.", 
+    message: "To prevent abuse, we limit free analyses to 3 per hour. Please try again later or sign up for a full account." 
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // 3-file upload + extraction + AI can take 3–5 minutes; avoid default timeouts
 const UPLOAD_ANALYZE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
@@ -497,7 +513,7 @@ export const uploadAnalyzeRouter = (() => {
   r.get('/upload-and-analyze', (_req, res) => {
     res.status(200).json({ ok: true, message: 'Use POST with FormData (transunion, equifax, or experian file field)' });
   });
-  r.post('/upload-and-analyze', (req, res, next) => {
+  r.post('/upload-and-analyze', aiAnalysisLimiter, (req, res, next) => {
     console.log('[Preview] POST /api/credit-reports/upload-and-analyze received');
     uploadAndAnalyzeMulter(req, res, () => {
       handleUploadAndAnalyze(req, res).catch((err) => {

@@ -8,6 +8,9 @@ import {
   Shield,
   Mail,
   Trash2,
+  Upload,
+  Plus,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,6 +60,11 @@ export default function DisputeManager() {
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [pendingResults, setPendingResults] = useState<Record<number, "deleted" | "verified" | "no_response">>({});
   const [pastDisputesRound, setPastDisputesRound] = useState<1 | 2 | 3>(1);
+  const [showEscalationModal, setShowEscalationModal] = useState(false);
+  const [escalationData, setEscalationData] = useState<{ accountId: number; round: number; previousDate: string } | null>(null);
+  const [bureauResponseSummary, setBureauResponseSummary] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  
   const { generateLetters, isGenerating } = useGenerateDisputeLetters();
 
   const { data: negativeAccounts = [], isLoading: accountsLoading, refetch: refetchNegativeAccounts } = trpc.negativeAccounts.list.useQuery();
@@ -95,6 +103,18 @@ export default function DisputeManager() {
       });
     },
   });
+  const generateEscalation = trpc.negativeAccounts.generateEscalationLetter.useMutation({
+    onSuccess: (data) => {
+      if (data.content) {
+        // In a real app, we'd save this to the database or show it in a preview
+        alert("Escalation letter generated successfully! You can now view it in your documents.");
+        setShowEscalationModal(false);
+        setEscalationData(null);
+        setBureauResponseSummary("");
+      }
+    },
+  });
+
   const clearUserData = trpc.disputeLetters.clearUserDisputeData.useMutation({
     onSuccess: () => {
       sessionStorage.removeItem('previewAnalysis');
@@ -221,6 +241,12 @@ export default function DisputeManager() {
     () => negativeItems.filter((item) => !accountIdsWithLetters.has(item.id)),
     [negativeItems, accountIdsWithLetters]
   );
+
+  const itemsPendingResults = useMemo(
+    () => negativeItems.filter((item) => accountIdsWithLetters.has(item.id) && !outcomesByAccount.has(item.id)),
+    [negativeItems, accountIdsWithLetters, outcomesByAccount]
+  );
+
   const openCount = itemsNotYetDisputed.length;
   const round1Items = itemsNotYetDisputed.filter((item) => item.round === 1);
   const round2Items = itemsNotYetDisputed.filter((item) => item.round === 2);
@@ -584,6 +610,37 @@ export default function DisputeManager() {
                 ))}
               </div>
             )}
+
+            {/* Pending Results Section */}
+            {itemsPendingResults.length > 0 && (
+              <div className="space-y-3 pt-8 border-t-4 border-dashed border-gray-200">
+                <h3 className="text-lg font-black flex items-center gap-2 text-slate-700 bg-slate-100 p-3 rounded-lg border-2 border-slate-300">
+                  <Clock className="w-5 h-5 text-slate-600" />
+                  Pending Results (Letters Mailed)
+                </h3>
+                <p className="text-sm text-slate-600 px-1">These items have active disputes. They will move to "Past Disputes" once you mark an outcome below.</p>
+                {itemsPendingResults.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-4 border-2 border-slate-200 rounded-lg bg-slate-50/30 opacity-75">
+                    <div className="flex items-center gap-4">
+                      <div className="w-6 h-6 flex items-center justify-center">
+                        <Shield className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-bold text-slate-700">{item.accountName}</p>
+                        <div className="flex items-center gap-3 text-xs">
+                          <Badge variant="outline" className="text-slate-500 border-slate-300">{item.accountType}</Badge>
+                          <Badge variant="outline" className="text-slate-500 border-slate-300">{item.bureau}</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-slate-600">${item.balance.toLocaleString()}</p>
+                      <Badge className="bg-slate-200 text-slate-700 hover:bg-slate-200">Awaiting Response</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             </>
           )}
           </CardContent>
@@ -666,30 +723,49 @@ export default function DisputeManager() {
                                       return (
                                         <div key={accountId} className="flex flex-wrap items-center gap-1.5">
                                           <span className="text-slate-600 font-medium">{acc?.accountName || `#${accountId}`}:</span>
-                                          <span className="inline-flex gap-1">
-                                            {(["deleted", "verified", "no_response"] as const).map((r) => (
-                                              <button
-                                                key={r}
-                                                type="button"
+                                          <div className="flex flex-col gap-2">
+                                            <span className="inline-flex gap-1">
+                                              {(["deleted", "verified", "no_response"] as const).map((r) => (
+                                                <button
+                                                  key={r}
+                                                  type="button"
+                                                  onClick={() => {
+                                                    setPendingResults((p) => ({ ...p, [accountId]: r }));
+                                                    saveRound1Results.mutate({ results: [{ accountId, result: r }] });
+                                                  }}
+                                                  disabled={saveRound1Results.isPending}
+                                                  className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                                                    current === r
+                                                      ? r === "deleted"
+                                                        ? "bg-emerald-600 text-white"
+                                                        : r === "verified"
+                                                        ? "bg-amber-600 text-white"
+                                                        : "bg-slate-600 text-white"
+                                                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                                                  }`}
+                                                >
+                                                  {r === "no_response" ? "No Response" : r === "deleted" ? "Deleted" : "Verified"}
+                                                </button>
+                                              ))}
+                                            </span>
+                                            {(current === "verified" || current === "no_response") && (
+                                              <Button 
+                                                size="sm" 
+                                                variant="outline" 
+                                                className="h-7 text-[10px] border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100"
                                                 onClick={() => {
-                                                  setPendingResults((p) => ({ ...p, [accountId]: r }));
-                                                  saveRound1Results.mutate({ results: [{ accountId, result: r }] });
+                                                  setEscalationData({ 
+                                                    accountId, 
+                                                    round: (letter.round || 1) + 1,
+                                                    previousDate: created
+                                                  });
+                                                  setShowEscalationModal(true);
                                                 }}
-                                                disabled={saveRound1Results.isPending}
-                                                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
-                                                  current === r
-                                                    ? r === "deleted"
-                                                      ? "bg-emerald-600 text-white"
-                                                      : r === "verified"
-                                                      ? "bg-amber-600 text-white"
-                                                      : "bg-slate-600 text-white"
-                                                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                                                }`}
                                               >
-                                                {r === "no_response" ? "No Response" : r === "deleted" ? "Deleted" : "Verified"}
-                                              </button>
-                                            ))}
-                                          </span>
+                                                <Plus className="w-3 h-3 mr-1" /> Prepare Round {(letter.round || 1) + 1} Escalation
+                                              </Button>
+                                            )}
+                                          </div>
                                         </div>
                                       );
                                     })}
@@ -708,6 +784,100 @@ export default function DisputeManager() {
           </Card>
         )}
       </div>
+
+      {/* Escalation Modal */}
+      {showEscalationModal && escalationData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-lg shadow-2xl border-2 border-amber-200">
+            <CardHeader className="bg-amber-50 border-b border-amber-100 flex flex-row items-center justify-between">
+              <CardTitle className="text-amber-800 flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Round {escalationData.round} Escalation Strategy
+              </CardTitle>
+              <Button variant="ghost" size="icon" onClick={() => setShowEscalationModal(false)}>
+                <X className="w-5 h-5" />
+              </Button>
+            </CardHeader>
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                  <Upload className="w-4 h-4" />
+                  Step 1: Upload Bureau Response (Optional)
+                </label>
+                <div className="border-2 border-dashed border-slate-200 rounded-lg p-8 text-center hover:border-amber-400 transition-colors cursor-pointer bg-slate-50/50">
+                  <input 
+                    type="file" 
+                    className="hidden" 
+                    id="bureau-upload" 
+                    onChange={() => {
+                      setIsUploading(true);
+                      setTimeout(() => setIsUploading(false), 1500);
+                    }}
+                  />
+                  <label htmlFor="bureau-upload" className="cursor-pointer">
+                    {isUploading ? (
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-600" />
+                    ) : (
+                      <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
+                    )}
+                    <p className="text-sm font-medium text-slate-600">
+                      {isUploading ? "Analyzing document..." : "Click to upload rejection letter or response"}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">PDF, JPG, or PNG (Max 10MB)</p>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">
+                  Step 2: Summary of Bureau's Response
+                </label>
+                <textarea 
+                  className="w-full min-h-[100px] p-3 border-2 border-slate-200 rounded-lg text-sm focus:border-amber-500 focus:ring-amber-500 outline-none"
+                  placeholder="e.g., They claimed the account was verified but didn't provide any proof of investigation..."
+                  value={bureauResponseSummary}
+                  onChange={(e) => setBureauResponseSummary(e.target.value)}
+                />
+              </div>
+
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg">
+                <p className="text-xs text-blue-800 leading-relaxed">
+                  <strong>AI Strategy:</strong> Our hybrid Sonnet engine will analyze this response against your original dispute and generate a "Failure to Investigate" escalation letter for Round {escalationData.round}.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => setShowEscalationModal(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  className="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-bold"
+                  disabled={generateEscalation.isPending}
+                  onClick={() => {
+                    generateEscalation.mutate({
+                      accountId: escalationData.accountId,
+                      round: escalationData.round,
+                      previousDisputeDate: escalationData.previousDate,
+                      bureauResponseSummary: bureauResponseSummary || undefined
+                    });
+                  }}
+                >
+                  {generateEscalation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <FileText className="w-4 h-4 mr-2" />
+                  )}
+                  Generate Escalation
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -13,6 +13,8 @@ import {
   prioritizationUser,
   LETTER_GENERATION_SYSTEM,
   letterGenerationUser,
+  ESCALATION_LETTER_SYSTEM,
+  escalationLetterUser,
 } from './prompts';
 
 const anthropic: Anthropic | null = process.env.ANTHROPIC_API_KEY
@@ -200,6 +202,55 @@ export async function generateLetterContent(ctx: LetterContext): Promise<string 
     return out;
   } catch (e) {
     console.error('[Claude] Letter generation failed:', e);
+    return null;
+  }
+}
+
+/**
+ * Generate escalation letter content (Round 2/3) using Sonnet
+ */
+export async function generateEscalationLetter(
+  ctx: LetterContext & { round: number },
+  previousDisputeDate: string,
+  bureauResponseSummary?: string,
+  newEvidenceSummary?: string
+): Promise<string | null> {
+  if (!anthropic) return null;
+
+  try {
+    const res = await anthropic.messages.create({
+      model: MODELS.sonnet,
+      max_tokens: 2048,
+      system: ESCALATION_LETTER_SYSTEM,
+      messages: [
+        {
+          role: 'user',
+          content: escalationLetterUser(
+            ctx,
+            previousDisputeDate,
+            bureauResponseSummary,
+            newEvidenceSummary
+          ),
+        },
+      ],
+    });
+
+    const usage = res.usage;
+    if (usage) {
+      recordUsage(
+        MODELS.sonnet,
+        usage.input_tokens,
+        usage.output_tokens,
+        'escalation_letter'
+      );
+    }
+
+    const text = res.content[0]?.type === 'text' ? res.content[0].text : '';
+    const out = text?.trim() || null;
+    if (out) console.log(`[Claude]   ✓ Sonnet generated Round ${ctx.round} escalation letter`);
+    return out;
+  } catch (e) {
+    console.error('[Claude] Escalation letter generation failed:', e);
     return null;
   }
 }

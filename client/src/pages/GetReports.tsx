@@ -115,6 +115,10 @@ export default function GetReports() {
       return;
     }
     
+    // Clear old analysis data before starting a new one
+    sessionStorage.removeItem('previewAnalysis');
+    localStorage.removeItem('previewAnalysis');
+
     setIsAnalyzing(true);
     setAnalysisProgress(0);
     setAnalysisStatus('Preparing files...');

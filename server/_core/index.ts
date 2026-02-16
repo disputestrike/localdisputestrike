@@ -46,10 +46,12 @@ async function startServer() {
         upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
       },
     },
-    crossOriginEmbedderPolicy: false, // Required for external resources
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
     crossOriginResourcePolicy: { policy: "cross-origin" },
     // X-Frame-Options - Prevent clickjacking
-    frameguard: { action: "deny" },
+    frameguard: false, // Relaxed for preview
     // X-Content-Type-Options - Prevent MIME sniffing
     noSniff: true,
     // X-XSS-Protection - Enable browser XSS filter
@@ -73,6 +75,7 @@ async function startServer() {
   
   // Allowed domain patterns for deployment platforms
   const allowedDomainPatterns = [
+    ".manus.computer",
     "manus.computer",
     "localhost",
     "railway.app",

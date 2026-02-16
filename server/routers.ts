@@ -1894,12 +1894,87 @@ Be thorough and list every negative item found.`;
 
     /**
      * Get round-based dispute recommendations (Round 1/2/3 allocation)
-     */
-    getRoundRecommendations: protectedProcedure.query(async ({ ctx }) => {
-      const { allocateAllRounds } = await import('./disputeStrategy');
-      return allocateAllRounds(ctx.user.id);
+        getRoundRecommendations: protectedProcedure
+    .query(async ({ ctx }) => {
+      const { allocateAllRounds } = await import("./disputeStrategy");
+      const allocation = await allocateAllRounds(ctx.user.id);
+      
+      // Persist AI-assigned rounds to the database for consistency
+      const { getDb, negativeAccounts } = await import("./db");
+      const { eq } = await import("drizzle-orm");
+      const dbInstance = await getDb();
+      if (dbInstance) {
+        const allScored = [...allocation.round1, ...allocation.round2, ...allocation.round3];
+        for (const s of allScored) {
+          // We update the conflictDetails to include the AI-assigned round and severity
+          // This ensures the UI stays consistent with the AI's latest recommendation
+          const details = {
+            aiRound: s.round,
+            aiSeverity: s.severity,
+            aiErrorTypes: s.errorTypes,
+            lastAiSync: new Date().toISOString()
+          };
+          await dbInstance.update(negativeAccounts)
+            .set({ conflictDetails: JSON.stringify(details) })
+            .where(eq(negativeAccounts.id, s.id));
+        }
+      }
+      
+      return allocation;
     }),
-  }),
+
+    generateEscalationLetter: protectedProcedure
+      .input(z.object({
+        accountId: z.number(),
+        round: z.number(),
+        previousDisputeDate: z.string(),
+        bureauResponseSummary: z.string().optional(),
+        newEvidenceSummary: z.string().optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { generateEscalationLetter, isClaudeAvailable } = await import("./claude");
+        const { getNegativeAccountById, getUserById } = await import("./db");
+        const { getBureauAddress, getBureauName } = await import("./disputeStrategy/letterTemplates/round1");
+        
+        if (!isClaudeAvailable()) {
+          throw new Error("AI letter generation is currently unavailable.");
+        }
+
+        const account = await getNegativeAccountById(input.accountId);
+        if (!account || account.userId !== ctx.user.id) {
+          throw new Error("Account not found.");
+        }
+
+      const user = await getUserById(ctx.user.id);
+      if (!user) throw new Error("User not found.");
+
+      const letterCtx = {
+        fullName: user.name || "Consumer",
+        currentAddress: "Address not provided", // Users table doesn't have address, usually in profile
+        date: new Date().toLocaleDateString(),
+          accountName: account.accountName || "Unknown",
+          accountNumber: account.accountNumber || "Unknown",
+          accountType: account.accountType || "Unknown",
+          balance: account.balance || "0",
+          status: account.status || "Unknown",
+          dateOpened: account.dateOpened || "Unknown",
+          lastActivity: account.lastActivity || "Unknown",
+          bureauName: getBureauName(account.bureau || "transunion"),
+          bureauAddress: getBureauAddress(account.bureau || "transunion"),
+          errorTypes: [], 
+          primaryError: "Escalation of previous dispute",
+          round: input.round,
+        };
+
+        const content = await generateEscalationLetter(
+          letterCtx,
+          input.previousDisputeDate,
+          input.bureauResponseSummary,
+          input.newEvidenceSummary
+        );
+
+        return { content };
+      }),  }),
 
   disputeLetters: router({
     downloadPdf: protectedProcedure

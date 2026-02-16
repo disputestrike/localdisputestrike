@@ -12,8 +12,9 @@ interface PreviewResultsProps {
   analysis?: any;
 }
 
-export default function PreviewResults({ analysis: propAnalysis }: PreviewResultsProps) {
-  const [, setLocation] = useLocation();
+export default function PreviewResults({ analysis: propAnalysis }: PreviewResultsP  const [location, setLocation] = useLocation();
+  const [hasConsented, setHasConsented] = useState(false);
+  const [showConsentError, setShowConsentError] = useState(false);
   
   // Get analysis from props or session storage - NO FALLBACK PLACEHOLDERS
   const sessionAnalysis = safeJsonParse(sessionStorage.getItem('previewAnalysis') || localStorage.getItem('previewAnalysis'), null);
@@ -134,6 +135,12 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
   const savePreviewMutation = trpc.creditReports.savePreviewAnalysis.useMutation();
 
   const handleUpgrade = async (tier: 'essential' | 'complete') => {
+    if (!hasConsented) {
+      setShowConsentError(true);
+      window.scrollTo({ top: document.getElementById('legal-consent')?.offsetTop || 0, behavior: 'smooth' });
+      return;
+    }
+
     // Save the report to the app NOW (before checkout) so after payment Dashboard/My Live Report show it
     if (analysis?.totalViolations != null) {
       try {
@@ -460,6 +467,47 @@ export default function PreviewResults({ analysis: propAnalysis }: PreviewResult
               <p className="text-sm text-primary font-semibold">+ {Math.max(0, totalNegativeAccounts - 2)} more accounts found</p>
               <p className="text-xs text-gray-500 mt-1">Choose a plan to see all accounts and generate dispute letters.</p>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Legal Consent & CROA Disclosure */}
+        <Card id="legal-consent" className={`border-2 ${showConsentError ? 'border-red-500 animate-pulse' : 'border-blue-200'} shadow-lg bg-blue-50/30`}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-bold text-blue-900 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-600" />
+              Legal Disclosures & Consent
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="bg-white border border-blue-100 rounded-lg p-4 h-48 overflow-y-auto text-xs text-gray-600 leading-relaxed space-y-3">
+              <p className="font-bold text-gray-900 uppercase">Consumer Credit File Rights Under State and Federal Law (CROA Disclosure)</p>
+              <p>You have a right to dispute inaccurate information in your credit report by contacting the credit bureau directly. However, neither you nor any "credit repair" company or credit repair organization has the right to have accurate, current, and verifiable information removed from your credit report. The credit bureau must remove accurate, negative information from your report only if it is over 7 years old. Bankruptcy information can be reported for 10 years.</p>
+              <p>You have a right to obtain a copy of your credit report from a credit bureau. You may be charged a reasonable fee. There is no fee, however, if you have been turned down for credit, employment, insurance, or a rental dwelling because of information in your credit report within the preceding 60 days. The credit bureau must provide someone to help you interpret the information in your credit file. You are entitled to receive a free copy of your credit report from each of the national consumer reporting agencies once every 12 months through AnnualCreditReport.com.</p>
+              <p>You have a right to sue a credit repair organization that violates the Credit Repair Organization Act. This law prohibits deceptive practices by credit repair organizations.</p>
+              <p className="font-bold text-gray-900 uppercase">DisputeStrike Service Agreement</p>
+              <p>By clicking "I Agree" and proceeding to checkout, you acknowledge that DisputeStrike is a software platform that assists you in exercising your rights under the Fair Credit Reporting Act (FCRA). We do not guarantee any specific credit score increase or the removal of any specific items. You are responsible for the accuracy of the information you provide and for mailing the generated letters (unless you choose the Complete plan).</p>
+            </div>
+            
+            <div className="flex items-start gap-3 p-3 bg-white border border-blue-100 rounded-lg">
+              <input 
+                type="checkbox" 
+                id="consent-checkbox" 
+                className="mt-1 w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                checked={hasConsented}
+                onChange={(e) => {
+                  setHasConsented(e.target.checked);
+                  if (e.target.checked) setShowConsentError(false);
+                }}
+              />
+              <label htmlFor="consent-checkbox" className="text-sm font-bold text-gray-800 cursor-pointer">
+                I have read and agree to the CROA Disclosure and DisputeStrike Service Agreement. I understand my rights to dispute information for free directly with the bureaus.
+              </label>
+            </div>
+            {showConsentError && (
+              <p className="text-xs font-bold text-red-600 flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3" /> Please agree to the disclosures before proceeding.
+              </p>
+            )}
           </CardContent>
         </Card>
 

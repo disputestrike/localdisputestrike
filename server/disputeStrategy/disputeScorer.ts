@@ -212,9 +212,14 @@ export async function scoreAccountsWithClaude(
       for (let i = 0; i < base.length; i++) {
         const a = byId.get(base[i].id);
         if (a) {
+          // CRITICAL: If rule-based engine found a Critical violation (Severity 9-10),
+          // we MUST keep it in Round 1 regardless of AI suggestion.
+          const isCritical = base[i].severity >= 9;
+          const newRound = isCritical ? 1 : a.round;
+          
           base[i] = {
             ...base[i],
-            round: a.round,
+            round: newRound as 1 | 2 | 3,
             severity: Math.min(10, Math.max(3, a.severity)),
           };
         }

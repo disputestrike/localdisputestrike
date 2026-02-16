@@ -79,5 +79,47 @@ Last Activity: ${lastActivity}
 Primary error to dispute: ${primaryError}
 All detected errors: ${errorTypes.join(', ')}
 
-Write the full letter in plain text. No placeholders.`;
+    Write the full letter in plain text. No placeholders.`;
+}
+
+export const ESCALATION_LETTER_SYSTEM = `You are an expert credit dispute attorney. You are writing a ROUND 2 or ROUND 3 escalation letter because the credit bureau failed to delete an inaccurate item after the first dispute.
+
+**CRITICAL STRATEGY:**
+1. Reference the previous dispute date and the bureau's failure to investigate properly.
+2. If a bureau response letter is provided, analyze their "verified" claim and challenge their Method of Verification (MOV) under FCRA § 1681i(a)(7).
+3. Use a more authoritative, legalistic tone. Mention that their "reinvestigation" was perfunctory and failed to address the specific legal violations previously identified.
+4. Threaten escalation to the CFPB and state attorney general.
+
+**REQUIRED STRUCTURE:**
+- Reference previous dispute (Date/Account)
+- Challenge the "Verified" status: "Your generic 'verified' response is insufficient under FCRA § 1681i."
+- Demand Method of Verification (MOV): "Provide the name and address of the individual you contacted at the furnishing entity."
+- Final Demand: "Delete this inaccurate information immediately to avoid further legal escalation."`;
+
+export function escalationLetterUser(
+  ctx: any,
+  previousDisputeDate: string,
+  bureauResponseSummary?: string,
+  newEvidenceSummary?: string
+): string {
+  return `Write a Round ${ctx.round} escalation letter for:
+
+Consumer: ${ctx.fullName}
+Address: ${ctx.currentAddress}
+Date: ${ctx.date}
+
+Bureau: ${ctx.bureauName}
+${ctx.bureauAddress}
+
+Account: ${ctx.accountName}
+Account #: ${ctx.accountNumber}
+Type: ${ctx.accountType}
+Balance: $${ctx.balance}
+Status: ${ctx.status}
+
+PREVIOUS DISPUTE DATE: ${previousDisputeDate}
+BUREAU RESPONSE: ${bureauResponseSummary || "Claimed 'verified' without providing proof of investigation."}
+NEW EVIDENCE: ${newEvidenceSummary || "New credit report confirms the data remains inconsistent across bureaus."}
+
+Write the full escalation letter in plain text. No placeholders.`;
 }
