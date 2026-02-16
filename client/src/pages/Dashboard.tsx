@@ -38,6 +38,7 @@ import { cn, safeJsonParse } from "@/lib/utils";
 
 const DashboardLayout = React.lazy(() => import("@/components/DashboardLayout"));
 import IdentityBridgeModal, { type IdentityBridgeData } from "@/components/IdentityBridgeModal";
+import QuickStartGuide from "@/components/QuickStartGuide";
 
 export default function Dashboard() {
   const [location, setLocation] = useLocation();
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const { user, loading: authLoading } = useAuth();
   const [isGeneratingLetters, setIsGeneratingLetters] = useState(false);
   const [showIdentityBridgeModal, setShowIdentityBridgeModal] = useState(false);
+  const [showQuickStart, setShowQuickStart] = useState(false);
 
   // Fetch data - ALL HOOKS AT TOP LEVEL
   const { data: userProfile } = trpc.profile.get.useQuery();
@@ -165,12 +167,25 @@ export default function Dashboard() {
   // MUST be before early returns - hooks must run unconditionally
   const [hasAutoShownOnboarding, setHasAutoShownOnboarding] = useState(false);
   useEffect(() => {
-    if (authLoading || !user || userProfile?.isComplete || hasAutoShownOnboarding) return;
-    const timer = setTimeout(() => {
-      setShowIdentityBridgeModal(true);
-      setHasAutoShownOnboarding(true);
-    }, 2500);
-    return () => clearTimeout(timer);
+    if (authLoading || !user) return;
+    
+    // Show Quick Start Guide for new users who haven't seen it
+    const hasSeenQuickStart = localStorage.getItem("hasSeenQuickStart");
+    if (!hasSeenQuickStart) {
+      const timer = setTimeout(() => {
+        setShowQuickStart(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+
+    // Show Onboarding Modal if profile is incomplete
+    if (!userProfile?.isComplete && !hasAutoShownOnboarding) {
+      const timer = setTimeout(() => {
+        setShowIdentityBridgeModal(true);
+        setHasAutoShownOnboarding(true);
+      }, 2500);
+      return () => clearTimeout(timer);
+    }
   }, [authLoading, user, userProfile?.isComplete, hasAutoShownOnboarding]);
 
   // Build prefill data for onboarding modal - MUST be before early returns (hooks rule)
@@ -881,6 +896,11 @@ export default function Dashboard() {
           onComplete={handleIdentityBridgeComplete}
           requiresIdAndUtility={userProfile?.subscriptionTier === 'essential'}
           prefillData={prefillData}
+        />
+
+        <QuickStartGuide 
+          open={showQuickStart} 
+          onOpenChange={setShowQuickStart} 
         />
       </DashboardLayout>
     </React.Suspense>
