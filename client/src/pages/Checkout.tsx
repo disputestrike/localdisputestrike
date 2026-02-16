@@ -53,7 +53,7 @@ const PLANS = {
 };
 
 // Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_placeholder');
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_51K84FCJbDEkzZWwH6JR6Vfr61NYfnSn4opYvV39cVD5GxzaAMgCMn4mEpBCTFxtRiAfxMPVPH6U1QR63Mobeg3Cw00iaK1HVws');
 
 // Payment Form Component (inside Elements provider)
 function PaymentForm({ 
