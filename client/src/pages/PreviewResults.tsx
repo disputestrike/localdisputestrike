@@ -12,7 +12,8 @@ interface PreviewResultsProps {
   analysis?: any;
 }
 
-export default function PreviewResults({ analysis: propAnalysis }: PreviewResultsP  const [location, setLocation] = useLocation();
+export default function PreviewResults({ analysis: propAnalysis }: PreviewResultsProps) {
+  const [location, setLocation] = useLocation();
   const [hasConsented, setHasConsented] = useState(false);
   const [showConsentError, setShowConsentError] = useState(false);
   
