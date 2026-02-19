@@ -1,0 +1,321 @@
+import "dotenv/config";
+import express from "express";
+import cookieParser from "cookie-parser";
+// import passport from "passport"; // Disabled - social login removed
+import { createServer } from "http";
+import helmet from "helmet";
+import cors from "cors";
+import rateLimit from "express-rate-limit";
+import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { registerOAuthRoutes } from "./oauth";
+import { appRouter } from "../routers";
+import { createContext } from "./context";
+import { serveStatic } from "./vite";
+import { startAllCronJobs } from "../cronJobs";
+import { getDb } from "../db/index";
+
+async function startServer() {
+  const app = express();
+  const server = createServer(app);
+
+  // Long timeouts for 3-file upload + AI analysis (can take 3–5 min)
+  const longTimeoutMs = 6 * 60 * 1000;
+  server.headersTimeout = longTimeoutMs;
+  server.requestTimeout = longTimeoutMs;
+
+  // Trust proxy for rate limiting behind reverse proxy
+  app.set('trust proxy', 1);
+  
+  // ============================================
+  // SECURITY MIDDLEWARE - ENTERPRISE GRADE
+  // ============================================
+  
+  // 1. HELMET - Security Headers (OWASP recommended)
+  // Sets various HTTP headers to protect against common attacks
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://js.stripe.com", "https://maps.googleapis.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
+        connectSrc: ["'self'", "https://api.stripe.com", "https://api.manus.im", "wss:", "ws:"],
+        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: process.env.NODE_ENV === "production" ? [] : null,
+      },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    // X-Frame-Options - Prevent clickjacking
+    frameguard: false, // Relaxed for preview
+    // X-Content-Type-Options - Prevent MIME sniffing
+    noSniff: true,
+    // X-XSS-Protection - Enable browser XSS filter
+    xssFilter: true,
+    // Referrer-Policy - Control referrer information
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    // HSTS - Force HTTPS (only in production)
+    hsts: process.env.NODE_ENV === "production" ? {
+      maxAge: 31536000, // 1 year
+      includeSubDomains: true,
+      preload: true,
+    } : false,
+  }));
+  
+  // 2. CORS - Cross-Origin Resource Sharing
+  const allowedOrigins = [
+    process.env.VITE_APP_URL || "http://localhost:3001",
+    "https://api.manus.im",
+    "https://js.stripe.com",
+  ];
+  
+  // Allowed domain patterns for deployment platforms
+  const allowedDomainPatterns = [
+    ".manus.computer",
+    "manus.computer",
+    "localhost",
+    "railway.app",
+    "up.railway.app",
+    "ondigitalocean.app",
+    "vercel.app",
+    "render.com",
+    "disputestrike.com",
+  ];
+  
+  app.use(cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, etc.)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin matches allowed origins list
+      if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+        return callback(null, true);
+      }
+      
+      // Check if origin matches any allowed domain pattern
+      if (allowedDomainPatterns.some(pattern => origin.includes(pattern))) {
+        return callback(null, true);
+      }
+      
+      // In development, allow all origins
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      
+      console.warn(`[CORS] Blocked origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  }));
+  
+  // 3. RATE LIMITING - Prevent brute force and DDoS
+  // General API rate limit
+  const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // 100 requests per 15 minutes
+    message: { error: "Too many requests, please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => {
+      // Skip rate limiting for static assets
+      return req.path.startsWith("/assets") || req.path.startsWith("/static");
+    },
+  });
+  
+  // Stricter rate limit for authentication endpoints
+  const authLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 10, // 10 attempts per hour
+    message: { error: "Too many authentication attempts, please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  
+  // Stricter rate limit for sensitive operations (payments, letter generation)
+  const sensitiveLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 20, // 20 requests per hour
+    message: { error: "Rate limit exceeded for sensitive operations." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  
+  // Apply rate limiters
+  app.use("/api/oauth", authLimiter);
+  app.use("/api/stripe", sensitiveLimiter);
+  app.use("/api/trpc", generalLimiter);
+  
+  // 4. REQUEST SIZE LIMITS - Prevent payload attacks
+  // CRITICAL: Stripe webhook MUST be registered BEFORE express.json()
+  // to preserve raw body for signature verification
+  app.use('/api/stripe', express.raw({ type: 'application/json', limit: '1mb' }));
+  const { stripeWebhookRouter } = await import('../stripeWebhook');
+  app.use('/api/stripe', stripeWebhookRouter);
+  
+  // Configure body parser with size limits
+  app.use(express.json({ limit: "50mb" })); // For file uploads
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  app.use(cookieParser()); // For admin session cookies
+  
+  // 5. SECURITY LOGGING
+  app.use((req, res, next) => {
+    // Log suspicious requests
+    const suspiciousPatterns = [
+      /(\.\.|\/etc\/|\/proc\/)/i, // Path traversal
+      /<script/i, // XSS attempt
+      /union\s+select/i, // SQL injection
+      /javascript:/i, // XSS via protocol
+    ];
+    
+    const fullUrl = req.originalUrl || req.url;
+    const isSuspicious = suspiciousPatterns.some(pattern => 
+      pattern.test(fullUrl) || pattern.test(JSON.stringify(req.body || {}))
+    );
+    
+    if (isSuspicious) {
+      console.warn(`[SECURITY] Suspicious request blocked: ${req.method} ${fullUrl} from ${req.ip}`);
+      return res.status(400).json({ error: "Invalid request" });
+    }
+    
+    next();
+  });
+  
+  // ============================================
+  // APPLICATION ROUTES
+  // ============================================
+  
+  // Health check endpoint for load balancers and monitoring
+  app.get('/api/health', (req, res) => {
+    res.status(200).json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime()
+    });
+  });
+  
+  // Admin authentication routes (separate from user OAuth)
+  const adminAuthRouter = (await import('../adminAuthRouter')).default;
+  app.use('/api/admin', adminAuthRouter);
+  
+  // Custom email/password authentication routes (for self-hosting)
+  const customAuthRouter = (await import('../customAuthRouter')).default;
+  app.use('/api/auth', customAuthRouter);
+  
+  // Social OAuth (Google, Facebook) authentication - DISABLED
+  // const { initializeSocialAuth, createSocialAuthRouter } = await import('../socialAuth');
+  // initializeSocialAuth();
+  // app.use(passport.initialize());
+  // app.use('/api/auth', createSocialAuthRouter());
+  
+  // File upload and serving (register BEFORE /api routers so POST /api/upload is not shadowed)
+  const { fileStorage } = await import('../s3Provider');
+  const multer = (await import('multer')).default;
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 50 * 1024 * 1024 },
+  });
+  app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      const ctx = await createContext({ req, res } as any);
+      const userId = ctx.user?.id;
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+      const bureau = req.body.bureau || 'document';
+      const fileName = req.file.originalname;
+      const fileKey =
+        (typeof req.body.fileKey === 'string' && req.body.fileKey.trim()) ||
+        fileStorage.generateFileKey(userId, bureau, fileName);
+      const result = await fileStorage.saveFile(fileKey, req.file.buffer, req.file.mimetype);
+      res.json({ success: true, fileUrl: result.fileUrl, fileKey: result.fileKey });
+    } catch (error) {
+      console.error('[Upload] Error:', error);
+      res.status(500).json({ error: 'Upload failed' });
+    }
+  });
+  app.get('/api/files/:key(*)', async (req, res) => {
+    try {
+      const key = decodeURIComponent(req.params.key);
+      const file = await fileStorage.getFile(key);
+      if (!file) return res.status(404).json({ error: 'File not found' });
+      res.setHeader('Content-Type', file.contentType);
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+      res.send(file.data);
+    } catch (error) {
+      console.error('[Files] Error:', error);
+      res.status(500).json({ error: 'Failed to retrieve file' });
+    }
+  });
+
+  // Affiliate tracking + Free preview upload-and-analyze (Compliance Audit Jan 2026)
+  const { default: affiliateAndPreviewRouter, uploadAnalyzeRouter } = await import('../affiliateAndPreviewRouter');
+  // Register upload-and-analyze FIRST so it cannot be shadowed (fixes 404)
+  app.use('/api/credit-reports', uploadAnalyzeRouter);
+  app.use('/api', affiliateAndPreviewRouter);
+
+  // V2 - Trial, subscription, and round management routes
+  const routesV2 = (await import('../routesV2')).default;
+  app.use('/api', routesV2);
+
+  // OAuth callback under /api/oauth/callback
+  registerOAuthRoutes(app);
+  
+  // tRPC API
+  app.use(
+    "/api/trpc",
+    createExpressMiddleware({
+      router: appRouter,
+      createContext,
+    })
+  );
+  
+  // development mode uses Vite, production mode uses static files
+  // Production build uses --define:process.env.NODE_ENV="production" so this branch is dead code;
+  // never imports vite-dev, avoiding ERR_MODULE_NOT_FOUND in containers.
+  if (process.env.NODE_ENV === "development") {
+    const { setupVite } = await import("./vite-dev");
+    await setupVite(app, server);
+  } else {
+    serveStatic(app);
+  }
+
+  const isDev = process.env.NODE_ENV === 'development';
+  const port = parseInt(process.env.PORT || "3001", 10);
+  const host = process.env.HOST || "0.0.0.0";
+
+  const db = await getDb();
+  if (!db) {
+    console.error("[Database] Database connection not available. Check DATABASE_URL and network access.");
+    process.exit(1);
+  }
+
+  // Ensure user_profiles has all required columns (self-heal if migrations weren't applied)
+  const { ensureUserProfilesSchema } = await import("../ensureUserProfilesSchema");
+  ensureUserProfilesSchema().catch((err) => console.warn("[Schema] ensureUserProfilesSchema:", err?.message));
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err?.code === 'EADDRINUSE') {
+      console.error(`\n[ERROR] Port ${port} is in use. Stop the process using it (e.g. another \`pnpm dev\` or the old server), then run \`pnpm dev\` again.\n`);
+      process.exit(1);
+    }
+    throw err;
+  });
+
+  server.listen(port, host, () => {
+    const url = host === "0.0.0.0" ? `http://localhost:${port}/` : `http://${host}:${port}/`;
+    console.log(`Server running on ${url}`);
+    console.log(`[SECURITY] Helmet, CORS, and Rate Limiting enabled`);
+    startAllCronJobs();
+  });
+}
+
+startServer().catch(console.error);
